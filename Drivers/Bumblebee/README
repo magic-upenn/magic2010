@@ -1,0 +1,4 @@
+Bumblebee driver for Matlab using the lib1394
+interface, written by Daniel D. Lee <ddlee@seas.upenn.edu>.
+Released under the GNU Public License.
+
