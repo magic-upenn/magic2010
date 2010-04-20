@@ -1,6 +1,6 @@
 MEX_EXT = $(shell mexext)
 
-INCLUDES = -I$(VIS_DIR)/include -I../../Common
+INCLUDES = -I. -I../../Common
 
 LIBDIRS = 
 
