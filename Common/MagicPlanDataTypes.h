@@ -73,7 +73,7 @@ typedef struct{
 	double *PerimeterArray;		// array of points, one point per row
   
   
-  static const char*  getIPCFormat() { return GP_ROBOT_PARAMETER_MSG; };
+  static const char*  getIPCFormat() { return GP_ROBOT_PARAMETER_FORM; };
   
 #ifdef MEX_IPC_SERIALIZATION
   INSERT_SERIALIZATION_DECLARATIONS
