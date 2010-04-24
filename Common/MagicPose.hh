@@ -3,7 +3,6 @@
 
 namespace Magic
 {
-
   struct Pose
   {
     double x;
