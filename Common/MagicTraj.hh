@@ -6,20 +6,20 @@
 namespace Magic
 {
 
-  struct TrajWaypoint
+  struct MotionTrajWaypoint
   {
     double x;
     double y;
     double yaw;
     double v;
     
-    TrajWaypoint() : x(0),y(0),yaw(0),v(0) {}
-    TrajWaypoint(double _x, double _y, double _yaw, double _v) :
+    MotionTrajWaypoint() : x(0),y(0),yaw(0),v(0) {}
+    MotionTrajWaypoint(double _x, double _y, double _yaw, double _v) :
       x(_x), y(_y), yaw(_yaw), v(_v) {}
     
-    #define MagicTrajWaypoint_IPC_FORMAT "{double,double,double,double}"
+    #define MagicMotionTrajWaypoint_IPC_FORMAT "{double,double,double,double}"
     static const char * getIPCFormat() { 
-      return MagicTrajWaypoint_IPC_FORMAT;
+      return MagicMotionTrajWaypoint_IPC_FORMAT;
     }
   
   #ifdef MEX_IPC_SERIALIZATION
@@ -28,22 +28,22 @@ namespace Magic
   };
   
   
-  struct Traj
+  struct MotionTraj
   {
     double t;
     int size;
-    TrajWaypoint * waypoints;
+    MotionTrajWaypoint * waypoints;
     
-    Traj() : t(0), size(0), waypoints(0) {}
-    Traj(double _t, int _size, TrajWaypoint * _waypoints) :
+    MotionTraj() : t(0), size(0), waypoints(0) {}
+    MotionTraj(double _t, int _size, MotionTrajWaypoint * _waypoints) :
       t(_t), size(_size), waypoints(_waypoints) {}
       
     //clean up
-    ~Traj() { if (waypoints) delete [] waypoints; waypoints = NULL;}
+    ~MotionTraj() { if (waypoints) delete [] waypoints; waypoints = NULL;}
       
-    #define MagicTraj_IPC_FORMAT "{double,int,<" MagicTrajWaypoint_IPC_FORMAT ":2>}"
+    #define MagicMotionTraj_IPC_FORMAT "{double,int,<" MagicMotionTrajWaypoint_IPC_FORMAT ":2>}"
     static const char * getIPCFormat(){
-      return MagicTraj_IPC_FORMAT;
+      return MagicMotionTraj_IPC_FORMAT;
     }
     
     #ifdef MEX_IPC_SERIALIZATION

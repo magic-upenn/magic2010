@@ -5,7 +5,7 @@ using namespace Magic;
 
 
 //TrajWaypoint
-int TrajWaypoint::ReadFromMatlab(mxArray * mxArr, int index)
+int MotionTrajWaypoint::ReadFromMatlab(mxArray * mxArr, int index)
 {
   int numFieldsRead = 0;
   
@@ -17,7 +17,7 @@ int TrajWaypoint::ReadFromMatlab(mxArray * mxArr, int index)
   return numFieldsRead;
 }
 
-int TrajWaypoint::CreateMatlabStructMatrix(mxArray ** mxArrPP,int m, int n)
+int MotionTrajWaypoint::CreateMatlabStructMatrix(mxArray ** mxArrPP,int m, int n)
 {
   const char * fields[]= { "x","y","yaw","v"};
   const int nfields = sizeof(fields)/sizeof(*fields);
@@ -26,7 +26,7 @@ int TrajWaypoint::CreateMatlabStructMatrix(mxArray ** mxArrPP,int m, int n)
   return 0;
 }
 
-int TrajWaypoint::WriteToMatlab(mxArray * mxArr, int index)
+int MotionTrajWaypoint::WriteToMatlab(mxArray * mxArr, int index)
 {
   MEX_WRITE_FIELD(mxArr,index,x);
   MEX_WRITE_FIELD(mxArr,index,y);
@@ -38,7 +38,7 @@ int TrajWaypoint::WriteToMatlab(mxArray * mxArr, int index)
 
 
 //Traj
-int Traj::ReadFromMatlab(mxArray * mxArr, int index)
+int MotionTraj::ReadFromMatlab(mxArray * mxArr, int index)
 {
   int numFieldsRead = 0;
   
@@ -54,7 +54,7 @@ int Traj::ReadFromMatlab(mxArray * mxArr, int index)
   if (numWaypointsMat != size)
     mexErrMsgTxt("size field must match the length of waypoints");
     
-  waypoints = new TrajWaypoint[size];
+  waypoints = new MotionTrajWaypoint[size];
   for (int ii=0; ii<size; ii++)
   {
     if (waypoints[ii].ReadFromMatlab(mxWaypoints,ii) < 1)
@@ -66,7 +66,7 @@ int Traj::ReadFromMatlab(mxArray * mxArr, int index)
   return numFieldsRead;
 }
 
-int Traj::CreateMatlabStructMatrix(mxArray ** mxArrPP,int m, int n)
+int MotionTraj::CreateMatlabStructMatrix(mxArray ** mxArrPP,int m, int n)
 {
   const char * fields[]= { "t","size","waypoints"};
   const int nfields = sizeof(fields)/sizeof(*fields);
@@ -75,13 +75,13 @@ int Traj::CreateMatlabStructMatrix(mxArray ** mxArrPP,int m, int n)
   return 0;
 }
 
-int Traj::WriteToMatlab(mxArray * mxArr, int index)
+int MotionTraj::WriteToMatlab(mxArray * mxArr, int index)
 {
   MEX_WRITE_FIELD(mxArr,index,t);
   MEX_WRITE_FIELD(mxArr,index,size);
   
   mxArray * mxWaypoints;
-  TrajWaypoint::CreateMatlabStructMatrix(&mxWaypoints,size,1);
+  MotionTrajWaypoint::CreateMatlabStructMatrix(&mxWaypoints,size,1);
   mxSetField(mxArr,index,"waypoints",mxWaypoints);
   
   for (int ii=0; ii<size; ii++)
