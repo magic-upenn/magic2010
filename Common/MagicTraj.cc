@@ -75,13 +75,13 @@ int Traj::CreateMatlabStructMatrix(mxArray ** mxArrPP,int m, int n)
   return 0;
 }
 
-int TrajWaypoint::WriteToMatlab(mxArray * mxArr, int index)
+int Traj::WriteToMatlab(mxArray * mxArr, int index)
 {
   MEX_WRITE_FIELD(mxArr,index,t);
   MEX_WRITE_FIELD(mxArr,index,size);
   
   mxArray * mxWaypoints;
-  TrajWaypoint::CreateMatlabStructMatrix(&mxWaypoints,size,1)
+  TrajWaypoint::CreateMatlabStructMatrix(&mxWaypoints,size,1);
   mxSetField(mxArr,index,"waypoints",mxWaypoints);
   
   for (int ii=0; ii<size; ii++)

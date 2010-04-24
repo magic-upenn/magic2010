@@ -49,7 +49,8 @@ namespace Magic
     #ifdef MEX_IPC_SERIALIZATION
       INSERT_SERIALIZATION_DECLARATIONS 
     #endif
-  }
+  };
 
 }
 #endif //MAGIC_TRAJ_HH
+
