@@ -4,10 +4,10 @@ INCLUDES = -I. -I../../Common
 
 LIBDIRS = 
 
-DATA_TYPES = GP_MAP_DATA GP_ROBOT_PARAMETER GP_POSITION_UPDATE GP_FULL_UPDATE GP_SHORT_UPDATE GP_TRAJECTORY MotionTraj
+DATA_TYPES = GP_MAP_DATA GP_ROBOT_PARAMETER GP_POSITION_UPDATE GP_FULL_UPDATE GP_SHORT_UPDATE GP_TRAJECTORY MotionTraj Pose
 
-HEADERS = MexIpcSerialization.hh MagicPlanDataTypes.h MagicPlanDataTypes.c MagicTraj.hh MagicTraj.cc
-NAMESPACES = 
+HEADERS = MexIpcSerialization.hh MagicPlanDataTypes.h MagicPlanDataTypes.c MagicTraj.hh MagicTraj.cc MagicPose.hh MagicPose.cc
+NAMESPACES = Magic
 
 all: template.cc
 	for i in $(DATA_TYPES) ; \
