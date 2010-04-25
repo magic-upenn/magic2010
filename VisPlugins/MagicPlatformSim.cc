@@ -7,6 +7,7 @@
 #endif
 
 #include "MagicHostCom.hh"
+#include "VehicleDynamics.hh"
 #include "Timer.hh"
 
 #define VIS_PLUGIN MagicPlatformSimPlugin
@@ -33,15 +34,13 @@ namespace vis
     /// \brief Update the plugin
     public: void UpdatePlugin();
     
-    private: void Simulate(double dt);
-    
-    double sx,sy,sz,svx,svy,svz,sv;
-    double sroll,spitch,syaw,swroll,swpitch,swyaw;
-    
+    VehicleDynamics * dyn;
     IPCMailbox * controlMailbox;
     string robotName;
     string encodersMsgName;
     Upenn::Timer timer0;
+
+    double vDes,wDes;
 
   };
 }
@@ -54,26 +53,26 @@ using namespace gazebo;
 // Constructor
 VIS_PLUGIN::VIS_PLUGIN()
 {
-  x=y=z=vx=vy=vz=v=0;
-  roll=pitch=yaw=wroll=wpitch=wyaw=0;
+  this->dyn = new VehicleDynamics();
+  this->controlMailbox = NULL;
+  this->vDes=0;
+  this->wDes=0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Destructor
 VIS_PLUGIN::~VIS_PLUGIN()
 {
+  if (this->dyn) delete this->dyn;
+  if (this->controlMailbox) delete this->controlMailbox;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Load the configuration from xml file
 void VIS_PLUGIN::LoadPlugin()
 {
-  this->sx     = this->x;
-  this->sy     = this->y;
-  this->sz     = this->z;
-  this->sroll  = this->roll;
-  this->spitch = this->pitch;
-  this->syaw   = this->yaw;
+  this->dyn->SetXYZ(this->x,this->y,this->z);
+  this->dyn->SetRPY(this->roll,this->pitch,this->yaw);
   
   this->robotName = this->node->GetString("robotName","",REQIRED);
 }
@@ -103,29 +102,27 @@ void VIS_PLUGIN::ShutdownPlugin()
 
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Shutdown the plugin
-void VIS_PLUGIN::Simulate(double dt)
-{
-
-
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Update the plugin
 void VIS_PLUGIN::UpdatePlugin()
 {
+  if (this->controlMailbox->IsFresh())
+  {
+    VelocityCmd * cmd = (VelocityCmd*)this->controlMailbox->GetData();
+    this->vDes = cmd->v;
+    this->wDes = cmd->w;
+    this->dyn->SetVW(this->vDes,this->wDes);
+  }
+
   double dt = this->timer0.Toc();
   this->timer0.Tic();
-  
-  this->Simulate(dt);
+
+  this->dyn->Simulate(dt);
   
   
   Magic::EncoderCounts counts;
-  counts.fr = 0;
-  counts.fl = 0;
-  counts.rr = 0;
-  counts.rl = 0;
+  this->dyn->GetCounts(&counts);
   
   if (IPC_publishData(this->encodersMsgName.c_str(),&counts) != IPC_OK)
     vthrow("could not publish encoder message\n");
