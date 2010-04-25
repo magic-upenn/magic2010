@@ -1,14 +1,13 @@
-INCLUDES = $(shell xml2-config --cflags)
+include $(MAGIC_DIR)/Makefile.mk
+
 CFLAGS   = -Wall -fPIC
-LIB_DIR = ../../lib
-HEADER_DIR = ../../include
 
 OBJFILES := $(patsubst %.cc,%.o,$(wildcard *.cc))
 
 libgz.a: $(OBJFILES)
 	ar -rcs $@ $^
-	cp $@ $(LIB_DIR)
-	cp *.hh $(HEADER_DIR)
+	cp $@ $(MAGIC_LIB_DIR)
+	cp *.hh $(MAGIC_INCLUDE_DIR)
 	
 
 all : libgz.a

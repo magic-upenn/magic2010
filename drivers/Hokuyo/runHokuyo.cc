@@ -209,6 +209,7 @@ int main(int argc, char * argv[])
 
         //publish messages
         IPC_publishData(lidarScanMsgName.c_str(),&lidarScan);
+        printf(".");fflush(stdout);
       }
     }
 
