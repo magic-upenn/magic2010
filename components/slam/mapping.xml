@@ -1,0 +1,133 @@
+<?xml version="1.0"?>
+
+<vis>
+
+  <gui>
+    <size>800 600</size>
+    <name>Vis</name>
+    <menuOn>0</menuOn>
+    <frame>
+      <frameRate>30</frameRate>
+      <camera>
+        <name>MainCam</name>
+        <position>-0.8 0 2</position>
+        <lookAt>0 0 0</lookAt>
+        <clipDist>1</clipDist>
+        <ortho>10 10 10</ortho>
+      </camera>
+    </frame>
+  </gui>
+
+  <plugin>
+    <id>light1</id>
+    <filename>Light.so</filename>
+    <position>0 0 100</position>
+    <diffuse>1 1 1</diffuse>
+    <specular>1 1 1</specular>
+  </plugin>
+
+
+<!--
+  <ipcHost>192.168.1.123</ipcHost>
+/-->
+
+
+  <plugin>
+    <id>grid</id>
+    <filename>Grid.so</filename>
+    <segments>10</segments>
+    <range>50 50</range>
+    <res>1 1</res>
+  </plugin>
+
+<!--
+  <plugin>
+    <id>sky</id>
+    <filename>Sky.so</filename>
+  </plugin>
+
+  <plugin>
+    <id>floor1</id>
+    <filename>Plane.so</filename>
+    <segments>10</segments>
+    <range>50 50</range>
+    <material>carpet</material>
+  </plugin>
+
+/-->
+
+
+  <plugin>
+    <id>ambient</id>
+    <filename>Ambient.so</filename>
+    <color>1 1 1</color>
+  </plugin>
+
+
+  <plugin>
+    <id>axes</id>
+    <filename>Axes.so</filename>
+    <length>20 20 20</length>
+  </plugin>
+
+  <plugin>
+    <id>robot</id>
+    <filename>Hummingbird.so</filename>
+
+   </plugin>
+
+   <plugin>
+    <id>matchedPoints</id>
+    <filename>PointCloud.so</filename>
+    <pointSize>0.05 0.05 1.0</pointSize>
+  </plugin>
+
+
+   <plugin>
+      <id>lidar0Points</id>
+      <filename>PointCloud.so</filename>
+      <pointSize>0.05 0.05 0.05</pointSize>
+    </plugin>
+
+   <plugin>
+      <id>pointCloud</id>
+      <filename>PointCloud.so</filename>
+      <pointSize>0.05 0.05 0.05</pointSize>
+    </plugin>
+
+    <plugin>
+      <id>lidar1Points</id>
+      <filename>PointCloud.so</filename>
+      <pointSize>0.05 0.05 0.05</pointSize>
+    </plugin>
+
+
+  <plugin>
+    <id>map2d</id>
+    <filename>PointCloud.so</filename>
+    <pointSize>0.05 0.05 0.05</pointSize>
+  </plugin>
+
+  <plugin>
+    <id>map3d</id>
+    <filename>PointCloud.so</filename>
+    <pointSize>0.05 0.05 0.05</pointSize>
+  </plugin>
+
+  
+  <plugin>
+    <id>heightmap</id>
+    <filename>Surface2D.so</filename>
+    <alphaMult>1</alphaMult>
+
+    <plugin>
+      <id>colormap</id>
+      <filename>CmJet.so</filename>
+      <min_val>0</min_val>
+      <max_val>1</max_val>
+    </plugin>
+
+  </plugin>
+  
+
+</vis>
