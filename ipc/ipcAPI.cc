@@ -1,7 +1,7 @@
 /* 
   status = ipcAPI(args);
 
-  Matlab Unix MEX file for interfacing to IPC 3.7, which can be
+  Matlab Unix MEX file for interfacing to IPC 3.8.5, which can be
   found here: http://www.cs.cmu.edu/afs/cs/project/TCA/www/ipc/index.html
 
   compile with:
@@ -102,12 +102,53 @@ void FlushLocalQueue()
   }
 }
 
-void mexExit(void){
+void mexExit(void)
+{
 	printf("Exiting ipcAPI\n"); fflush(stdout);
   FlushLocalQueue();
 	IPC_disconnect();
   subscribed_message_names.clear();
   connected=false;
+}
+
+//convert the messages to matlab data structures
+void ProcessMessages(mxArray ** plhs)
+{
+  //if there are no messages, return empty matrix
+  if (ipc_messages.empty())
+  {
+    plhs[0] = mxCreateDoubleMatrix(0,0,mxREAL);
+    return;
+  }
+
+  //if there are messages, return all of them starting from the oldest one
+  const char * fields[]= {"name","data"};
+  const int nfields = sizeof(fields)/sizeof(*fields);
+  int n_messages = ipc_messages.size();
+  plhs[0] = mxCreateStructMatrix(n_messages,1,nfields,fields);
+
+  for (int m=0; m < n_messages; m++)
+  {
+    MSG_INFO * message = &(ipc_messages.front());
+    mxSetField(plhs[0],m,"name",mxCreateString(message->name.c_str()));
+
+    //allocate memory for the message payload
+    int dims[2];
+    dims[0] = 1;
+    dims[1] = message->n_bytes;
+    mxArray * messArray = mxCreateNumericArray(2,dims,mxUINT8_CLASS,mxREAL);
+
+    //copy data from IPC buffer to output array to matlab    
+    memcpy((char *)mxGetPr(messArray), message->ipc_data_ptr, message->n_bytes);
+    mxSetField(plhs[0],m,"data",messArray);
+
+    //free IPC memory
+    IPC_freeByteArray(message->ipc_data_ptr);
+
+    //pop the message that just has been extracted
+    ipc_messages.pop_front();
+  }
+
 }
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -173,7 +214,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     //set the atExit function
 		mexAtExit(mexExit);
 
-    plhs[0]=mxCreateDoubleScalar(0);
+    plhs[0]=mxCreateDoubleScalar(1);
     return;
 	}
 
@@ -184,7 +225,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	  IPC_disconnect();
     subscribed_message_names.clear();
     connected = false;
-    plhs[0] = mxCreateDoubleScalar(0);
+    plhs[0] = mxCreateDoubleScalar(1);
   }
 
   //Define message of a particular type. All messages must be defined prior to sending
@@ -214,7 +255,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	  if (IPC_defineMsg(msg_name, IPC_VARIABLE_LENGTH, formatString) != IPC_OK) //NULL for raw data
       mexErrMsgTxt("ipcApi: define: Could not define ipc message type");
 
-    plhs[0] = mxCreateDoubleScalar(0);
+    plhs[0] = mxCreateDoubleScalar(1);
     return;
   }
 
@@ -242,7 +283,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       mexErrMsgTxt(err.c_str());
     }
 
-    //get pointer to teh data
+    //get pointer to the data
     char * send_buff = (char *) mxGetPr(prhs[2]);
 
     //get number of chars to send
@@ -256,7 +297,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     printf("ipcAPI: publish: published message of type '%s'\n",msg_name);
 #endif
 
-    plhs[0]=mxCreateDoubleScalar(0);
+    plhs[0]=mxCreateDoubleScalar(1);
     return;
   }
 
@@ -299,7 +340,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     printf("ipcAPI: publishVC: published message of type '%s'\n",msg_name);
 #endif
 
-    plhs[0]=mxCreateDoubleScalar(0);
+    plhs[0]=mxCreateDoubleScalar(1);
     return;
   }
 
@@ -321,7 +362,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     if (subscribed_message_names.find(string(msg_name)) != subscribed_message_names.end())
     {
       cout<<"ipcAPI: subscribe: Warning: already subscribed to message type "<<msg_name<<endl;        
-      plhs[0] = mxCreateDoubleScalar(0);
+      plhs[0] = mxCreateDoubleScalar(1);
       return;
     }
 
@@ -334,7 +375,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
     subscribed_message_names.insert(string(msg_name));
 
-    plhs[0] = mxCreateDoubleScalar(0);
+    plhs[0] = mxCreateDoubleScalar(1);
     return;
   }
 
@@ -375,13 +416,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       subscribed_message_names.erase(it);
     }
 
-    plhs[0] = mxCreateDoubleScalar(0);
+    plhs[0] = mxCreateDoubleScalar(1);
     return;
   }
 
-  //return a message to matlab. If there are messages already waiting in the local queue,
-  //the process will check for new messages but not block
-  else if (strcasecmp(command, "receive") == 0)
+  //receive and return a message to matlab.
+  else if (strcasecmp(command, "receive") == 0 || strcasecmp(command, "listenWait") == 0)
   {
     if (!connected)
       mexErrMsgTxt("ipcAPI: receive: not connected to ipc");
@@ -393,52 +433,64 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       if (timeout_ms < 0)
         mexErrMsgTxt("ipcAPI: receive: bad value for timeout_ms");
     }
+    
+    IPC_listenWait(timeout_ms);      
+    
+    //convert the messages to matlab data structures
+    ProcessMessages(plhs);
 
-    if (ipc_messages.empty())
-      //IPC_listenClear(timeout_ms);
-      IPC_listen(timeout_ms);
-      //IPC_listenWait(timeout_ms);
-      
-    //else
-    //  IPC_listenClear(0);
-      //IPC_listen(0);
-
-    //if there are no messages, return empty matrix
-    if (ipc_messages.empty())
-    {
-      plhs[0] = mxCreateDoubleMatrix(0,0,mxREAL);
-      return;
-    }
-
-    //if there are messages, return the oldest one
-    const char * fields[]= {"name","data"};
-    const int nfields = sizeof(fields)/sizeof(*fields);
-    int n_messages = ipc_messages.size();
-    plhs[0] = mxCreateStructMatrix(n_messages,1,nfields,fields);
-
-    for (int m=0; m < n_messages; m++)
-    {
-      MSG_INFO * message = &(ipc_messages.front());
-      mxSetField(plhs[0],m,"name",mxCreateString(message->name.c_str()));
-
-      //allocate memory for the message payload
-      int dims[2];
-      dims[0] = 1;
-      dims[1] = message->n_bytes;
-      mxArray * messArray = mxCreateNumericArray(2,dims,mxUINT8_CLASS,mxREAL);
-
-      //copy data from IPC buffer to output array to matlab    
-      memcpy((char *)mxGetPr(messArray), message->ipc_data_ptr, message->n_bytes);
-      mxSetField(plhs[0],m,"data",messArray);
-
-      //free IPC memory
-      IPC_freeByteArray(message->ipc_data_ptr);
-
-      //pop the message that just has been extracted
-      ipc_messages.pop_front();
-    }
     return;
   }
+  
+  //receive return a message to matlab. If there are messages already waiting in the local queue,
+  //the process will check for new messages but not block
+  else if (strcasecmp(command, "listen") == 0)
+  {
+    if (!connected)
+      mexErrMsgTxt("ipcAPI: listen: not connected to ipc");
+
+    int timeout_ms = 0;
+    if (nrhs == 2)
+    {
+      timeout_ms = (int)mxGetPr(prhs[1])[0];
+      if (timeout_ms < 0)
+        mexErrMsgTxt("ipcAPI: listen: bad value for timeout_ms");
+    }
+
+    //if there are already messages that are buffered, don't call ipc to receive more
+    if (ipc_messages.empty())
+      IPC_listen(timeout_ms);
+      
+    
+    //convert the messages to matlab data structures
+    ProcessMessages(plhs);
+
+    return;
+  }
+  
+  else if (strcasecmp(command, "listenClear") == 0)
+  {
+    if (!connected)
+      mexErrMsgTxt("ipcAPI: listenClear: not connected to ipc");
+
+    int timeout_ms = 0;
+    if (nrhs == 2)
+    {
+      timeout_ms = (int)mxGetPr(prhs[1])[0];
+      if (timeout_ms < 0)
+        mexErrMsgTxt("ipcAPI: listenClear: bad value for timeout_ms");
+    }
+
+    IPC_listenClear(timeout_ms);
+      
+    
+    //convert the messages to matlab data structures
+    ProcessMessages(plhs);
+
+    return;
+  }
+  
+  
 
   //Set the maximum queue length for a particular message.
   //Oldest messages are discarded.
@@ -465,7 +517,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     if (IPC_setMsgQueueLength(msg_name,queue_length) != IPC_OK)
       mexErrMsgTxt("ipcAPI: set_msg_queue_length: could not set queue length");
 
-    plhs[0] = mxCreateDoubleScalar(0);
+    plhs[0] = mxCreateDoubleScalar(1);
     return;
   }
 
@@ -487,7 +539,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     if (IPC_setCapacity(capacity) != IPC_OK)
       mexErrMsgTxt("ipcAPI: set_capacity: could not set capacity"); 
   
-    plhs[0] = mxCreateDoubleScalar(0);
+    plhs[0] = mxCreateDoubleScalar(1);
     return;
   }
 
@@ -499,7 +551,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     
     FlushLocalQueue();
   
-    plhs[0] = mxCreateDoubleScalar(0);
+    plhs[0] = mxCreateDoubleScalar(1);
     return;
   }
 
@@ -514,7 +566,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     while(!start)
       IPC_listen(10);
     
-    plhs[0] = mxCreateDoubleScalar(0);
+    plhs[0] = mxCreateDoubleScalar(1);
     return;
   }
 
