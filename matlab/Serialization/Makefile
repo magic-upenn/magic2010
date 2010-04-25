@@ -1,12 +1,12 @@
+include $(MAGIC_DIR)/Makefile.mk
+
+INCLUDES += -I$(MAGIC_DIR)/common/dataTypes -I.
+
 MEX_EXT = $(shell mexext)
 
-INCLUDES = -I. -I../../Common
+DATA_TYPES = GP_MAP_DATA GP_ROBOT_PARAMETER GP_POSITION_UPDATE GP_FULL_UPDATE GP_SHORT_UPDATE GP_TRAJECTORY MotionTraj Pose LidarScan ServoState VelocityCmd EncoderCounts
 
-LIBDIRS = 
-
-DATA_TYPES = GP_MAP_DATA GP_ROBOT_PARAMETER GP_POSITION_UPDATE GP_FULL_UPDATE GP_SHORT_UPDATE GP_TRAJECTORY MotionTraj Pose
-
-HEADERS = MexIpcSerialization.hh MagicPlanDataTypes.h MagicPlanDataTypes.c MagicTraj.hh MagicTraj.cc MagicPose.hh MagicPose.cc
+HEADERS = MexIpcSerialization.hh MagicPlanDataTypes.h MagicPlanDataTypes.c MagicTraj.hh MagicTraj.cc MagicPose.hh MagicPose.cc MagicSensorDataTypes.hh MagicHostCom.hh MagicHostCom.cc
 NAMESPACES = Magic
 
 all: template.cc
