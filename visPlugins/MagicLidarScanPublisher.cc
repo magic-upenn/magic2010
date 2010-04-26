@@ -76,7 +76,7 @@ void MagicLidarScanPublisher::LoadPlugin()
 void MagicLidarScanPublisher::InitializePlugin()
 {
   if (IPC_defineMsg(this->ipcMsgName.c_str(),IPC_VARIABLE_LENGTH,
-                    UavPlanning::LidarScan::getIPCFormat()) != IPC_OK)
+                    Magic::LidarScan::getIPCFormat()) != IPC_OK)
       vthrow("could not define message");
 }
 

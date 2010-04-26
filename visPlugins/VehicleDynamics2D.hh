@@ -1,5 +1,5 @@
-#ifndef VEHICLE_DYNAMICS_HH
-#define VEHICLE_DYNAMICS_HH
+#ifndef VEHICLE_DYNAMICS_2D_HH
+#define VEHICLE_DYNAMICS_2D_HH
 
 #include <stdint.h>
 #include "MagicHostCom.hh"
@@ -13,10 +13,10 @@
 
 namespace Magic
 {
-  class VehicleDynamics
+  class VehicleDynamics2D
   {
-    public: VehicleDynamics();
-    public: ~VehicleDynamics();
+    public: VehicleDynamics2D();
+    public: ~VehicleDynamics2D();
 
     //simulate the dynamics for dt
     public: int Simulate(double dt);
@@ -44,8 +44,8 @@ namespace Magic
     
     private: int16_t fr, fl, rr, rl;
     private: uint16_t cntr;
-    private: vmin,vmax,wmin,wmax;
+    private: double vmin,vmax,wmin,wmax;
   };
 }
-#endif //VEHICLE_DYNAMICS_HH
+#endif //VEHICLE_DYNAMICS_2D_HH
 

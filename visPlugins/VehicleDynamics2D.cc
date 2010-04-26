@@ -1,11 +1,11 @@
-#include "VehicleDynamics.hh"
+#include "VehicleDynamics2D.hh"
 #include "Timer.hh"
 
 using namespace Magic;
 using namespace Upenn;
 
 
-VehicleDynamics::VehicleDynamics()
+VehicleDynamics2D::VehicleDynamics2D()
 {
   this->x = 0;
   this->y = 0;
@@ -29,34 +29,35 @@ VehicleDynamics::VehicleDynamics()
   
   this->cntr =0;
   
-  this->vmin = VEHICLE_DYNAMICS_MAX_V;
-  this->vmax = VEHICLE_DYNAMICS_MIN_V;
-  this->wmin = VEHICLE_DYNAMICS_MAX_W;
-  this->wmax = VEHICLE_DYNAMICS_MIN_W;
+  this->vmin = VEHICLE_DYNAMICS_MIN_V;
+  this->vmax = VEHICLE_DYNAMICS_MAX_V;
+  this->wmin = VEHICLE_DYNAMICS_MIN_W;
+  this->wmax = VEHICLE_DYNAMICS_MAX_W;
   
   
   this->ResetCounts();
 }
 
-VehicleDynamics::~VehicleDynamics()
+VehicleDynamics2D::~VehicleDynamics2D()
 {
 }
 
 
-int VehicleDynamics::Simulate(double dt)
+int VehicleDynamics2D::Simulate(double dt)
 {
 
   //TODO: add dynamics to velocity
   this->v = this->vDes;
   this->w = this->wDes;
-  
+
+ 
   if (this->v > this->vmax) this->v = this->vmax;
   if (this->v < this->vmin) this->v = this->vmin;
   if (this->w > this->wmax) this->w = this->wmax;
   if (this->w < this->wmin) this->w = this->wmin;
 
   //simulate differential drive dynamics
-  bool wIsNonZero=fabs(control->w) > 0.001;
+  bool wIsNonZero=fabs(this->w) > 0.001;
   
   int nCountsPerMeter = 500; //???
   double r = 0.22; //robot radius
@@ -68,6 +69,10 @@ int VehicleDynamics::Simulate(double dt)
   this->rr += right;
   this->fl += left;
   this->rl += left;
+
+  double sinTh=sin(this->yaw);
+  double cosTh=cos(this->yaw);
+  double Vdt=this->v*dt;
   
   if (wIsNonZero)
   {
@@ -100,7 +105,7 @@ int VehicleDynamics::Simulate(double dt)
 }
 
 
-int VehicleDynamics::SetXYZ(double x, double y, double z)
+int VehicleDynamics2D::SetXYZ(double x, double y, double z)
 {
   this->x = x;
   this->y = y;
@@ -109,7 +114,7 @@ int VehicleDynamics::SetXYZ(double x, double y, double z)
   return 0;
 }
 
-int VehicleDynamics::SetRPY(double roll, double pitch, double yaw)
+int VehicleDynamics2D::SetRPY(double roll, double pitch, double yaw)
 {
   this->roll  = roll;
   this->pitch = pitch;
@@ -118,7 +123,7 @@ int VehicleDynamics::SetRPY(double roll, double pitch, double yaw)
   return 0;
 }
 
-int VehicleDynamics::SetDesVW(double vDes, double wDes)
+int VehicleDynamics2D::SetDesVW(double vDes, double wDes)
 {
   this->vDes = vDes;
   this->wDes = wDes;
@@ -128,7 +133,7 @@ int VehicleDynamics::SetDesVW(double vDes, double wDes)
 
 
 
-int VehicleDynamics::GetXYZ(double &x, double &y, double &z)
+int VehicleDynamics2D::GetXYZ(double &x, double &y, double &z)
 {
   x = this->x;
   y = this->y;
@@ -136,7 +141,7 @@ int VehicleDynamics::GetXYZ(double &x, double &y, double &z)
   return 0;
 }
 
-int VehicleDynamics::GetRPY(double &roll, double &pitch, double &yaw)
+int VehicleDynamics2D::GetRPY(double &roll, double &pitch, double &yaw)
 {
   roll  = this->roll;
   pitch = this->pitch;
@@ -145,7 +150,7 @@ int VehicleDynamics::GetRPY(double &roll, double &pitch, double &yaw)
 }
 
 
-int VehicleDynamics::GetCounts(uint16_t &cntr, int16_t &fr, int16_t &fl, int16_t &rr, int16_t &rl)
+int VehicleDynamics2D::GetCounts(uint16_t &cntr, int16_t &fr, int16_t &fl, int16_t &rr, int16_t &rl)
 {
   cntr = this->cntr;
   fr   = this->fr;
@@ -160,7 +165,7 @@ int VehicleDynamics::GetCounts(uint16_t &cntr, int16_t &fr, int16_t &fl, int16_t
 }
 
 
-int VehicleDynamics::GetCounts(EncoderCounts * counts)
+int VehicleDynamics2D::GetCounts(EncoderCounts * counts)
 {
   counts->t    = Timer::GetAbsoluteTime();
   counts->cntr = this->cntr;
@@ -175,7 +180,7 @@ int VehicleDynamics::GetCounts(EncoderCounts * counts)
   return 0;
 }
 
-void VehicleDynamics::ResetCounts()
+void VehicleDynamics2D::ResetCounts()
 {
   this->fr = 0;
   this->fl = 0;
