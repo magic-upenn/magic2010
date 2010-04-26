@@ -11,7 +11,7 @@ while(1)
   len = length(msgs);
   if len > 0
     for i=1:len
-      encoders = MagicEncodersPacketSerializer('deserialize',msgs(i).data)
+      encoders = MagicEncoderCountsSerializer('deserialize',msgs(i).data)
       %fprintf(1,'.');
     end
   end

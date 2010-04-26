@@ -13,7 +13,6 @@
         <position>-0.8 0 2</position>
         <lookAt>0 0 0</lookAt>
         <clipDist>1</clipDist>
-        <ortho>10 10 10</ortho>
       </camera>
     </frame>
   </gui>
@@ -71,10 +70,17 @@
   </plugin>
 
   <plugin>
-    <id>robot</id>
+    <id>Robot0</id>
     <filename>Hummingbird.so</filename>
 
-   </plugin>
+    <plugin>
+      <id>sim</id>
+      <filename>MagicPlatformSim.so</filename>
+      <robotName>Robot0</robotName>
+    </plugin>
+  </plugin>
+
+    
 
    <plugin>
     <id>matchedPoints</id>

@@ -59,11 +59,14 @@ int VehicleDynamics2D::Simulate(double dt)
   //simulate differential drive dynamics
   bool wIsNonZero=fabs(this->w) > 0.001;
   
-  int nCountsPerMeter = 500; //???
+
+  double circ = 6.5 * 0.0254 * M_PI;
+  double mpt = circ / 180.0; //meters per tick
+  int nCountsPerMeter = 1.0/mpt; //
   double r = 0.22; //robot radius
   
-  int16_t right = (this->v + this->w*r)*nCountsPerMeter;
-  int16_t left  = (this->v - this->w*r)*nCountsPerMeter;
+  double right = (this->v*dt + this->w*dt*r)*nCountsPerMeter;
+  double left  = (this->v*dt - this->w*dt*r)*nCountsPerMeter;
   
   this->fr += right;
   this->rr += right;
@@ -153,6 +156,8 @@ int VehicleDynamics2D::GetRPY(double &roll, double &pitch, double &yaw)
 int VehicleDynamics2D::GetCounts(uint16_t &cntr, int16_t &fr, int16_t &fl, int16_t &rr, int16_t &rl)
 {
   cntr = this->cntr;
+
+  //take the integer part of the counts
   fr   = this->fr;
   fl   = this->fl;
   rr   = this->rr;
@@ -182,10 +187,10 @@ int VehicleDynamics2D::GetCounts(EncoderCounts * counts)
 
 void VehicleDynamics2D::ResetCounts()
 {
-  this->fr = 0;
-  this->fl = 0;
-  this->rr = 0;
-  this->rl = 0;
+  this->fr = fmod(this->fr,1.0);
+  this->fl = fmod(this->fl,1.0);
+  this->rr = fmod(this->rr,1.0);
+  this->rl = fmod(this->rl,1.0);
   this->cntr++;
 }
 

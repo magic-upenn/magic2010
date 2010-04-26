@@ -42,7 +42,7 @@ namespace Magic
     
     private: double vDes,wDes;
     
-    private: int16_t fr, fl, rr, rl;
+    private: double fr, fl, rr, rl;
     private: uint16_t cntr;
     private: double vmin,vmax,wmin,wmax;
   };
