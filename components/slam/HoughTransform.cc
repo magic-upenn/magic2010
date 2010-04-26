@@ -1,5 +1,6 @@
 #include "HoughTransform.hh"
 #include "Timer.hh"
+#include <string.h>
 
 using namespace Upenn;
 

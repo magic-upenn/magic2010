@@ -16,9 +16,12 @@ trajFollowerStop;
 
 
 function trajFollowerStart
+clear all;
 global TRAJ POSE
 addpath( [ getenv('VIS_DIR') '/ipc' ] )
-addpath ../../Matlab/Serialization/
+addpath ../../matlab/Serialization/
+addpath ../MotorController/
+
 
 robotIdStr = getenv('ROBOT_ID');
 if isempty(robotIdStr)
@@ -46,7 +49,7 @@ ipcAPISubscribe(POSE.ipcMsgName);
 
 
 function trajFollowerUpdate
-global TRAJ
+global TRAJ POSE
 msgs = ipcAPIReceive(25);
 len = length(msgs);
 if len > 0
@@ -57,6 +60,18 @@ if len > 0
         fprintf(1,'got traj message\n');
         TRAJ.traj    = MagicMotionTrajSerializer('deserialize',msg.data);
         TRAJ.itraj   = 1;
+        
+        if (TRAJ.traj.size == 0)
+          fprintf(1,'traj is empty!!!\n');
+        end
+        
+        trajLen=TRAJ.traj.size;
+        xs = zeros(trajLen,1);
+        ys = zeros(trajLen,1);
+        for j=1:trajLen
+            xs(j) = TRAJ.traj.waypoints(j).x;
+            ys(j) = TRAJ.traj.waypoints(j).y;
+        end
         
         set(TRAJ.hTraj,'xdata',xs,'ydata',ys');
         drawnow;
@@ -84,7 +99,7 @@ trajFollowerFollow;
 function trajFollowerFollow
 global TRAJ POSE
 
-if isempty(TRAJ.traj) || isempty(POSE.pose)
+if isempty(TRAJ.traj) || isempty(POSE.pose) || TRAJ.traj.size < 1
   return
 end
 
@@ -103,6 +118,8 @@ for pp=minInd:traj.size
   if (dist < minDist)
     minDist = dist;
     minInd=pp;
+  else
+      break
   end
 end
 
@@ -115,7 +132,7 @@ fprintf(1,'traj index %d\n',TRAJ.itraj);
 %calculate distance to the next path point
 di = norm([traj.waypoints(TRAJ.itraj).x-pose.x, traj.waypoints(TRAJ.itraj).y-pose.y]);
 
-proximityThreshold = 0.25; %meters
+proximityThreshold = 0.05; %meters
 
 while(di < proximityThreshold)
   TRAJ.itraj = TRAJ.itraj +1;
@@ -131,14 +148,14 @@ L=0.1;
 V = [cos(pose.yaw) sin(pose.yaw); -sin(pose.yaw)/L cos(pose.yaw)/L] * ...
     [xdes-pose.x; ydes-pose.y];
 
-vgain = 1;
+vgain = 10;
 wgain = 1;  % need to tune this!!
 
 vdes=V(1)*vgain;
 wdes=V(2)*wgain;
 
-vmax = 0.5;  %m/s
-wmax = (30/180*pi);  %rad/s
+vmax = 0.2;  %m/s
+wmax = 0.3; %(30/180*pi);  %rad/s
 
 kv=abs(vdes/vmax);
 kw=abs(wdes/wmax);
@@ -149,8 +166,10 @@ if k > 1
   wdes=wdes/k;
 end
 
+fprintf(1,'sending vels %f %f\n',vdes,wdes);
+
 %send out velocity
-SetVelocity(vdes,wdes)
+SetVelocity(vdes,wdes);
 
 
 

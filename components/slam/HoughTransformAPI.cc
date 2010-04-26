@@ -2,6 +2,7 @@
 #include "HoughTransform.hh"
 #include <iostream>
 #include "Timer.hh"
+#include <string.h>
 
 enum {XS,YS,A_CENTER,A_RANGE,A_RES,R_CENTER,R_RANGE,R_RES};
 

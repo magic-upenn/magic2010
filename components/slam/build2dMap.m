@@ -1,6 +1,7 @@
 clear all;
 addpath( [ getenv('VIS_DIR') '/ipc' ] )
 addpath( [ getenv('VIS_DIR') '/Interfaces' ] )
+addpath( [ getenv('MAGIC_DIR') '/matlab/Serialization' ] )
 
 
 ipcAPIConnect;
@@ -19,6 +20,7 @@ poseMsgName = ['robot' VisMarshall('getMsgSuffix','Pose3D')];
 poseMsgFormat  = VisMarshall('getMsgFormat','Pose3D');
 ipcAPIDefine(poseMsgName,poseMsgFormat);
 
+%{
 surfMsgName = 'heightmap_surface2d';
 surfMsgFormat = VisSurface2DSerializer('getFormat');
 ipcAPIDefine(surfMsgName,surfMsgFormat);
@@ -26,42 +28,28 @@ ipcAPIDefine(surfMsgName,surfMsgFormat);
 surfUpdateMsgName = 'heightmap_surface2dUpdate';
 surfUpdateMsgFormat = VisSurface2DUpdateSerializer('getFormat');
 ipcAPIDefine(surfUpdateMsgName,surfUpdateMsgFormat);
+%}
 
 
+lidarMsgName = 'Robot0/Lidar0';
+ipcAPISubscribe(lidarMsgName);
 
-%load ~/Desktop/MappingLogs/OutsideMoore308/Hokuyo0.mat
-load ~/Desktop/fin/Hokuyo0_3.mat
 
 nPointsUtm=1081;
 resUtm = 0.25;
 anglesUtm=((0:resUtm:(nPointsUtm-1)*resUtm)-135)'*pi/180;
 
-rangesMat = Hokuyo0.ranges;
-anglesMat = repmat(anglesUtm,[1,size(rangesMat,2)]);
-cosines = cos(anglesMat);
-sines   = sin(anglesMat);
-
-ts = Hokuyo0.ts;
-
-xs = rangesMat .* cosines;
-ys = rangesMat .* sines;
-zs = zeros(size(xs));
-onez = ones(size(xs,1),1);
-
-xss = zeros(size(xs));
-yss = zeros(size(ys));
-zss = zeros(size(zs));
-
-len = size(xs,2);
+cosines = cos(anglesUtm);
+sines   = sin(anglesUtm);
 
 
 res = 0.05;
 invRes = 1/res;
 
-xmin = -40;
-ymin = -50;
-xmax = 85;
-ymax = 100;
+xmin = -20;
+ymin = -20;
+xmax = 20;
+ymax = 20;
 zmin = 0;
 zmax = 5;
 
@@ -75,15 +63,16 @@ ScanMatch2D('setResolution',res);
 mapp = [];
 mapType = 'uint8';
 map  = zeros(sizex,sizey,mapType);
+emap = [];
 
-yaw =(10.5-45)/180*pi; %1.5
-x=0;
-y=0;
+yaw =(0)/180*pi; %1.5
+x=5;
+y=5;
 z=0;
 
 
 
-positions = zeros(3,len);
+positions = zeros(3,100000);
 
 rotCntr = 1;
 
@@ -114,18 +103,47 @@ hAccum = [];
 hhPrev = [];
 
 
+freshLidar = 0;
+ranges = [];
 
-for i=1:len
+i=0;
+tic
+
+while(1)
+  msgs = ipcAPIReceive(5);
+ 
+  nmsgs = length(msgs);
+  
+  for mi=1:nmsgs
+    msg = msgs(mi);
+    switch msg.name
+      case lidarMsgName
+        lidarScan = MagicLidarScanSerializer('deserialize',msg.data);
+        ranges = double(lidarScan.ranges)';
+        fprintf('.');
+        freshLidar=1;
+    end
+    
+  end
+  
+  if (freshLidar == 0)
+    continue;
+  end
+  
+  freshLidar=0;
+    
+  i=i+1;
   pose = [0 0 0];
-  
-  ranges = rangesMat(:,i);
-  
   
   indGood = ranges >0.25;
   
-  xsss=xs(indGood,i);
-  ysss=ys(indGood,i);
-  zsss=zs(indGood,i);
+  xs = ranges.*cosines;
+  ys = ranges.*sines;
+  zs = zeros(size(xs));
+  
+  xsss=xs(indGood);
+  ysss=ys(indGood);
+  zsss=zs(indGood);
   onez=ones(size(xsss));
   
   
@@ -182,9 +200,13 @@ for i=1:len
     yis = ceil((yss - ymin) * invRes);
     indGood = (xis > 1) & (yis > 1) & (xis < sizex) & (yis < sizey);
   
-   inds = sub2ind(size(map),xis(indGood),yis(indGood));
+    inds = sub2ind(size(map),xis(indGood),yis(indGood));
     mapp=zeros(size(map),mapType);
     mapp(inds) = 100;
+    
+    emap = zeros(size(map),'uint8');
+    emap(245:255,245:255) = 249;
+    
     continue;
   end
   
@@ -192,17 +214,17 @@ for i=1:len
   
   %fprintf(1,'------------------------');
   
-  nyaw= 31;
-  nxs = 11;
-  nys = 11;
+  nyaw= 11;
+  nxs = 5;
+  nys = 5;
 
-  dyaw = 0.20/180.0*pi;
+  dyaw = 0.25/180.0*pi;
   dx   = 0.01;
   dy   = 0.01;
   
-  aCand = (-15:15)*dyaw+yaw ; %+ (-cshift(cimax))*a_res;
-  xCand = (-5:5)*dx+x;
-  yCand = (-5:5)*dy+y;
+  aCand = (-5:5)*dyaw+yaw ; %+ (-cshift(cimax))*a_res;
+  xCand = (-2:2)*dx+x;
+  yCand = (-2:2)*dy+y;
   
   hits = ScanMatch2D('match',mapp,xsss,ysss,xCand,yCand,aCand);
   
@@ -226,6 +248,37 @@ for i=1:len
   xis = ceil((xss - xmin) * invRes);
   yis = ceil((yss - ymin) * invRes);
   
+  xl = ceil((x-xmin) * invRes);
+  yl = ceil((y-ymin) * invRes);
+  
+  
+  %tic
+  [eix eiy] = getMapCellsFromRay(xl,yl,xis,yis);
+  %toc
+  
+  %plot(eix,eiy,'r.'), hold on
+  %plot(xis,yis,'b.'), drawnow, hold off
+  
+  
+  cis = sub2ind(size(mapp),eix,eiy);
+  emap(cis) = 249;
+  
+  ptemp.x = x;
+  ptemp.y = y;
+  ptemp.theta = yaw;
+  
+  if (mod(i,100)==0)
+    publishMaps(mapp,emap,ptemp);
+  end
+  
+  p.x =x;
+  p.y =y;
+  p.yaw = yaw;
+  publishPose(p)
+  
+  imagesc(emap); drawnow
+  %imagesc(mapp); drawnow
+  
   indGood = (xis > 1) & (yis > 1) & (xis < sizex) & (yis < sizey);
   inds = sub2ind(size(map),xis(indGood),yis(indGood));
   
@@ -237,7 +290,7 @@ for i=1:len
     mapp(mapp>100) = 100;
   end
   
-  if (mod(i,25)==0)
+  if (mod(i,1)==0)
     vpose = [x y 1 pose(1) -pose(2) yaw];
     content = VisMarshall('marshall','Pose3D',vpose);
     ipcAPIPublishVC(poseMsgName,content);
@@ -275,7 +328,7 @@ for i=1:len
   end
   %}
   
-  if (mod(i,100)==0)
+  if (mod(i,10)==0)
     
     %set(hMap,'cdata',mapp');
     

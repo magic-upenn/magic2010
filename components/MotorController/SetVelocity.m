@@ -14,7 +14,7 @@ if isempty(ipcMsgName)
   ipcAPIDefine(ipcMsgName,MagicVelocityCmdSerializer('getFormat'));
 end
 
-vcmd.t = GetUnixTime();
+vcmd.t = 0; %GetUnixTime();
 vcmd.v = v;
 vcmd.w = w;
 
