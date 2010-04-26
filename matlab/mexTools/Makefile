@@ -12,4 +12,4 @@ all: $(TARGETS)
 	mex -O $^
 
 clean:
-	rm -r $(TARGETS)
+	rm -f $(TARGETS)

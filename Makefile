@@ -6,7 +6,7 @@ copyHeaders:
 	cd common/dataTypes; cp *.h *.hh ../../include
 	cd common/XMLConfig; make
 	cd drivers; make
-	cd mexTools; make
+	cd matlab/mexTools; make
 	cd matlab/serialization; make
 
 clean:
@@ -14,6 +14,6 @@ clean:
 	rm -rf lib/*.a
 	cd common/XMLConfig; make clean
 	cd drivers; make clean
-	cd mexTools; make clean
-	cd matlab/serialization; make
+	cd matlab/mexTools; make clean
+	cd matlab/serialization; make clean
 
