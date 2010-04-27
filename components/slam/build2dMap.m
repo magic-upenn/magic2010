@@ -1,7 +1,7 @@
 clear all;
 addpath( [ getenv('VIS_DIR') '/ipc' ] )
 addpath( [ getenv('VIS_DIR') '/Interfaces' ] )
-addpath( [ getenv('MAGIC_DIR') '/matlab/Serialization' ] )
+addpath( [ getenv('MAGIC_DIR') '/matlab/serialization' ] )
 
 
 ipcAPIConnect;
@@ -16,7 +16,7 @@ lidarPointsFormat  = VisMarshall('getMsgFormat',lidarPointsTypeName);
 ipcAPIDefine(lidarPointsMsgName,lidarPointsFormat);
 
 
-poseMsgName = ['robot' VisMarshall('getMsgSuffix','Pose3D')];
+poseMsgName = ['Robot0' VisMarshall('getMsgSuffix','Pose3D')];
 poseMsgFormat  = VisMarshall('getMsgFormat','Pose3D');
 ipcAPIDefine(poseMsgName,poseMsgFormat);
 
@@ -46,10 +46,10 @@ sines   = sin(anglesUtm);
 res = 0.05;
 invRes = 1/res;
 
-xmin = -20;
-ymin = -20;
-xmax = 20;
-ymax = 20;
+xmin = -40;
+ymin = -40;
+xmax = 40;
+ymax = 40;
 zmin = 0;
 zmax = 5;
 
@@ -65,9 +65,9 @@ mapType = 'uint8';
 map  = zeros(sizex,sizey,mapType);
 emap = [];
 
-yaw =(0)/180*pi; %1.5
-x=5;
-y=5;
+yaw =(-2)/180*pi; %1.5
+x=0;
+y=0;
 z=0;
 
 
@@ -110,7 +110,7 @@ i=0;
 tic
 
 while(1)
-  msgs = ipcAPIReceive(5);
+  msgs = ipcAPI('listen',5);
  
   nmsgs = length(msgs);
   
@@ -204,8 +204,8 @@ while(1)
     mapp=zeros(size(map),mapType);
     mapp(inds) = 100;
     
-    emap = zeros(size(map),'uint8');
-    emap(245:255,245:255) = 249;
+    %emap = zeros(size(map),'uint8');
+    %emap(245:255,245:255) = 249;
     
     continue;
   end
@@ -214,17 +214,17 @@ while(1)
   
   %fprintf(1,'------------------------');
   
-  nyaw= 11;
-  nxs = 5;
-  nys = 5;
+  nyaw= 21;
+  nxs = 11;
+  nys = 11;
 
   dyaw = 0.25/180.0*pi;
-  dx   = 0.01;
-  dy   = 0.01;
+  dx   = 0.02;
+  dy   = 0.02;
   
-  aCand = (-5:5)*dyaw+yaw ; %+ (-cshift(cimax))*a_res;
-  xCand = (-2:2)*dx+x;
-  yCand = (-2:2)*dy+y;
+  aCand = (-10:10)*dyaw+yaw ; %+ (-cshift(cimax))*a_res;
+  xCand = (-5:5)*dx+x;
+  yCand = (-5:5)*dy+y;
   
   hits = ScanMatch2D('match',mapp,xsss,ysss,xCand,yCand,aCand);
   
@@ -251,7 +251,7 @@ while(1)
   xl = ceil((x-xmin) * invRes);
   yl = ceil((y-ymin) * invRes);
   
-  
+  %{
   %tic
   [eix eiy] = getMapCellsFromRay(xl,yl,xis,yis);
   %toc
@@ -278,13 +278,14 @@ while(1)
   
   imagesc(emap); drawnow
   %imagesc(mapp); drawnow
+  %}
   
   indGood = (xis > 1) & (yis > 1) & (xis < sizex) & (yis < sizey);
   inds = sub2ind(size(map),xis(indGood),yis(indGood));
   
-  mapp(inds)= mapp(inds)+3;
+  mapp(inds)= mapp(inds)+1;
   
-  if (mod(i,25)==0)
+  if (mod(i,50)==0)
     indd=mapp<50 & mapp > 0;
     mapp(indd) = mapp(indd)*0.95;
     mapp(mapp>100) = 100;
@@ -296,7 +297,7 @@ while(1)
     ipcAPIPublishVC(poseMsgName,content);
   end
   
-  if (mod(i,100)==0)
+  if (mod(i,10)==0)
     lxs = xss';
     lys = yss';
     lzs = zeros(size(lxs));

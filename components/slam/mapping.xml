@@ -72,12 +72,13 @@
   <plugin>
     <id>Robot0</id>
     <filename>Hummingbird.so</filename>
-
+<!--
     <plugin>
       <id>sim</id>
       <filename>MagicPlatformSim.so</filename>
       <robotName>Robot0</robotName>
     </plugin>
+/-->
   </plugin>
 
     
