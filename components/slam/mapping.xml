@@ -29,7 +29,7 @@
 <!--
   <ipcHost>192.168.1.123</ipcHost>
 /-->
-
+<!--
 
   <plugin>
     <id>grid</id>
@@ -39,7 +39,7 @@
     <res>1 1</res>
   </plugin>
 
-<!--
+
   <plugin>
     <id>sky</id>
     <filename>Sky.so</filename>
@@ -79,6 +79,23 @@
       <robotName>Robot0</robotName>
     </plugin>
 /-->
+
+    <plugin>
+      <id>Lidar2DVisual</id>
+      <xyz>0.0 0 0</xyz>
+      <rpy>0 0 0 </rpy>
+      <filename>Lidar2DVisual.so</filename>
+      <material>Transparent/Red</material>
+      <detach>true</detach>
+
+      <plugin>
+        <id>dataConverter</id>
+        <filename>LidarScan2VisLidarData.so</filename>
+        <msgName>Robot0/Lidar0</msgName>
+      </plugin>
+
+    </plugin>
+
   </plugin>
 
     
@@ -120,6 +137,20 @@
     <filename>PointCloud.so</filename>
     <pointSize>0.05 0.05 0.05</pointSize>
   </plugin>
+
+  <plugin>
+		<id>map2de</id>
+		<filename>Map2D.so</filename>
+    <xyz>0 0 0</xyz>
+    
+    <plugin>
+      <id>colormap</id>
+      <filename>CmGray.so</filename>
+      <min_val>0</min_val>
+      <max_val>255</max_val>
+    </plugin>
+
+	</plugin>
 
   
   <plugin>
