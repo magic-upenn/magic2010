@@ -5,9 +5,9 @@ CXXFLAGS = -O2 -Wall -fPIC -shared
 LIBS += -lvis
 INCLUDES += -I$(VIS_DIR)/include $(shell pkg-config --cflags OGRE) -include "Vis.hh"
 
-OBJECTS = VehicleDynamics2D.o
+OBJECTS = VehicleDynamics2D.o $(VIS_DIR)/plugins/so/Lidar2DVisual.so
 
-TARGETS = MagicLidarScanPublisher.so MagicPlatformSim.so
+TARGETS = MagicLidarScanPublisher.so MagicPlatformSim.so MagicLidarScan2VisLidarData.so
 
 all: $(TARGETS)
 
