@@ -55,8 +55,7 @@ DefineVisMsgs;
 ipcAPISubscribe(LIDAR0.msgName);
 ipcAPISubscribe(ENCODERS.msgName);
 
-
-
+%publish initial maps
 PublishObstacleMap;
 PublishExplorationMap;
 
@@ -94,7 +93,7 @@ end
 function slamProcessLidar
 global LIDAR0 MAPS SLAM
 
-fprintf(1,'got lidar scan\n');
+%fprintf(1,'got lidar scan\n');
 
 
 
@@ -102,5 +101,5 @@ fprintf(1,'got lidar scan\n');
 function slamProcessEncoders
 global ENCODERS MAPS SLAM
 
-fprintf(1,'got encoder packet\n');
+%fprintf(1,'got encoder packet\n');
 
