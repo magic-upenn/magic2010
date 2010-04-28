@@ -1,30 +1,19 @@
 function slam(tUpdate)
 
-if nargin < 1,
-  tUpdate = 0.01;
-end
+clear all;
 
 slamStart;
 
-while (1),
-  slamReceiveMsgs
+while(1)
   slamUpdate;
 end
 
-slamStop;
-
 
 function slamStart
-global SLAM MAPS POSE LIDAR0
+global SLAM MAPS POSE LIDAR0 ENCODERS
+addpath ../common
 
 SetMagicPaths;
-
-ipcAPIConnect;
-
-DefineLidarMsgs;
-DefineEncoderMsg;
-DefineVisMsgs;
-
 
 LIDAR0.msgName = [GetRobotName '/Lidar0'];
 LIDAR0.resd    = 0.25;
@@ -37,10 +26,6 @@ LIDAR0.scan    = [];
 
 ENCODERS.msgName = [GetRobotName '/Encoders'];
 ENCODERS.counts  = [];
-
-ipcAPISubscribe(LIDAR0.msgName);
-ipcAPISubscribe(ENCODERS.msgName);
-
 
 %obstacle map
 MAPS.omap.res        = 0.05;
@@ -63,11 +48,20 @@ MAPS.emap.map.data   = 127*ones(MAPS.emap.map.sizex,MAPS.emap.map.sizey,'uint8')
 MAPS.emap.msgName    = [GetRobotName '/emap2d_map2d'];
 
 
+ipcAPIConnect;
+DefineLidarMsgs;
+DefineEncoderMsg;
+DefineVisMsgs;
+ipcAPISubscribe(LIDAR0.msgName);
+ipcAPISubscribe(ENCODERS.msgName);
+
+
+
 PublishObstacleMap;
 PublishExplorationMap;
 
-ScanMatch2D('setBoundaries',xmin,ymin,xmax,ymax);
-ScanMatch2D('setResolution',res);
+ScanMatch2D('setBoundaries',MAPS.omap.xmin,MAPS.omap.ymin,MAPS.omap.xmax,MAPS.omap.ymax);
+ScanMatch2D('setResolution',MAPS.omap.res);
 
 
 POSE.x     = 0;
@@ -84,12 +78,12 @@ msgs = ipcAPI('listen',25);
 nmsgs = length(msgs);
 
 for mi=1:nmsgs
-  switch msg(mi).name
+  switch msgs(mi).name
     case LIDAR0.msgName
-      LIDAR0.scan = MagicLidarScanSerializer('deserialize',msgs(i).data);
+      LIDAR0.scan = MagicLidarScanSerializer('deserialize',msgs(mi).data);
       slamProcessLidar;
-    case ENCODERS.msgNAme
-      ENCODERS.counts = MagicEncoderCountsSerializer('deserialize',msgs(i).data);
+    case ENCODERS.msgName
+      ENCODERS.counts = MagicEncoderCountsSerializer('deserialize',msgs(mi).data);
       slamProcessEncoders;
   end
 end
@@ -108,5 +102,5 @@ fprintf(1,'got lidar scan\n');
 function slamProcessEncoders
 global ENCODERS MAPS SLAM
 
-fprintf(1,'got encoder packet\n");
+fprintf(1,'got encoder packet\n');
 
