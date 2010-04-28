@@ -64,7 +64,7 @@ MagicLidarScanPublisher::~MagicLidarScanPublisher()
 // Load the configuration from xml file
 void MagicLidarScanPublisher::LoadPlugin()
 {
-  this->ipcMsgName = this->node->GetString("ipcMsgName","",REQUIRED);
+  this->ipcMsgName = this->node->GetString("msgName","",REQUIRED);
 
   //check to make sure that the parent is a Lidar2D plugin
   if (this->parentPlugin->GetType().compare("Lidar2D") != 0)

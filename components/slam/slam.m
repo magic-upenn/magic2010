@@ -11,7 +11,6 @@ end
 
 function slamStart
 global SLAM MAPS POSE LIDAR0 ENCODERS
-addpath ../common
 
 SetMagicPaths;
 
@@ -26,6 +25,8 @@ LIDAR0.scan    = [];
 
 ENCODERS.msgName = [GetRobotName '/Encoders'];
 ENCODERS.counts  = [];
+ENCODERS.acounts = zeros(4,1);
+ENCODERS.tLastReset = [];
 
 %obstacle map
 MAPS.omap.res        = 0.05;
@@ -48,7 +49,8 @@ MAPS.emap.map.data   = 127*ones(MAPS.emap.map.sizex,MAPS.emap.map.sizey,'uint8')
 MAPS.emap.msgName    = [GetRobotName '/emap2d_map2d'];
 
 
-ipcAPIConnect;
+ipcInit;
+motorsInit;
 DefineLidarMsgs;
 DefineEncoderMsg;
 DefineVisMsgs;
@@ -82,7 +84,12 @@ for mi=1:nmsgs
       LIDAR0.scan = MagicLidarScanSerializer('deserialize',msgs(mi).data);
       slamProcessLidar;
     case ENCODERS.msgName
-      ENCODERS.counts = MagicEncoderCountsSerializer('deserialize',msgs(mi).data);
+      ENCODERS.counts  = MagicEncoderCountsSerializer('deserialize',msgs(mi).data);
+      
+      if isempty(ENCODERS.tLastReset)
+        ENCODERS.tLastReset = ENCODERS.counts.t;
+      end
+      
       slamProcessEncoders;
   end
 end
@@ -93,13 +100,24 @@ end
 function slamProcessLidar
 global LIDAR0 MAPS SLAM
 
-%fprintf(1,'got lidar scan\n');
+fprintf(1,'got lidar scan\n');
 
 
 
 
 function slamProcessEncoders
-global ENCODERS MAPS SLAM
+global ENCODERS MAPS SLAM MOTORS
 
 %fprintf(1,'got encoder packet\n');
+counts = ENCODERS.counts;
+ENCODERS.acounts = ENCODERS.acounts + [counts.fr;counts.fl;counts.rr;counts.rl];
+
+
+dt = counts.t-ENCODERS.tLastReset;
+if (dt > 0.1)
+  ENCODERS.wheelVels = ENCODERS.acounts / dt * MOTORS.metersPerTic;
+  ENCODERS.acounts = ENCODERS.acounts*0;
+  ENCODERS.tLastReset = counts.t;
+end
+
 

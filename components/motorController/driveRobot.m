@@ -1,11 +1,4 @@
-addpath( [ getenv('VIS_DIR') '/ipc' ] )
-addpath ../mexTools/
-
-cmdMsgName = 'Robot0/VelocityCmd';
-
-ipcAPIConnect;
-ipcAPIDefine(cmdMsgName,MagicVelocityCmdSerializer('getFormat'));
-
+SetMagicPaths
 
 v=0;
 w=0;
@@ -29,9 +22,7 @@ while(1)
     end
     
   else
-    cmd.v = v;
-    cmd.w = w;
-    ipcAPIPublishVC(cmdMsgName,MagicVelocityCmdSerializer('serialize',cmd));
+    SetVelocity(v,w);
     fprintf(1,'v=%f w=%f\n',v,w);
     pause(0.05);
   end

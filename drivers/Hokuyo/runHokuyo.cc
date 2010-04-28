@@ -1,7 +1,8 @@
 #include "HokuyoCircularHardware.hh"
 #include "MagicSensorDataTypes.hh"
+#include "MagicStatus.hh"
+#include "Timer.hh"
 #include <string>
-#include <time.h>
 #include <vector>
 #include "ErrorMessage.hh"
 #include <ipc.h>
@@ -9,6 +10,7 @@
 
 using namespace std;
 using namespace Upenn;
+using namespace Magic;
 
 
 #define HOKUYO_DEF_DEVICE "/dev/ttyACM0"
@@ -60,10 +62,11 @@ int main(int argc, char * argv[])
   if (argc>=3)
     id = string(argv[2]);
   
-  string logName = string(HOKUYO_DEF_LOG_NAME) + id;
-  string processName = string("testHokuyoCircularHardware") + id;
-  string lidarMsgName = string("Robot0/LidarMsg") + id;
-  string lidarScanMsgName = string("Robot0/Lidar") + id;
+  string logName          = string(HOKUYO_DEF_LOG_NAME) + id;
+  string processName      = string("runHokuyo") + id;
+  string robotName        = string("Robot0");
+  string lidarScanMsgName = robotName + "/Lidar" + id;
+  string hbeatMsgName     = robotName + "/HeartBeat";
 
   int nPoints = 1081;
   if (argc >=4)
@@ -75,6 +78,9 @@ int main(int argc, char * argv[])
 
   IPC_defineMsg(lidarScanMsgName.c_str(),IPC_VARIABLE_LENGTH,
                  Magic::LidarScan::getIPCFormat());
+
+  IPC_defineMsg(hbeatMsgName.c_str(),IPC_VARIABLE_LENGTH,
+                 Magic::HeartBeat::getIPCFormat());
 
   int scanStart=0;      //start of the scan
   int scanEnd=nPoints -1;//1080;      //end of the scan
@@ -166,7 +172,6 @@ int main(int argc, char * argv[])
 
 	double timeout_sec = 0.2;
   double time_stamp;
-  time_t rawtime;
 
   vector< vector<unsigned int> > values;
   vector<double> timeStamps;
@@ -181,6 +186,11 @@ int main(int argc, char * argv[])
   lidarScan.angleStep   = 0.25/180.0*M_PI;
   lidarScan.counter     = 0;
   lidarScan.id          = 0;
+
+  HeartBeat hbeat;
+  hbeat.sender  = (char*)"runHokuyo";
+  hbeat.msgName = (char*)lidarScanMsgName.c_str();
+  hbeat.status  = 0;
 
   //capture CTRL-C for proper shutdown
   signal(SIGINT,ShutdownFn);
@@ -209,6 +219,11 @@ int main(int argc, char * argv[])
 
         //publish messages
         IPC_publishData(lidarScanMsgName.c_str(),&lidarScan);
+
+        //publis heart beat message
+        hbeat.t = Timer::GetAbsoluteTime();
+        IPC_publishData(hbeatMsgName.c_str(),&hbeat);
+
         printf(".");fflush(stdout);
       }
     }

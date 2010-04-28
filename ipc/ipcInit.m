@@ -4,8 +4,7 @@ global IPC
 if isempty(IPC)
   ipcAPIConnect;
   IPC.connected = 1;
+  disp('IPC initialized');
 end
 
-status = true;
-
-disp('IPC initialized');
+status = 1;

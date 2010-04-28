@@ -90,7 +90,7 @@
 
       <plugin>
         <id>dataConverter</id>
-        <filename>LidarScan2VisLidarData.so</filename>
+        <filename>MagicLidarScanPublisher.so</filename>
         <msgName>Robot0/Lidar0</msgName>
       </plugin>
 
