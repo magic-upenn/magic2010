@@ -18,12 +18,8 @@ gpsStop;
 function gpsStart
 global GPS
 addpath( [ getenv('VIS_DIR') '/ipc' ] )
-robotIdStr = getenv('ROBOT_ID');
-if isempty(robotIdStr)
-  error('robot id is not defined in an environment variable');
-end
 
-GPS.ipcMsgName = ['Robot' robotIdStr '/GPS'];
+GPS.ipcMsgName = [GetRobotName  '/GPS'];
 
 %connect to ipc
 ipcAPIConnect;

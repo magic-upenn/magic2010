@@ -1,132 +1,102 @@
-clear all;
+function slam(tUpdate)
+
+if nargin < 1,
+  tUpdate = 0.01;
+end
+
+slamStart;
+
+while (1),
+  slamReceiveMsgs
+  slamUpdate;
+end
+
+slamStop;
+
+
+function slamStart
+global SLAM MAPS POSE LIDAR0
+
 SetMagicPaths;
+
+ipcAPIConnect;
+
 DefineLidarMsgs;
 DefineEncoderMsg;
+DefineVisMsgs;
 
 
-ipcAPIConnect;
-pointCloudTypeName = 'PointCloud3DColorDoubleRGBA';
-pointCloudMsgName = ['pointCloud' VisMarshall('getMsgSuffix',pointCloudTypeName)];
-pointCloudFormat  = VisMarshall('getMsgFormat',pointCloudTypeName);
-ipcAPIDefine(pointCloudMsgName,pointCloudFormat);
+LIDAR0.msgName = [GetRobotName '/Lidar0'];
+LIDAR0.resd    = 0.25;
+LIDAR0.res     = LIDAR0.resd/180*pi; 
+LIDAR0.nRays   = 1081;
+LIDAR0.angles  = ((0:LIDAR0.resd:(LIDAR0.nRays-1)*LIDAR0.resd)-135)'*pi/180;
+LIDAR0.cosines = cos(LIDAR0.angles);
+LIDAR0.sines   = sin(LIDAR0.angles);
+LIDAR0.t       = [];
 
-lidarPointsTypeName = 'PointCloud3DColorDoubleRGBA';
-lidarPointsMsgName = ['lidar1Points' VisMarshall('getMsgSuffix',lidarPointsTypeName)];
-lidarPointsFormat  = VisMarshall('getMsgFormat',lidarPointsTypeName);
-ipcAPIDefine(lidarPointsMsgName,lidarPointsFormat);
+ENCODERS.msgName = [GetRobotName '/Encoders'];
 
-
-poseMsgName = ['Robot0' VisMarshall('getMsgSuffix','Pose3D')];
-poseMsgFormat  = VisMarshall('getMsgFormat','Pose3D');
-ipcAPIDefine(poseMsgName,poseMsgFormat);
+ipcAPISubscribe(LIDAR0.msgName);
+ipcAPISubscribe(ENCODERS.msgName);
 
 
-mapMsgName = 'map2de_map2d';
-mapMsgFormat = VisMap2DSerializer('getFormat');
+%obstacle map
+MAPS.omap.res        = 0.05;
+MAPS.omap.xmin       = -5;
+MAPS.omap.ymin       = -5;
+MAPS.omap.xmax       = 25;
+MAPS.omap.ymax       = 25;
+MAPS.omap.zmin       = 0;
+MAPS.omap.zmax       = 5;
 
-ipcAPIConnect;
-ipcAPIDefine(mapMsgName,mapMsgFormat);
-
-lidarMsgName = 'Robot0/Lidar0';
-ipcAPISubscribe(lidarMsgName);
-
-
-nPointsUtm=1081;
-resUtm = 0.25;
-anglesUtm=((0:resUtm:(nPointsUtm-1)*resUtm)-135)'*pi/180;
-
-cosines = cos(anglesUtm);
-sines   = sin(anglesUtm);
-
-res = 0.05;
-invRes = 1/res;
-
-xmin = -5;
-ymin = -5;
-xmax = 25;
-ymax = 25;
-zmin = 0;
-zmax = 5;
-
-sizex = (xmax - xmin) * invRes;
-sizey = (ymax - ymin) * invRes;
-
-mapp = [];
-mapType = 'uint8';
-map  = zeros(sizex,sizey,mapType);
-emap = [];
+MAPS.omap.map.sizex  = (MAPS.omap.xmax - MAPS.omap.xmin) / MAPS.omap.res;
+MAPS.omap.map.sizey  = (MAPS.omap.ymax - MAPS.omap.ymin) / MAPS.omap.res;
+MAPS.omap.map.data   = zeros(MAPS.omap.map.sizex,MAPS.omap.map.sizey,'uint8');
+MAPS.omap.msgName    = [GetRobotName '/omap2d_map2d'];
 
 
-mape.x   = xmin;
-mape.y   = ymin;
-mape.z   = 0;
-mape.yaw = 0;
-mape.res = 0.05;
-mape.map.sizex = size(map,1);
-mape.map.sizey = size(map,2);
-mape.map.data  = 127*ones(size(map),'uint8');
+%exploration map
+MAPS.emap            = MAPS.omap;
+MAPS.emap.map.data   = 127*ones(MAPS.emap.map.sizex,MAPS.emap.map.sizey,'uint8');
+MAPS.emap.msgName    = [GetRobotName '/emap2d_map2d'];
 
-content = VisMap2DSerializer('serialize',mape);
-ipcAPIPublishVC(mapMsgName,content);
+
+PublishObstacleMap;
+PublishExplorationMap;
 
 ScanMatch2D('setBoundaries',xmin,ymin,xmax,ymax);
 ScanMatch2D('setResolution',res);
 
 
+POSE.x     = 0;
+POSE.y     = 0;
+POSE.z     = 0;
+POSE.roll  = 0;
+POSE.pitch = 0;
+POSE.yaw   = 0/180*pi; %1.5
 
 
-yaw =(0.5)/180*pi; %1.5
-x=0;
-y=0;
-z=0;
+function slamUpdate
+global LIDAR0 ENCODERS
+msgs = ipcAPI('listen',25);
+nmsgs = length(msgs);
 
-positions = zeros(3,100000);
-
-rotCntr = 1;
-
-
-
-
-
-heightData.sizex=sizex;
-heightData.sizey=sizey;
-heightData.data = zeros(sizex,sizey,'single');
-
-props.resx = res;
-props.resy = res;
-props.interpx = 0;
-props.interpy = 0;
-props.lineSepX = 20.0;
-props.lineSepY = 20.0;
-
-surface.heightData = heightData;
-surface.props = props;
-
-%content = VisSurface2DSerializer('serialize',surface);
-%ipcAPIPublishVC(surfMsgName,content);
-
-hHough = [];
-hAccum = [];
-
-hhPrev = [];
+for mi=1:nmsgs
+  switch msg(mi).name
+    case LIDAR0.msgName
+      lidarScan = MagicLidarScanSerializer('deserialize',msgs(i).data);
+      slamProcessLidar;
+    case ENCODERS.msgNAme
+      slamProcessEncoders;
+  end
+end
 
 
-freshLidar = 0;
-ranges = [];
-
-i=0;
-tic
-
-%load the initial map
-load ~/Desktop/MappingLogs/levine5th_04.26.10/levine5th_hall.mat
-
-mapp=zeros(size(map),mapType);
-%mapp=map2d;
-
-while(1)
-  msgs = ipcAPI('listen',5);
+function slamUpdate
+global SLAM MAPS POSE LIDAR0
  
-  nmsgs = length(msgs);
+nmsgs = length(msgs);
   
   for mi=1:nmsgs
     msg = msgs(mi);
@@ -138,9 +108,6 @@ while(1)
         freshLidar=1;
     end
   
-    if (freshLidar == 0)
-      continue;
-    end
 
     freshLidar=0;
 
