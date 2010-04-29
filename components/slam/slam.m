@@ -12,6 +12,12 @@ end
 function slamStart
 global SLAM MAPS POSE LIDAR0 ENCODERS
 
+SLAM.x   = 0;
+SLAM.y   = 0;
+SLAM.z   = 0;
+SLAM.yaw = 0;
+SLAM.lidarCntr = 1;
+
 SetMagicPaths;
 
 LIDAR0.msgName = [GetRobotName '/Lidar0'];
@@ -30,6 +36,7 @@ ENCODERS.tLastReset = [];
 
 %obstacle map
 MAPS.omap.res        = 0.05;
+MAPS.omap.invRes     = 1/MAPS.omap.res;
 MAPS.omap.xmin       = -5;
 MAPS.omap.ymin       = -5;
 MAPS.omap.xmax       = 25;
@@ -40,13 +47,13 @@ MAPS.omap.zmax       = 5;
 MAPS.omap.map.sizex  = (MAPS.omap.xmax - MAPS.omap.xmin) / MAPS.omap.res;
 MAPS.omap.map.sizey  = (MAPS.omap.ymax - MAPS.omap.ymin) / MAPS.omap.res;
 MAPS.omap.map.data   = zeros(MAPS.omap.map.sizex,MAPS.omap.map.sizey,'uint8');
-MAPS.omap.msgName    = [GetRobotName '/omap2d_map2d'];
+MAPS.omap.msgName    = [GetRobotName '/ObstacleMap2D_map2d'];
 
 
 %exploration map
 MAPS.emap            = MAPS.omap;
 MAPS.emap.map.data   = 127*ones(MAPS.emap.map.sizex,MAPS.emap.map.sizey,'uint8');
-MAPS.emap.msgName    = [GetRobotName '/emap2d_map2d'];
+MAPS.emap.msgName    = [GetRobotName '/ExplorationMap2D_map2d'];
 
 
 ipcInit;
@@ -59,7 +66,7 @@ ipcAPISubscribe(ENCODERS.msgName);
 
 %publish initial maps
 PublishObstacleMap;
-PublishExplorationMap;
+%PublishExplorationMap;
 
 ScanMatch2D('setBoundaries',MAPS.omap.xmin,MAPS.omap.ymin,MAPS.omap.xmax,MAPS.omap.ymax);
 ScanMatch2D('setResolution',MAPS.omap.res);
@@ -98,10 +105,70 @@ end
 
 
 function slamProcessLidar
-global LIDAR0 MAPS SLAM
+global SLAM LIDAR0 MAPS
 
-fprintf(1,'got lidar scan\n');
+SLAM.lidarCntr = SLAM.lidarCntr+1;
+map = MAPS.omap.map.data;
 
+%fprintf(1,'got lidar scan\n');
+fprintf(1,'.');
+
+ranges = double(LIDAR0.scan.ranges)'; %convert from float to double
+indGood = ranges >0.25;
+
+xs = ranges.*LIDAR0.cosines;
+ys = ranges.*LIDAR0.sines;
+zs = zeros(size(xs));
+
+xsss=xs(indGood);
+ysss=ys(indGood);
+zsss=zs(indGood);
+onez=ones(size(xsss));
+
+
+nyaw= 21;
+nxs = 11;
+nys = 11;
+
+dyaw = 0.25/180.0*pi;
+dx   = 0.02;
+dy   = 0.02;
+
+aCand = (-10:10)*dyaw+SLAM.yaw; %+ (-cshift(cimax))*a_res;
+xCand = (-5:5)*dx+SLAM.x;
+yCand = (-5:5)*dy+SLAM.y;
+
+hits = ScanMatch2D('match',map,xsss,ysss,xCand,yCand,aCand);
+
+
+[hmax imax] = max(hits(:));
+[kmax mmax jmax] = ind2sub([nxs,nys,nyaw],imax);
+
+SLAM.yaw = aCand(jmax);
+SLAM.x   = xCand(kmax);
+SLAM.y   = yCand(mmax);
+
+T = (trans([SLAM.x SLAM.y SLAM.z])*rotz(SLAM.yaw))';
+X = [xsss ysss zsss onez];
+Y=X*T;  %reverse the order because of transpose
+
+
+xss = Y(:,1);
+yss = Y(:,2);
+
+xis = ceil((xss - MAPS.omap.xmin) * MAPS.omap.invRes);
+yis = ceil((yss - MAPS.omap.ymin) * MAPS.omap.invRes);
+
+indGood = (xis > 1) & (yis > 1) & (xis < MAPS.omap.map.sizex) & (yis < MAPS.omap.map.sizey);
+inds = sub2ind(size(map),xis(indGood),yis(indGood));
+
+map(inds)= map(inds)+1;
+MAPS.omap.map.data = map;
+
+
+if (mod(SLAM.lidarCntr,10) == 0)
+  PublishObstacleMap;
+end
 
 
 

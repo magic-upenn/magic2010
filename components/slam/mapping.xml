@@ -90,7 +90,7 @@
 
       <plugin>
         <id>dataConverter</id>
-        <filename>MagicLidarScanPublisher.so</filename>
+        <filename>MagicLidarScan2VisLidarData.so</filename>
         <msgName>Robot0/Lidar0</msgName>
       </plugin>
 
@@ -139,7 +139,21 @@
   </plugin>
 
   <plugin>
-		<id>map2de</id>
+		<id>Robot0/ObstacleMap2D</id>
+		<filename>Map2D.so</filename>
+    <xyz>0 0 0</xyz>
+    
+    <plugin>
+      <id>colormap</id>
+      <filename>CmGray.so</filename>
+      <min_val>0</min_val>
+      <max_val>255</max_val>
+    </plugin>
+
+	</plugin>
+
+  <plugin>
+		<id>Robot0/ExplorationMap2D</id>
 		<filename>Map2D.so</filename>
     <xyz>0 0 0</xyz>
     
@@ -153,19 +167,6 @@
 	</plugin>
 
   
-  <plugin>
-    <id>heightmap</id>
-    <filename>Surface2D.so</filename>
-    <alphaMult>1</alphaMult>
-
-    <plugin>
-      <id>colormap</id>
-      <filename>CmJet.so</filename>
-      <min_val>0</min_val>
-      <max_val>1</max_val>
-    </plugin>
-
-  </plugin>
-  
+   
 
 </vis>
