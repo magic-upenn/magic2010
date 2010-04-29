@@ -7,9 +7,10 @@
     <name>Vis</name>
     <menuOn>0</menuOn>
     <frame>
+      <name>simulation</name>
       <frameRate>30</frameRate>
       <camera>
-        <name>MainCam</name>
+        <name>cam2</name>
         <position>-0.8 0 2</position>
         <lookAt>0 0 0</lookAt>
         <clipDist>1</clipDist>
@@ -74,6 +75,11 @@
     <filename>Hummingbird.so</filename>
 
     <plugin>
+      <id>axes</id>
+      <filename>Axes.so</filename>
+    </plugin>
+
+    <plugin>
       <id>sim</id>
       <filename>MagicPlatformSim.so</filename>
       <robotName>Robot0</robotName>
@@ -98,7 +104,6 @@
 		    <id>Lidar2DVisual</id>
 		    <filename>Lidar2DVisual.so</filename>
         <material>Transparent/Yellow</material>
-        <detach>true</detach>
 	    </plugin>
 
       <plugin>
@@ -117,7 +122,7 @@
     <poly_file>levine.poly</poly_file>
     <wall_height>3</wall_height>
     <wall_color>Wall1</wall_color>
-    <xyz>20 10 0</xyz>
+    <xyz>5 0 -0.1</xyz>
     <is_visible>true</is_visible>
   </plugin>
 
@@ -174,21 +179,6 @@
     </plugin>
 
 	</plugin>
-
-  
-  <plugin>
-    <id>heightmap</id>
-    <filename>Surface2D.so</filename>
-    <alphaMult>1</alphaMult>
-
-    <plugin>
-      <id>colormap</id>
-      <filename>CmJet.so</filename>
-      <min_val>0</min_val>
-      <max_val>1</max_val>
-    </plugin>
-
-  </plugin>
   
 
 </vis>

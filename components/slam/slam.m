@@ -10,7 +10,9 @@ end
 
 
 function slamStart
-global SLAM MAPS POSE LIDAR0 ENCODERS
+global SLAM MAPS POSE LIDAR0 ENCODERS MOTORS
+
+SetMagicPaths;
 
 SLAM.x   = 0;
 SLAM.y   = 0;
@@ -18,27 +20,11 @@ SLAM.z   = 0;
 SLAM.yaw = 0;
 SLAM.lidarCntr = 1;
 
-SetMagicPaths;
-
-LIDAR0.msgName = [GetRobotName '/Lidar0'];
-LIDAR0.resd    = 0.25;
-LIDAR0.res     = LIDAR0.resd/180*pi; 
-LIDAR0.nRays   = 1081;
-LIDAR0.angles  = ((0:LIDAR0.resd:(LIDAR0.nRays-1)*LIDAR0.resd)-135)'*pi/180;
-LIDAR0.cosines = cos(LIDAR0.angles);
-LIDAR0.sines   = sin(LIDAR0.angles);
-LIDAR0.scan    = [];
-
-ENCODERS.msgName = [GetRobotName '/Encoders'];
-ENCODERS.counts  = [];
-ENCODERS.acounts = zeros(4,1);
-ENCODERS.tLastReset = [];
-
 %obstacle map
 MAPS.omap.res        = 0.05;
 MAPS.omap.invRes     = 1/MAPS.omap.res;
-MAPS.omap.xmin       = -5;
-MAPS.omap.ymin       = -5;
+MAPS.omap.xmin       = -25;
+MAPS.omap.ymin       = -25;
 MAPS.omap.xmax       = 25;
 MAPS.omap.ymax       = 25;
 MAPS.omap.zmin       = 0;
@@ -57,12 +43,12 @@ MAPS.emap.msgName    = [GetRobotName '/ExplorationMap2D_map2d'];
 
 
 ipcInit;
+encodersSubscribe;
+lidar0Subscribe;
 motorsInit;
-DefineLidarMsgs;
-DefineEncoderMsg;
 DefineVisMsgs;
-ipcAPISubscribe(LIDAR0.msgName);
-ipcAPISubscribe(ENCODERS.msgName);
+
+
 
 %publish initial maps
 PublishObstacleMap;
@@ -165,7 +151,6 @@ inds = sub2ind(size(map),xis(indGood),yis(indGood));
 map(inds)= map(inds)+1;
 MAPS.omap.map.data = map;
 
-
 if (mod(SLAM.lidarCntr,10) == 0)
   PublishObstacleMap;
 end
@@ -182,7 +167,7 @@ ENCODERS.acounts = ENCODERS.acounts + [counts.fr;counts.fl;counts.rr;counts.rl];
 
 dt = counts.t-ENCODERS.tLastReset;
 if (dt > 0.1)
-  ENCODERS.wheelVels = ENCODERS.acounts / dt * MOTORS.metersPerTic;
+  ENCODERS.wheelVels = ENCODERS.acounts / dt * ENCODERS.metersPerTic;
   ENCODERS.acounts = ENCODERS.acounts*0;
   ENCODERS.tLastReset = counts.t;
 end

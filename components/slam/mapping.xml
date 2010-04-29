@@ -7,9 +7,10 @@
     <name>Vis</name>
     <menuOn>0</menuOn>
     <frame>
+      <name>mapping</name>
       <frameRate>30</frameRate>
       <camera>
-        <name>MainCam</name>
+        <name>cam1</name>
         <position>-0.8 0 2</position>
         <lookAt>0 0 0</lookAt>
         <clipDist>1</clipDist>

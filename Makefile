@@ -8,6 +8,7 @@ copyHeaders:
 	cd drivers; make
 	cd matlab/mexTools; make
 	cd matlab/serialization; make
+	cd visPlugins; make
 
 clean:
 	rm -rf include/*.h include/*.hh
@@ -16,4 +17,5 @@ clean:
 	cd drivers; make clean
 	cd matlab/mexTools; make clean
 	cd matlab/serialization; make clean
+	cd visPlugins; make clean
 
