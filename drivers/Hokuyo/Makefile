@@ -4,6 +4,6 @@ TARGETS = runHokuyo
 include $(MAGIC_DIR)/Makefile.mk
 
 runHokuyo: runHokuyo.cc $(OBJECTS)
-	g++ $(INCLUDES) $(LIB_DIRS) $(LIBS) $(CPPFLAGS) -o $@ $^
+	g++ $(INCLUDES) $(LIB_DIRS) $(CPPFLAGS) -o $@ $^ $(LIBS)
 
 

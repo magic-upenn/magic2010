@@ -1,8 +1,8 @@
-TARGETS = copyHeaders
+TARGETS = all
 
 all: $(TARGETS)
 
-copyHeaders:
+all:
 	cd common/dataTypes; cp *.h *.hh ../../include
 	cd common/XMLConfig; make
 	cd drivers; make
@@ -18,4 +18,5 @@ clean:
 	cd matlab/mexTools; make clean
 	cd matlab/serialization; make clean
 	cd visPlugins; make clean
+	rm -f *~
 
