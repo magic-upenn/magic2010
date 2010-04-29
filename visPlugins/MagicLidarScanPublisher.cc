@@ -3,16 +3,15 @@
 #include "VisError.hh"
 #include "IPCMailboxes.hh"
 #include "VisInterfaces.hh"
-#include "Lidar2D.hh"
 #else
 #include <Vis/VisPlugin.hh>
 #include <Vis/VisError.hh>
 #include <Vis/IPCMailboxes.hh>
 #include <Vis/VisInterfaces.hh>
-#include <Vis/Lidar2D.hh>
 #endif
 
 #include "MagicSensorDataTypes.hh"
+#include "Lidar2D.hh"
 #include <string>
 #include <vector>
 

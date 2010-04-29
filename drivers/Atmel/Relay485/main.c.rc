@@ -1,0 +1,103 @@
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <avr/eeprom.h>
+#include <util/delay.h>
+#include <stdio.h>
+
+#include "uart0.h"
+#include "uart1.h"
+
+
+void init(void)
+{
+
+
+  uart0_init();
+  uart0_setbaud(230400);
+
+  uart1_init();
+  uart1_setbaud(115200);
+
+  sei();
+}
+
+int main(void)
+{
+  int c;
+  unsigned long count = 0;
+
+  init();
+  //uart0_putstr("\r\nStarting Arduino Mega Relay program\r\n");
+
+  //start the imu
+  //uart1_putchar('9');
+
+  uint8_t rlen=0;
+  uint8_t val1,val2;
+  uint16_t value;
+  
+  
+  uint8_t buf[12];
+  uint8_t channel;
+
+  while (1) {
+
+    c = uart0_getchar();
+    if (c != EOF) {
+      uart1_putchar(c);
+    }
+
+    c = uart1_getchar();
+    if (c != EOF) {
+      count++;
+      //uart0_printf("%x ",c);
+      //if (count%16==0) uart0_putstr("\r\n");
+
+      //if (count<=16)
+      //{
+        
+      //}
+        
+      //uart0_printf("rlen = %d\r\n",rlen);
+      switch (rlen)
+      {
+        case 16:       //reset the state machine
+          rlen=0;
+        case 0:
+          if (c == 3)  //first header byte
+            rlen++;
+          else
+            rlen=0;
+            
+          break;
+        case 1:
+          if (c == 1)  //second header byte
+            rlen++;
+          else
+            rlen=0;
+            
+          break;
+          
+        
+        default:
+          rlen++;
+          if (rlen & 0x01)
+          {
+            channel = (c & 0b00111100)>>2;        //extract the channel
+            value   = ((uint16_t)(c & 0x03))<<8;  //extract MSB part of the value
+          }
+          else
+          {
+            value+=c;                             //get the LSB
+            uart0_printf("channel %d, value =%d\r\n",channel,value);
+          }
+          break;
+      }
+    
+      //uart0_putchar(c);
+      
+    }
+  }
+
+  return 0;
+}

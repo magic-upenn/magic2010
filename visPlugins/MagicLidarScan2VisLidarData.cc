@@ -2,13 +2,13 @@
 #include "VisPlugin.hh"
 #include "VisError.hh"
 #include "IPCMailboxes.hh"
-#include "Lidar2DVisual.hh"
 #else
 #include <Vis/VisPlugin.hh>
 #include <Vis/VisError.hh>
 #include <Vis/IPCMailboxes.hh>
 #endif
 
+#include "Lidar2DVisual.hh"
 #include "MagicSensorDataTypes.hh"
 
 #define VIS_PLUGIN MagicLidarScan2VisLidarData
