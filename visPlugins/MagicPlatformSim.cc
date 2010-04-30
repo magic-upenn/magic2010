@@ -10,6 +10,7 @@
 
 #include "MagicHostCom.hh"
 #include "VehicleDynamics2D.hh"
+#include "MagicPose.hh"
 #include "Timer.hh"
 
 #define VIS_PLUGIN MagicPlatformSimPlugin
@@ -46,6 +47,8 @@ namespace vis
     string encodersMsgName;
     Upenn::Timer timer0;
     Upenn::Timer cmdTimeoutTimer;
+    string truthMsgName;
+    bool publishTruth;
 
   };
 }
@@ -60,6 +63,7 @@ VIS_PLUGIN::VIS_PLUGIN()
 {
   this->dyn = new VehicleDynamics2D();
   this->controlMailbox = NULL;
+  this->publishTruth   = false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -78,6 +82,9 @@ void VIS_PLUGIN::LoadPlugin()
   this->dyn->SetRPY(this->roll,this->pitch,this->yaw);
   
   this->robotName = this->node->GetString("robotName","",REQUIRED);
+  this->truthMsgName = this->node->GetString("truthMsgName","",NOT_REQUIRED);
+  if (!this->truthMsgName.empty())
+    this->publishTruth = true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -92,7 +99,14 @@ void VIS_PLUGIN::InitializePlugin()
   this->encodersMsgName = this->robotName + "/Encoders";
   if (IPC_defineMsg(this->encodersMsgName.c_str(),IPC_VARIABLE_LENGTH,
                 Magic::EncoderCounts::getIPCFormat()) != IPC_OK)
-    vthrow("could not define output pose message\n");
+    vthrow("could not define output pose message");
+
+  if (this->publishTruth)
+  {
+    if (IPC_defineMsg(this->truthMsgName.c_str(), IPC_VARIABLE_LENGTH,
+                Magic::Pose::getIPCFormat()) != IPC_OK)
+      vthrow("could not define thruth pose message")
+  }
     
   this->timer0.Tic();
   this->cmdTimeoutTimer.Tic();
@@ -137,12 +151,22 @@ void VIS_PLUGIN::UpdatePlugin()
   if (IPC_publishData(this->encodersMsgName.c_str(),&counts) != IPC_OK)
     vthrow("could not publish encoder message\n");
 
+  //update the position of the visualization
   double x,y,z;
   double roll,pitch,yaw;
   this->dyn->GetXYZ(x,y,z);
   this->dyn->GetRPY(roll,pitch,yaw);
   this->parentPlugin->SetXYZ(x,y,z);
   this->parentPlugin->SetRPY(roll,pitch,yaw);
+
+
+  //send out truth message if needed
+  if (this->publishTruth)
+  {
+    Magic::Pose mpose(x,y,z,0,0,roll,pitch,yaw,this->timer0.GetAbsoluteTime());
+    if (IPC_publishData(this->truthMsgName.c_str(),&mpose) != IPC_OK)
+      vthrow("could not publish thruth message\n");
+  }
 }
 
 using namespace std;
