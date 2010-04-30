@@ -1,5 +1,5 @@
 function PublishObstacleMap
-global MAPS
+global OMAP
 
-content = VisMap2DSerializer('serialize',MAPS.omap);
-ipcAPIPublishVC(MAPS.omap.msgName,content);
+content = VisMap2DSerializer('serialize',OMAP);
+ipcAPIPublishVC(OMAP.msgName,content);

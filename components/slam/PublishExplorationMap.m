@@ -1,5 +1,5 @@
 function PublishExplorationMap
-global MAPS
+global EMAP
 
-content = VisMap2DSerializer('serialize',MAPS.emap);
-ipcAPIPublishVC(MAPS.emap.msgName,content);
+content = VisMap2DSerializer('serialize',EMAP);
+ipcAPIPublishVC(EMAP.msgName,content);

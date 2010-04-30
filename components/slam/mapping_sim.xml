@@ -82,7 +82,7 @@
     <plugin>
       <id>sim</id>
       <filename>MagicPlatformSim.so</filename>
-      <truthMsgName>Robot0/PoseTruth</truthMsgName>
+      <truthMsgName>Robot0/Pose</truthMsgName>
       <robotName>Robot0</robotName>
     </plugin>
 
