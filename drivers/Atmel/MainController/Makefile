@@ -21,7 +21,7 @@ CLOCK      = 16000000
 #PROGRAMMER = -c stk500v1 -P /dev/cu.usbserial-A7004IkS -b 57600 -D
 #PROGRAMMER = -c stk500v1 -P /dev/tty.usbserial-A6008sf3 -b 57600 -D
 #PROGRAMMER = -c stk500v1 -P /dev/cu.usbserial-A700dztp -b 57600 -D
-PROGRAMMER = -c stk500v1 -P /dev/cu.usbserial-A7004Ikn -b 57600 -D
+PROGRAMMER = -c stk500v1 -P /dev/cu.usbserial-A700dBfL -b 57600 -D
 
 
 #OBJECTS    = uart0.o rs485.o adc.o timer1.o main.o
@@ -72,7 +72,7 @@ AVRDUDE = avrdude $(PROGRAMMER) -p $(DEVICE)
 COMPILE = avr-gcc -Wall -O3 -DF_CPU=$(CLOCK) -mmcu=$(DEVICE) $(INCLUDES)
 
 ATMEL_COMMON_PATH = ../Common
-MAGIC_COMMON_PATH = ../../Common
+MAGIC_COMMON_PATH = ../../../common/dataTypes
 
 INCLUDES   = -I. -I$(MAGIC_COMMON_PATH) -I$(ATMEL_COMMON_PATH)
 

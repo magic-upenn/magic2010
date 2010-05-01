@@ -106,12 +106,13 @@
 		    <filename>Lidar2DVisual.so</filename>
         <material>Transparent/Yellow</material>
 	    </plugin>
-
+<!--
       <plugin>
 	      <id>dataPublisher</id>
-	      <filename>Lidar2DPublishUav.so</filename>
-		    <ipcMsgName>Robot0/Lidar0</ipcMsgName>
+	      <filename>MagicLidarScanPublisher.so</filename>
+		    <msgName>Robot0/Lidar0</msgName>
 	    </plugin>
+/-->
 
 	  </plugin>
   </plugin>

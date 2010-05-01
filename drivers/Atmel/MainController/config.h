@@ -95,6 +95,14 @@
 #define TOGGLE_LED_GPS     LED_GPS_PINN    |= _BV(LED_GPS_PIN)
 #define TOGGLE_LED_RC      LED_RC_PINN     |= _BV(LED_RC_PIN)
 
+//index of each control in the array of RC channels
+#define RC_V_IND 2
+#define RC_W_IND 1
 
+#define RC_V_BIAS 512
+#define RC_W_BIAS 512
+
+#define RC_V_RANGE 230
+#define RC_W_RANGE 230
 
 #endif //CONFIG_H

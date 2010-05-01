@@ -63,7 +63,7 @@ FUSES      = -U hfuse:w:0xdf:m -U lfuse:w:0x62:m
 AVRDUDE = avrdude $(PROGRAMMER) -p $(DEVICE)
 COMPILE = avr-gcc -Wall -Os -DF_CPU=$(CLOCK) -mmcu=$(DEVICE) $(INCLUDES)
 ATMEL_COMMON_PATH = ../Common
-MAGIC_COMMON_PATH = ../../Common
+MAGIC_COMMON_PATH = ../../../common/dataTypes
 
 INCLUDES   = -I. -I$(MAGIC_COMMON_PATH) -I$(ATMEL_COMMON_PATH)
 

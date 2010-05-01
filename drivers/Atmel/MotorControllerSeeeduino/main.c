@@ -30,58 +30,7 @@
   #define MOTOR_CONTROLLER_SET_VEL MotorControllerPwmSetVel
 #endif
 
-#include "rs485.h"
-#include "uart0.h"
-#include "uart3.h"
-  
-#define ENCODER0_TRIGGER_PORT PIND
-#define ENCODER1_TRIGGER_PORT PIND
-#define ENCODER2_TRIGGER_PORT PINE
-#define ENCODER3_TRIGGER_PORT PINE
-
-#define ENCODER0_TRIGGER_PIN PD0
-#define ENCODER1_TRIGGER_PIN PD1
-#define ENCODER2_TRIGGER_PIN PE4
-#define ENCODER3_TRIGGER_PIN PE5
-
-#define ENCODER0_VALUE_PORT PINF
-#define ENCODER1_VALUE_PORT PINF
-#define ENCODER2_VALUE_PORT PINF
-#define ENCODER3_VALUE_PORT PINF
-
-#define ENCODER0_VALUE_PIN PF4
-#define ENCODER1_VALUE_PIN PF5
-#define ENCODER2_VALUE_PIN PF6
-#define ENCODER3_VALUE_PIN PF7
-
-#define ENCODER0_INT_vec INT0_vect
-#define ENCODER1_INT_vec INT1_vect
-#define ENCODER2_INT_vec INT4_vect
-#define ENCODER3_INT_vec INT5_vect
-
-#define STATUS_LED_PIN PB7
-#define STATUS_LED_PORT PORTB
-#define STATUS_LED_DDR DDRB
-#define STATUS_LED_PINN PINB
-
-#define ACT_LED_PIN PB6
-#define ACT_LED_PORT PORTB
-#define ACT_LED_DDR DDRB
-#define ACT_LED_PINN PINB
-#define TOGGLE_ACT_LED (ACT_LED_PINN |= _BV(ACT_LED_PIN))
-
-#define MIN_V 5
-#define MIN_W 5
-
-//index of each control in the array of RC channels
-#define RC_V_IND 2
-#define RC_W_IND 1
-
-#define RC_V_BIAS 512
-#define RC_W_BIAS 512
-
-#define RC_V_RANGE 230
-#define RC_W_RANGE 230
+#include "config.h"
 
 //store the encoder counts
 int16_t encCounts[4] = {0, 0, 0, 0};
@@ -89,6 +38,7 @@ int16_t encCounts[4] = {0, 0, 0, 0};
 int8_t v=0, w=0;
 
 uint16_t n2OVF = 0;
+int8_t mode = MODE_MANUAL;
 
 
 uint8_t  rcPacketIn[16];
@@ -225,15 +175,16 @@ void init(void)
   //initialize the motor controller stuff
   MOTOR_CONTROLLER_INIT(); 
   
-  //initialize the communications port
-  rs485_init();
-  rs485_setbaud(115200);
-  
+  //initialize the communications ports
   uart0_init();
-  uart0_setbaud(115200);
+  uart0_setbaud(HOST_BAUD_RATE);
+  
+  rs485_init();
+  rs485_setbaud(BUS_BAUD_RATE);
+  
   
   uart3_init();
-  uart3_setbaud(115200);
+  uart3_setbaud(RC_BAUD_RATE);
   
   timer1_init();
   timer1_set_compa_callback(RCTimingReset);
@@ -304,17 +255,24 @@ int SetVelocity(int8_t vNew, int8_t wNew)
 
 int ProcessIncomingRCPacket()
 {
-  int16_t vtemp = (((int16_t)rcValsIn[RC_V_IND]) - RC_V_BIAS)/2;
-  int16_t wtemp = (((int16_t)rcValsIn[RC_W_IND]) - RC_W_BIAS)/2;
-  
-  vtemp = vtemp < 128 ? vtemp : 127;
-  vtemp = vtemp > -127 ? vtemp : -127;
-  wtemp = wtemp < 128 ? wtemp : 127;
-  wtemp = wtemp > -127 ? wtemp : -127;
-  
-  
-  SetVelocity((int8_t)vtemp,(int8_t)wtemp);
 
+  uint16_t newMode = rcValsIn[RC_MODE_IND];
+  if (newMode < RC_MODE_THRESH)
+    mode = MODE_AUTONOMOUS;
+  else
+  {
+    mode = MODE_MANUAL;
+    int16_t vtemp = (((int16_t)rcValsIn[RC_V_IND]) - RC_V_BIAS)/2;
+    int16_t wtemp = (((int16_t)rcValsIn[RC_W_IND]) - RC_W_BIAS)/2;
+    
+    vtemp = vtemp <  128 ? vtemp :  127;
+    vtemp = vtemp > -127 ? vtemp : -127;
+    wtemp = wtemp <  128 ? wtemp :  127;
+    wtemp = wtemp > -127 ? wtemp : -127;
+  
+  
+    SetVelocity((int8_t)vtemp,(int8_t)wtemp);
+  }
   return 0;
 }
 
@@ -329,6 +287,8 @@ int main(void)
   uint16_t counts[5];    //packet counter and 4 encoder counts
   counts[0] = 0;
   uint8_t * dataPr;
+  
+  uint8_t packetId;
   
   DynamixelPacket dpacket;
   DynamixelPacketInit(&dpacket);
@@ -347,46 +307,68 @@ int main(void)
       if (ret < 0)
         continue;
         
-      if (DynamixelPacketGetId(&dpacket) != MMC_MOTOR_CONTROLLER_DEVICE_ID)
-        continue;
-       
-      TOGGLE_ACT_LED;
-          
-      switch (DynamixelPacketGetType(&dpacket))
+      packetId = DynamixelPacketGetId(&dpacket);
+        
+      if (packetId == MMC_MOTOR_CONTROLLER_DEVICE_ID)
       {
-        case MMC_MOTOR_CONTROLLER_ENCODERS_REQUEST:
-        
-          cli();
-          memcpy(&(counts[1]),encCounts,4*sizeof(uint16_t));
-          ResetEncoderCounts();
-          sei();
+        TOGGLE_ACT_LED;
           
-          counts[1] = -counts[1];
-          counts[3] = -counts[3];
-        
-          //return back the counter
-          counts[0] = *(uint16_t*)DynamixelPacketGetData(&dpacket);
-        
-          SendRS485Packet(MMC_MOTOR_CONTROLLER_DEVICE_ID,
-                          MMC_MOTOR_CONTROLLER_ENCODERS_RESPONSE,
-                          (uint8_t*)counts,5*sizeof(uint16_t));
+        switch (DynamixelPacketGetType(&dpacket))
+        {
+          case MMC_MOTOR_CONTROLLER_ENCODERS_REQUEST:
+          
+            cli();
+            memcpy(&(counts[1]),encCounts,4*sizeof(uint16_t));
+            ResetEncoderCounts();
+            sei();
+            
+            counts[1] = -counts[1];
+            counts[3] = -counts[3];
+          
+            //return back the counter
+            counts[0] = *(uint16_t*)DynamixelPacketGetData(&dpacket);
+          
+            SendRS485Packet(MMC_MOTOR_CONTROLLER_DEVICE_ID,
+                            MMC_MOTOR_CONTROLLER_ENCODERS_RESPONSE,
+                            (uint8_t*)counts,5*sizeof(uint16_t));
 
-          break;
-        case MMC_MOTOR_CONTROLLER_VELOCITY_SETTING:
-          dataPr = DynamixelPacketGetData(&dpacket);
-          
-          SetVelocity((int8_t)dataPr[0],(int8_t)dataPr[1]);
+            break;
+          case MMC_MOTOR_CONTROLLER_VELOCITY_SETTING:
+            dataPr = DynamixelPacketGetData(&dpacket);
+            
+            if (mode == MODE_AUTONOMOUS)
+              SetVelocity((int8_t)dataPr[0],(int8_t)dataPr[1]);
 
-/*
-          //send back the confirmation with the counter
-          SendRS485Packet(MMC_MOTOR_CONTROLLER_DEVICE_ID,
-                          MMC_MOTOR_CONTROLLER_VELOCITY_CONFIRMATION,
-                          dataPr,sizeof(uint16_t));
-*/
-          break;
+  /*
+            //send back the confirmation with the counter
+            SendRS485Packet(MMC_MOTOR_CONTROLLER_DEVICE_ID,
+                            MMC_MOTOR_CONTROLLER_VELOCITY_CONFIRMATION,
+                            dataPr,sizeof(uint16_t));
+  */
+            break;
+            
+          default:
+            break;
+        }
+      }
+      else if (packetId == MMC_RC_DEVICE_ID)
+      {
+        TOGGLE_ACT_LED;
           
-        default:
-          break;
+        switch (DynamixelPacketGetType(&dpacket))
+        {
+          case MMC_RC_DECODED:
+            //overwrite the rc vals
+            memcpy(rcValsIn,DynamixelPacketGetData(&dpacket),7*sizeof(uint16_t));
+            
+            //process the new packet
+            ProcessIncomingRCPacket();
+            break;
+            
+          default:
+            break;
+      
+        }
       }
     }
     

@@ -80,7 +80,6 @@
       <msgName>Robot0/Pose</msgName>
     </plugin>
 
-
     <plugin>
       <id>Lidar2DVisual</id>
       <xyz>0.0 0 0</xyz>

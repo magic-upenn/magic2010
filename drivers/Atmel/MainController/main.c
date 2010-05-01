@@ -41,16 +41,6 @@ volatile uint8_t rcInitialized = 0;
 volatile uint8_t rs485Blocked = 0;
 volatile uint8_t rcCmdPending = 0;
 
-//index of each control in the array of RC channels
-#define RC_V_IND 2
-#define RC_W_IND 1
-
-#define RC_V_BIAS 512
-#define RC_W_BIAS 512
-
-#define RC_V_RANGE 230
-#define RC_W_RANGE 230
-
 inline void PutUInt16(uint16_t val)
 {
   uint8_t * p = (uint8_t*)&val;
@@ -295,9 +285,13 @@ int main(void)
     
     if (rcCmdPending && !rs485Blocked)
     {
+      BusSendPacket(MMC_RC_DEVICE_ID,MMC_RC_DECODED,(uint8_t*)rcValsIn,7*sizeof(uint16_t));
+    
+    /*
       BusSendPacket(MMC_MOTOR_CONTROLLER_DEVICE_ID,
                   MMC_MOTOR_CONTROLLER_VELOCITY_SETTING,
                   (uint8_t*)rcVelCmd, 4);
+    */
     
       //reset the timer
       rcCmdPending = 0;
