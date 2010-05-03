@@ -66,7 +66,6 @@ int main(int argc, char * argv[])
   string processName      = string("runHokuyo") + id;
   string robotName        = string("Robot0");
   string lidarScanMsgName = robotName + "/Lidar" + id;
-  string hbeatMsgName     = robotName + "/HeartBeat";
 
   int nPoints = 1081;
   if (argc >=4)
@@ -79,8 +78,6 @@ int main(int argc, char * argv[])
   IPC_defineMsg(lidarScanMsgName.c_str(),IPC_VARIABLE_LENGTH,
                  Magic::LidarScan::getIPCFormat());
 
-  IPC_defineMsg(hbeatMsgName.c_str(),IPC_VARIABLE_LENGTH,
-                 Magic::HeartBeat::getIPCFormat());
 
   int scanStart=0;      //start of the scan
   int scanEnd=nPoints -1;//1080;      //end of the scan
@@ -187,10 +184,12 @@ int main(int argc, char * argv[])
   lidarScan.counter     = 0;
   lidarScan.id          = 0;
 
-  HeartBeat hbeat;
-  hbeat.sender  = (char*)"runHokuyo";
-  hbeat.msgName = (char*)lidarScanMsgName.c_str();
-  hbeat.status  = 0;
+  HeartBeatPublisher hBeatPublisher;
+  if ( hBeatPublisher.Initialize((char*)processName.c_str(),(char*)lidarScanMsgName.c_str()) )
+  {
+    PRINT_ERROR("could not initialize the heartbeat publisher\n");
+    return -1;
+  }
 
   //capture CTRL-C for proper shutdown
   signal(SIGINT,ShutdownFn);
@@ -213,7 +212,7 @@ int main(int argc, char * argv[])
         lidarScan.counter++;
         
         float * rangesF = lidarScan.ranges.data;
-        for (int jj=0;jj<lidarScan.ranges.size; jj++)
+        for (unsigned int jj=0;jj<lidarScan.ranges.size; jj++)
           *rangesF++ = (float)ranges[jj]*0.001;
 
 
@@ -221,8 +220,11 @@ int main(int argc, char * argv[])
         IPC_publishData(lidarScanMsgName.c_str(),&lidarScan);
 
         //publis heart beat message
-        hbeat.t = Timer::GetAbsoluteTime();
-        IPC_publishData(hbeatMsgName.c_str(),&hbeat);
+        if (hBeatPublisher.Publish(0))
+        {
+          PRINT_ERROR("could not publish heartbeat\n");
+          return -1;
+        }
 
         printf(".");fflush(stdout);
       }
