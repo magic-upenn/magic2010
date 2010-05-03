@@ -126,6 +126,23 @@ namespace Magic
 #endif
 
   };
+
+
+  struct ImuFiltered
+  {
+    double roll;
+    double pitch;
+    double yaw;
+    double wroll;
+    double wpitch;
+    double wyaw;
+    double t;
+
+    #define MagicImuFiltered_IPC_FORMAT "{double,double,double,double,double,double,double}"
+
+    static const char*  getIPCFormat() { return MagicImuFiltered_IPC_FORMAT; };
+
+  };
 }
 
 #endif //MAGIC_SENSOR_DATA_TYPES_HH
