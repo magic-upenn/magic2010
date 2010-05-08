@@ -1,6 +1,6 @@
 MEXEXT = $(shell mexext)
 
-TARGETS = getch.$(MEXEXT) serialize.$(MEXEXT) deserialize.$(MEXEXT) GetUnixTime.$(MEXEXT)
+TARGETS = getch.$(MEXEXT) serialize.$(MEXEXT) deserialize.$(MEXEXT) GetUnixTime.$(MEXEXT) nmeaChecksum.$(MEXEXT)
 
 all: $(TARGETS)
 

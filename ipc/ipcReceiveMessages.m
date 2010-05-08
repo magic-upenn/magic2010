@@ -2,16 +2,17 @@ function nmsg = ipcReceiveMessages
 
 global IPC
 
-msgs = ipcAPI('listenClear',1);  %listen until no messages for 1ms
+msgs = ipcAPI('listen',10);
 nmsg = length(msgs);
 
 for mi=1:nmsg
   name = msgs(mi).name;
+  name(name=='/')='_';
   if isfield(IPC.handler,name),
-    try
+    %try
       IPC.handler.(name)(msgs(mi).data);
-    catch
-      disp(sprintf('Error in ipc %s handler: %s', name, lasterror.message));
-    end
+    %catch
+    %  disp(sprintf('Error in ipc %s handler: %s', name, lasterror.message));
+    %end
   end
 end

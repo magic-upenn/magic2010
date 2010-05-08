@@ -4,7 +4,7 @@
 using namespace Magic;
 
 
-//TrajWaypoint
+//Pose
 int Pose::ReadFromMatlab(mxArray * mxArr, int index)
 {
   int numFieldsRead = 0;
@@ -44,4 +44,3 @@ int Pose::WriteToMatlab(mxArray * mxArr, int index)
   MEX_WRITE_FIELD(mxArr,index,t);
   return 0;
 }
-
