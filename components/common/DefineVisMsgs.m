@@ -14,3 +14,7 @@ ipcAPIDefine(lidarPointsMsgName,lidarPointsFormat);
 poseMsgName = [GetRobotName VisMarshall('getMsgSuffix','Pose3D')];
 poseMsgFormat  = VisMarshall('getMsgFormat','Pose3D');
 ipcAPIDefine(poseMsgName,poseMsgFormat);
+
+odomPoseMsgName = [GetRobotName 'Odom' VisMarshall('getMsgSuffix','Pose3D')];
+odomPoseMsgFormat  = VisMarshall('getMsgFormat','Pose3D');
+ipcAPIDefine(odomPoseMsgName,odomPoseMsgFormat);

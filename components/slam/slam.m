@@ -10,15 +10,25 @@ end
 
 
 function slamStart
-global SLAM OMAP POSE
+global SLAM OMAP POSE TRAJ
 
 SetMagicPaths;
 
 SLAM.x   = 0;
 SLAM.y   = 0;
 SLAM.z   = 0;
-SLAM.yaw = 0;
+SLAM.yaw = 10/180*pi;
+
+
 SLAM.lidarCntr = 0;
+
+SLAM.xOdom   = SLAM.x;
+SLAM.yOdom   = SLAM.y;
+SLAM.yawOdom = SLAM.yaw;
+
+TRAJ.cntr=0;
+TRAJ.traj = zeros(4,100000);
+TRAJ.hTraj = [];
 
 
 ipcInit;
@@ -27,7 +37,15 @@ emapInit;
 encodersSubscribe;
 lidar0Subscribe;
 motorsInit;
+poseInit;
 DefineVisMsgs;
+
+%assign the message handlers
+ipcReceiveSetFcn(GetMsgName('Pose'),    @ipcRecvPoseFcn);
+ipcReceiveSetFcn(GetMsgName('Encoders'),@ipcRecvEncodersFcn);
+ipcReceiveSetFcn(GetMsgName('Lidar0'),  @slamProcessLidar);
+ipcReceiveSetFcn(GetMsgName('Encoders'),@slamProcessEncoders);
+ipcReceiveSetFcn(GetMsgName('ImuFiltered'), @ipcRecvImuFcn);
 
 
 
@@ -39,6 +57,7 @@ ScanMatch2D('setBoundaries',OMAP.xmin,OMAP.ymin,OMAP.xmax,OMAP.ymax);
 ScanMatch2D('setResolution',OMAP.res);
 
 
+
 POSE.x     = 0;
 POSE.y     = 0;
 POSE.z     = 0;
@@ -46,80 +65,123 @@ POSE.roll  = 0;
 POSE.pitch = 0;
 POSE.yaw   = 0/180*pi; %1.5
 
+tic
+
 
 function slamUpdate
-global LIDAR0 ENCODERS
-msgs = ipcAPI('listen',25);
-nmsgs = length(msgs);
 
-for mi=1:nmsgs
-  switch msgs(mi).name
-    case LIDAR0.msgName
-      LIDAR0.scan = MagicLidarScanSerializer('deserialize',msgs(mi).data);
-      slamProcessLidar;
-    case ENCODERS.msgName
-      ENCODERS.counts  = MagicEncoderCountsSerializer('deserialize',msgs(mi).data);
-      
-      if isempty(ENCODERS.tLastReset)
-        ENCODERS.tLastReset = ENCODERS.counts.t;
-      end
-      
-      slamProcessEncoders;
-  end
+ipcReceiveMessages;
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Lidar0 message handler
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function slamProcessLidar(msg)
+global SLAM LIDAR0 OMAP EMAP POSE IMU TRAJ
+
+if ~isempty(msg)
+  LIDAR0.scan = MagicLidarScanSerializer('deserialize',msg);
+else
+  return;
 end
 
-
-
-
-function slamProcessLidar
-global SLAM LIDAR0 OMAP EMAP
-
+if isempty(IMU)
+  return
+end
+  
 SLAM.lidarCntr = SLAM.lidarCntr+1;
-map = OMAP.map.data;
 
 %fprintf(1,'got lidar scan\n');
-fprintf(1,'.');
-
+if (mod(SLAM.lidarCntr,200) == 0)
+  fprintf(1,'.');
+  %toc,tic
+end
+  
 ranges = double(LIDAR0.scan.ranges)'; %convert from float to double
 indGood = ranges >0.25;
 
 xs = ranges.*LIDAR0.cosines;
 ys = ranges.*LIDAR0.sines;
 zs = zeros(size(xs));
+xsg=xs(indGood);
+ysg=ys(indGood);
+zsg=zs(indGood);
+onesg=ones(size(xsg));
 
-xsss=xs(indGood);
-ysss=ys(indGood);
-zsss=zs(indGood);
-onez=ones(size(xsss));
+T = (roty(IMU.data.pitch)*rotx(IMU.data.roll))';
+X = [xsg ysg zsg onesg];
+Y=X*T;  %reverse the order because of transpose
 
 
-nyaw= 21;
-nxs = 11;
-nys = 11;
+%don't use the points that supposedly hit the ground (check!!)
+indGood = Y(:,3) > -0.3;
 
-dyaw = 0.25/180.0*pi;
-dx   = 0.02;
-dy   = 0.02;
+xsss = Y(indGood,1);
+ysss = Y(indGood,2);
+zsss = Y(indGood,3);
+onez = ones(size(xsss));
 
-aCand = (-10:10)*dyaw+SLAM.yaw; %+ (-cshift(cimax))*a_res;
-xCand = (-5:5)*dx+SLAM.x;
-yCand = (-5:5)*dy+SLAM.y;
+LIDAR0.xs = xsss;
+LIDAR0.ys = ysss;
 
-hits = ScanMatch2D('match',map,xsss,ysss,xCand,yCand,aCand);
+
+nyaw= 5;
+nxs = 5;
+nys = 5;
+
+yawRange = floor(nyaw/2);
+xRange   = floor(nxs/2);
+yRange   = floor(nys/2);
+
+dyaw = 0.1/180.0*pi;
+dx   = 0.01;
+dy   = 0.01;
+
+aCand = (-yawRange:yawRange)*dyaw+SLAM.yaw + IMU.data.wyaw*0.025;
+xCand = (-xRange:xRange)*dx+SLAM.xOdom;
+yCand = (-yRange:yRange)*dy+SLAM.yOdom;
+
+hits = ScanMatch2D('match',OMAP.map.data,xsss,ysss,xCand,yCand,aCand);
 
 
 [hmax imax] = max(hits(:));
 [kmax mmax jmax] = ind2sub([nxs,nys,nyaw],imax);
 
-SLAM.yaw = aCand(jmax);
-SLAM.x   = xCand(kmax);
-SLAM.y   = yCand(mmax);
-
-if (SLAM.lidarCntr == 1)
-  SLAM.x=0;
-  SLAM.y=0;
-  SLAM.yaw=0;
+if (SLAM.lidarCntr > 1)
+  
+  hitsXY = hits(:,:,jmax);
+  [yGrid xGrid] = meshgrid(yCand,xCand);
+  xDiff = xGrid - SLAM.xOdom;
+  yDiff = yGrid - SLAM.yOdom;
+  distGrid = sqrt(xDiff.^2 + yDiff.^2);
+  
+  costGrid = distGrid - hitsXY;
+  
+  [cmin cimin] = min(costGrid(:));
+  
+  
+  xPrev = SLAM.x;
+  yPrev = SLAM.y;
+  
+  SLAM.yaw = aCand(jmax);
+  %SLAM.x   = xCand(kmax);
+  %SLAM.y   = yCand(mmax);
+  SLAM.x   = xGrid(cimin);
+  SLAM.y   = yGrid(cimin);
+  
+  
+  %this does not seem to do anything...
+  dx = SLAM.x - xPrev;
+  dy = SLAM.y - yPrev;
+  dTrans = rotz(SLAM.yaw)*roty(IMU.data.pitch)*rotx(IMU.data.roll)*rotz(SLAM.yaw)'*[dx;dy;0;1];
+  
+  SLAM.x = xPrev + dTrans(1);
+  SLAM.y = yPrev + dTrans(2);
+  
 end
+
+%IMU.data.wyaw
+%SLAM.yaw 
 
 T = (trans([SLAM.x SLAM.y SLAM.z])*rotz(SLAM.yaw))';
 X = [xsss ysss zsss onez];
@@ -133,30 +195,203 @@ xis = ceil((xss - OMAP.xmin) * OMAP.invRes);
 yis = ceil((yss - OMAP.ymin) * OMAP.invRes);
 
 indGood = (xis > 1) & (yis > 1) & (xis < OMAP.map.sizex) & (yis < OMAP.map.sizey);
-inds = sub2ind(size(map),xis(indGood),yis(indGood));
+inds = sub2ind(size(OMAP.map.data),xis(indGood),yis(indGood));
 
-map(inds)= map(inds)+1;
-OMAP.map.data = map;
+inc=5;
+if (SLAM.lidarCntr == 1)
+  inc=100;
+end
 
-if (mod(SLAM.lidarCntr,10) == 0)
+OMAP.map.data(inds)=OMAP.map.data(inds)+inc;
+
+TRAJ.cntr = TRAJ.cntr+1;
+TRAJ.traj(:,TRAJ.cntr) = [SLAM.x; SLAM.y; SLAM.yaw; hmax];
+
+if (mod(SLAM.lidarCntr,40) == 0)
+  if isempty(TRAJ.hTraj)
+    TRAJ.hTraj =plot(TRAJ.traj(1,1:TRAJ.cntr-1),TRAJ.traj(2,1:TRAJ.cntr-1));
+  else
+    set(TRAJ.hTraj,'xdata',TRAJ.traj(1,1:TRAJ.cntr-1),'ydata',TRAJ.traj(2,1:TRAJ.cntr-1));
+  end
+    
+  drawnow;
+end
+
+%decay the map around the vehicle
+if (mod(SLAM.lidarCntr,20) == 0)
+  xiCenter = ceil((SLAM.x - OMAP.xmin) * OMAP.invRes);
+  yiCenter = ceil((SLAM.y - OMAP.ymin) * OMAP.invRes);
+
+  windowSize = 30 *OMAP.invRes;
+  ximin = ceil(xiCenter - windowSize/2);
+  ximax = ximin + windowSize - 1;
+
+  yimin = ceil(yiCenter - windowSize/2);
+  yimax = yimin + windowSize - 1;
+  
+  
+  if ximin < 1,ximin=1; end
+  if ximax > OMAP.map.sizex; end
+  if yimin < 1,yimin=1; end
+  if yimax > OMAP.map.sizey; end
+
+
+  localMap = OMAP.map.data(ximin:ximax,...
+                           yimin:yimax);
+
+
+  indd=localMap<50 & localMap > 0;
+  localMap(indd) = localMap(indd)*0.95;
+  localMap(localMap>100) = 100;
+  
+  OMAP.map.data(ximin:ximax,yimin:yimax) = localMap;
+end
+
+
+%see if we need to increase the size of the map
+[xi yi] = PositionToIndeces(SLAM.x + [-30  30], SLAM.y + [-30 30]);
+
+expandSize = 50;
+xExpand = 0;
+yExpand = 0;
+
+if (xi(1) < 1), xExpand = -expandSize; end
+if (yi(1) < 1), yExpand = -expandSize; end
+if (xi(2) > OMAP.map.sizex), xExpand = expandSize; end
+if (yi(2) > OMAP.map.sizey), yExpand = expandSize; end
+
+if (xExpand ~=0 || yExpand ~=0)
+  omapExpand(xExpand,yExpand);
+  ScanMatch2D('setBoundaries',OMAP.xmin,OMAP.ymin,OMAP.xmax,OMAP.ymax);
+end
+  
+
+%if (xi(1) < 1) || (yi(1) < 1) || (xi(2) > OMAP.map.sizex) || (yi(2) > OMAP.map.sizey)
+%  fprintf(1,'need to increase map');
+%end
+
+
+POSE.x = SLAM.x;
+POSE.y = SLAM.y;
+%POSE.roll = IMU.data.roll;
+%POSE.pitch = IMU.data.pitch;
+POSE.yaw = SLAM.yaw;
+
+%{
+if (mod(SLAM.lidarCntr,200) == 0)
   PublishObstacleMap;
 end
+%}
+
+ipcAPIPublishVC(POSE.msgName,MagicPoseSerializer('serialize',POSE));
 
 
 
-function slamProcessEncoders
-global ENCODERS
 
-%fprintf(1,'got encoder packet\n');
-counts = ENCODERS.counts;
-ENCODERS.acounts = ENCODERS.acounts + [counts.fr;counts.fl;counts.rr;counts.rl];
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Encoder message handler
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function slamProcessEncoders(msg)
+global ENCODERS SLAM IMU
 
+if ~isempty(msg)
+  ENCODERS.counts  = MagicEncoderCountsSerializer('deserialize',msg);
+  ENCODERS.cntr    = ENCODERS.cntr + 1;
+  
+  if isempty(ENCODERS.tLastReset)
+    ENCODERS.tLastReset = ENCODERS.counts.t;
+    ENCODERS.tLast = ENCODERS.counts.t;
+    return;
+  end
+  
+  counts = ENCODERS.counts;
+  ENCODERS.acounts = ENCODERS.acounts + [counts.fr;counts.fl;counts.rr;counts.rl];
 
-dt = counts.t-ENCODERS.tLastReset;
-if (dt > 0.1)
-  ENCODERS.wheelVels = ENCODERS.acounts / dt * ENCODERS.metersPerTic;
-  ENCODERS.acounts = ENCODERS.acounts*0;
-  ENCODERS.tLastReset = counts.t;
+  %dt for velocity calculation
+  dtv = counts.t-ENCODERS.tLastReset;
+  if (dtv > 0.1)
+    ENCODERS.wheelVels = ENCODERS.acounts / dtv * ENCODERS.metersPerTic;
+    ENCODERS.acounts = ENCODERS.acounts*0;
+    ENCODERS.tLastReset = counts.t;
+  end
+  
+  
+  rc = mean([ENCODERS.counts.rr ENCODERS.counts.fr]) * ENCODERS.metersPerTic;
+  lc = mean([ENCODERS.counts.rl ENCODERS.counts.fl]) * ENCODERS.metersPerTic;
+  
+  %rc = ENCODERS.counts.rr * ENCODERS.metersPerTic;
+  %lc = ENCODERS.counts.rl * ENCODERS.metersPerTic;
+  
+  
+  vdt = mean([rc,lc]);
+  wdt = (rc - lc)/2/ENCODERS.robotRadius/2;
+  %dt = counts.t - ENCODERS.tLast;
+  
+  SLAM.xOdom = SLAM.x;
+  SLAM.yOdom = SLAM.y;
+  SLAM.yawOdom = SLAM.yaw;
+  
+  xPrev = SLAM.x;
+  yPrev = SLAM.y;
+  
+  %update the state variables
+  if (abs(wdt) > 0.001)
+    SLAM.xOdom = SLAM.xOdom - vdt/wdt*sin(SLAM.yawOdom) + vdt/wdt*sin(SLAM.yawOdom+wdt);
+    SLAM.yOdom = SLAM.yOdom + vdt/wdt*cos(SLAM.yawOdom) - vdt/wdt*cos(SLAM.yawOdom+wdt);
+    SLAM.yawOdom = SLAM.yawOdom + wdt;
+  else
+    SLAM.xOdom   = SLAM.xOdom + vdt*cos(SLAM.yawOdom);
+    SLAM.yOdom   = SLAM.yOdom + vdt*sin(SLAM.yawOdom);
+    SLAM.yawOdom = SLAM.yawOdom + wdt;
+  end
+  
+  
+  %this does not seem to do anything...
+  dx = SLAM.xOdom - xPrev;
+  dy = SLAM.yOdom - yPrev;
+  dTrans = rotz(SLAM.yaw)*roty(IMU.data.pitch)*rotx(IMU.data.roll)*rotz(SLAM.yaw)'*[dx;dy;0;1];
+  
+  SLAM.xOdom = xPrev + dTrans(1);
+  SLAM.yOdom = yPrev + dTrans(2);
+  
 end
+
+
+
+function [xi yi] = PositionToIndeces(x,y)
+global OMAP
+
+xi = ceil((x - OMAP.xmin) * OMAP.invRes);
+yi = ceil((y - OMAP.ymin) * OMAP.invRes);
+
+
+%{
+function CenterSlamMap(xCenter,yCenter)
+global SLAM OMAP
+
+
+xiCenter = ceil((xCenter - OMAP.xmin) * OMAP.invRes);
+yiCenter = ceil((yCenter - OMAP.ymin) * OMAP.invRes);
+
+
+SLAM.ximin = ceil(xiCenter - OMAP.map.sizex/2);
+SLAM.ximax = SLAM.ximin + OMAP.map.sizex - 1;
+
+SLAM.yimin = ceil(yiCenter - OMAP.map.sizey/2);
+SLAM.yimax = SLAM.yimin + OMAP.map.sizey - 1;
+
+
+SLAM.map.data = OMAP.map.data(SLAM.ximin:SLAM.ximax,...
+                              SLAM.yimin:SLAM.yimax);
+                            
+                            
+function MergeSlamMap
+global SLAM OMAP
+
+OMAP.map.data(SLAM.ximin:SLAM.ximax,SLAM.yimin:SLAM.yimax) = SLAM.map.data;
+%}
+
+
+
 
 

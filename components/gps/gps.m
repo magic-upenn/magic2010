@@ -1,4 +1,6 @@
 function gps(tUpdate)
+clear all;
+SetMagicPaths
 
 if nargin < 1,
   tUpdate = 0.01;
@@ -27,6 +29,7 @@ ipcAPISubscribe(GPS.ipcMsgName);
 
 
 % Setup figure
+figure(1)
 clf;
 set(gcf,'NumberTitle','off','Name','GPS Status',...
 	'Position',[500 500 300 200]);
@@ -72,19 +75,32 @@ GPS.hVelMode = uicontrol('Style','edit','Units','normalized', ...
 
 GPS.numPackets = 0;
 GPS.numErrors  = 0;
+GPS.x = [];
+GPS.y = [];
+GPS.zone = [];
+GPS.traj = [];
+GPS.trajMap = [];
+
+figure(2)
+clf(gcf);
+im = imread('upenn_small.jpg');
+GPS.hOverhead=image(im(end:-1:1,:,:)); hold on;
+set(gca,'ydir','normal');
+GPS.hTrajMap = plot3(0,0,0,'.');
+hold off;
 
 
 
 function gpsUpdate
 global GPS
-msgs = ipcAPIReceive(50);
+msgs = ipcAPI('listenClear',5);
 len = length(msgs);
 if len > 0
-  for i=1:len
-    msg = msgs(i);
-    switch msg.name
+  for mi=1:len
+    switch msgs(mi).name
       case GPS.ipcMsgName
-        gpsPacket   = MagicGpsASCIISerializer('deserialize',msgs(i).data);
+        fprintf(1,'.');
+        gpsPacket   = MagicGpsASCIISerializer('deserialize',msgs(mi).data);
         gpsString = char(gpsPacket.data);
         checksumOk = nmeaChecksum(gpsString);
         if (checksumOk == 1)
@@ -93,9 +109,10 @@ if len > 0
         else
           warning('gps checksum error');
           GPS.numErrors = GPS.numErrors+1;
+          fprintf(1,'%s\n',gpsString);
         end
       otherwise
-        fprintf(1,'WARNING: unknown message type\n");
+        fprintf(1,'WARNING: unknown message type\n');
     end
   end
 end
@@ -125,10 +142,12 @@ packet = packet{1};
 dpacket = str2double(packet);
 
 GPS.utc_time = dpacket(2);
-GPS.lat      = dpacket(3);
-%north/south
-GPS.lon      = dpacket(5);
-%east/west
+GPS.lat      = floor(dpacket(3)/100) + rem(dpacket(3),100)/60;
+GPS.NS       = packet(4); %north/south
+if (strcmp(GPS.NS,'S')) GPS.lat = -GPS.lat; end
+GPS.lon      = floor(dpacket(5)/100) + rem(dpacket(5),100)/60;
+GPS.EW       = packet(6); %east/west
+if (strcmp(GPS.EW,'W')) GPS.lon = -GPS.lon; end
 GPS.pos_fix  = dpacket(7);
 GPS.num_sat  = dpacket(8);
 GPS.hdop     = dpacket(9);
@@ -143,10 +162,27 @@ set(GPS.hNumPackets,'String',num2str(GPS.numPackets));
 set(GPS.hErrors,'String',num2str(GPS.numErrors));
 set(GPS.hNumSat,'String',num2str(GPS.num_sat));
 
+if (GPS.num_sat > 3)
+  [x,y,zone] = deg2utm(GPS.lat,GPS.lon);
+  GPS.x = x;
+  GPS.y = y;
+  GPS.zone = zone;
+  pos2pixel= 1/((483767.187537-483590.860505)/(7852-6318));
+  pixelx  = (GPS.x - 483767.187537)*pos2pixel + 7852;
+  pixely  = (GPS.y - 4422508.916057)*pos2pixel + 3116;
+  GPS.trajMap = [GPS.trajMap [pixelx;pixely;GPS.hdop]];
+  GPS.traj = [GPS.traj [GPS.x;GPS.y;GPS.hdop]];
+  set(GPS.hTrajMap,'xdata',GPS.traj(1,:),'ydata',GPS.traj(2,:),'zdata',GPS.traj(3,:));
+  GPS
+else
+  GPS.x = [];
+  GPS.y = [];
+  GPS.zone = [];
+end
+
+
+
 drawnow;
-
-
-
 
     
 

@@ -12,8 +12,8 @@ if isempty(EMAP) || (EMAP.initialized ~= 1)
   EMAP.zmin       = 0;
   EMAP.zmax       = 5;
 
-  EMAP.map.sizex  = (EMAP.xmax - EMAP.xmin) / EMAP.res;
-  EMAP.map.sizey  = (EMAP.ymax - EMAP.ymin) / EMAP.res;
+  EMAP.map.sizex  = (EMAP.xmax - EMAP.xmin) / EMAP.res + 1;
+  EMAP.map.sizey  = (EMAP.ymax - EMAP.ymin) / EMAP.res + 1;
   EMAP.map.data   = 127*ones(EMAP.map.sizex,EMAP.map.sizey,'uint8');
   EMAP.msgName    = [GetRobotName '/ExplorationMap2D_map2d'];
   

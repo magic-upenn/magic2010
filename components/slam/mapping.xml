@@ -69,10 +69,31 @@
     <filename>Axes.so</filename>
     <length>20 20 20</length>
   </plugin>
+  
+  <plugin>
+    <id>Robot0Odom</id>
+    <filename>Hummingbird.so</filename>
+    
+    <plugin>
+      <id>mark</id>
+      <filename>Box.so</filename>
+      <xyz>0.11 0 0</xyz>
+      <dims>0.07 0.019 0.007</dims>
+      <material>Colors/Blue</material>
+    </plugin>
+  </plugin>
 
   <plugin>
     <id>Robot0</id>
     <filename>Hummingbird.so</filename>
+    
+    <plugin>
+      <id>mark</id>
+      <filename>Box.so</filename>
+      <xyz>0.11 0 0</xyz>
+      <dims>0.07 0.019 0.007</dims>
+      <material>Colors/Red</material>
+    </plugin>
 
     <plugin>
       <id>poseUpdater</id>
@@ -86,7 +107,7 @@
       <rpy>0 0 0 </rpy>
       <filename>Lidar2DVisual.so</filename>
       <material>Transparent/Red</material>
-      <detach>true</detach>
+      <detach>false</detach>
 
       <plugin>
         <id>dataConverter</id>

@@ -1,19 +1,21 @@
 function omapInit
 global OMAP
 
-if isempty(OMAP) || (OMAP.initialized ~= 1)
+if isempty(OMAP) || ~isfield(OMAP,'initialized') ||(OMAP.initialized ~= 1)
 
   OMAP.res        = 0.05;
   OMAP.invRes     = 1/OMAP.res;
-  OMAP.xmin       = -25;
-  OMAP.ymin       = -25;
-  OMAP.xmax       = 25;
-  OMAP.ymax       = 25;
+  
+  
+  OMAP.xmin       = -35;
+  OMAP.ymin       = -35;
+  OMAP.xmax       = 40;
+  OMAP.ymax       = 40;
   OMAP.zmin       = 0;
   OMAP.zmax       = 5;
 
-  OMAP.map.sizex  = (OMAP.xmax - OMAP.xmin) / OMAP.res;
-  OMAP.map.sizey  = (OMAP.ymax - OMAP.ymin) / OMAP.res;
+  OMAP.map.sizex  = (OMAP.xmax - OMAP.xmin) / OMAP.res + 1;
+  OMAP.map.sizey  = (OMAP.ymax - OMAP.ymin) / OMAP.res + 1;
   OMAP.map.data   = zeros(OMAP.map.sizex,OMAP.map.sizey,'uint8');
   OMAP.msgName    = [GetRobotName '/ObstacleMap2D_map2d'];
   
