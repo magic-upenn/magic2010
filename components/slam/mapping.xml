@@ -187,6 +187,19 @@
 
 	</plugin>
 
+
+  <plugin>
+    <id>screen</id>
+    <filename>Screen.so</filename>
+    <pixelDim>0.1145</pixelDim>
+    <rpy>0 -1.5708 3.1415</rpy>
+    <xyz>21.0 33 0</xyz>
+  </plugin>
+
+  <plugin>
+    <id>Robot0Traj</id>
+    <filename>TrajPos3DColorRGBA.so</filename>
+  </plugin>
   
    
 

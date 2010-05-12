@@ -32,4 +32,3 @@ int HeartBeat::WriteToMatlab(mxArray * mxArr, int index)
   return 0;
 }
   
-  

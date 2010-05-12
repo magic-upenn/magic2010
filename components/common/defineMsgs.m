@@ -1,4 +1,4 @@
-addpath( [ getenv('VIS_DIR') '/ipc' ] )
+SetMagicPaths;
 
 ipcAPIConnect;
 ipcAPIDefine('Robot0/Lidar0',MagicLidarScanSerializer('getFormat'));

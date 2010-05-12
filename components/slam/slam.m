@@ -14,10 +14,10 @@ global SLAM OMAP POSE TRAJ
 
 SetMagicPaths;
 
-SLAM.x   = 0;
-SLAM.y   = 0;
+SLAM.x   = -29;
+SLAM.y   = 39;
 SLAM.z   = 0;
-SLAM.yaw = 10/180*pi;
+SLAM.yaw = -8/180*pi;
 
 
 SLAM.lidarCntr = 0;
@@ -215,6 +215,21 @@ if (mod(SLAM.lidarCntr,40) == 0)
   end
     
   drawnow;
+end
+
+if (mod(SLAM.lidarCntr,100) == 0)
+  trajMsgName = [GetRobotName 'Traj' VisMarshall('getMsgSuffix','TrajPos3DColorDoubleRGBA')];
+  txs = TRAJ.traj(1,1:TRAJ.cntr-1);
+  tys = TRAJ.traj(2,1:TRAJ.cntr-1);
+  tzs = 0.1*ones(size(txs));
+  trs = ones(size(txs));
+  tgs = zeros(size(txs));
+  tbs = zeros(size(txs));
+  tas = ones(size(txs));
+
+  traj = [txs;tys;tzs;trs;tgs;tbs;tas]; 
+  content = VisMarshall('marshall','TrajPos3DColorDoubleRGBA',traj);
+  ipcAPIPublishVC(trajMsgName,content);
 end
 
 %decay the map around the vehicle

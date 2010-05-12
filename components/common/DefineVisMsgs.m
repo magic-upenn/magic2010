@@ -18,3 +18,7 @@ ipcAPIDefine(poseMsgName,poseMsgFormat);
 odomPoseMsgName = [GetRobotName 'Odom' VisMarshall('getMsgSuffix','Pose3D')];
 odomPoseMsgFormat  = VisMarshall('getMsgFormat','Pose3D');
 ipcAPIDefine(odomPoseMsgName,odomPoseMsgFormat);
+
+trajMsgName = [GetRobotName 'Traj' VisMarshall('getMsgSuffix','TrajPos3DColorDoubleRGBA')];
+trajMsgFormat  = VisMarshall('getMsgFormat','TrajPos3DColorDoubleRGBA');
+ipcAPIDefine(trajMsgName,trajMsgFormat);
