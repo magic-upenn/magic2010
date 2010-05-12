@@ -10,7 +10,7 @@
       <name>mapping</name>
       <frameRate>30</frameRate>
       <camera>
-        <name>cam1</name>
+        <name>cam2</name>
         <position>-0.8 0 2</position>
         <lookAt>0 0 0</lookAt>
         <clipDist>1</clipDist>
@@ -54,8 +54,16 @@
     <material>carpet</material>
   </plugin>
 
+ 
+
 /-->
 
+
+   <plugin>
+    <id>axes</id>
+    <filename>Axes.so</filename>
+    <length>20 20 20</length>
+  </plugin>
 
   <plugin>
     <id>ambient</id>
@@ -64,11 +72,7 @@
   </plugin>
 
 
-  <plugin>
-    <id>axes</id>
-    <filename>Axes.so</filename>
-    <length>20 20 20</length>
-  </plugin>
+  
   
   <plugin>
     <id>Robot0Odom</id>
@@ -189,11 +193,11 @@
 
 
   <plugin>
-    <id>screen</id>
-    <filename>Screen.so</filename>
-    <pixelDim>0.1145</pixelDim>
-    <rpy>0 -1.5708 3.1415</rpy>
-    <xyz>21.0 33 0</xyz>
+    <id>overhead</id>
+    <filename>Image.so</filename>
+    <resolution>0.1145</resolution>
+    <rpy>0 0 0 </rpy>
+    <xyz>0 0 0</xyz>
   </plugin>
 
   <plugin>

@@ -2,13 +2,12 @@ addpath( [ getenv('VIS_DIR') '/ipc' ] )
 
 host = 'localhost';
 ipcAPIConnect(host);
-imgMsgName = ['screen' VisMarshall('getMsgSuffix','ImageData')];
+imgMsgName = ['overhead' VisMarshall('getMsgSuffix','ImageData')];
 imgMsgFormat  = VisMarshall('getMsgFormat','ImageData');
 ipcAPIDefine(imgMsgName,imgMsgFormat);
 
 
-im=imread('~/svn/magic2010/trunk/components/slam/upenn_small.jpg');
-im=im(100:4000,5000:10125,:);
+im=imread([getenv('MAGIC_DIR') '/components/slam/SiteVisitOverhead.png']);
 
 width=size(im,2);
 height=size(im,1);
