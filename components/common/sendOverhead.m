@@ -7,7 +7,7 @@ imgMsgFormat  = VisMarshall('getMsgFormat','ImageData');
 ipcAPIDefine(imgMsgName,imgMsgFormat);
 
 
-im=imread([getenv('MAGIC_DIR') '/components/slam/SiteVisitOverhead.png']);
+im=imread([getenv('MAGIC_DIR') '/components/slam/SiteVisitOverhead.jpg']);
 
 width=size(im,2);
 height=size(im,1);
