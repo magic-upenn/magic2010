@@ -15,7 +15,7 @@
         <lookAt>-110 140 0</lookAt>
         <clipDist>1</clipDist>
       </camera>
-    <size>1200 800</size><position>0 0</position><FSAA>0</FSAA><OgreWindowName>mapping</OgreWindowName><OgreWindowHandleParams><parentWindowHandle>7494096:0:77594628</parentWindowHandle><FSAA>6</FSAA></OgreWindowHandleParams></frame>
+    <size>1200 800</size><position>0 0</position><FSAA>0</FSAA><OgreWindowName>mapping</OgreWindowName><OgreWindowHandleParams><parentWindowHandle>7517216:0:71303172</parentWindowHandle><FSAA>6</FSAA></OgreWindowHandleParams></frame>
   <position>0 0</position></gui>
 
   <plugin>
@@ -350,7 +350,7 @@
     <filename>Box2.so</filename>
     <material>Colors/Blue</material>
     <dims>36 0.1 1.2</dims>
-    <xyz>-55.8623 143.866 0.6</xyz>
+    <xyz>-56.1177 144.204 0.6</xyz>
     <lockXYZ>0 0 1</lockXYZ>
     <rpy>0 0 1.421</rpy>
   </plugin>
@@ -468,6 +468,50 @@
     <xyz>-92.1797 138.043 0.6</xyz>
     <lockXYZ>0 0 1</lockXYZ>
     <rpy>0 0 1.421</rpy>
+  </plugin>
+
+  <plugin>
+    <id>SpectatorArea</id>
+    <filename>Box2.so</filename>
+    <material>Transparent/Yellow</material>
+    <dims>60 5 0.2</dims>
+    <xyz>-95.5359 126.342 0.1</xyz>
+    <lockXYZ>0 0 1</lockXYZ>
+    <rpy>0 0 -0.15</rpy>
+
+    <plugin>
+      <id>label</id>
+      <text>Spectator Area</text>
+      <charHeight>1</charHeight>
+      <alignment>center</alignment>
+      <filename>MovableText.so</filename>
+      <lockXYZ>0 0 1</lockXYZ>
+      <xyz>0 0 3</xyz>
+      <rpy>0 0 0</rpy>
+    </plugin>
+  </plugin>
+
+
+
+  <plugin>
+    <id>GroundStation</id>
+    <filename>Box2.so</filename>
+    <material>Transparent/Red</material>
+    <dims>3 3 0.2</dims>
+    <xyz>-71.1734 93.6438 0.1</xyz>
+    <lockXYZ>0 0 1</lockXYZ>
+    <rpy>0 0 -0.15</rpy>
+
+    <plugin>
+      <id>label</id>
+      <text>Ground Station</text>
+      <charHeight>1</charHeight>
+      <alignment>center</alignment>
+      <filename>MovableText.so</filename>
+      <lockXYZ>0 0 1</lockXYZ>
+      <xyz>0 0 3</xyz>
+      <rpy>0 0 0</rpy>
+    </plugin>
   </plugin>
 
 
