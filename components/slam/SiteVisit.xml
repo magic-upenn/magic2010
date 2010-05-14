@@ -576,6 +576,34 @@
     </plugin>
   </plugin>
   
-   
+  <plugin>
+	  <id>Hokuyo_UTM-30LX</id>
+	  <filename>Lidar2D.so</filename>
+    <xyz>-117.378 167.312 0.1</xyz>
+    <invalidRange>0.05</invalidRange>
+    <minRange>0.05</minRange>
+    <maxRange>30</maxRange>
+    <scanRate>40</scanRate>
+    <angleStep>0.25</angleStep>
+    <msgPrefix>lidar</msgPrefix>
+    <publishPoints>false</publishPoints>
+    <publishRays>false</publishRays>
+    <pointsMsgPrefix>lidarPoints</pointsMsgPrefix>
+    <pointColor>0.5 0.2 0.2 0.7</pointColor>
+
+    <plugin>
+	    <id>Lidar2DVisual</id>
+	    <filename>Lidar2DVisual.so</filename>
+      <material>Transparent/Yellow</material>
+    </plugin>
+    <plugin>
+      <id>dataPublisher</id>
+      <filename>MagicLidarScanPublisher.so</filename>
+	    <msgName>Robot0/Lidar0</msgName>
+    </plugin>
+
+
+  </plugin>
+
 
 <xyz>0 0 0</xyz><rpy>0 0 0</rpy></vis>
