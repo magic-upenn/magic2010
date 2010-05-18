@@ -9,15 +9,18 @@ while(1)
 end
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Initialize slam process
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function slamStart
 global SLAM OMAP POSE TRAJ
 
 SetMagicPaths;
 
-SLAM.x   = -29;
-SLAM.y   = 39;
+SLAM.x   = 0;
+SLAM.y   = 0;
 SLAM.z   = 0;
-SLAM.yaw = -8/180*pi;
+SLAM.yaw = 0/180*pi;
 
 
 SLAM.lidarCntr = 0;
@@ -39,12 +42,13 @@ lidar0Subscribe;
 motorsInit;
 poseInit;
 DefineVisMsgs;
+DefineSensorMessages;
 
 %assign the message handlers
-ipcReceiveSetFcn(GetMsgName('Pose'),    @ipcRecvPoseFcn);
-ipcReceiveSetFcn(GetMsgName('Encoders'),@ipcRecvEncodersFcn);
-ipcReceiveSetFcn(GetMsgName('Lidar0'),  @slamProcessLidar);
-ipcReceiveSetFcn(GetMsgName('Encoders'),@slamProcessEncoders);
+ipcReceiveSetFcn(GetMsgName('Pose'),        @ipcRecvPoseFcn);
+ipcReceiveSetFcn(GetMsgName('Encoders'),    @ipcRecvEncodersFcn);
+ipcReceiveSetFcn(GetMsgName('Lidar0'),      @slamProcessLidar);
+ipcReceiveSetFcn(GetMsgName('Encoders'),    @slamProcessEncoders);
 ipcReceiveSetFcn(GetMsgName('ImuFiltered'), @ipcRecvImuFcn);
 
 
@@ -57,19 +61,18 @@ ScanMatch2D('setBoundaries',OMAP.xmin,OMAP.ymin,OMAP.xmax,OMAP.ymax);
 ScanMatch2D('setResolution',OMAP.res);
 
 
-
 POSE.x     = 0;
 POSE.y     = 0;
 POSE.z     = 0;
 POSE.roll  = 0;
 POSE.pitch = 0;
-POSE.yaw   = 0/180*pi; %1.5
-
-tic
+POSE.yaw   = 0/180*pi;
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Receive and handle ipc messages
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function slamUpdate
-
 ipcReceiveMessages;
 
 
@@ -85,6 +88,7 @@ else
   return;
 end
 
+%wait for an initial imu message
 if isempty(IMU)
   return
 end
@@ -108,6 +112,7 @@ ysg=ys(indGood);
 zsg=zs(indGood);
 onesg=ones(size(xsg));
 
+%apply the transformation given current roll and pitch
 T = (roty(IMU.data.pitch)*rotx(IMU.data.roll))';
 X = [xsg ysg zsg onesg];
 Y=X*T;  %reverse the order because of transpose
@@ -125,14 +130,17 @@ LIDAR0.xs = xsss;
 LIDAR0.ys = ysss;
 
 
+%number of poses in each dimension to try
 nyaw= 5;
 nxs = 5;
 nys = 5;
+
 
 yawRange = floor(nyaw/2);
 xRange   = floor(nxs/2);
 yRange   = floor(nys/2);
 
+%resolution of the candidate poses
 dyaw = 0.1/180.0*pi;
 dx   = 0.01;
 dy   = 0.01;
@@ -141,6 +149,8 @@ aCand = (-yawRange:yawRange)*dyaw+SLAM.yaw + IMU.data.wyaw*0.025;
 xCand = (-xRange:xRange)*dx+SLAM.xOdom;
 yCand = (-yRange:yRange)*dy+SLAM.yOdom;
 
+
+%get a local 3D sampling of pose likelihood
 hits = ScanMatch2D('match',OMAP.map.data,xsss,ysss,xCand,yCand,aCand);
 
 
@@ -149,40 +159,29 @@ hits = ScanMatch2D('match',OMAP.map.data,xsss,ysss,xCand,yCand,aCand);
 
 if (SLAM.lidarCntr > 1)
   
+  %extract the 2D slice of xy poses at the best angle
   hitsXY = hits(:,:,jmax);
+  
+  %create a grid of distance-based costs from each cell to odometry pose
   [yGrid xGrid] = meshgrid(yCand,xCand);
   xDiff = xGrid - SLAM.xOdom;
   yDiff = yGrid - SLAM.yOdom;
   distGrid = sqrt(xDiff.^2 + yDiff.^2);
   
+  %combine the pose likelihoods with the distance from odometry prediction
+  %TODO: play around with the weights!!
   costGrid = distGrid - hitsXY;
   
+  %find the minimum and save the new pose
   [cmin cimin] = min(costGrid(:));
   
-  
-  xPrev = SLAM.x;
-  yPrev = SLAM.y;
-  
   SLAM.yaw = aCand(jmax);
-  %SLAM.x   = xCand(kmax);
-  %SLAM.y   = yCand(mmax);
   SLAM.x   = xGrid(cimin);
   SLAM.y   = yGrid(cimin);
   
-  
-  %this does not seem to do anything...
-  dx = SLAM.x - xPrev;
-  dy = SLAM.y - yPrev;
-  dTrans = rotz(SLAM.yaw)*roty(IMU.data.pitch)*rotx(IMU.data.roll)*rotz(SLAM.yaw)'*[dx;dy;0;1];
-  
-  SLAM.x = xPrev + dTrans(1);
-  SLAM.y = yPrev + dTrans(2);
-  
 end
 
-%IMU.data.wyaw
-%SLAM.yaw 
-
+%update the map
 T = (trans([SLAM.x SLAM.y SLAM.z])*rotz(SLAM.yaw))';
 X = [xsss ysss zsss onez];
 Y=X*T;  %reverse the order because of transpose
@@ -207,6 +206,7 @@ OMAP.map.data(inds)=OMAP.map.data(inds)+inc;
 TRAJ.cntr = TRAJ.cntr+1;
 TRAJ.traj(:,TRAJ.cntr) = [SLAM.x; SLAM.y; SLAM.yaw; hmax];
 
+%draw the trajectory
 if (mod(SLAM.lidarCntr,40) == 0)
   if isempty(TRAJ.hTraj)
     TRAJ.hTraj =plot(TRAJ.traj(1,1:TRAJ.cntr-1),TRAJ.traj(2,1:TRAJ.cntr-1));
@@ -217,6 +217,7 @@ if (mod(SLAM.lidarCntr,40) == 0)
   drawnow;
 end
 
+%send out robot trajectory to vis
 if (mod(SLAM.lidarCntr,100) == 0)
   trajMsgName = [GetRobotName 'Traj' VisMarshall('getMsgSuffix','TrajPos3DColorDoubleRGBA')];
   txs = TRAJ.traj(1,1:TRAJ.cntr-1);
@@ -281,16 +282,12 @@ if (xExpand ~=0 || yExpand ~=0)
 end
   
 
-%if (xi(1) < 1) || (yi(1) < 1) || (xi(2) > OMAP.map.sizex) || (yi(2) > OMAP.map.sizey)
-%  fprintf(1,'need to increase map');
-%end
-
-
-POSE.x = SLAM.x;
-POSE.y = SLAM.y;
-%POSE.roll = IMU.data.roll;
-%POSE.pitch = IMU.data.pitch;
-POSE.yaw = SLAM.yaw;
+POSE.x     = SLAM.x;
+POSE.y     = SLAM.y;
+POSE.z     = SLAM.z;
+POSE.roll  = IMU.data.roll;
+POSE.pitch = IMU.data.pitch;
+POSE.yaw   = SLAM.yaw;
 
 %{
 if (mod(SLAM.lidarCntr,200) == 0)
@@ -362,6 +359,8 @@ if ~isempty(msg)
   
   
   %this does not seem to do anything...
+  %the idea is to project the displacement onto the 2D plane, given pitch
+  %and roll
   dx = SLAM.xOdom - xPrev;
   dy = SLAM.yOdom - yPrev;
   dTrans = rotz(SLAM.yaw)*roty(IMU.data.pitch)*rotx(IMU.data.roll)*rotz(SLAM.yaw)'*[dx;dy;0;1];
@@ -378,35 +377,6 @@ global OMAP
 
 xi = ceil((x - OMAP.xmin) * OMAP.invRes);
 yi = ceil((y - OMAP.ymin) * OMAP.invRes);
-
-
-%{
-function CenterSlamMap(xCenter,yCenter)
-global SLAM OMAP
-
-
-xiCenter = ceil((xCenter - OMAP.xmin) * OMAP.invRes);
-yiCenter = ceil((yCenter - OMAP.ymin) * OMAP.invRes);
-
-
-SLAM.ximin = ceil(xiCenter - OMAP.map.sizex/2);
-SLAM.ximax = SLAM.ximin + OMAP.map.sizex - 1;
-
-SLAM.yimin = ceil(yiCenter - OMAP.map.sizey/2);
-SLAM.yimax = SLAM.yimin + OMAP.map.sizey - 1;
-
-
-SLAM.map.data = OMAP.map.data(SLAM.ximin:SLAM.ximax,...
-                              SLAM.yimin:SLAM.yimax);
-                            
-                            
-function MergeSlamMap
-global SLAM OMAP
-
-OMAP.map.data(SLAM.ximin:SLAM.ximax,SLAM.yimin:SLAM.yimax) = SLAM.map.data;
-%}
-
-
 
 
 

@@ -7,8 +7,8 @@ if isempty(OMAP) || ~isfield(OMAP,'initialized') ||(OMAP.initialized ~= 1)
   OMAP.invRes     = 1/OMAP.res;
   
   
-  OMAP.xmin       = -35;
-  OMAP.ymin       = -35;
+  OMAP.xmin       = -40;
+  OMAP.ymin       = -40;
   OMAP.xmax       = 40;
   OMAP.ymax       = 40;
   OMAP.zmin       = 0;
