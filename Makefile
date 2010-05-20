@@ -4,11 +4,11 @@ all: $(TARGETS)
 
 all:
 	cd common/dataTypes; cp *.h *.hh ../../include
-	cd common/XMLConfig; make -j
+	cd common/XMLConfig; make -j 4
 	cd drivers; make
 	cd matlab/mexTools; make
 	cd matlab/serialization; make
-	cd visPlugins; make -j
+	cd visPlugins; make -j 4
 
 clean:
 	rm -rf include/*.h include/*.hh

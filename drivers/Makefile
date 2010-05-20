@@ -1,7 +1,7 @@
 SUBDIRS = SerialDevice Hokuyo
 
 all:
-	for i in $(SUBDIRS) ; do if (cd $$i && make -j); then :; else exit; fi ; done
+	for i in $(SUBDIRS) ; do if (cd $$i && make -j 4); then :; else exit; fi ; done
 
 clean:
 	rm -f *~
