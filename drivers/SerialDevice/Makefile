@@ -12,6 +12,6 @@ libSerialDevice.a: $(OBJECTS)
 	cp $@ $(MAGIC_LIB_DIR)
 	cp *.hh $(MAGIC_INCLUDE_DIR)
 
-
-
+ErrorMessage.o: ../../common/ErrorMessage.cc
+	g++ $(INCLUDES) $(CPPFLAGS) -c -o $@ $^
 

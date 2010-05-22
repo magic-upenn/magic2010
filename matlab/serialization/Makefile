@@ -1,6 +1,6 @@
 include $(MAGIC_DIR)/Makefile.mk
 
-INCLUDES += -I$(MAGIC_DIR)/common/dataTypes -I. -I$(VIS_DIR)/include
+INCLUDES += -I$(MAGIC_DIR)/common/dataTypes -I. 
 
 MEX_EXT = $(shell mexext)
 
