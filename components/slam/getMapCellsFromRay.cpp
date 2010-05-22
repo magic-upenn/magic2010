@@ -72,12 +72,12 @@ void mexFunction( int nlhs, mxArray *plhs[],
       else
           ystep = -1;
 
-      int num_pts = x1-x0-1;
+      //int num_pts = x1-x0-1;
       //plhs[0] = mxCreateDoubleMatrix(num_pts, 2, mxREAL);
       //double* cells = mxGetPr(plhs[0]);
       
       if(steep){
-          for(int x=x0; x<(x1-1); x++){
+          for(int x=x0; x<(x1); x++){
               *pxio++ = y;
               *pyio++ = x;
               //cells[x-x0] = y;
@@ -90,7 +90,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
           }
       }
       else{
-          for(int x=x0; x<(x1-1); x++){
+          for(int x=x0; x<(x1); x++){
               *pxio++ = x;
               *pyio++ = y;
               //cells[x-x0] = x;

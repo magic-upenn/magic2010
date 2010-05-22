@@ -1,5 +1,5 @@
 function PublishMapsToMotionPlanner
-global OMAP EMAP
+global OMAP
 
 %This next bit needs to be done every few seconds to get a new path
 %from Jon's planner.  My map has positive values being obstacles,

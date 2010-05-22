@@ -43,6 +43,7 @@ motorsInit;
 poseInit;
 DefineVisMsgs;
 DefineSensorMessages;
+DefinePlannerMessages;
 
 %assign the message handlers
 ipcReceiveSetFcn(GetMsgName('Pose'),        @ipcRecvPoseFcn);
@@ -202,6 +203,25 @@ if (SLAM.lidarCntr == 1)
 end
 
 OMAP.map.data(inds)=OMAP.map.data(inds)+inc;
+
+% Update the exploration map
+xl = ceil((SLAM.x-EMAP.xmin) * EMAP.invRes);
+yl = ceil((SLAM.y-EMAP.ymin) * EMAP.invRes);
+%tic
+[eix eiy] = getMapCellsFromRay(xl,yl,xis(indGood),yis(indGood));
+%toc
+%plot(eix,eiy,'r.'), hold on
+%plot(xis,yis,'b.'), drawnow, hold off
+cis = sub2ind(size(EMAP.map.data),eix,eiy);
+EMAP.map.data(cis) = 249;
+%imagesc(EMAP.map.data);
+%axis xy;
+%drawnow;
+%EMAP.map.data(cis) = EMAP.map.data(cis)+1;
+if (mod(SLAM.lidarCntr,300) == 0)
+  PublishMapsToExplorationPlanner;
+end
+
 
 TRAJ.cntr = TRAJ.cntr+1;
 TRAJ.traj(:,TRAJ.cntr) = [SLAM.x; SLAM.y; SLAM.yaw; hmax];

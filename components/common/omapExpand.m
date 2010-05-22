@@ -1,6 +1,6 @@
 %expand the map by some number of meters in x and y direction
 function omapExpand(x,y)
-global OMAP
+global OMAP EMAP
 
 
 if (x==0 && y==0)
@@ -65,6 +65,9 @@ size(m33)
 OMAP.map.data = [m11     m12       m13;
                  m21 OMAP.map.data m23;
                  m31     m32       m33];
+EMAP.map.data = [m11     m12       m13;
+                 m21 EMAP.map.data m23;
+                 m31     m32       m33];
 
 
 OMAP.xmin       = OMAP.xmin - size(m12,1)*OMAP.res;
@@ -72,9 +75,17 @@ OMAP.ymin       = OMAP.ymin - size(m21,2)*OMAP.res;
 OMAP.xmax       = OMAP.xmax + size(m32,1)*OMAP.res;
 OMAP.ymax       = OMAP.ymax + size(m23,2)*OMAP.res;
 
+EMAP.xmin       = EMAP.xmin - size(m12,1)*EMAP.res;
+EMAP.ymin       = EMAP.ymin - size(m21,2)*EMAP.res;
+EMAP.xmax       = EMAP.xmax + size(m32,1)*EMAP.res;
+EMAP.ymax       = EMAP.ymax + size(m23,2)*EMAP.res;
+
 
 OMAP.map.sizex  = (OMAP.xmax - OMAP.xmin) / OMAP.res + 1;
 OMAP.map.sizey  = (OMAP.ymax - OMAP.ymin) / OMAP.res + 1;
+
+EMAP.map.sizex  = (EMAP.xmax - EMAP.xmin) / EMAP.res + 1;
+EMAP.map.sizey  = (EMAP.ymax - EMAP.ymin) / EMAP.res + 1;
 
 fprintf(1,'Map resized. New dimensions: x(%f %f) y(%f %f)\n', ...
         OMAP.xmin,OMAP.xmax,OMAP.ymin,OMAP.ymax);
