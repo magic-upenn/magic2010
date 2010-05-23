@@ -227,6 +227,7 @@ TRAJ.cntr = TRAJ.cntr+1;
 TRAJ.traj(:,TRAJ.cntr) = [SLAM.x; SLAM.y; SLAM.yaw; hmax];
 
 %draw the trajectory
+%{
 if (mod(SLAM.lidarCntr,40) == 0)
   if isempty(TRAJ.hTraj)
     TRAJ.hTraj =plot(TRAJ.traj(1,1:TRAJ.cntr-1),TRAJ.traj(2,1:TRAJ.cntr-1));
@@ -236,6 +237,7 @@ if (mod(SLAM.lidarCntr,40) == 0)
     
   drawnow;
 end
+%}
 
 %send out robot trajectory to vis
 if (mod(SLAM.lidarCntr,100) == 0)

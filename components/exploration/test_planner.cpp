@@ -24,7 +24,7 @@ using namespace std;
 
 //IPC related
 #include "ipc.h"
-#include "messages_IPC.h"
+#include "MagicPlanDataTypes.h"
 
 // name of this module for IPC
 #define MODULE_NAME "Test Planner linux"

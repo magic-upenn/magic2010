@@ -132,6 +132,8 @@ int GP_FULL_UPDATE::ReadFromMatlab(mxArray * mxArr, int index)
   int numFieldsRead = 0;
 
   MEX_READ_FIELD(mxArr,index,timestamp,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,UTM_x,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,UTM_y,numFieldsRead);
   MEX_READ_FIELD(mxArr,index,sent_cover_x,numFieldsRead);
   MEX_READ_FIELD(mxArr,index,sent_cover_y,numFieldsRead);
   MEX_READ_FIELD(mxArr,index,sent_cost_x,numFieldsRead);
@@ -143,12 +145,13 @@ int GP_FULL_UPDATE::ReadFromMatlab(mxArray * mxArr, int index)
   MEX_READ_FIELD_RAW_ARRAY2D_UINT8(mxArr,index,coverage_map,numFieldsRead);
   MEX_READ_FIELD_RAW_ARRAY2D_UINT8(mxArr,index,cost_map,numFieldsRead);
   MEX_READ_FIELD_RAW_ARRAY2D_INT16(mxArr,index,elev_map,numFieldsRead);
+
   return numFieldsRead;
 }
 
 int GP_FULL_UPDATE::CreateMatlabStructMatrix(mxArray ** mxArrPP,int m, int n)
 {
-  const char * fields[]= { "timestamp","sent_cover_x","sent_cover_y","sent_cost_x",
+  const char * fields[]= { "timestamp","UTM_x","UTM_y","sent_cover_x","sent_cover_y","sent_cost_x",
                             "sent_cost_y","sent_elev_x","sent_elev_y","coverage_map",
                             "cost_map","elev_map"};
   const int nfields = sizeof(fields)/sizeof(*fields);
@@ -160,6 +163,8 @@ int GP_FULL_UPDATE::CreateMatlabStructMatrix(mxArray ** mxArrPP,int m, int n)
 int GP_FULL_UPDATE::WriteToMatlab(mxArray * mxArr, int index)
 {
   MEX_WRITE_FIELD(mxArr,index,timestamp);
+  MEX_WRITE_FIELD(mxArr,index,UTM_x);
+  MEX_WRITE_FIELD(mxArr,index,UTM_y);
   MEX_WRITE_FIELD(mxArr,index,sent_cover_x);
   MEX_WRITE_FIELD(mxArr,index,sent_cover_y);
   MEX_WRITE_FIELD(mxArr,index,sent_cost_x);
@@ -171,6 +176,7 @@ int GP_FULL_UPDATE::WriteToMatlab(mxArray * mxArr, int index)
   MEX_WRITE_FIELD_RAW_ARRAY2D_UINT8(mxArr,index,coverage_map,sent_cover_x,sent_cover_y);
   MEX_WRITE_FIELD_RAW_ARRAY2D_UINT8(mxArr,index,cost_map,sent_cost_x,sent_cost_y);
   MEX_WRITE_FIELD_RAW_ARRAY2D_INT16(mxArr,index,elev_map,sent_elev_x,sent_elev_y);
+
   return 0;
 }
 

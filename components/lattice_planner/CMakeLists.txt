@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.4.6)
 set(CMAKE_BUILD_TYPE Release)
-include_directories(${PROJECT_SOURCE_DIR}/code $ENV{MAGIC_DIR}/ipc $ENV{MAGIC_DIR}/components/sbpl/src/sbpl $ENV{MAGIC_DIR}/components/exploration $ENV{MAGIC_DIR}/Common $ENV{MAGIC_DIR}/include)
+include_directories(${PROJECT_SOURCE_DIR}/code $ENV{MAGIC_DIR}/ipc $ENV{MAGIC_DIR}/components/sbpl/src/sbpl $ENV{MAGIC_DIR}/components/exploration $ENV{MAGIC_DIR}/common/dataTypes $ENV{MAGIC_DIR}/include)
 
 
 # Build executables in the bin directory

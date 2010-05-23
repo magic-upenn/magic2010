@@ -2,11 +2,10 @@ using namespace std;
 #include <cstdlib>
 #include <vector>
 #include "ipc.h"
-#include "messages_IPC.h"
+#include "MagicPlanDataTypes.h"
 #include "headers.h"
 #include "envMagic.h"
 #include "MagicTraj.hh"
-#include "latticeDataTypes.h"
 
 //GET RID OF THESE (temporary for Jon's matlab visualization)
 //#include "map_globals.h"
@@ -38,7 +37,34 @@ float padding = 3;
 int exploration_obst_thresh = 250;
 int obst_thresh = 255;
 float close_to_path = 6;
+
+double global_x_offset = 0;
+double global_y_offset = 0;
+double global_start_x;
+double global_start_y;
+double global_start_theta;
+double global_goal_x;
+double global_goal_y;
+double global_goal_theta;
+int traj_length;
+int traj_dim;
+float* traj_path = NULL;
+
+bool reset_traj_map = false;
+
+//initialization flags
 char initialized = 0;
+#define INIT_RES    1<<0
+#define INIT_PARAMS 1<<1
+#define INIT_MAP    1<<2
+#define INIT_POSE   1<<3
+#define INIT_TRAJ   1<<4
+#define UPDATED_MAP 1<<5
+#define UPDATED_POS 1<<6
+#define INIT_DONE (INIT_RES | INIT_PARAMS | INIT_MAP | INIT_POSE | INIT_TRAJ | UPDATED_MAP | UPDATED_POS)
+#define NEED_UPDATE (INIT_RES | INIT_PARAMS | INIT_MAP | INIT_POSE | INIT_TRAJ)
+
+
 
 bool OnMap(int x, int y) {
   // function to determine if a point is on the map
@@ -53,7 +79,7 @@ static void GP_MAP_DATA_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, void 
 
 	//update size variables
 	resolution = gp_map_data_p->cost_cell_size;
-  initialized |= 0x1;
+  initialized |= INIT_RES;
 
 	//frees memory used by the message
 	IPC_freeDataElements(IPC_msgInstanceFormatter(msgRef), (void *) gp_map_data_p);
@@ -72,7 +98,7 @@ static void GP_ROBOT_PARAMETER_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData
 
 	//get the robot perimeter
   outer_radius = sqrt(pow(gp_robot_parameter_p->PerimeterArray[0],2) + pow(gp_robot_parameter_p->PerimeterArray[1],2));
-  inner_radius = min(gp_robot_parameter_p->PerimeterArray[0],gp_robot_parameter_p->PerimeterArray[1]);
+  inner_radius = min(fabs(gp_robot_parameter_p->PerimeterArray[0]),fabs(gp_robot_parameter_p->PerimeterArray[1]));
   perimeterptsV.reserve(gp_robot_parameter_p->I_DIMENSION);
   for (int i=0; i < gp_robot_parameter_p->I_DIMENSION; i++) {
     sbpl_2Dpt_t pt;
@@ -82,12 +108,12 @@ static void GP_ROBOT_PARAMETER_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData
     float r = sqrt(pt.x*pt.x+pt.y*pt.y);
     if(r>outer_radius)
       outer_radius = r;
-    inner_radius = min(inner_radius,min(pt.x,pt.y));
+    inner_radius = min(inner_radius,min(fabs(pt.x),fabs(pt.y)));
   }
   printf("outer_radius=%f inner_radius=%f\n",outer_radius,inner_radius);
   inner_radius /= resolution;
   outer_radius /= resolution;
-  initialized |= 0x2;
+  initialized |= INIT_PARAMS;
 
 	//free the memory used by the message
 	IPC_freeDataElements(IPC_msgInstanceFormatter(msgRef), (void *) gp_robot_parameter_p);
@@ -102,8 +128,11 @@ static void GP_FULL_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, vo
 
   if(size_x != gp_full_update_p->sent_cost_x || size_y != gp_full_update_p->sent_cost_y || env == NULL){
     //update size variables
+    int old_size_x = size_x;
     size_x = gp_full_update_p->sent_cost_x;
     size_y = gp_full_update_p->sent_cost_y;
+    global_x_offset = gp_full_update_p->UTM_x;
+    global_y_offset = gp_full_update_p->UTM_y;
     
     if(env != NULL)
       delete env;
@@ -132,7 +161,7 @@ static void GP_FULL_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, vo
     planner->set_search_mode(false);
     
     if(costmap != NULL){
-      for(int i=0; i<size_x; i++){
+      for(int i=0; i<old_size_x; i++){
         delete [] rawcostmap[i];
         delete [] costmap[i];
         delete [] rawtrajmap[i];
@@ -158,9 +187,10 @@ static void GP_FULL_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, vo
       rawtrajmap[i] = new unsigned char [size_y];
       dummymap[i] = new float [size_y];
     }
-
+    initialized |= INIT_MAP;
+    reset_traj_map = true;
   }
-  initialized |= 0x4;
+  initialized |= UPDATED_MAP;
 
   for(int y=0; y<size_y; y++)
     for(int x=0; x<size_x; x++)
@@ -208,6 +238,8 @@ static void GP_SHORT_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, v
 		}
 	}
 
+  initialized |= UPDATED_MAP;
+
   computeDistancestoNonfreeAreas(rawcostmap, size_x, size_y, exploration_obst_thresh, costmap, dummymap);
 
   for(int x=0; x<size_x; x++){
@@ -237,9 +269,12 @@ static void GP_POSITION_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData
 	printf("Handler: Receiving %s (size %lu) [%s] \n", IPC_msgInstanceName(msgRef),  sizeof(callData), (char *)clientData);
 
   //set start
-  planner->set_start(env->SetStart(gp_position_update_p->x, gp_position_update_p->y, gp_position_update_p->theta));
+  global_start_x = gp_position_update_p->x;
+  global_start_y = gp_position_update_p->y;
+  global_start_theta = gp_position_update_p->theta;
 
-  initialized |= 0x8;
+  initialized |= INIT_POSE;
+  initialized |= UPDATED_POS;
 
 	//frees memory used by message
 	IPC_freeDataElements(IPC_msgInstanceFormatter(msgRef), (void *)gp_position_update_p);
@@ -255,63 +290,57 @@ static void GPTRAJHandler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clien
 	printf("GPTRAJHandler: Receiving %s (size %lu) [%s] \n", IPC_msgInstanceName(msgRef),  sizeof(callData), (char *)clientData);
 
   if(GP_Traj_p->num_traj_pts > 0){
-
-    //clear old trajectory
-    for(int x=0; x<size_x; x++)
-      for(int y=0; y<size_y; y++)
-        rawtrajmap[x][y] = 0;
-
-    // copy elements into new trajectory
-    printf("%d trajectory points with %d dimensions\n", GP_Traj_p->num_traj_pts, GP_Traj_p->traj_dim);
-    for(int i=0; i<GP_Traj_p->num_traj_pts; i++){
-      //printf("%f %f\n",GP_Traj_p->traj_array[i*GP_Traj_p->traj_dim],GP_Traj_p->traj_array[i*GP_Traj_p->traj_dim+1]);
-      //printf("%d %d\n",CONTXY2DISC(GP_Traj_p->traj_array[i*GP_Traj_p->traj_dim],resolution),CONTXY2DISC(GP_Traj_p->traj_array[i*GP_Traj_p->traj_dim+1],resolution));
-      rawtrajmap[(int)(GP_Traj_p->traj_array[i*GP_Traj_p->traj_dim])][(int)(GP_Traj_p->traj_array[i*GP_Traj_p->traj_dim+1])] = 1;
-    }
-
-    computeDistancestoNonfreeAreas(rawtrajmap, size_x, size_y, 1, trajmap, dummymap);
-
-    for(int x=0; x<size_x; x++){
-      for(int y=0; y<size_y; y++){
-        if(trajmap[x][y] <= close_to_path)
-          trajmap[x][y] = 0;
-        else
-          trajmap[x][y] -= close_to_path;
-      }
-    }
+    reset_traj_map = true;
 
     //set goal
-    planner->set_goal(env->SetGoal(DISCXY2CONT((int)(GP_Traj_p->traj_array[(GP_Traj_p->num_traj_pts-1)*GP_Traj_p->traj_dim]),resolution), 
-                                   DISCXY2CONT((int)(GP_Traj_p->traj_array[(GP_Traj_p->num_traj_pts-1)*GP_Traj_p->traj_dim+1]),resolution), 
-                                   GP_Traj_p->traj_array[(GP_Traj_p->num_traj_pts-1)*GP_Traj_p->traj_dim+2]));
+    global_goal_x = GP_Traj_p->traj_array[(GP_Traj_p->num_traj_pts-1)*GP_Traj_p->traj_dim];
+    global_goal_y = GP_Traj_p->traj_array[(GP_Traj_p->num_traj_pts-1)*GP_Traj_p->traj_dim+1];
+    global_goal_theta = GP_Traj_p->traj_array[(GP_Traj_p->num_traj_pts-1)*GP_Traj_p->traj_dim+2];
 
-    initialized |= 0x10;
+    //store trajectory
+    traj_length = GP_Traj_p->num_traj_pts;
+    traj_dim = GP_Traj_p->traj_dim;
+    if(traj_path != NULL)
+      delete [] traj_path;
+    traj_path = new float[traj_length*traj_dim];
+    memcpy(traj_path, GP_Traj_p->traj_array, sizeof(float)*traj_length*traj_dim);
+
+    initialized |= INIT_TRAJ;
   }
   
 	// free variable length elements and message body
 	IPC_freeDataElements(IPC_msgInstanceFormatter(msgRef), (void *) GP_Traj_p);
 	IPC_freeByteArray(callData);
 }
-/*
-void writefiletraj( const double score, const std::vector<Traj_pt_s> & traj) {
-  // writes the trajectory to disk
-  ofstream fout;
 
-  int t_leng = traj.size();
+void makeTrajMap(){
+  //clear old trajectory
+  for(int x=0; x<size_x; x++)
+    for(int y=0; y<size_y; y++)
+      rawtrajmap[x][y] = 0;
 
-  fout.open("Map_traj.txt", ios_base::out | ios_base::binary | ios_base::trunc);
-
-  if (fout.is_open()) {
-
-    fout.write( (char *) &score, sizeof(double));
-    fout.write( (char *) &t_leng, sizeof(int));
-    fout.write( (char *) &traj[0], t_leng*sizeof(Traj_pt_s));
-    fout.close();
+  // copy path into new trajectory map
+  for(int i=0; i<traj_length; i++){
+    int x = (int)(CONTXY2DISC(traj_path[i*traj_dim]-global_x_offset,resolution));
+    int y = (int)(CONTXY2DISC(traj_path[i*traj_dim+1]-global_y_offset,resolution));
+    rawtrajmap[x][y] = 1;
   }
-  else
-  { cerr << " unable to write output file"; }
+
+  computeDistancestoNonfreeAreas(rawtrajmap, size_x, size_y, 1, trajmap, dummymap);
+
+  for(int x=0; x<size_x; x++){
+    for(int y=0; y<size_y; y++){
+      if(trajmap[x][y] <= close_to_path)
+        trajmap[x][y] = 0;
+      else
+        trajmap[x][y] -= close_to_path;
+    }
+  }
+  reset_traj_map = false;
 }
-*/
+
+
+
 int main(int argc, char** argv){
   printf("\nIPC_connect(%s)\n", MODULE_NAME);
   IPC_connect(MODULE_NAME);
@@ -335,24 +364,22 @@ int main(int argc, char** argv){
   printf("\nIPC_subscribe(%s, msg2Handler, %s)\n", GP_TRAJECTORY_MSG, MODULE_NAME);
   IPC_subscribe(GP_TRAJECTORY_MSG, GPTRAJHandler, (void *)MODULE_NAME);
 
-  IPC_defineMsg(LP_PATH_MSG, IPC_VARIABLE_LENGTH, LP_PATH_FORM);
-  IPC_defineMsg(LP_MAPS_MSG, IPC_VARIABLE_LENGTH, LP_MAPS_FORM);
-  //Magic::MotionTraj path_msg;
-  //IPC_defineMsg("Motion Trajectory", IPC_VARIABLE_LENGTH, path_msg.getIPCFormat());
+  Magic::MotionTraj path_msg;
+  IPC_defineMsg("Trajectory", IPC_VARIABLE_LENGTH, path_msg.getIPCFormat());
 
   // call IPC and wait for messages
-  //IPC_dispatch();
   vector<int> solution_stateIDs;
   vector<EnvMAGICLAT3Dpt_t> sbpl_path;
   
-  LP_PATH_DATA path_msg;
-  LP_MAPS_DATA map_msg;
-  path_msg.path = NULL;
-  map_msg.costmap = NULL;
+  path_msg.waypoints = NULL;
   
   while(1){
     IPC_listenWait(100);
-    if(initialized == 0x1f){
+    if(initialized == INIT_DONE){
+
+      if(reset_traj_map)
+        makeTrajMap();
+
       //copy data to map
       for(int x=0; x < size_x; x++){
         for(int y=0; y < size_y; y++){
@@ -366,6 +393,13 @@ int main(int argc, char** argv){
         }
       }
       planner->costs_changed();
+      planner->set_start(env->SetStart(global_start_x-global_x_offset, 
+                                       global_start_y-global_y_offset, 
+                                       global_start_theta));
+
+      planner->set_goal(env->SetGoal(global_goal_x-global_x_offset,
+                                     global_goal_y-global_y_offset,
+                                     global_goal_theta));
       if(planner->replan(1.0, &solution_stateIDs))
           printf("Solution is found\n");
       else{
@@ -373,58 +407,24 @@ int main(int argc, char** argv){
       }
       env->ConvertStateIDPathintoXYThetaPath(&solution_stateIDs, &sbpl_path);
       printf("size of solution = %d\n", (int)sbpl_path.size());
-      //vector<Traj_pt_s> out_path;
       
-      path_msg.size_points = sbpl_path.size();
-      path_msg.size_point_dim = 3;
-      if(path_msg.path)
-        delete [] path_msg.path;
-      path_msg.path = new double [sbpl_path.size()*3];
-      for(unsigned int i=0; i<sbpl_path.size(); i++){
-        path_msg.path[i] = sbpl_path[i].x;
-        path_msg.path[sbpl_path.size()+i] = sbpl_path[i].y;
-        path_msg.path[2*sbpl_path.size()+i] = sbpl_path[i].theta;
-        //Traj_pt_s pt(CONTXY2DISC(sbpl_path[i].x,resolution),CONTXY2DISC(sbpl_path[i].y,resolution),0,0,0,0);
-        //out_path.push_back(pt);
-      }
-      IPC_publishData(LP_PATH_MSG, &path_msg);
-      
-      if(!map_msg.costmap){
-        map_msg.size_x = size_x;
-        map_msg.size_y = size_y;
-        map_msg.costmap = new unsigned char [size_x*size_y];
-        //map_msg.obsmap = new float [size_x*size_y];
-        //map_msg.trajmap = new float [size_x*size_y];
-      }
-      for(int x=0; x<size_x; x++){
-        for(int y=0; y<size_y; y++){
-          map_msg.costmap[y+size_y*x] = env->GetMapCost(x,y);
-          //map_msg.obsmap[y+size_y*x] = costmap[x][y];
-          //map_msg.trajmap[y+size_y*x] = trajmap[x][y];
-        }
-      }
-      IPC_publishData(LP_MAPS_MSG, &map_msg);
-      
-      //writefiletraj(0,out_path);
-      /*
       if(path_msg.waypoints)
         delete [] path_msg.waypoints;
       path_msg.size = sbpl_path.size();
       path_msg.t = time(NULL);
       path_msg.waypoints = new Magic::MotionTrajWaypoint[sbpl_path.size()];
       for(int i=0; i<sbpl_path.size(); i++){
-        path_msg.waypoints[i].x = sbpl_path[i].x;
-        path_msg.waypoints[i].y = sbpl_path[i].y;
+        path_msg.waypoints[i].x = sbpl_path[i].x+global_x_offset;
+        path_msg.waypoints[i].y = sbpl_path[i].y+global_y_offset;
         path_msg.waypoints[i].yaw = sbpl_path[i].theta;
         path_msg.waypoints[i].v = 0.5;
       }
       IPC_publishData("Trajectory", &path_msg);
-      */
-      initialized = 0x13;
+      
+      initialized = NEED_UPDATE;
     }
   }
 
-  // clean up when done DOES NOT FREE ARRAYS IN USE
   IPC_disconnect();
   return 0;
 }

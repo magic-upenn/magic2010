@@ -2,7 +2,7 @@
 using namespace std;
 #include "global_planner.h"
 #include "astarpoint.h"
-#include "messages_IPC.h"
+#include "MagicPlanDataTypes.h"
 #include "ipc.h"
 #include "filetransfer.h"
 #include "/home/robotman0/ros/pkgs/motion_planners/sbpl/src/sbpl/headers.h" // SBPL
@@ -23,6 +23,8 @@ int cost_size_x=0;
 int cost_size_y=0;
 int elev_size_x=0;
 int elev_size_y=0;
+double global_x_offset;
+double global_y_offset;
 
 //map variables
 unsigned char * cover_map = new unsigned char[1];
@@ -610,8 +612,8 @@ void global_planner(float goal_x, float goal_y, float goal_theta) {
 
 	//set traj data into array of floats
 	for (int q=0; q<gp_traj.num_traj_pts; q++) {
-		gp_traj.traj_array[q*GP_TRAJ_DIM] = (float)traj[q].x;
-		gp_traj.traj_array[q*GP_TRAJ_DIM+1] = (float)traj[q].y;
+		gp_traj.traj_array[q*GP_TRAJ_DIM] = ((float)traj[q].x)*cost_cell_size + global_x_offset;
+		gp_traj.traj_array[q*GP_TRAJ_DIM+1] = ((float)traj[q].y)*cost_cell_size + global_y_offset;
 		gp_traj.traj_array[q*GP_TRAJ_DIM+2] = traj[q].theta;
 		gp_traj.traj_array[q*GP_TRAJ_DIM+3] = traj[q].velocity;
 		gp_traj.traj_array[q*GP_TRAJ_DIM+4] = traj[q].right_pan;
@@ -735,8 +737,8 @@ static void GP_POSITION_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData
 	printf("Handler: Receiving %s (size %lu) [%s] \n", IPC_msgInstanceName(msgRef),  sizeof(callData), (char *)clientData);
 
 	//updates the stored robot position as a float
-	robot_xx=gp_position_update_p->x;
-	robot_yy=gp_position_update_p->y;
+	robot_xx=gp_position_update_p->x-global_x_offset;
+	robot_yy=gp_position_update_p->y-global_y_offset;
 
 	// .... and as an int in cells
 	int temp_robot_x= (int)(robot_xx/cost_cell_size);
@@ -804,6 +806,9 @@ static void GP_FULL_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, vo
 	coverage_size_y = gp_full_update_p->sent_cover_y;
 	elev_size_x = gp_full_update_p->sent_elev_x;
 	elev_size_y = gp_full_update_p->sent_elev_y;
+  global_x_offset = gp_full_update_p->UTM_x;
+  global_y_offset = gp_full_update_p->UTM_y;
+  printf("x_offset=%f, y_offset=%f\n",global_x_offset,global_y_offset);
 
 	//allocate memory for the maps according to the size variables
 	map_alloc();

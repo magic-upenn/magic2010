@@ -20,14 +20,16 @@ full_update.sent_cover_y = size(covmap,2);
 full_update.cost_map = uint8(costmap);
 full_update.elev_map = int16(elevmap);
 full_update.coverage_map = uint8(covmap);
+full_update.UTM_x = OMAP.xmin;
+full_update.UTM_y = OMAP.ymin;
 ipcAPIPublishVC('Global Planner Full Update',MagicGP_FULL_UPDATESerializer('serialize',full_update));
 
 %send pose
 position_update.timestamp = GetUnixTime();
 %position_update.x = ceil((SLAM.x-OMAP.xmin)*OMAP.invRes);
 %position_update.y = ceil((SLAM.y-OMAP.ymin)*OMAP.invRes);
-position_update.x = SLAM.x-OMAP.xmin;
-position_update.y = SLAM.y-OMAP.ymin;
+position_update.x = SLAM.x;
+position_update.y = SLAM.y;
 position_update.theta = SLAM.yaw;
 ipcAPIPublishVC('Global Planner Position Update',MagicGP_POSITION_UPDATESerializer('serialize',position_update));
 

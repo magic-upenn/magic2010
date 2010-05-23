@@ -120,10 +120,13 @@ typedef struct {
 } GP_POSITION_UPDATE, *GP_POSITION_UPDATE_PTR;
 
 
-#define GP_FULL_UPDATE_FORM "{double, int, int, int, int, int, int, <ubyte: 2, 3>, <ubyte: 4, 5>, <short: 6, 7>}"
+#define GP_FULL_UPDATE_FORM "{double, float, float, int, int, int, int, int, int, <ubyte: 4, 5>, <ubyte: 6, 7>, <short: 8, 9>}"
 #define GP_FULL_UPDATE_MSG "Global Planner Full Update"
 typedef struct {
 	double timestamp;		// timestamp for map update
+//global reference point
+  float UTM_x; //UTM x-coordinate of the lower-left corner [0][0]
+  float UTM_y; //UTM y-coordinate of the lower-left corner [0][0]
 // following  sizes refer to what is actually transmitted
 	int sent_cover_x;		// size of sent coverage map in x dimension in cells 
 	int sent_cover_y;		// size of sent coverage map in y dimension in cells 
@@ -242,6 +245,19 @@ typedef struct {
 //"global_planner_trajectory" with data type GP_TRAJECTORY_FORM
 //Message contains the trajectory points and associated requested pan angles.  This message is transmitted each timestep by the global planner based on the current location of the robot and updated map.
 
+
+typedef struct {
+  double timestamp;   // timestamp of when position was accurate
+  float x;      // x position of robot reference point in meters
+  float y;      // y position of robot reference point in meters
+  float theta;    // robot heading referenced to 0 = positive x-axis
+  float goal_x;   // goal x in meters
+  float goal_y;   // goal y in meters
+  float goal_theta; // goal theta in radians referenced from positive x-axis
+} GP_GOAL_ASSIGN, *GP_GOAL_ASSIGN_PTR;
+
+#define GP_GOAL_ASSIGN_FORM "{double, float, float, float, float, float, float}"  
+#define GP_GOAL_ASSIGN_MSG "Global Planner Goal Assignment"
 
 #endif //MAGIC_PLAN_DATA_TYPES
 
