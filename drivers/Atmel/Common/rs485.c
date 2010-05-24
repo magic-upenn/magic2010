@@ -9,6 +9,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "CBUF.h"
+#include <util/delay.h>
 
 #define DEFAULT_BAUDRATE 57600
 
@@ -50,7 +51,11 @@ ISR(USART1_UDRE_vect)
 ISR(USART1_TX_vect)
 {
   // Disable RS485 transmitter:
-  RS485_TX_ENABLE_PORT &= ~(_BV(RS485_TX_ENABLE_PIN));
+  if (CBUF_IsEmpty(uart1_putbuf))
+  {
+    _delay_us(3);  //delay the transmitter disabling by a bit
+    RS485_TX_ENABLE_PORT &= ~(_BV(RS485_TX_ENABLE_PIN));
+  }
 }
 
 void rs485_init(void)

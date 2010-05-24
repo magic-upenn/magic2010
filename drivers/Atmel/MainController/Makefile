@@ -14,14 +14,22 @@
 #                is connected.
 # FUSES ........ Parameters for avrdude to flash the fuses appropriately.
 
+ifndef OSTYPE
+  OSTYPE = $(shell uname -s|awk '{print tolower($$0)}')
+  #export OSTYPE
+endif
+
+ifeq ($(OSTYPE),linux)
+  USBDEVICE = /dev/ttyUSB0
+endif
+ifeq ($(OSTYPE),darwin)
+  USBDEVICE = /dev/cu.usbserial-A700dBil
+endif
+
 DEVICE     = atmega1280
 CLOCK      = 16000000
-#PROGRAMMER = -c stk500v1 -P /dev/tty.usbserial-A7004IPN -b 57600 -D
-#PROGRAMMER = -c stk500v1 -P /dev/tty.usbserial-A7004IPw -b 57600 -D
-#PROGRAMMER = -c stk500v1 -P /dev/cu.usbserial-A7004IkS -b 57600 -D
-#PROGRAMMER = -c stk500v1 -P /dev/tty.usbserial-A6008sf3 -b 57600 -D
-#PROGRAMMER = -c stk500v1 -P /dev/cu.usbserial-A700dztp -b 57600 -D
-PROGRAMMER = -c stk500v1 -P /dev/cu.usbserial-A700dBfL -b 57600 -D
+
+PROGRAMMER = -c stk500v1 -P $(USBDEVICE) -b 57600 -D
 
 
 #OBJECTS    = uart0.o rs485.o adc.o timer1.o main.o

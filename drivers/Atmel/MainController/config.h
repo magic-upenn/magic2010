@@ -37,7 +37,7 @@
 //#define RS485_TX_ENABLE_DDR DDRB
 
 
-#define BUS_BAUD_RATE 115200
+#define BUS_BAUD_RATE 1000000
 #define BUS_COM_PORT_INIT    rs485_init
 #define BUS_COM_PORT_SETBAUD rs485_setbaud
 #define BUS_COM_PORT_GETCHAR rs485_getchar

@@ -14,9 +14,23 @@
 #                is connected.
 # FUSES ........ Parameters for avrdude to flash the fuses appropriately.
 
+ifndef OSTYPE
+  OSTYPE = $(shell uname -s|awk '{print tolower($$0)}')
+  #export OSTYPE
+endif
+
+ifeq ($(OSTYPE),linux)
+  USBDEVICE = /dev/ttyUSB0
+endif
+ifeq ($(OSTYPE),darwin)
+  USBDEVICE = /dev/cu.usbserial-A700dBil
+endif
+
 DEVICE     = atmega1280
 CLOCK      = 16000000
-PROGRAMMER = -c stk500v1 -P /dev/cu.usbserial-A700dzq2 -b 57600 -D -F
+
+PROGRAMMER = -c stk500v1 -P $(USBDEVICE) -b 57600 -D
+
 OBJECTS    = uart0.o rs485.o timer2.o timer1.o uart3.o MotorControllerHBridge.o MotorControllerPwm.o DynamixelPacket.o main.o
 FUSES      = -U hfuse:w:0xdf:m -U lfuse:w:0x62:m
 
@@ -126,11 +140,11 @@ load: all
 	bootloadHID main.hex
 
 clean:
-	rm -f main.bin main.hex main.elf $(OBJECTS) -lm
+	rm -f main.bin main.hex main.elf $(OBJECTS)
 
 # file targets:
 main.elf: $(OBJECTS)
-	$(COMPILE) -o main.elf $(OBJECTS)
+	$(COMPILE) -o main.elf $(OBJECTS) -lm
 
 main.bin: main.hex
 	avr-objcopy -O binary -I ihex main.hex main.bin
