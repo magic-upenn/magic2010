@@ -80,6 +80,44 @@ int ServoState::WriteToMatlab(mxArray * mxArr, int index)
   return 0;
 }
 
+
+//ServoControllerCmd
+int ServoControllerCmd::ReadFromMatlab(mxArray * mxArr, int index)
+{
+  int numFieldsRead = 0;
+
+  MEX_READ_FIELD(mxArr,index,id,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,mode,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,minAngle,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,maxAngle,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,speed,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,acceleration,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,t,numFieldsRead);
+  
+  return numFieldsRead;
+}
+
+int ServoControllerCmd::CreateMatlabStructMatrix(mxArray ** mxArrPP,int m, int n)
+{
+  const char * fields[]= { "id","mode","minAngle","maxAngle", "speed","acceleration","t"};
+  const int nfields = sizeof(fields)/sizeof(*fields);
+  *mxArrPP = mxCreateStructMatrix(m,n,nfields,fields);
+  return 0;
+}
+
+int ServoControllerCmd::WriteToMatlab(mxArray * mxArr, int index)
+{
+  MEX_WRITE_FIELD(mxArr,index,id);
+  MEX_WRITE_FIELD(mxArr,index,mode);
+  MEX_WRITE_FIELD(mxArr,index,minAngle);
+  MEX_WRITE_FIELD(mxArr,index,maxAngle);
+  MEX_WRITE_FIELD(mxArr,index,speed);
+  MEX_WRITE_FIELD(mxArr,index,acceleration);
+  MEX_WRITE_FIELD(mxArr,index,t);
+  return 0;
+}
+
+
 //ImuFiltered
 int ImuFiltered::ReadFromMatlab(mxArray * mxArr, int index)
 {

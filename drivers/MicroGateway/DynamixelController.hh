@@ -51,6 +51,8 @@ class DynamixelController
   public: int Update(DynamixelPacket * packetIn, DynamixelPacket ** packetOut);
   public: inline bool FreshAngle() {return this->freshAngle;}
   public: double GetAngle();
+  public: inline double GetAngleTime() {return this->angleTime;}
+  public: inline unsigned int GetAngleCntr() {return this->angleCntr;}
   public: int SetMode(int mode);
   public: int SetId(int id);
   
@@ -84,6 +86,8 @@ class DynamixelController
   private: Upenn::Timer feedbackRequestTimer;
   private: int dir;
   private: int id;
+  private: double angleTime;
+  private: unsigned int angleCntr;
 };
 #endif //DYNAMIXEL_CONTROLLER_HH
 

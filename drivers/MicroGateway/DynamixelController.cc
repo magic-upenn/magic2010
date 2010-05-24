@@ -17,6 +17,9 @@ DynamixelController::DynamixelController()
   this->packetOut       = new DynamixelPacket();
   this->dir             = 1;
   this->id              = 0;
+  this->angleTime       = 0;
+  this->angleCntr       = 0;
+
   this->cmdTimer.Tic();
   this->feedbackRequestTimer.Tic();
 }
@@ -127,6 +130,8 @@ int DynamixelController::Update(DynamixelPacket * packetIn, DynamixelPacket ** p
         }  
 
         this->AngleVal2AngleDeg(*(uint16_t*)(packetIn->buffer+5),this->angle);
+        this->angleTime = Upenn::Timer::GetAbsoluteTime();
+        this->angleCntr++;
         this->freshAngle = true;
 
         //check to see if need to reverse

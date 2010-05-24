@@ -126,6 +126,7 @@ namespace Upenn
     private: list<RS485QueueItem> RS485Queue;
     private: double encoderUpdateTime;
     private: vector<DynamixelController*> dynamixelControllers;
+    private: vector<string> dynamixelIpcMsgNames;
 
 
     private: string gpsMsgName;

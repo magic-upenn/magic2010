@@ -9,6 +9,7 @@
 #include "ErrorMessage.hh"
 #include "IpcHelper.hh"
 #include "MicroGateway.hh"
+#include "MagicSensorDataTypes.hh"
 #include <math.h>
 #include <stdlib.h>
 #include <sstream>
@@ -442,6 +443,7 @@ int MicroGateway::InitializeMessages()
   //define regular messages
   this->gpsMsgName = this->DefineMsg("GPS",GpsASCII::getIPCFormat());
   this->encMsgName = this->DefineMsg("Encoders",EncoderCounts::getIPCFormat());
+  this->dynamixelIpcMsgNames.push_back(this->DefineMsg("Servo1",ServoState::getIPCFormat()));
 
   //define all messages that this process will send out via IPC
   this->DefineMsg(MMC_MOTOR_CONTROLLER_DEVICE_ID, 
@@ -453,7 +455,7 @@ int MicroGateway::InitializeMessages()
   this->DefineMsg(MMC_GPS_DEVICE_ID, MMC_GPS_ASCII, "GPS_RAW_in");
   this->DefineMsg(MMC_IMU_DEVICE_ID, MMC_MAG_RAW,   "MAG_RAW_in");
   
-  
+ /* 
   //define all messages for the dynamixel servo
   for (int ii=0; ii<MICRO_GATEWAY_MAX_NUM_TYPES_PER_ID; ii++)
   {
@@ -467,7 +469,7 @@ int MicroGateway::InitializeMessages()
     this->DefineMsg(MMC_DYNAMIXEL1_DEVICE_ID, ii,   "Dynamixel1_in");
     this->AddWaitFor485Response(MMC_DYNAMIXEL1_DEVICE_ID,ii);
   }
-    
+  */ 
     
     
   //this->AddWaitFor485Response(MMC_MOTOR_CONTROLLER_DEVICE_ID,
@@ -486,8 +488,8 @@ int MicroGateway::InitializeMessages()
   
   //subscribe to all messages that this process will forward onto 
   //the rs485 bus
-  this->SubscribeMsg("Dynamixel0_out");
-  this->SubscribeMsg("Dynamixel1_out");
+  //this->SubscribeMsg("Dynamixel0_out");
+  //this->SubscribeMsg("Dynamixel1_out");
   this->SubscribeMsg("MotorController_out");
 
 
@@ -888,8 +890,8 @@ int MicroGateway::MotorControllerPacketHandler(DynamixelPacket * dpacket)
   if (packetType == MMC_MOTOR_CONTROLLER_ENCODERS_RESPONSE)
   {
     int16_t * encData = (int16_t*)DynamixelPacketGetData(dpacket);
-    printf("got encoder packet (%f) : ",this->encoderTimer.Toc());
-    printf("%d %d %d %d %d\n",(uint16_t)encData[0],encData[1],encData[2],encData[3], encData[4]);
+    //printf("got encoder packet (%f) : ",this->encoderTimer.Toc());
+    //printf("%d %d %d %d %d\n",(uint16_t)encData[0],encData[1],encData[2],encData[3], encData[4]);
 
     EncoderCounts encPacket(Upenn::Timer::GetAbsoluteTime(),
                            (uint16_t)encData[0],encData[1],encData[2],encData[3], encData[4]);
@@ -899,7 +901,7 @@ int MicroGateway::MotorControllerPacketHandler(DynamixelPacket * dpacket)
   }
   else if (DynamixelPacketGetType(dpacket) == MMC_MOTOR_CONTROLLER_VELOCITY_CONFIRMATION)
   {
-    printf("got velocity confirmation (%f) \n",motorDt);
+    //printf("got velocity confirmation (%f) \n",motorDt);
   }
 
   return 0;
@@ -976,10 +978,12 @@ int MicroGateway::RcPacketHandler(DynamixelPacket * dpacket)
   if (packetType == MMC_RC_DECODED)
     {
       uint16_t * data = (uint16_t*)DynamixelPacketGetData(dpacket);
+    /*
       printf("got rc packet : ");
       for (int ii=0; ii<7; ii++)
         printf("%d ",data[ii]);
       printf("\n");
+    */
     }
 
   return 0;
@@ -1002,10 +1006,13 @@ int MicroGateway::DynamixelControllerUpdate(int id, DynamixelPacket * dpacket)
   DynamixelController * dcntrl = NULL;  
   DynamixelPacket * packetOut = NULL;  
 
+  int servoIndex = -1;
+
   switch (id)
   {
     case MMC_DYNAMIXEL0_DEVICE_ID:
-      dcntrl = this->dynamixelControllers[0];
+      servoIndex = 0;
+      dcntrl = this->dynamixelControllers[servoIndex];
       break;
     default:
       break;
@@ -1033,7 +1040,21 @@ int MicroGateway::DynamixelControllerUpdate(int id, DynamixelPacket * dpacket)
     if (dcntrl->FreshAngle())
     {
       double angle = dcntrl->GetAngle();
-      printf("got servo angle %f\n",angle);
+      //printf("got servo angle %f\n",angle);
+
+      Magic::ServoState sstate;
+      sstate.position     = angle/180.0*M_PI;
+      sstate.velocity     = 0;
+      sstate.acceleration = 0;
+      sstate.t            = dcntrl->GetAngleTime();
+      sstate.id           = id;
+      sstate.counter      = dcntrl->GetAngleCntr();
+
+      if (IPC_publishData(this->dynamixelIpcMsgNames[servoIndex].c_str(),&sstate) != IPC_OK)
+      {
+        PRINT_ERROR("could not publish dynamixel message to ipc\n");
+        return -1;
+      }
     }
   }
   else
