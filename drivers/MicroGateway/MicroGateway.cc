@@ -116,6 +116,8 @@ MicroGateway::MicroGateway()
 
   this->dynamixelControllers.push_back(new DynamixelController());
   this->dynamixelControllers[0]->SetId(MMC_DYNAMIXEL0_DEVICE_ID);
+  this->dynamixelControllers[0]->SetMinLimit(SERVO1_MIN_LIMIT_DEG);
+  this->dynamixelControllers[0]->SetMaxLimit(SERVO1_MAX_LIMIT_DEG);
 }
 
 
@@ -210,6 +212,32 @@ void MicroGateway::VelocityCmdMsgHandler(MSG_INSTANCE msgRef,
 
   //free memory
   IPC_freeData(IPC_msgInstanceFormatter(msgRef),callData);
+}
+
+void MicroGateway::ServoControllerCmdMsgHandler (MSG_INSTANCE msgRef, 
+                                      BYTE_ARRAY callData, void *clientData)
+{
+  MicroGateway * mg         = (MicroGateway *)clientData;
+  ServoControllerCmd * scmd = (ServoControllerCmd*)callData;
+  DynamixelController * dcntrl = NULL;
+
+  switch (scmd->id)
+  {
+    case 1:
+      dcntrl = mg->dynamixelControllers[0];
+      break;
+
+    default:
+      break;
+  }
+
+  if (dcntrl)
+  {
+    dcntrl->SetMinAngle(scmd->minAngle);
+    dcntrl->SetMaxAngle(scmd->maxAngle);
+    dcntrl->SetSpeed(scmd->speed);
+    dcntrl->SetAcceleration(scmd->acceleration);
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -499,7 +527,22 @@ int MicroGateway::InitializeMessages()
     PRINT_ERROR("could not subscribe to IPC message\n");
     exit(1);
   }
-  
+  PRINT_INFO("Subscribed to message "<<msgName<<"\n");
+
+  msgName = this->robotName + "/" + "Servo1Cmd";
+  if (IPC_subscribeData(msgName.c_str(),this->ServoControllerCmdMsgHandler,this) != IPC_OK)
+  {
+    PRINT_ERROR("could not subscribe to IPC message\n");
+    exit(1);
+  }
+  PRINT_INFO("Subscribed to message "<<msgName<<"\n");
+
+  msgName = this->robotName + "/" + "Servo2Cmd";
+  if (IPC_subscribeData(msgName.c_str(),this->ServoControllerCmdMsgHandler,this) != IPC_OK)
+  {
+    PRINT_ERROR("could not subscribe to IPC message\n");
+    exit(1);
+  }
   PRINT_INFO("Subscribed to message "<<msgName<<"\n");
 
   return 0;

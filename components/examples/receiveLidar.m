@@ -1,5 +1,4 @@
-addpath( [ getenv('VIS_DIR') '/ipc' ] )
-
+SetMagicPaths;
 lidar0MsgName = GetMsgName('Lidar0');
 
 ipcAPIConnect;

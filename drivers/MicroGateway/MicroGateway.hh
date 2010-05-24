@@ -16,6 +16,9 @@
 #define MICRO_GATEWAY_ENCODER_UPDATE_TIME 0.025
 #define MICRO_GATEWAY_RS485_RESPONSE_TIMEOUT 0.01
 
+#define SERVO1_MIN_LIMIT_DEG -30
+#define SERVO1_MAX_LIMIT_DEG  30
+
 namespace Upenn
 {
 
@@ -79,6 +82,9 @@ namespace Upenn
 
     private: void static VelocityCmdMsgHandler (MSG_INSTANCE msgRef, 
                                       BYTE_ARRAY callData, void *clientData);
+
+    private: void static ServoControllerCmdMsgHandler (MSG_INSTANCE msgRef, 
+                                      BYTE_ARRAY callData, void *clientData);
                                       
     private: int PrintSerialPacket(DynamixelPacket * dpacket);
     private: int SendRS485Queue();
@@ -101,6 +107,7 @@ namespace Upenn
     private: int HandleSerialPacket(DynamixelPacket * dpacket);
     private: int RcPacketHandler(DynamixelPacket * dpacket);
     private: int ServoPacketHandler(DynamixelPacket * dpacket);
+
     private: int DynamixelControllerUpdate(int id, DynamixelPacket * dpacket);
     
     private: SerialDevice * sd;

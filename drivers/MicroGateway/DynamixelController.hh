@@ -6,7 +6,7 @@
 
 #define DYNAMIXEL_CONTROLLER_DEF_MIN_ANGLE    -30
 #define DYNAMIXEL_CONTROLLER_DEF_MAX_ANGLE     30
-#define DYNAMIXEL_CONTROLLER_DEF_DES_SPEED     100
+#define DYNAMIXEL_CONTROLLER_DEF_DES_SPEED     50
 #define DYNAMIXEL_CONTROLLER_DEF_DES_ACCEL     300
 #define DYNAMIXEL_CONTROLLER_DEF_REVERSE_POINT 5
 #define DYNAMIXEL_CONTROLLER_ANGLE_CMD_TIMEOUT 0.050
@@ -55,6 +55,8 @@ class DynamixelController
   public: inline unsigned int GetAngleCntr() {return this->angleCntr;}
   public: int SetMode(int mode);
   public: int SetId(int id);
+  public: int SetMinLimit(double angle);
+  public: int SetMaxLimit(double angle);
   
   //convert angle in degrees to position command
   private: int AngleDeg2AngleVal(double angle, uint16_t &val);
@@ -88,6 +90,8 @@ class DynamixelController
   private: int id;
   private: double angleTime;
   private: unsigned int angleCntr;
+  private: double minLimit;
+  private: double maxLimit;
 };
 #endif //DYNAMIXEL_CONTROLLER_HH
 

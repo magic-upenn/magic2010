@@ -6,10 +6,10 @@ ipcAPIConnect()
 ipcAPIDefine(servoMsgName,MagicServoControllerCmdSerializer('getFormat'));
 
 
-servoCmd.id           = 4;
+servoCmd.id           = 1;
 servoCmd.mode         = 0;
-servoCmd.minAngle     = -30;
-servoCmd.maxAngle     = 40;
+servoCmd.minAngle     = -20;
+servoCmd.maxAngle     = 20;
 servoCmd.speed        = 100;
 servoCmd.acceleration = 300;
 

@@ -19,6 +19,8 @@ DynamixelController::DynamixelController()
   this->id              = 0;
   this->angleTime       = 0;
   this->angleCntr       = 0;
+  this->minLimit        = DYNAMIXEL_CONTROLLER_MIN_ANGLE;
+  this->maxLimit        = DYNAMIXEL_CONTROLLER_MAX_ANGLE;
 
   this->cmdTimer.Tic();
   this->feedbackRequestTimer.Tic();
@@ -32,12 +34,24 @@ DynamixelController::~DynamixelController()
 
 int DynamixelController::SetMinAngle(double angle)
 {
+  if (angle < this->minLimit || angle > this->maxLimit)
+  {
+    PRINT_ERROR("min angle out of range. setting to min limit\n");
+    angle = this->minLimit;
+  }
+
   this->minAngle = angle;
   return 0;
 }
 
 int DynamixelController::SetMaxAngle(double angle)
 {
+  if (angle < this->minLimit || angle > this->maxLimit)
+  {
+    PRINT_ERROR("max angle out of range. setting to max limit\n");
+    angle = this->maxLimit;
+  }
+
   this->maxAngle = angle;
   return 0;
 }
@@ -289,3 +303,36 @@ int DynamixelController::SetId(int id)
   this->id = id;
   return 0;
 }
+
+int DynamixelController::SetMinLimit(double angle)
+{
+  if (angle >= DYNAMIXEL_CONTROLLER_MIN_ANGLE &&
+      angle <= DYNAMIXEL_CONTROLLER_MAX_ANGLE)
+  {
+    this->minLimit = angle;
+  }
+  else
+  {
+    PRINT_ERROR("min limit out of range : " <<angle <<". Setting to maximum limit\n");
+    this->minLimit = DYNAMIXEL_CONTROLLER_MIN_ANGLE;
+  }
+
+  return 0;
+}
+
+int DynamixelController::SetMaxLimit(double angle)
+{
+if (angle >= DYNAMIXEL_CONTROLLER_MIN_ANGLE &&
+      angle <= DYNAMIXEL_CONTROLLER_MAX_ANGLE)
+  {
+    this->maxLimit = angle;
+  }
+  else
+  {
+    PRINT_ERROR("max limit out of range : " <<angle <<". Setting to maximum limit\n");
+    this->maxLimit = DYNAMIXEL_CONTROLLER_MAX_ANGLE;
+  }
+
+  return 0;
+}
+
