@@ -2,7 +2,7 @@
 #define VEHICLE_DYNAMICS_2D_HH
 
 #include <stdint.h>
-#include "MagicHostCom.hh"
+#include "MagicSensorDataTypes.hh"
 #include <math.h>
 
 #define VEHICLE_DYNAMICS_MAX_V 2.0

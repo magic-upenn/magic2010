@@ -479,5 +479,6 @@ if (angle >= DYNAMIXEL_CONTROLLER_MIN_ANGLE &&
 int DynamixelController::ResetState()
 {
   this->needToResetState = true;
+  return 0;
 }
 
