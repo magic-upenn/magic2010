@@ -179,7 +179,7 @@ void MicroGateway::VelocityCmdMsgHandler(MSG_INSTANCE msgRef,
                                   BYTE_ARRAY callData, void *clientData)
 {
   
-  PRINT_INFO("got velocity cmd!\n");
+  //PRINT_INFO("got velocity cmd!\n");
 
   MicroGateway * mg      = (MicroGateway *)clientData;
   VelocityCmd * vcmd = (VelocityCmd*)callData;
