@@ -33,6 +33,14 @@ TRAJ.cntr=0;
 TRAJ.traj = zeros(4,100000);
 TRAJ.hTraj = [];
 
+%initialize the pose struct so that the maps are initialized around the initial pose
+%in future, this should be the start UTM coordinate!!
+POSE.x     = 0;
+POSE.y     = 0;
+POSE.z     = 0;
+POSE.roll  = 0;
+POSE.pitch = 0;
+POSE.yaw   = 0/180*pi;
 
 ipcInit;
 omapInit;
@@ -60,14 +68,6 @@ PublishObstacleMap;
 
 ScanMatch2D('setBoundaries',OMAP.xmin,OMAP.ymin,OMAP.xmax,OMAP.ymax);
 ScanMatch2D('setResolution',OMAP.res);
-
-
-POSE.x     = 0;
-POSE.y     = 0;
-POSE.z     = 0;
-POSE.roll  = 0;
-POSE.pitch = 0;
-POSE.yaw   = 0/180*pi;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,16 +1,16 @@
 function omapInit
-global OMAP
+global OMAP POSE
 
 if isempty(OMAP) || ~isfield(OMAP,'initialized') ||(OMAP.initialized ~= 1)
 
   OMAP.res        = 0.05;
   OMAP.invRes     = 1/OMAP.res;
   
-  
-  OMAP.xmin       = -40;
-  OMAP.ymin       = -40;
-  OMAP.xmax       = 40;
-  OMAP.ymax       = 40;
+  windowSize      = 40;
+  OMAP.xmin       = POSE.xInit - windowSize;
+  OMAP.ymin       = POSE.yInit - windowSize;
+  OMAP.xmax       = POSE.xInit + windowSize;
+  OMAP.ymax       = POSE.yInit + windowSize;
   OMAP.zmin       = 0;
   OMAP.zmax       = 5;
 

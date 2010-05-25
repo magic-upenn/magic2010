@@ -1,14 +1,16 @@
 function emapInit
-global EMAP
+global EMAP POSE
 
-if isempty(EMAP) || (EMAP.initialized ~= 1)
+if isempty(EMAP) || ~isfield(EMAP,'initialized') || (EMAP.initialized ~= 1)
 
   EMAP.res        = 0.05;
   EMAP.invRes     = 1/EMAP.res;
-  EMAP.xmin       = -40;
-  EMAP.ymin       = -40;
-  EMAP.xmax       = 40;
-  EMAP.ymax       = 40;
+
+  windowSize      = 40;
+  EMAP.xmin       = POSE.xInit - windowSize;
+  EMAP.ymin       = POSE.yInit - windowSize;
+  EMAP.xmax       = POSE.xInit + windowSize;
+  EMAP.ymax       = POSE.yInit + windowSize;
   EMAP.zmin       = 0;
   EMAP.zmax       = 5;
 
