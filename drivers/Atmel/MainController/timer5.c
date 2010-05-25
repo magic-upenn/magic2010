@@ -1,5 +1,5 @@
+#include "config.h"
 #include "timer5.h"
-
 #include <stdint.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -7,7 +7,7 @@
 void (*timer5_overflow_callback)(void);
 void (*timer5_compa_callback)(void);
 
-uint16_t timer5_period_tics = 2500; //2500 = 100Hz with 1/64 prescaler
+uint16_t timer5_period_tics = ADC_TIMER_PERIOD_TICS; //2500 = 100Hz with 1/64 prescaler
 
 ISR(TIMER5_OVF_vect)
 {

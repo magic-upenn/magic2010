@@ -98,6 +98,8 @@ namespace Upenn
     private: int  OnRS485Bus(int id);
     private: bool ValidId(int id);
 
+    private: int ResetImu();
+
 
 
     //dynamixel packet handlers
@@ -138,6 +140,7 @@ namespace Upenn
 
     private: string gpsMsgName;
     private: string encMsgName;
+    private: string imuMsgName;
   };
 }
 #endif

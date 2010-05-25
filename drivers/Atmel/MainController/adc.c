@@ -1,15 +1,12 @@
+#include "config.h"
 #include "adc.h"
-#include "timer5.h"
 #include "string.h"
-#include <avr/interrupt.h>
-#include "uart0.h"
 
-#define NUM_ADC_CHANNELS 6
+#include <avr/interrupt.h>
 
 volatile uint16_t adcData[NUM_ADC_CHANNELS];
 volatile uint8_t  adcChannel = 0;
 volatile uint8_t  adcReady   = 0;
-extern volatile uint16_t adcVals[NUM_ADC_CHANNELS];
 
 void adc_start_conversion(uint8_t channel)
 {
@@ -28,10 +25,10 @@ void adc_start_conversion(uint8_t channel)
   ADCSRA |= _BV(ADSC);
 }
 
-void t5_compa(void)
+void ADC_TIMER_COMPA(void)
 {
   //reset the counter
-  timer5_reset();
+  ADC_TIMER_RESET();
         
   //make sure that data is not read before all channels are sampled
   adcReady   = 0;
@@ -73,7 +70,7 @@ ISR(ADC_vect)
   }
 }
 
-int16_t adc_get_data()
+int16_t adc_get_data(uint16_t * dataOut)
 {
   int16_t ret = -1;
   uint8_t ch;
@@ -81,7 +78,7 @@ int16_t adc_get_data()
   if(adcReady)
   {
     for (ch=0; ch<NUM_ADC_CHANNELS; ch++)
-      adcVals[ch] = adcData[ch];
+      dataOut[ch] = adcData[ch];
     adcReady = 0;
     ret = NUM_ADC_CHANNELS;
   }
@@ -109,8 +106,8 @@ void adc_init(void)
   
   
   //timer will trigger the conversion
-  timer5_init();
-  timer5_set_compa_callback(t5_compa);
+  ADC_TIMER_INIT();
+  ADC_TIMER_SET_COMPA_CALLBACK(ADC_TIMER_COMPA);
 }
 
 //for manually reading adc channels

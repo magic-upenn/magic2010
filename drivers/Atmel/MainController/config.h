@@ -52,12 +52,12 @@
 
 //debug interface
 #include "uart3.h"
-#define DEBUG_BAUD_RATE 115200
-#define DEBUG_COM_PORT_INIT    uart3_init
-#define DEBUG_COM_PORT_SETBAUD uart3_setbaud
-#define DEBUG_COM_PORT_GETCHAR uart3_getchar
-#define DEBUG_COM_PORT_PUTCHAR uart3_putchar 
-#define DEBUG_COM_PORT_PUTSTR  uart3_putstr
+#define XBEE_BAUD_RATE 115200
+#define XBEE_COM_PORT_INIT    uart3_init
+#define XBEE_COM_PORT_SETBAUD uart3_setbaud
+#define XBEE_COM_PORT_GETCHAR uart3_getchar
+#define XBEE_COM_PORT_PUTCHAR uart3_putchar 
+#define XBEE_COM_PORT_PUTSTR  uart3_putstr
 
 
 
@@ -89,11 +89,11 @@
 
 
 
-#define TOGGLE_LED_ERROR   LED_ERROR_PINN  |= _BV(LED_ERROR_PIN)
-#define TOGGLE_LED_PC_ACT  LED_PC_ACT_PINN |= _BV(LED_PC_ACT_PIN)
-#define TOGGLE_LED_ESTOP   LED_ESTOP_PINN  |= _BV(LED_ESTOP_PIN)
-#define TOGGLE_LED_GPS     LED_GPS_PINN    |= _BV(LED_GPS_PIN)
-#define TOGGLE_LED_RC      LED_RC_PINN     |= _BV(LED_RC_PIN)
+#define TOGGLE_LED_ERROR   LED_ERROR_PORT  ^= _BV(LED_ERROR_PIN)
+#define TOGGLE_LED_PC_ACT  LED_PC_ACT_PORT ^= _BV(LED_PC_ACT_PIN)
+#define TOGGLE_LED_ESTOP   LED_ESTOP_PORT  ^= _BV(LED_ESTOP_PIN)
+#define TOGGLE_LED_GPS     LED_GPS_PORT    ^= _BV(LED_GPS_PIN)
+#define TOGGLE_LED_RC      LED_RC_PORT     ^= _BV(LED_RC_PIN)
 
 //index of each control in the array of RC channels
 #define RC_V_IND 2
@@ -104,5 +104,13 @@
 
 #define RC_V_RANGE 230
 #define RC_W_RANGE 230
+
+#include "timer5.h"
+#define NUM_ADC_CHANNELS 6
+#define ADC_TIMER_PERIOD_TICS 2500 //2500 = 100Hz with 1/64 prescaler
+#define ADC_TIMER_RESET timer5_reset
+#define ADC_TIMER_INIT timer5_init
+#define ADC_TIMER_SET_COMPA_CALLBACK timer5_set_compa_callback
+#define ADC_TIMER_COMPA timer5_compa
 
 #endif //CONFIG_H

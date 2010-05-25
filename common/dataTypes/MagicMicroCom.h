@@ -24,7 +24,8 @@ enum { MMC_GPS_ASCII };
 enum { MMC_IMU_RAW, 
        MMC_IMU_FILTERED, 
        MMC_IMU_ROT, 
-       MMC_MAG_RAW
+       MMC_MAG_RAW,
+       MMC_IMU_RESET
      };
 
 //motor controller packet types

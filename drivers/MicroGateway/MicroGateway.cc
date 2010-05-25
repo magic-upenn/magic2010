@@ -10,6 +10,7 @@
 #include "IpcHelper.hh"
 #include "MicroGateway.hh"
 #include "MagicSensorDataTypes.hh"
+#include "MagicMicroCom.h"
 #include <math.h>
 #include <stdlib.h>
 #include <sstream>
@@ -474,6 +475,7 @@ int MicroGateway::InitializeMessages()
   this->gpsMsgName = this->DefineMsg("GPS",GpsASCII::getIPCFormat());
   this->encMsgName = this->DefineMsg("Encoders",EncoderCounts::getIPCFormat());
   this->dynamixelIpcMsgNames.push_back(this->DefineMsg("Servo1",ServoState::getIPCFormat()));
+  this->imuMsgName = this->DefineMsg("ImuFiltered",ImuFiltered::getIPCFormat());
 
   //define all messages that this process will send out via IPC
   this->DefineMsg(MMC_MOTOR_CONTROLLER_DEVICE_ID, 
@@ -622,8 +624,6 @@ int MicroGateway::ConnectIPC(char * addr)
     PRINT_ERROR("could not initialize ipc messages\n");
     return -1;
   }
-
-  IPC_defineMsg("Robot0/Rot",IPC_VARIABLE_LENGTH,NULL);
 
   this->connectedIPC = true;
   
@@ -976,12 +976,21 @@ int MicroGateway::ImuPacketHandler(DynamixelPacket * dpacket)
   else if (packetType == MMC_IMU_ROT)
   {
     float * fp = (float*)DynamixelPacketGetData(dpacket);
-    double rpy[3];
-    rpy[0] = fp[0];
-    rpy[1] = fp[1];
-    rpy[2] = fp[2];
-    IPC_publish("Robot0/Rot",3*sizeof(double),rpy);
-    printf("rpy = %f %f %f\n",rpy[0],rpy[1],rpy[2]);
+    ImuFiltered imu;
+    imu.roll   = fp[0];
+    imu.pitch  = fp[1];
+    imu.yaw    = fp[2];
+    imu.wroll  = fp[3];
+    imu.wpitch = fp[4];
+    imu.wyaw   = fp[5];
+    imu.t      = Upenn::Timer::GetAbsoluteTime(); 
+   
+    IPC_publishData(this->imuMsgName.c_str(),&imu);
+/*
+    printf("got rot imu packet: %f %f %f %f %f %f\n",
+               imu.roll*180/M_PI,imu.pitch*180/M_PI,imu.yaw*180/M_PI,
+               imu.wroll*180/M_PI,imu.wpitch*180/M_PI,imu.wyaw*180/M_PI);
+*/
   }
   
 
@@ -1110,6 +1119,21 @@ int MicroGateway::DynamixelControllerUpdate(int id, DynamixelPacket * dpacket)
   return 0;
 }
 
+int MicroGateway::ResetImu()
+{
+  const int bufSize=256;
+  uint8_t * tempBuf = new uint8_t[bufSize];
+
+  uint8_t id   = MMC_IMU_DEVICE_ID;
+  uint8_t type = MMC_IMU_RESET;
+
+  int len = DynamixelPacketWrapData(id,type,NULL,0,tempBuf,bufSize);
+  if (len < 0)
+    PRINT_ERROR("could not wrap data\n");
+
+  this->PushRS485Queue(tempBuf,len,false,true);
+}
+
 int MicroGateway::PrintSerialPacket(DynamixelPacket * dpacket)
 {
 
@@ -1135,6 +1159,8 @@ int MicroGateway::Main()
 
   uint16_t cnt =0;
   uint16_t encoderCntr = 0;
+
+  this->ResetImu();
 
   while(1)
   {

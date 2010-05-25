@@ -15,13 +15,15 @@
 #include "uart3.h"
 #include "timer1.h"
 #include "timer4.h"
-
-#define NUM_ADC_CHANNELS 6
+#include "attitudeFilter.h"
 
 DynamixelPacket hostPacketIn;
 DynamixelPacket busPacketIn;
 
-volatile uint16_t adcVals[NUM_ADC_CHANNELS+1];
+uint16_t adcVals[NUM_ADC_CHANNELS];
+float rpy[3];
+float wrpy[3];
+float imuOutVals[7];
 volatile uint8_t TWI_transBuff[10];
 volatile uint8_t TWI_recBuff[10];
 uint16_t adcCntr = 0;
@@ -69,29 +71,14 @@ void InitLeds()
   LED_GPS_DDR       |= _BV(LED_GPS_PIN);
   LED_RC_DDR        |= _BV(LED_RC_PIN);
   
-  
-  /*
-  LED_ERROR_PORT |= _BV(LED_ERROR_PIN);
-  LED_PC_ACT_PORT |= _BV(LED_PC_ACT_PIN);
-  LED_ESTOP_PORT |= _BV(LED_ESTOP_PIN);
-  LED_GPS_PORT |= _BV(LED_GPS_PIN);
-  LED_RC_PORT |= _BV(LED_RC_PIN);
-  */
-  
-  //TOGGLE_LED_ERROR;
-  //TOGGLE_LED_PC_ACT;
-  
-  /*
-  TOGGLE_LED_ESTOP;
-  TOGGLE_LED_GPS;
-  TOGGLE_LED_RC;
-  */
 }
 
 void init(void)
 {
   //enable AD converter
   adc_init();
+
+  ResetImu();
 
   //enable communication to PC over USB
   HostInit();
@@ -129,14 +116,33 @@ int ImuPacketHandler(uint8_t len)
 }
 
 
-int HostPacketHandler(DynamixelPacket * packet)
+int HostPacketHandler(DynamixelPacket * dpacket)
 {
   //TODO: not all messages should be forwarded onto the bus
+  uint8_t forward=1;
+  uint8_t id = DynamixelPacketGetId(dpacket);
+  uint8_t type;
+
+  if (id == MMC_IMU_DEVICE_ID)
+  {
+    forward =0;
+    type = DynamixelPacketGetType(dpacket);
+    switch(type)
+    {
+      case MMC_IMU_RESET:
+        ResetImu();
+        break;
+
+    }
+  }
 
   LED_PC_ACT_PORT ^= _BV(LED_PC_ACT_PIN);
 
-  BusSendRawPacket(packet);
-  rs485Blocked = 1;
+  if (forward)
+  {
+    BusSendRawPacket(dpacket);
+    rs485Blocked = 1;
+  }
   
   //enable the timeout for RS485 bus
   //timer4_enable_compa_callback();
@@ -204,7 +210,7 @@ int main(void)
   DynamixelPacketInit(&hostPacketIn);
   DynamixelPacketInit(&busPacketIn);
   
-  
+/*  
   uint8_t TWI_targetSlaveAddress, TWI_operation;
 	TWI_Master_Initialise();
 	TWI_targetSlaveAddress = 0x1E;		// MHCMC6352's address
@@ -216,7 +222,7 @@ int main(void)
 	sei();								// enable interrupts
 	TWI_Start_Transceiver_With_Data(TWI_transBuff,5);
 	TWI_operation = SEND_DATA; 		// Set the next operation
-  
+*/  
   init();
   
   while(1)
@@ -299,18 +305,30 @@ int main(void)
     
     
     cli();   //disable interrupts to prevent race conditions while copying
-    len = adc_get_data();
+    len = adc_get_data(adcVals);
     sei();   //re-enable interrupts
     
     if (len > 0)
     {
-      ImuPacketHandler(len);
+      if (ProcessImuReadings(adcVals,rpy,wrpy) == 0) //will return 0 if updated, 1 if not yet updated
+      {
+        //send stuff out
+        memcpy(imuOutVals,  &rpy[0], sizeof(float));
+        memcpy(imuOutVals+1,&rpy[1], sizeof(float));
+        memcpy(imuOutVals+2,&rpy[2], sizeof(float));
+        memcpy(imuOutVals+3,&wrpy[0],sizeof(float));
+        memcpy(imuOutVals+4,&wrpy[1],sizeof(float));
+        memcpy(imuOutVals+5,&wrpy[2],sizeof(float));
+    
+        HostSendPacket(MMC_IMU_DEVICE_ID,MMC_IMU_ROT, 
+                  (uint8_t*)imuOutVals,6*sizeof(float));
+      }
     }
       
       
     //start magnetometer stuff  
       
-     
+/*     
     // Check if the TWI Transceiver has completed an operation.
 		if ( ! TWI_Transceiver_Busy() )                              
 		{
@@ -364,8 +382,8 @@ int main(void)
 			}
 		} //end of TWI status check
   
-  
   //end magnetometer stuff
+  */
   }
 
   

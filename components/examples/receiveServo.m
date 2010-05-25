@@ -1,9 +1,9 @@
-addpath( [ getenv('VIS_DIR') '/ipc' ] )
+SetMagicPaths;
 
-robotIdStr = getenv('ROBOT_ID');
+servoMsgName = GetMsgName('Servo1');
 
 ipcAPIConnect;
-ipcAPISubscribe(['Robot' robotIdStr '/Servo1']);
+ipcAPISubscribe(servoMsgName);
 
 
 while(1)
