@@ -64,7 +64,15 @@ int main(int argc, char * argv[])
   
   string logName          = string(HOKUYO_DEF_LOG_NAME) + id;
   string processName      = string("runHokuyo") + id;
-  string robotName        = string("Robot0");
+
+  string robotIdStr       = string(getenv("ROBOT_ID"));
+  if (robotIdStr.empty())
+  {
+    printf("ROBOT_ID must be defined\n");
+    return -1;
+  }
+
+  string robotName        = string("Robot") + robotIdStr;
   string lidarScanMsgName = robotName + "/Lidar" + id;
 
   int nPoints = 1081;
