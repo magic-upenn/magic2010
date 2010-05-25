@@ -4,9 +4,12 @@
 #define ADC_VOLTAGE_MV 2560.0
 
 //accelerometer biases
-#define BIAS_ACC_X 675
-#define BIAS_ACC_Y 657
-#define BIAS_ACC_Z 670
+#define BIAS_ACC_X 665
+#define BIAS_ACC_Y 646
+#define BIAS_ACC_Z 656
+
+#define NOMINAL_GYRO_BIAS 485
+#define GYRO_BIAS_MARGIN 20
 
 //accelerometer sensitivities (g/bit)
 #define SENS_ACC_X 1.0/139.0

@@ -125,6 +125,19 @@ int ProcessImuReadings(uint16_t * adcVals, float * rpy, float * wrpy)
       wxb /= NUM_GYRO_CALIB_SAMPLES;
       wyb /= NUM_GYRO_CALIB_SAMPLES;
       wzb /= NUM_GYRO_CALIB_SAMPLES;
+
+      if (wxb > (NOMINAL_GYRO_BIAS + GYRO_BIAS_MARGIN) ||
+          wxb < (NOMINAL_GYRO_BIAS - GYRO_BIAS_MARGIN) ||
+          wyb > (NOMINAL_GYRO_BIAS + GYRO_BIAS_MARGIN) ||
+          wyb < (NOMINAL_GYRO_BIAS - GYRO_BIAS_MARGIN) ||
+          wzb > (NOMINAL_GYRO_BIAS + GYRO_BIAS_MARGIN) ||
+          wzb < (NOMINAL_GYRO_BIAS - GYRO_BIAS_MARGIN) )
+      {
+        //sometime bad happened during gyro calibration, so reset
+        ResetImu();
+        return 1;
+      }
+
       gyrosCalibrated = 1;
     }
     else

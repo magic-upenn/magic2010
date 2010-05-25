@@ -322,6 +322,11 @@ int main(void)
     
         HostSendPacket(MMC_IMU_DEVICE_ID,MMC_IMU_ROT, 
                   (uint8_t*)imuOutVals,6*sizeof(float));
+
+        imuPacket[0] = adcCntr++;
+        memcpy(&(imuPacket[1]),adcVals,NUM_ADC_CHANNELS*sizeof(uint16_t));
+        HostSendPacket(MMC_IMU_DEVICE_ID,MMC_IMU_RAW,
+                       (uint8_t*)imuPacket,(NUM_ADC_CHANNELS+1)*sizeof(uint16_t));
       }
     }
       
