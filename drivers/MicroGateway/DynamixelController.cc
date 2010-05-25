@@ -2,36 +2,43 @@
 #include "ErrorMessage.hh"
 #include <inttypes.h>
 
+//////////////////////////////////////////////////////////////////////
+// Constructor
 DynamixelController::DynamixelController()
 {
-  this->mode            = DYNAMIXEL_CONTROLLER_MODE_POINT;
-  this->state           = DYNAMIXEL_CONTROLLER_STATE_IDLE;
-  this->minAngle        = DYNAMIXEL_CONTROLLER_DEF_MIN_ANGLE;
-  this->maxAngle        = DYNAMIXEL_CONTROLLER_DEF_MAX_ANGLE;
-  this->desSpeed        = DYNAMIXEL_CONTROLLER_DEF_DES_SPEED;
-  this->desAcceleration = DYNAMIXEL_CONTROLLER_DEF_DES_ACCEL;
-  this->reversePoint    = DYNAMIXEL_CONTROLLER_DEF_REVERSE_POINT;
-  this->desAngle        = 0;
-  this->angle           = 0;
-  this->freshAngle      = false;
-  this->packetOut       = new DynamixelPacket();
-  this->dir             = 1;
-  this->id              = 0;
-  this->angleTime       = 0;
-  this->angleCntr       = 0;
-  this->minLimit        = DYNAMIXEL_CONTROLLER_MIN_ANGLE;
-  this->maxLimit        = DYNAMIXEL_CONTROLLER_MAX_ANGLE;
+  this->mode              = DYNAMIXEL_CONTROLLER_DEF_MODE;
+  this->state             = DYNAMIXEL_CONTROLLER_STATE_IDLE;
+  this->minAngle          = DYNAMIXEL_CONTROLLER_DEF_MIN_ANGLE;
+  this->maxAngle          = DYNAMIXEL_CONTROLLER_DEF_MAX_ANGLE;
+  this->desSpeed          = DYNAMIXEL_CONTROLLER_DEF_DES_SPEED;
+  this->desAcceleration   = DYNAMIXEL_CONTROLLER_DEF_DES_ACCEL;
+  this->reversePoint      = DYNAMIXEL_CONTROLLER_DEF_REVERSE_POINT;
+  this->desAngle          = 0;
+  this->angle             = 0;
+  this->freshAngle        = false;
+  this->packetOut         = new DynamixelPacket();
+  this->dir               = 1;
+  this->id                = 0;
+  this->angleTime         = 0;
+  this->angleCntr         = 0;
+  this->minLimit          = DYNAMIXEL_CONTROLLER_MIN_ANGLE;
+  this->maxLimit          = DYNAMIXEL_CONTROLLER_MAX_ANGLE;
+  this->needToResetState  = false;
 
   this->cmdTimer.Tic();
   this->feedbackRequestTimer.Tic();
 }
 
+//////////////////////////////////////////////////////////////////////
+// Destructor
 DynamixelController::~DynamixelController()
 {
   delete this->packetOut;
 
 }
 
+//////////////////////////////////////////////////////////////////////
+// Set the minimum servo angle (degrees)
 int DynamixelController::SetMinAngle(double angle)
 {
   if (angle < this->minLimit || angle > this->maxLimit)
@@ -44,6 +51,8 @@ int DynamixelController::SetMinAngle(double angle)
   return 0;
 }
 
+//////////////////////////////////////////////////////////////////////
+// Set the maximum servo angle (degrees)
 int DynamixelController::SetMaxAngle(double angle)
 {
   if (angle < this->minLimit || angle > this->maxLimit)
@@ -56,124 +65,253 @@ int DynamixelController::SetMaxAngle(double angle)
   return 0;
 }
 
+//////////////////////////////////////////////////////////////////////
+// Set the movement speed (deg/sec)
 int DynamixelController::SetSpeed(double speed)
 {
   this->desSpeed = speed;
   return 0;
 }
 
+//////////////////////////////////////////////////////////////////////
+// Set the acceleration (deg/sec^2)
 int DynamixelController::SetAcceleration(double acceleration)
 {
   this->desAcceleration = acceleration;
   return 0;
 }
 
+//////////////////////////////////////////////////////////////////////
+// Set mode (POINT or SERVO)
 int DynamixelController::SetMode(int mode)
 {
   this->mode = mode;
   return 0;
 }
 
+//////////////////////////////////////////////////////////////////////
+// Get the latest feedback angle
 double DynamixelController::GetAngle()
 {
   this->freshAngle = false;
   return this->angle;
 }
 
+//////////////////////////////////////////////////////////////////////
+// Update the state machine
 int DynamixelController::Update(DynamixelPacket * packetIn, DynamixelPacket ** packetOut)
-{
-  
+{  
+  //reset the pointer to the outgoing packet (by default,
+  //the state machine does not request to publish anything)
   *packetOut = NULL;
-
-  switch (this->state)
+  
+  if (this->mode == DYNAMIXEL_CONTROLLER_MODE_POINT)
   {
-    case DYNAMIXEL_CONTROLLER_STATE_IDLE:
-      //send the desired position
-      this->desAngle = this->dir > 0 ? this->maxAngle : this->minAngle;
-
-      if (this->GenerateAngleCmd(this->desAngle,this->desSpeed,this->packetOut))
-      {
-        PRINT_ERROR("could not generate position command\n");
-        return -1;
-      }
-
-      *packetOut = this->packetOut;
-      this->state = DYNAMIXEL_CONTROLLER_STATE_SENT_ANGLE_CMD;
-      this->cmdTimer.Tic();
-      break;
-
-    case DYNAMIXEL_CONTROLLER_STATE_SENT_ANGLE_CMD:
-      if (packetIn)
-      {
-        //verify the angle cmd confirmation
-        this->state = DYNAMIXEL_CONTROLLER_STATE_MOVING;
-      }
-      else if ( cmdTimer.Toc() > DYNAMIXEL_CONTROLLER_ANGLE_CMD_TIMEOUT)
-      {
-        PRINT_ERROR("angle cmd confirmation timeout!\n");
-        this->state = DYNAMIXEL_CONTROLLER_STATE_IDLE;
-      }
-      break;
-
-    case DYNAMIXEL_CONTROLLER_STATE_MOVING:
-      //request the angle feedback if time is up
-      if (this->feedbackRequestTimer.Toc() > DYNAMIXEL_CONTROLLER_FEEDBACK_REQUEST_PERIOD)
-      {
-        if (this->GenerateFeedbackRequestCmd(this->packetOut))
+    switch (this->state)
+    {
+      case DYNAMIXEL_CONTROLLER_STATE_IDLE:
+       this->needToResetState = false;
+       this->desAngle = this->minAngle;
+       if (this->GenerateAngleCmd(this->desAngle,this->desSpeed,this->packetOut))
         {
-          PRINT_ERROR("could not generate feedback request command\n");
-          this->state = DYNAMIXEL_CONTROLLER_STATE_MOVING;
-        }
-        *packetOut = this->packetOut;
-        this->feedbackRequestTimer.Tic();
-        this->cmdTimer.Tic();
-        this->state = DYNAMIXEL_CONTROLLER_STATE_MOVING_FB_REQUESTED;
-      }
-      break;
-
-    case DYNAMIXEL_CONTROLLER_STATE_MOVING_FB_REQUESTED:
-      if (packetIn)
-      {
-        //extract the angle
-        //check the error code
-
-        if (packetIn->buffer[4] != 0)
-        {
-          PRINT_ERROR("non-zero error code: " << (int)packetIn->buffer[4] <<"\n");
+          PRINT_ERROR("could not generate position command\n");
           return -1;
-        }  
-
-        this->AngleVal2AngleDeg(*(uint16_t*)(packetIn->buffer+5),this->angle);
-        this->angleTime = Upenn::Timer::GetAbsoluteTime();
-        this->angleCntr++;
-        this->freshAngle = true;
-
-        //check to see if need to reverse
-        if ((this->dir>0) && (this->angle > ( this->desAngle - this->reversePoint)))
-        {
-          this->state = DYNAMIXEL_CONTROLLER_STATE_IDLE;
-          this->dir*=-1;
         }
 
-        else if ((this->dir<0) && (this->angle < (this->desAngle + this->reversePoint)))
+        *packetOut = this->packetOut;
+        this->state = DYNAMIXEL_CONTROLLER_STATE_SENT_ANGLE_CMD;
+        this->cmdTimer.Tic();
+        break;
+
+      case DYNAMIXEL_CONTROLLER_STATE_SENT_ANGLE_CMD:
+        if (packetIn)
         {
-          this->state = DYNAMIXEL_CONTROLLER_STATE_IDLE;
-          this->dir*=-1;
-        }
-        else
+          //verify the angle cmd confirmation
+          if (packetIn->buffer[4] != 0)
+          {
+            PRINT_ERROR("non-zero error code: " << (int)packetIn->buffer[4] <<"\n");
+            this->state = DYNAMIXEL_CONTROLLER_STATE_IDLE;
+            break;
+          }  
+
           this->state = DYNAMIXEL_CONTROLLER_STATE_MOVING;
-      }
-      else if (this->cmdTimer.Toc() > DYNAMIXEL_CONTROLLER_FB_CMD_TIMEOUT)
-      {
-        PRINT_ERROR("feedback response timeout!\n");
-        this->state = DYNAMIXEL_CONTROLLER_STATE_MOVING;
-      }
-      break;
 
-    default:
-      this->state = DYNAMIXEL_CONTROLLER_STATE_IDLE;
-      break;
+          if (this->needToResetState)  //only reset if not expecting a reply
+            this->state = DYNAMIXEL_CONTROLLER_STATE_IDLE;
+        }
+        else if ( cmdTimer.Toc() > DYNAMIXEL_CONTROLLER_ANGLE_CMD_TIMEOUT)
+        {
+          PRINT_ERROR("angle cmd confirmation timeout!\n");
+          this->state = DYNAMIXEL_CONTROLLER_STATE_IDLE;
+        }
+        break;
+      
+      case DYNAMIXEL_CONTROLLER_STATE_MOVING:
+        //request the angle feedback if time is up
+        if (this->feedbackRequestTimer.Toc() > DYNAMIXEL_CONTROLLER_FEEDBACK_REQUEST_PERIOD)
+        {
+          if (this->GenerateFeedbackRequestCmd(this->packetOut))
+          {
+            PRINT_ERROR("could not generate feedback request command\n");
+            this->state = DYNAMIXEL_CONTROLLER_STATE_MOVING;
+          }
+          *packetOut = this->packetOut;
+          this->feedbackRequestTimer.Tic();
+          this->cmdTimer.Tic();
+          this->state = DYNAMIXEL_CONTROLLER_STATE_MOVING_FB_REQUESTED;
+        }
+        else if (this->needToResetState)  //only reset if not expecting a reply
+          this->state = DYNAMIXEL_CONTROLLER_STATE_IDLE;
+        break;
+
+      case DYNAMIXEL_CONTROLLER_STATE_MOVING_FB_REQUESTED:
+        if (packetIn)
+        {
+          //extract the angle
+          //check the error code
+
+          if (packetIn->buffer[4] != 0)
+          {
+            PRINT_ERROR("non-zero error code: " << (int)packetIn->buffer[4] <<"\n");
+            this->state = DYNAMIXEL_CONTROLLER_STATE_IDLE;
+            break;
+          }  
+
+          this->AngleVal2AngleDeg(*(uint16_t*)(packetIn->buffer+5),this->angle);
+          this->angleTime = Upenn::Timer::GetAbsoluteTime();
+          this->angleCntr++;
+          this->freshAngle = true;
+
+          this->state = DYNAMIXEL_CONTROLLER_STATE_MOVING;
+        }
+        else if (this->cmdTimer.Toc() > DYNAMIXEL_CONTROLLER_FB_CMD_TIMEOUT)
+        {
+          PRINT_ERROR("feedback response timeout!\n");
+          this->state = DYNAMIXEL_CONTROLLER_STATE_MOVING;
+          
+          if (this->needToResetState)  //only reset if not expecting a reply
+            this->state = DYNAMIXEL_CONTROLLER_STATE_IDLE;
+        }
+        break;
+
+      default:
+        this->state = DYNAMIXEL_CONTROLLER_STATE_IDLE;
+        break;
+    }
   }
+
+
+  else if (this->mode == DYNAMIXEL_CONTROLLER_MODE_SERVO)
+  {
+    switch (this->state)
+    {
+      case DYNAMIXEL_CONTROLLER_STATE_IDLE:
+        this->needToResetState = false;
+
+        //send the desired position
+        this->desAngle = this->dir > 0 ? this->maxAngle : this->minAngle;
+
+        if (this->GenerateAngleCmd(this->desAngle,this->desSpeed,this->packetOut))
+        {
+          PRINT_ERROR("could not generate position command\n");
+          return -1;
+        }
+
+        *packetOut = this->packetOut;
+        this->state = DYNAMIXEL_CONTROLLER_STATE_SENT_ANGLE_CMD;
+        this->cmdTimer.Tic();
+        break;
+
+      case DYNAMIXEL_CONTROLLER_STATE_SENT_ANGLE_CMD:
+        if (packetIn)
+        {
+          //verify the angle cmd confirmation
+          if (packetIn->buffer[4] != 0)
+          {
+            PRINT_ERROR("non-zero error code: " << (int)packetIn->buffer[4] <<"\n");
+            this->state = DYNAMIXEL_CONTROLLER_STATE_IDLE;
+            break;
+          }
+
+          this->state = DYNAMIXEL_CONTROLLER_STATE_MOVING;
+
+          if (this->needToResetState)  //only reset if not expecting a reply
+            this->state = DYNAMIXEL_CONTROLLER_STATE_IDLE;
+        }
+        else if ( cmdTimer.Toc() > DYNAMIXEL_CONTROLLER_ANGLE_CMD_TIMEOUT)
+        {
+          PRINT_ERROR("angle cmd confirmation timeout!\n");
+          this->state = DYNAMIXEL_CONTROLLER_STATE_IDLE;
+        }
+        break;
+
+      case DYNAMIXEL_CONTROLLER_STATE_MOVING:
+        //request the angle feedback if time is up
+        if (this->feedbackRequestTimer.Toc() > DYNAMIXEL_CONTROLLER_FEEDBACK_REQUEST_PERIOD)
+        {
+          if (this->GenerateFeedbackRequestCmd(this->packetOut))
+          {
+            PRINT_ERROR("could not generate feedback request command\n");
+            this->state = DYNAMIXEL_CONTROLLER_STATE_MOVING;
+          }
+          *packetOut = this->packetOut;
+          this->feedbackRequestTimer.Tic();
+          this->cmdTimer.Tic();
+          this->state = DYNAMIXEL_CONTROLLER_STATE_MOVING_FB_REQUESTED;
+        }
+        else if (this->needToResetState)  //only reset if not expecting a reply
+          this->state = DYNAMIXEL_CONTROLLER_STATE_IDLE;
+        break;
+
+      case DYNAMIXEL_CONTROLLER_STATE_MOVING_FB_REQUESTED:
+        if (packetIn)
+        {
+          //extract the angle
+          //check the error code
+
+          if (packetIn->buffer[4] != 0)
+          {
+            PRINT_ERROR("non-zero error code: " << (int)packetIn->buffer[4] <<"\n");
+            return -1;
+          }  
+
+          this->AngleVal2AngleDeg(*(uint16_t*)(packetIn->buffer+5),this->angle);
+          this->angleTime = Upenn::Timer::GetAbsoluteTime();
+          this->angleCntr++;
+          this->freshAngle = true;
+
+          //check to see if need to reverse
+          if ((this->dir>0) && (this->angle > ( this->desAngle - this->reversePoint)))
+          {
+            this->state = DYNAMIXEL_CONTROLLER_STATE_IDLE;
+            this->dir*=-1;
+          }
+
+          else if ((this->dir<0) && (this->angle < (this->desAngle + this->reversePoint)))
+          {
+            this->state = DYNAMIXEL_CONTROLLER_STATE_IDLE;
+            this->dir*=-1;
+          }
+          else
+            this->state = DYNAMIXEL_CONTROLLER_STATE_MOVING;
+        }
+        else if (this->cmdTimer.Toc() > DYNAMIXEL_CONTROLLER_FB_CMD_TIMEOUT)
+        {
+          PRINT_ERROR("feedback response timeout!\n");
+          this->state = DYNAMIXEL_CONTROLLER_STATE_MOVING;
+
+          if (this->needToResetState)  //only reset if not expecting a reply
+            this->state = DYNAMIXEL_CONTROLLER_STATE_IDLE;
+        }
+        break;
+
+      default:
+        this->state = DYNAMIXEL_CONTROLLER_STATE_IDLE;
+        break;
+    }
+  }
+  else
+    PRINT_ERROR("unknown servo mode\n");
   return 0;
 }
 
@@ -228,6 +366,8 @@ int DynamixelController::SpeedVal2SpeedDeg(uint16_t val, double &speed)
   return 0;
 }
 
+//////////////////////////////////////////////////////////////////////
+//
 int DynamixelController::GenerateAngleCmd(double angle, double speed, DynamixelPacket * dpacket)
 {
   const char cmdLen=5;
@@ -334,5 +474,10 @@ if (angle >= DYNAMIXEL_CONTROLLER_MIN_ANGLE &&
   }
 
   return 0;
+}
+
+int DynamixelController::ResetState()
+{
+  this->needToResetState = true;
 }
 
