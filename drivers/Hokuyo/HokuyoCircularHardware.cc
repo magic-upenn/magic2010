@@ -322,3 +322,16 @@ int HokuyoCircularHardware::GetSensorType()
   return this->hokuyo->GetSensorType();
 }
 
+///////////////////////////////////////////////////////////////////
+// Get the sensor type from the low-level driver
+std::string HokuyoCircularHardware::GetSerial()
+{
+  if (!this->hokuyo)
+  {
+    PRINT_ERROR("hokuyo is not initialized\n");
+    return string();
+  }
+  return string(this->hokuyo->GetSerial());
+}
+
+

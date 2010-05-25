@@ -54,7 +54,7 @@ int main(int argc, char * argv[])
   string address = string(HOKUYO_DEF_DEVICE);
   string ipcHost = string("localhost");
 
-  string id = string("0");
+  string id = string();
 
   if (argc>=2)
     address = string(argv[1]);
@@ -73,20 +73,12 @@ int main(int argc, char * argv[])
   }
 
   string robotName        = string("Robot") + robotIdStr;
-  string lidarScanMsgName = robotName + "/Lidar" + id;
+  
 
   int nPoints = 1081;
   if (argc >=4)
     nPoints = strtol(argv[3],NULL,10);
   
-
-  //connect to ipc  
-  IPC_connectModule(processName.c_str(),ipcHost.c_str());
-
-  IPC_defineMsg(lidarScanMsgName.c_str(),IPC_VARIABLE_LENGTH,
-                 Magic::LidarScan::getIPCFormat());
-
-
   int scanStart=0;      //start of the scan
   int scanEnd=nPoints -1;//1080;      //end of the scan
   int scanSkip=1;       //this is so-called "cluster count", however special values
@@ -130,6 +122,37 @@ int main(int argc, char * argv[])
 		PRINT_ERROR("could not connect\n");
 		return -1;
 	}
+
+  string serial = dev->GetSerial();
+  if (id.empty())
+  {
+    char * lidar0serial = getenv("LIDAR0_SERIAL");
+    char * lidar1serial = getenv("LIDAR1_SERIAL");
+
+    if ( !lidar0serial || !lidar1serial)
+    {
+      PRINT_ERROR("LIDAR0_SERIAL and/or LIDAR1_SERIAL are not defined\n");
+      return -1;
+    }
+
+    if (serial.compare(lidar0serial) == 0)
+      id = string("0");
+    else if (serial.compare(lidar1serial) == 0)
+      id = string("1");
+    else
+    {
+      PRINT_ERROR("lidar id is not defined and current serial (" <<serial<<") does not match neither LIDAR0_SERIAL nor LIDAR1_SERIAL\n");
+      return -1;
+    }
+    PRINT_INFO("Sensor identified as LIDAR"<<id<<"\n");
+  }
+
+  string lidarScanMsgName = robotName + "/Lidar" + id;
+  //connect to ipc  
+  IPC_connectModule(processName.c_str(),ipcHost.c_str());
+
+  IPC_defineMsg(lidarScanMsgName.c_str(),IPC_VARIABLE_LENGTH,
+                 Magic::LidarScan::getIPCFormat());
 
 /*
   if (dev->InitializeLogging(logName))   //initialize logging
