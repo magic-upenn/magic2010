@@ -10,7 +10,7 @@ using namespace Upenn;
 
 int main(int argc, char * argv[])
 {
-  char * sDev = (char*)"/dev/ttyUSB0";
+  char * sDev = (char*)"/dev/microGateway";
   char * ipcHost = NULL;
 
   //get input arguments
