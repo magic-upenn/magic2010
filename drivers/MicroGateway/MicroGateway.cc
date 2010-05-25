@@ -237,6 +237,7 @@ void MicroGateway::ServoControllerCmdMsgHandler (MSG_INSTANCE msgRef,
     dcntrl->SetMaxAngle(scmd->maxAngle);
     dcntrl->SetSpeed(scmd->speed);
     dcntrl->SetAcceleration(scmd->acceleration);
+    dcntrl->SetMode(scmd->mode);
     dcntrl->ResetState();
   }
 }

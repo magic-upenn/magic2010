@@ -4,8 +4,8 @@
 #include "DynamixelPacket.h"
 #include "Timer.hh"
 
-#define DYNAMIXEL_CONTROLLER_DEF_MIN_ANGLE          -30
-#define DYNAMIXEL_CONTROLLER_DEF_MAX_ANGLE           30
+#define DYNAMIXEL_CONTROLLER_DEF_MIN_ANGLE          -0
+#define DYNAMIXEL_CONTROLLER_DEF_MAX_ANGLE           0
 #define DYNAMIXEL_CONTROLLER_DEF_DES_SPEED           50
 #define DYNAMIXEL_CONTROLLER_DEF_DES_ACCEL           300
 #define DYNAMIXEL_CONTROLLER_DEF_REVERSE_POINT       5
