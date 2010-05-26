@@ -24,9 +24,9 @@ while(1)
         case mapMsgName
           map = VisMap2DSerializer('deserialize',msgs(i).data);
           if isempty(hMap)
-            hMap = imagesc(map.map.data); hold on;
+            hMap = imagesc(map.map.data'); hold on;
           else
-            set(hMap,'cdata',map.map.data);
+            set(hMap,'cdata',map.map.data');
           end
           drawnow;
         case poseMsgName
