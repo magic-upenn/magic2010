@@ -17,13 +17,13 @@ global SLAM OMAP POSE TRAJ
 
 SetMagicPaths;
 
-SLAM.updateExplorationMap = 0;
+SLAM.updateExplorationMap = 1;
 poseInit;
 
 SLAM.x   = POSE.xInit;
 SLAM.y   = POSE.yInit;
 SLAM.z   = POSE.zInit;
-SLAM.yaw = POSE.yaw;
+SLAM.yaw = POSE.data.yaw;
 SLAM.lidarCntr = 0;
 
 SLAM.xOdom   = SLAM.x;
