@@ -16,7 +16,7 @@ pose=[];
 map=[];
 
 while(1)
-  msgs = ipcAPI('listen',10);
+  msgs = ipcAPI('listenWait',10);
   len = length(msgs);
   if len > 0
     for i=1:len
@@ -28,7 +28,6 @@ while(1)
           else
             set(hMap,'cdata',map.map.data');
           end
-          drawnow;
         case poseMsgName
           if isempty(map)
             continue;
@@ -41,8 +40,8 @@ while(1)
           else
             set(hPose,'xdata',xi,'ydata',yi);
           end
-          drawnow;
       end
     end
+    drawnow;
   end
 end

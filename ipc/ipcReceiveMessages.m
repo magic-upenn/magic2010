@@ -2,7 +2,7 @@ function nmsg = ipcReceiveMessages
 
 global IPC
 
-msgs = ipcAPI('listen',10);
+msgs = ipcAPI('listenWait',10);
 nmsg = length(msgs);
 
 for mi=1:nmsg

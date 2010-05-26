@@ -164,7 +164,7 @@
   </plugin>
 
   <plugin>
-		<id>Robot2/ObstacleMap2D</id>
+		<id>Robot0/ObstacleMap2D</id>
 		<filename>Map2D.so</filename>
     <xyz>0 0 0</xyz>
     
@@ -178,7 +178,7 @@
 	</plugin>
 
   <plugin>
-		<id>Robot2/ExplorationMap2D</id>
+		<id>Robot0/ExplorationMap2D</id>
 		<filename>Map2D.so</filename>
     <xyz>0 0 0</xyz>
     
