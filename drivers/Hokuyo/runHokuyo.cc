@@ -65,8 +65,8 @@ int main(int argc, char * argv[])
   string logName          = string(HOKUYO_DEF_LOG_NAME) + id;
   string processName      = string("runHokuyo") + id;
 
-  string robotIdStr       = string(getenv("ROBOT_ID"));
-  if (robotIdStr.empty())
+  char * robotIdStr       = getenv("ROBOT_ID");
+  if (!robotIdStr)
   {
     printf("ROBOT_ID must be defined\n");
     return -1;
