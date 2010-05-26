@@ -34,7 +34,7 @@ StartFunction ()
 
 # List session names and commands for screen, delimited by ":"
 StartFunction <<EOF
-hokuyo0:sh -c while :; do $MAGIC_DIR/drivers/Hokuyo/runHokuyo; done;
+hokuyo0:$MAGIC_DIR/drivers/Hokuyo/runHokuyo /dev/ttyACM0
 EOF
 
 exit
