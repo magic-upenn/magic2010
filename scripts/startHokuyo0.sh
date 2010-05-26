@@ -22,7 +22,7 @@ StartFunction ()
       echo "Session: $name already exists."
     else
       echo -n "Session: $name starting.."
-      screen -S "$name" -dm $cmd   #$cmd needs to be unquoted
+      screen -S "$name" -d -m $cmd   #$cmd needs to be unquoted
       if [ $? -eq 0 ]; then
         echo "done."
       else
@@ -34,7 +34,7 @@ StartFunction ()
 
 # List session names and commands for screen, delimited by ":"
 StartFunction <<EOF
-hokuyo0:$MAGIC_DIR/drivers/Hokuyo/runHokuyo /dev/ttyACM0 0 1081
+hokuyo0:sh -c while :; do $MAGIC_DIR/drivers/Hokuyo/runHokuyo; done;
 EOF
 
 exit
