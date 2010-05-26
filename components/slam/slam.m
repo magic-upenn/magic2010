@@ -18,13 +18,12 @@ global SLAM OMAP POSE TRAJ
 SetMagicPaths;
 
 SLAM.updateExplorationMap = 0;
+poseInit;
 
-SLAM.x   = 0;
-SLAM.y   = 0;
-SLAM.z   = 0;
-SLAM.yaw = 0/180*pi;
-
-
+SLAM.x   = POSE.xInit;
+SLAM.y   = POSE.yInit;
+SLAM.z   = POSE.zInit;
+SLAM.yaw = POSE.yaw;
 SLAM.lidarCntr = 0;
 
 SLAM.xOdom   = SLAM.x;
@@ -37,14 +36,8 @@ TRAJ.hTraj = [];
 
 %initialize the pose struct so that the maps are initialized around the initial pose
 %in future, this should be the start UTM coordinate!!
-POSE.x     = 0;
-POSE.y     = 0;
-POSE.z     = 0;
-POSE.roll  = 0;
-POSE.pitch = 0;
-POSE.yaw   = 0/180*pi;
 
-poseInit;
+
 ipcInit;
 omapInit;
 emapInit;
@@ -147,6 +140,7 @@ dyaw = 0.1/180.0*pi;
 dx   = 0.01;
 dy   = 0.01;
 
+%create the candidate locations in each dimension
 aCand = (-yawRange:yawRange)*dyaw+SLAM.yaw + IMU.data.wyaw*0.025;
 xCand = (-xRange:xRange)*dx+SLAM.xOdom;
 yCand = (-yRange:yRange)*dy+SLAM.yOdom;
@@ -155,7 +149,7 @@ yCand = (-yRange:yRange)*dy+SLAM.yOdom;
 %get a local 3D sampling of pose likelihood
 hits = ScanMatch2D('match',OMAP.map.data,xsss,ysss,xCand,yCand,aCand);
 
-
+%find maximum
 [hmax imax] = max(hits(:));
 [kmax mmax jmax] = ind2sub([nxs,nys,nyaw],imax);
 
@@ -177,6 +171,7 @@ if (SLAM.lidarCntr > 1)
   %find the minimum and save the new pose
   [cmin cimin] = min(costGrid(:));
   
+  %save the best pose
   SLAM.yaw = aCand(jmax);
   SLAM.x   = xGrid(cimin);
   SLAM.y   = yGrid(cimin);
@@ -229,19 +224,6 @@ end
 TRAJ.cntr = TRAJ.cntr+1;
 TRAJ.traj(:,TRAJ.cntr) = [SLAM.x; SLAM.y; SLAM.yaw; hmax];
 
-%draw the trajectory
-%{
-if (mod(SLAM.lidarCntr,40) == 0)
-  if isempty(TRAJ.hTraj)
-    TRAJ.hTraj =plot(TRAJ.traj(1,1:TRAJ.cntr-1),TRAJ.traj(2,1:TRAJ.cntr-1));
-  else
-    set(TRAJ.hTraj,'xdata',TRAJ.traj(1,1:TRAJ.cntr-1),'ydata',TRAJ.traj(2,1:TRAJ.cntr-1));
-  end
-    
-  drawnow;
-end
-%}
-
 %send out robot trajectory to vis
 if (mod(SLAM.lidarCntr,100) == 0)
   trajMsgName = [GetRobotName 'Traj' VisMarshall('getMsgSuffix','TrajPos3DColorDoubleRGBA')];
@@ -276,7 +258,7 @@ if (mod(SLAM.lidarCntr,20) == 0)
   if yimin < 1,yimin=1; end
   if yimax > OMAP.map.sizey; end
 
-
+  %get a small map around current location and decay it
   localMap = OMAP.map.data(ximin:ximax,...
                            yimin:yimax);
 
@@ -285,6 +267,7 @@ if (mod(SLAM.lidarCntr,20) == 0)
   localMap(indd) = localMap(indd)*0.95;
   localMap(localMap>100) = 100;
   
+  %merge the small map back into the full map
   OMAP.map.data(ximin:ximax,yimin:yimax) = localMap;
 end
 
@@ -302,24 +285,28 @@ if (xi(2) > OMAP.map.sizex), xExpand = expandSize; end
 if (yi(2) > OMAP.map.sizey), yExpand = expandSize; end
 
 if (xExpand ~=0 || yExpand ~=0)
+  %expand the map
   omapExpand(xExpand,yExpand);
+  
+  %update the boundaries
   ScanMatch2D('setBoundaries',OMAP.xmin,OMAP.ymin,OMAP.xmax,OMAP.ymax);
 end
   
 
-POSE.x     = SLAM.x;
-POSE.y     = SLAM.y;
-POSE.z     = SLAM.z;
-POSE.roll  = IMU.data.roll;
-POSE.pitch = IMU.data.pitch;
-POSE.yaw   = SLAM.yaw;
+POSE.data.x     = SLAM.x;
+POSE.data.y     = SLAM.y;
+POSE.data.z     = SLAM.z;
+POSE.data.roll  = IMU.data.roll;
+POSE.data.pitch = IMU.data.pitch;
+POSE.data.yaw   = SLAM.yaw;
 
+%publish the full obstacle map (to vis)
 if (mod(SLAM.lidarCntr,200) == 0)
   PublishObstacleMap;
 end
 
-
-ipcAPIPublishVC(POSE.msgName,MagicPoseSerializer('serialize',POSE));
+%send out pose message
+ipcAPIPublishVC(POSE.msgName,MagicPoseSerializer('serialize',POSE.data));
 
 
 
