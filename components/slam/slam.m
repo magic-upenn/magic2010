@@ -17,6 +17,8 @@ global SLAM OMAP POSE TRAJ
 
 SetMagicPaths;
 
+SLAM.updateExplorationMap = 0;
+
 SLAM.x   = 0;
 SLAM.y   = 0;
 SLAM.z   = 0;
@@ -42,20 +44,19 @@ POSE.roll  = 0;
 POSE.pitch = 0;
 POSE.yaw   = 0/180*pi;
 
+poseInit;
 ipcInit;
 omapInit;
 emapInit;
 encodersSubscribe;
 lidar0Subscribe;
 motorsInit;
-poseInit;
 DefineVisMsgs;
 DefineSensorMessages;
 DefinePlannerMessages;
 
 %assign the message handlers
 ipcReceiveSetFcn(GetMsgName('Pose'),        @ipcRecvPoseFcn);
-ipcReceiveSetFcn(GetMsgName('Encoders'),    @ipcRecvEncodersFcn);
 ipcReceiveSetFcn(GetMsgName('Lidar0'),      @slamProcessLidar);
 ipcReceiveSetFcn(GetMsgName('Encoders'),    @slamProcessEncoders);
 ipcReceiveSetFcn(GetMsgName('ImuFiltered'), @ipcRecvImuFcn);
@@ -97,7 +98,7 @@ end
 SLAM.lidarCntr = SLAM.lidarCntr+1;
 
 %fprintf(1,'got lidar scan\n');
-if (mod(SLAM.lidarCntr,200) == 0)
+if (mod(SLAM.lidarCntr,40) == 0)
   fprintf(1,'.');
   %toc,tic
 end
@@ -204,22 +205,24 @@ end
 
 OMAP.map.data(inds)=OMAP.map.data(inds)+inc;
 
-% Update the exploration map
-xl = ceil((SLAM.x-EMAP.xmin) * EMAP.invRes);
-yl = ceil((SLAM.y-EMAP.ymin) * EMAP.invRes);
-%tic
-[eix eiy] = getMapCellsFromRay(xl,yl,xis(indGood),yis(indGood));
-%toc
-%plot(eix,eiy,'r.'), hold on
-%plot(xis,yis,'b.'), drawnow, hold off
-cis = sub2ind(size(EMAP.map.data),eix,eiy);
-EMAP.map.data(cis) = 249;
-%imagesc(EMAP.map.data);
-%axis xy;
-%drawnow;
-%EMAP.map.data(cis) = EMAP.map.data(cis)+1;
-if (mod(SLAM.lidarCntr,300) == 0)
-  PublishMapsToExplorationPlanner;
+if (SLAM.updateExplorationMap) 
+    % Update the exploration map
+    xl = ceil((SLAM.x-EMAP.xmin) * EMAP.invRes);
+    yl = ceil((SLAM.y-EMAP.ymin) * EMAP.invRes);
+    %tic
+    [eix eiy] = getMapCellsFromRay(xl,yl,xis(indGood),yis(indGood));
+    %toc
+    %plot(eix,eiy,'r.'), hold on
+    %plot(xis,yis,'b.'), drawnow, hold off
+    cis = sub2ind(size(EMAP.map.data),eix,eiy);
+    EMAP.map.data(cis) = 249;
+    %imagesc(EMAP.map.data);
+    %axis xy;
+    %drawnow;
+    %EMAP.map.data(cis) = EMAP.map.data(cis)+1;
+    if (mod(SLAM.lidarCntr,300) == 0)
+      PublishMapsToExplorationPlanner;
+    end
 end
 
 
@@ -311,11 +314,10 @@ POSE.roll  = IMU.data.roll;
 POSE.pitch = IMU.data.pitch;
 POSE.yaw   = SLAM.yaw;
 
-%{
 if (mod(SLAM.lidarCntr,200) == 0)
   PublishObstacleMap;
 end
-%}
+
 
 ipcAPIPublishVC(POSE.msgName,MagicPoseSerializer('serialize',POSE));
 
@@ -327,6 +329,10 @@ ipcAPIPublishVC(POSE.msgName,MagicPoseSerializer('serialize',POSE));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function slamProcessEncoders(msg)
 global ENCODERS SLAM IMU
+
+if isempty(IMU)
+    return
+end
 
 if ~isempty(msg)
   ENCODERS.counts  = MagicEncoderCountsSerializer('deserialize',msg);
