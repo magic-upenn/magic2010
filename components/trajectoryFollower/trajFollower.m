@@ -18,93 +18,46 @@ trajFollowerStop;
 function trajFollowerStart
 clear all;
 global TRAJ POSE
-addpath( [ getenv('VIS_DIR') '/ipc' ] )
-addpath ../../matlab/Serialization/
-addpath ../MotorController/
-
-
-robotIdStr = getenv('ROBOT_ID');
-if isempty(robotIdStr)
-  error('robot id is not defined in an environment variable');
-end
-
-figure(1), clf(gcf);
-hold on;
-TRAJ.hTraj = plot(0,0,'b');
-TRAJ.hNext = plot(0,0,'b*');
-POSE.hPose = plot(0,0,'r*');
-hold off;
-drawnow;
+SetMagicPaths;
 
 TRAJ.traj = [];
-POSE.pose = [];
+POSE.data = [];
 
 %connect to ipc
-TRAJ.ipcMsgName = ['Robot' robotIdStr '/Trajectory'];
-POSE.ipcMsgName = ['Robot' robotIdStr '/Pose'];
-ipcAPIConnect();
-ipcAPISubscribe(TRAJ.ipcMsgName);
-ipcAPISubscribe(POSE.ipcMsgName);
+ipcInit;
+ipcReceiveSetFcn(GetMsgName('Pose'),        @ipcRecvPoseFcn);
+ipcReceiveSetFcn(GetMsgName('Traj'),        @ipcRecvTrajFcn);
 
+function ipcRecvTrajFcn(msg)
+global TRAJ
 
+fprintf(1,'got traj message\n');
+TRAJ.traj = deserialize(msg);
+TRAJ.itraj   = 1;
 
-function trajFollowerUpdate
-global TRAJ POSE
-msgs = ipcAPIReceive(25);
-len = length(msgs);
-if len > 0
-  for i=1:len
-    msg = msgs(i);
-    switch msg.name
-      case TRAJ.ipcMsgName
-        fprintf(1,'got traj message\n');
-        TRAJ.traj    = MagicMotionTrajSerializer('deserialize',msg.data);
-        TRAJ.itraj   = 1;
-        
-        if (TRAJ.traj.size == 0)
-          fprintf(1,'traj is empty!!!\n');
-        end
-        
-        trajLen=TRAJ.traj.size;
-        xs = zeros(trajLen,1);
-        ys = zeros(trajLen,1);
-        for j=1:trajLen
-            xs(j) = TRAJ.traj.waypoints(j).x;
-            ys(j) = TRAJ.traj.waypoints(j).y;
-        end
-        
-        set(TRAJ.hTraj,'xdata',xs,'ydata',ys');
-        drawnow;
-        
-        
-      
-      case POSE.ipcMsgName
-        fprintf(1,'got pose message\n');
-        POSE.pose    = MagicPoseSerializer('deserialize',msg.data);
-        
-        set(POSE.hPose,'xdata',POSE.pose.x,'ydata',POSE.pose.y);
-        drawnow;
-          
-      otherwise
-        fprintf(1,'got unknown message type: %s \n',msg.name);
-    end
-  end
+function ipcRecvPoseFcn(msg)
+
+global POSE
+
+if ~isempty(msg)
+  POSE.data = MagicPoseSerializer('deserialize',msg);
 end
 
 trajFollowerFollow;
 
-
+function trajFollowerUpdate
+ipcReceiveMessages;
 
 
 function trajFollowerFollow
 global TRAJ POSE
 
-if isempty(TRAJ.traj) || isempty(POSE.pose) || TRAJ.traj.size < 1
+if isempty(TRAJ.traj) || isempty(POSE.data) || TRAJ.traj.size < 1
   return
 end
 
 traj = TRAJ.traj;
-pose = POSE.pose;
+pose = POSE.data;
 
 %find the closest point
 minDist = inf;
@@ -142,7 +95,7 @@ end
 xdes = traj.waypoints(TRAJ.itraj).x;
 ydes = traj.waypoints(TRAJ.itraj).y;
 
-set(TRAJ.hNext,'xdata',xdes,'ydata',ydes);
+%set(TRAJ.hNext,'xdata',xdes,'ydata',ydes);
 
 L=0.1;
 V = [cos(pose.yaw) sin(pose.yaw); -sin(pose.yaw)/L cos(pose.yaw)/L] * ...

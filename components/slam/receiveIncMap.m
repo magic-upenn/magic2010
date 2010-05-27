@@ -1,7 +1,7 @@
 function receiveIncMap
 clear all;
 
-global POSE
+global POSE USER_INPUT
 
 SetMagicPaths;
 
@@ -12,17 +12,35 @@ omapInit;
 emapInit;
 
 POSE.cntr =1;
+USER_INPUT.fresh =0;
 %id of the robot that maps should be received from
 setenv('ROBOT_ID','0');
 
 ipcReceiveSetFcn(GetMsgName('Pose'), @PoseMsgHander);
 ipcReceiveSetFcn(GetMsgName('MapIncUpdate'), @MapUpdateMsgHandler);
 
+trajMsgName = GetMsgName('Traj');
+ipcAPIDefine(trajMsgName);
+
 figure(1), clf(gcf);
 drawnow;
+set(gcf,'WindowButtonUpFcn',@mouseClickCallback);
 
 while(1)
   ipcReceiveMessages;
+  
+  if (USER_INPUT.fresh)
+    fprintf(1,'got user input %f %f\n',USER_INPUT.x, USER_INPUT.y);
+    USER_INPUT.fresh = 0;
+    
+    traj.size = 1;
+    traj.waypoints(1).x = USER_INPUT.x;
+    traj.waypoints(1).y = USER_INPUT.y;
+    goal.x = USER_INPUT.x;
+    goal.y = USER_INPUT.y;
+    ipcAPIPublish(trajMsgName,serialize(traj));
+    fprintf(1,'published traj\n');
+  end
 end
 
 function PoseMsgHander(msg)

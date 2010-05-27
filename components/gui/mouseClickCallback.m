@@ -1,3 +1,7 @@
-function selectPatch(obj, event)
+function mouseClickCallback(obj, event)
+global USER_INPUT
+
+USER_INPUT.fresh = 1;
 last_click=get(gca,'CurrentPoint');
-last_click=[last_click(1,2) last_click(1,1)] %y first
+USER_INPUT.x = last_click(1,2);
+USER_INPUT.y = last_click(1,1);

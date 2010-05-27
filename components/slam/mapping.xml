@@ -8,7 +8,7 @@
     <menuOn>0</menuOn>
     <frame>
       <name>mapping</name>
-      <frameRate>30</frameRate>
+      <frameRate>50</frameRate>
       <camera>
         <name>cam2</name>
         <position>-0.8 0 2</position>
