@@ -6,7 +6,7 @@ global POSE USER_INPUT
 SetMagicPaths;
 
 
-ipcInit('158.130.62.140');
+ipcInit('192.168.10.102');
 poseInit;
 omapInit;
 emapInit;
@@ -14,7 +14,7 @@ emapInit;
 POSE.cntr =1;
 USER_INPUT.fresh =0;
 %id of the robot that maps should be received from
-setenv('ROBOT_ID','0');
+setenv('ROBOT_ID','2');
 
 ipcReceiveSetFcn(GetMsgName('Pose'), @PoseMsgHander);
 ipcReceiveSetFcn(GetMsgName('MapIncUpdate'), @MapUpdateMsgHandler);
@@ -34,8 +34,8 @@ while(1)
     USER_INPUT.fresh = 0;
     
     traj.size = 1;
-    traj.waypoints(1).x = USER_INPUT.x;
-    traj.waypoints(1).y = USER_INPUT.y;
+    traj.waypoints(1).y = USER_INPUT.x;
+    traj.waypoints(1).x = USER_INPUT.y;
     goal.x = USER_INPUT.x;
     goal.y = USER_INPUT.y;
     ipcAPIPublish(trajMsgName,serialize(traj));
