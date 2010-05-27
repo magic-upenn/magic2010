@@ -19,6 +19,10 @@ if isempty(OMAP) || ~isfield(OMAP,'initialized') ||(OMAP.initialized ~= 1)
   OMAP.map.data   = zeros(OMAP.map.sizex,OMAP.map.sizey,'uint8');
   OMAP.msgName    = [GetRobotName '/ObstacleMap2D_map2d'];
   
+  OMAP.delta.sizex = OMAP.map.sizex;
+  OMAP.delta.sizey = OMAP.map.sizey;
+  OMAP.delta.data  = zeros(size(OMAP.map.data),'uint8');
+  
   ipcInit;
   ipcAPIDefine(OMAP.msgName,VisMap2DSerializer('getFormat'));
   OMAP.initialized  = 1;

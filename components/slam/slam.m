@@ -27,6 +27,9 @@ SLAM.yaw          = POSE.data.yaw;
 SLAM.lidar0Cntr   = 0;
 SLAM.lidar1Cntr   = 0;
 
+SLAM.MapIncUpdateMsgName = GetMsgName('MapIncUpdate');
+ipcAPIDefine(SLAM.MapIncUpdateMsgName);
+
 SLAM.xOdom        = SLAM.x;
 SLAM.yOdom        = SLAM.y;
 SLAM.yawOdom      = SLAM.yaw;
@@ -202,6 +205,21 @@ if (SLAM.lidar0Cntr == 1)
 end
 
 OMAP.map.data(inds)=OMAP.map.data(inds)+inc;
+OMAP.delta.data(inds) = 1;
+
+%send out map updates
+if (mod(SLAM.lidar0Cntr,200) == 0)
+  [xdi ydi] = find(OMAP.delta.data);
+  
+  MapUpdate.xs = single(xdi * OMAP.res + OMAP.xmin);
+  MapUpdate.ys = single(ydi * OMAP.res + OMAP.ymin);
+  MapUpdate.cs = OMAP.map.data(sub2ind(size(OMAP.map.data),xdi,ydi));
+  content = serialize(MapUpdate);
+  ipcAPIPublish(SLAM.MapIncUpdateMsgName,content);
+  
+  %reset the delta map
+  OMAP.delta.data = zeros(size(OMAP.delta.data),'uint8');
+end
 
 if (SLAM.updateExplorationMap) 
     % Update the exploration map
@@ -276,7 +294,7 @@ end
 
 
 %see if we need to increase the size of the map
-[xi yi] = PositionToIndeces(SLAM.x + [-30  30], SLAM.y + [-30 30]);
+[xi yi] = Pos2OmapInd(SLAM.x + [-30  30], SLAM.y + [-30 30]);
 
 expandSize = 50;
 xExpand = 0;
@@ -398,7 +416,7 @@ end
 
 
 
-function [xi yi] = PositionToIndeces(x,y)
+function [xi yi] = Pos2OmapInd(x,y)
 global OMAP
 
 xi = ceil((x - OMAP.xmin) * OMAP.invRes);

@@ -12,5 +12,5 @@ getMapCellsFromRay.$(MEX_EXT): getMapCellsFromRay.cpp
 
 
 clean:
-	rm -rf $(TARGETS)
+	rm -rf $(TARGETS) *~
 	

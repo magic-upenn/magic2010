@@ -61,10 +61,15 @@ size(m32)
 size(m33)
 %}
 
-%colums are xs, rows are xs
+%colums are xs, rows are ys (i.e. first dimension is x)
 OMAP.map.data = [m11     m12       m13;
                  m21 OMAP.map.data m23;
                  m31     m32       m33];
+               
+OMAP.delta.data = [m11     m12         m13;
+                   m21 OMAP.delta.data m23;
+                   m31     m32         m33];
+               
 EMAP.map.data = [m11     m12       m13;
                  m21 EMAP.map.data m23;
                  m31     m32       m33];
@@ -83,6 +88,10 @@ EMAP.ymax       = EMAP.ymax + size(m23,2)*EMAP.res;
 
 OMAP.map.sizex  = (OMAP.xmax - OMAP.xmin) / OMAP.res + 1;
 OMAP.map.sizey  = (OMAP.ymax - OMAP.ymin) / OMAP.res + 1;
+
+OMAP.delta.sizex  = (OMAP.xmax - OMAP.xmin) / OMAP.res + 1;
+OMAP.delta.sizey  = (OMAP.ymax - OMAP.ymin) / OMAP.res + 1;
+
 
 EMAP.map.sizex  = (EMAP.xmax - EMAP.xmin) / EMAP.res + 1;
 EMAP.map.sizey  = (EMAP.ymax - EMAP.ymin) / EMAP.res + 1;
