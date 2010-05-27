@@ -30,7 +30,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       mexErrMsgTxt("resolution must be provided as the second argument");
     res = *mxGetPr(prhs[1]);
     invRes = 1.0/res;
-    printf("set the resolution\n");
+    printf("ScanMatch2D: set the resolution\n");
     return;
   }
 
@@ -42,7 +42,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     ymin = *mxGetPr(prhs[2]);
     xmax = *mxGetPr(prhs[3]);
     ymax = *mxGetPr(prhs[4]);
-    printf("set the boundaries\n");
+    printf("ScanMatch2D: set the boundaries\n");
     return;
   }
 

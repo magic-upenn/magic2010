@@ -2,7 +2,7 @@ function lidar1Init
 global LIDAR1
 
 if isempty(LIDAR1) || (LIDAR1.initialized ~= 1)
-  LIDAR0.msgName = [GetRobotName '/Lidar1'];
+  LIDAR1.msgName = [GetRobotName '/Lidar1'];
   LIDAR1.resd    = 0.25;
   LIDAR1.res     = LIDAR1.resd/180*pi; 
   LIDAR1.nRays   = 1081;
