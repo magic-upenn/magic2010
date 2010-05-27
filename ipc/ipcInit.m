@@ -1,8 +1,11 @@
-function status = ipcInit
+function status = ipcInit(host)
 
 global IPC
 if isempty(IPC)
-  ipcAPIConnect;
+  if nargin < 1
+    host = 'localhost';
+  end
+  ipcAPIConnect(host);
   IPC.connected = 1;
   disp('IPC initialized');
 end
