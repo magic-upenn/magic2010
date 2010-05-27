@@ -1,12 +1,12 @@
 function receiveIncMap
 clear all;
 
-global POSE OMAP
+global POSE
 
 SetMagicPaths;
 
 
-ipcInit;
+ipcInit('158.130.62.140');
 poseInit;
 omapInit;
 emapInit;
