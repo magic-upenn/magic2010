@@ -20,19 +20,20 @@ SetMagicPaths;
 SLAM.updateExplorationMap = 1;
 poseInit;
 
-SLAM.x   = POSE.xInit;
-SLAM.y   = POSE.yInit;
-SLAM.z   = POSE.zInit;
-SLAM.yaw = POSE.data.yaw;
-SLAM.lidarCntr = 0;
+SLAM.x            = POSE.xInit;
+SLAM.y            = POSE.yInit;
+SLAM.z            = POSE.zInit;
+SLAM.yaw          = POSE.data.yaw;
+SLAM.lidar0Cntr   = 0;
+SLAM.lidar1Cntr   = 0;
 
-SLAM.xOdom   = SLAM.x;
-SLAM.yOdom   = SLAM.y;
-SLAM.yawOdom = SLAM.yaw;
+SLAM.xOdom        = SLAM.x;
+SLAM.yOdom        = SLAM.y;
+SLAM.yawOdom      = SLAM.yaw;
 
-TRAJ.cntr=0;
-TRAJ.traj = zeros(4,100000);
-TRAJ.hTraj = [];
+TRAJ.cntr         = 0;
+TRAJ.traj         = zeros(4,100000);
+TRAJ.hTraj        = [];
 
 %initialize the pose struct so that the maps are initialized around the initial pose
 %in future, this should be the start UTM coordinate!!
@@ -42,7 +43,8 @@ ipcInit;
 omapInit;
 emapInit;
 encodersSubscribe;
-lidar0Subscribe;
+lidar0Init;
+lidar1Init;
 motorsInit;
 DefineVisMsgs;
 DefineSensorMessages;
@@ -50,7 +52,8 @@ DefinePlannerMessages;
 
 %assign the message handlers
 ipcReceiveSetFcn(GetMsgName('Pose'),        @ipcRecvPoseFcn);
-ipcReceiveSetFcn(GetMsgName('Lidar0'),      @slamProcessLidar);
+ipcReceiveSetFcn(GetMsgName('Lidar0'),      @slamProcessLidar0);
+ipcReceiveSetFcn(GetMsgName('Lidar1'),      @slamProcessLidar1);
 ipcReceiveSetFcn(GetMsgName('Encoders'),    @slamProcessEncoders);
 ipcReceiveSetFcn(GetMsgName('ImuFiltered'), @ipcRecvImuFcn);
 
@@ -72,9 +75,9 @@ ipcReceiveMessages;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Lidar0 message handler
+% Lidar0 message handler (horizontal lidar)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function slamProcessLidar(msg)
+function slamProcessLidar0(msg)
 global SLAM LIDAR0 OMAP EMAP POSE IMU TRAJ
 
 if ~isempty(msg)
@@ -88,10 +91,10 @@ if isempty(IMU)
   return
 end
   
-SLAM.lidarCntr = SLAM.lidarCntr+1;
+SLAM.lidar0Cntr = SLAM.lidar0Cntr+1;
 
 %fprintf(1,'got lidar scan\n');
-if (mod(SLAM.lidarCntr,40) == 0)
+if (mod(SLAM.lidar0Cntr,40) == 0)
   fprintf(1,'.');
   %toc,tic
 end
@@ -153,7 +156,7 @@ hits = ScanMatch2D('match',OMAP.map.data,xsss,ysss,xCand,yCand,aCand);
 [hmax imax] = max(hits(:));
 [kmax mmax jmax] = ind2sub([nxs,nys,nyaw],imax);
 
-if (SLAM.lidarCntr > 1)
+if (SLAM.lidar0Cntr > 1)
   
   %extract the 2D slice of xy poses at the best angle
   hitsXY = hits(:,:,jmax);
@@ -194,7 +197,7 @@ indGood = (xis > 1) & (yis > 1) & (xis < OMAP.map.sizex) & (yis < OMAP.map.sizey
 inds = sub2ind(size(OMAP.map.data),xis(indGood),yis(indGood));
 
 inc=5;
-if (SLAM.lidarCntr == 1)
+if (SLAM.lidar0Cntr == 1)
   inc=100;
 end
 
@@ -215,7 +218,7 @@ if (SLAM.updateExplorationMap)
     %axis xy;
     %drawnow;
     %EMAP.map.data(cis) = EMAP.map.data(cis)+1;
-    if (mod(SLAM.lidarCntr,300) == 0)
+    if (mod(SLAM.lidar0Cntr,300) == 0)
       PublishMapsToExplorationPlanner;
     end
 end
@@ -225,7 +228,7 @@ TRAJ.cntr = TRAJ.cntr+1;
 TRAJ.traj(:,TRAJ.cntr) = [SLAM.x; SLAM.y; SLAM.yaw; hmax];
 
 %send out robot trajectory to vis
-if (mod(SLAM.lidarCntr,100) == 0)
+if (mod(SLAM.lidar0Cntr,100) == 0)
   trajMsgName = [GetRobotName 'Traj' VisMarshall('getMsgSuffix','TrajPos3DColorDoubleRGBA')];
   txs = TRAJ.traj(1,1:TRAJ.cntr-1);
   tys = TRAJ.traj(2,1:TRAJ.cntr-1);
@@ -241,7 +244,7 @@ if (mod(SLAM.lidarCntr,100) == 0)
 end
 
 %decay the map around the vehicle
-if (mod(SLAM.lidarCntr,20) == 0)
+if (mod(SLAM.lidar0Cntr,20) == 0)
   xiCenter = ceil((SLAM.x - OMAP.xmin) * OMAP.invRes);
   yiCenter = ceil((SLAM.y - OMAP.ymin) * OMAP.invRes);
 
@@ -299,9 +302,10 @@ POSE.data.z     = SLAM.z;
 POSE.data.roll  = IMU.data.roll;
 POSE.data.pitch = IMU.data.pitch;
 POSE.data.yaw   = SLAM.yaw;
+SLAM.t          = GetUnixTime();
 
 %publish the full obstacle map (to vis)
-if (mod(SLAM.lidarCntr,200) == 0)
+if (mod(SLAM.lidar0Cntr,200) == 0)
   PublishObstacleMap;
 end
 
@@ -309,6 +313,13 @@ end
 ipcAPIPublishVC(POSE.msgName,MagicPoseSerializer('serialize',POSE.data));
 
 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Lidar0 message handler (horizontal lidar)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function slamProcessLidar1(msg)
+global SLAM LIDAR1 OMAP EMAP POSE IMU TRAJ
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -343,6 +354,7 @@ if ~isempty(msg)
   end
   
   
+  %get the mean travelled distance for left and right sides
   rc = mean([ENCODERS.counts.rr ENCODERS.counts.fr]) * ENCODERS.metersPerTic;
   lc = mean([ENCODERS.counts.rl ENCODERS.counts.fl]) * ENCODERS.metersPerTic;
   
@@ -351,37 +363,36 @@ if ~isempty(msg)
   
   
   vdt = mean([rc,lc]);
-  wdt = (rc - lc)/2/ENCODERS.robotRadius/2;
+  
+  %the fudge factor scales the angular change due to slippage
+  %TODO: this will also affect vdt!!
+  wdt = (rc - lc)/(2*ENCODERS.robotRadius*ENCODERS.robotRadiusFudge);
   %dt = counts.t - ENCODERS.tLast;
   
-  SLAM.xOdom = SLAM.x;
-  SLAM.yOdom = SLAM.y;
-  SLAM.yawOdom = SLAM.yaw;
+  xPrev   = SLAM.x;
+  yPrev   = SLAM.y;
+  yawPrev = SLAM.yaw;
   
-  xPrev = SLAM.x;
-  yPrev = SLAM.y;
-  
-  %update the state variables
+  %calculate the change in position
   if (abs(wdt) > 0.001)
-    SLAM.xOdom = SLAM.xOdom - vdt/wdt*sin(SLAM.yawOdom) + vdt/wdt*sin(SLAM.yawOdom+wdt);
-    SLAM.yOdom = SLAM.yOdom + vdt/wdt*cos(SLAM.yawOdom) - vdt/wdt*cos(SLAM.yawOdom+wdt);
-    SLAM.yawOdom = SLAM.yawOdom + wdt;
+    dx   = -vdt/wdt*sin(yawPrev) + vdt/wdt*sin(yawPrev+wdt);
+    dy   =  vdt/wdt*cos(yawPrev) - vdt/wdt*cos(yawPrev+wdt);
+    dyaw =  wdt;
   else
-    SLAM.xOdom   = SLAM.xOdom + vdt*cos(SLAM.yawOdom);
-    SLAM.yOdom   = SLAM.yOdom + vdt*sin(SLAM.yawOdom);
-    SLAM.yawOdom = SLAM.yawOdom + wdt;
+    dx   =  vdt*cos(yawPrev);
+    dy   =  vdt*sin(yawPrev);
+    dyaw =  wdt;
   end
   
   
   %this does not seem to do anything...
   %the idea is to project the displacement onto the 2D plane, given pitch
   %and roll
-  dx = SLAM.xOdom - xPrev;
-  dy = SLAM.yOdom - yPrev;
-  dTrans = rotz(SLAM.yaw)*roty(IMU.data.pitch)*rotx(IMU.data.roll)*rotz(SLAM.yaw)'*[dx;dy;0;1];
+  dTrans       = rotz(SLAM.yaw)*roty(IMU.data.pitch)*rotx(IMU.data.roll)*rotz(SLAM.yaw)'*[dx;dy;0;1]; 
   
-  SLAM.xOdom = xPrev + dTrans(1);
-  SLAM.yOdom = yPrev + dTrans(2);
+  SLAM.xOdom   = xPrev   + dTrans(1);
+  SLAM.yOdom   = yPrev   + dTrans(2);
+  SLAM.yawOdom = yawPrev + dyaw;
   
 end
 

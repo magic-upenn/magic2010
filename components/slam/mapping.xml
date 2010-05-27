@@ -26,9 +26,8 @@
     <specular>1 1 1</specular>
   </plugin>
 
-
 <!--
-  <ipcHost>192.168.1.123</ipcHost>
+  <ipcHost>192.168.10.164</ipcHost>
 /-->
 <!--
 
