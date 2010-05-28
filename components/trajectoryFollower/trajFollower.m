@@ -1,7 +1,7 @@
 function trajFollower(tUpdate)
 
 if nargin < 1,
-  tUpdate = 0.001;
+  tUpdate = 0.02;
 end
 
 trajFollowerStart;
@@ -87,7 +87,7 @@ di = norm([traj.waypoints(TRAJ.itraj).x-pose.x, traj.waypoints(TRAJ.itraj).y-pos
 
 proximityThreshold = 0.05; %meters
 
-while(di < proximityThreshold)
+while(di < proximityThreshold && TRAJ.itraj < TRAJ.traj.size)
   TRAJ.itraj = TRAJ.itraj +1;
   di = norm([traj.waypoints(TRAJ.itraj).x-pose.x, traj.waypoints(TRAJ.itraj).y-pose.y]);
 end
@@ -102,13 +102,13 @@ V = [cos(pose.yaw) sin(pose.yaw); -sin(pose.yaw)/L cos(pose.yaw)/L] * ...
     [xdes-pose.x; ydes-pose.y];
 
 vgain = 10;
-wgain = 1;  % need to tune this!!
+wgain = 3;  % need to tune this!!
 
 vdes=V(1)*vgain;
 wdes=V(2)*wgain;
 
-vmax = 0.2;  %m/s
-wmax = 0.3; %(30/180*pi);  %rad/s
+vmax = 0.4;  %m/s
+wmax = 0.5; %(30/180*pi);  %rad/s
 
 kv=abs(vdes/vmax);
 kw=abs(wdes/wmax);
@@ -120,6 +120,11 @@ if k > 1
 end
 
 fprintf(1,'sending vels %f %f\n',vdes,wdes);
+
+if minDist < 0.1
+    vdes = 0;
+    wdes = 0;
+end
 
 %send out velocity
 SetVelocity(vdes,wdes);
