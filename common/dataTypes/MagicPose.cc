@@ -18,13 +18,14 @@ int Pose::ReadFromMatlab(mxArray * mxArr, int index)
   MEX_READ_FIELD(mxArr,index,pitch,numFieldsRead);
   MEX_READ_FIELD(mxArr,index,yaw,numFieldsRead);
   MEX_READ_FIELD(mxArr,index,t,numFieldsRead);
-  
+  MEX_READ_FIELD(mxArr,index,id,numFieldsRead);  
+
   return numFieldsRead;
 }
 
 int Pose::CreateMatlabStructMatrix(mxArray ** mxArrPP,int m, int n)
 {
-  const char * fields[]= { "x","y","z","v","w","roll","pitch","yaw","t"};
+  const char * fields[]= { "x","y","z","v","w","roll","pitch","yaw","t","id"};
   const int nfields = sizeof(fields)/sizeof(*fields);
     
   *mxArrPP = mxCreateStructMatrix(m,n,nfields,fields);
@@ -42,6 +43,7 @@ int Pose::WriteToMatlab(mxArray * mxArr, int index)
   MEX_WRITE_FIELD(mxArr,index,pitch);
   MEX_WRITE_FIELD(mxArr,index,yaw);
   MEX_WRITE_FIELD(mxArr,index,t);
+  MEX_WRITE_FIELD(mxArr,index,id);
   return 0;
 }
 

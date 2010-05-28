@@ -1,3 +1,8 @@
-function name = GetMsgName(msgType)
+function name = GetMsgName(msgType,id)
 
-name = [GetRobotName '/' msgType];
+if nargin > 1
+  robotName = ['Robot' sprintf('%d',id)];
+else
+  robotName = GetRobotName;
+end
+name = [robotName '/' msgType];
