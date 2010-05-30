@@ -49,7 +49,7 @@ namespace vis
     Upenn::Timer cmdTimeoutTimer;
     string truthMsgName;
     bool publishTruth;
-
+    int id;
   };
 }
 
@@ -61,9 +61,10 @@ using namespace gazebo;
 // Constructor
 VIS_PLUGIN::VIS_PLUGIN()
 {
-  this->dyn = new VehicleDynamics2D();
+  this->dyn            = new VehicleDynamics2D();
   this->controlMailbox = NULL;
   this->publishTruth   = false;
+  this->id             = 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -81,10 +82,12 @@ void VIS_PLUGIN::LoadPlugin()
   this->dyn->SetXYZ(this->x,this->y,this->z);
   this->dyn->SetRPY(this->roll,this->pitch,this->yaw);
   
-  this->robotName = this->node->GetString("robotName","",REQUIRED);
-  this->truthMsgName = this->node->GetString("truthMsgName","",NOT_REQUIRED);
+  this->robotName      = this->node->GetString("robotName","",REQUIRED);
+  this->truthMsgName   = this->node->GetString("truthMsgName","",NOT_REQUIRED);
   if (!this->truthMsgName.empty())
     this->publishTruth = true;
+
+  this->id             = this->node->GetInt("id",0,NOT_REQUIRED);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -163,7 +166,7 @@ void VIS_PLUGIN::UpdatePlugin()
   //send out truth message if needed
   if (this->publishTruth)
   {
-    Magic::Pose mpose(x,y,z,0,0,roll,pitch,yaw,this->timer0.GetAbsoluteTime());
+    Magic::Pose mpose(x,y,z,0,0,roll,pitch,yaw,this->timer0.GetAbsoluteTime(),this->id);
     if (IPC_publishData(this->truthMsgName.c_str(),&mpose) != IPC_OK)
       vthrow("could not publish thruth message\n");
   }
