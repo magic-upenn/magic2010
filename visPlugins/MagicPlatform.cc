@@ -8,6 +8,8 @@
 #include <Vis/IPCMailboxes.hh>
 #endif
 
+#include "MagicSensorDataTypes.hh"
+
 #include <sstream>
 #include <vector>
 
@@ -41,6 +43,7 @@ namespace vis
     public: void UpdatePlugin();
 
     private: IPCMailbox * pose3DMailbox;
+    private: IPCMailboxQueue * encodersMailbox;
     private: std::vector<Ogre::SceneNode*> wheelNodes;
   };
 }
@@ -52,12 +55,15 @@ namespace vis
 VIS_PLUGIN::VIS_PLUGIN()
 {
   this->pose3DMailbox      = NULL;
+  this->encodersMailbox    = NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Destructor
 VIS_PLUGIN::~VIS_PLUGIN()
 {
+  DELETE_IF_NOT_NULL(this->pose3DMailbox);
+  DELETE_IF_NOT_NULL(this->encodersMailbox);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -146,8 +152,9 @@ void VIS_PLUGIN::InitializePlugin()
 
 */  //initiliaze the mailboxes
   this->pose3DMailbox = new IPCMailbox(id + POSE_3D_MAILBOX_SUFFIX);
+  this->encodersMailbox = new IPCMailboxQueue(id + "/Encoders");
   
-  if ( this->pose3DMailbox->Subscribe() )
+  if ( this->pose3DMailbox->Subscribe() || this->encodersMailbox->Subscribe() )
     vthrow("could not subscribe to a mailbox");
 
 
@@ -157,7 +164,6 @@ void VIS_PLUGIN::InitializePlugin()
 // Shutdown the plugin
 void VIS_PLUGIN::ShutdownPlugin()
 {
-  if (this->pose3DMailbox) { delete this->pose3DMailbox; this->pose3DMailbox = NULL; }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -176,6 +182,15 @@ void VIS_PLUGIN::UpdatePlugin()
     //set orientation
     this->SetRPY(pose->rot.roll,pose->rot.pitch,pose->rot.yaw);
 
+  }
+
+  while (this->encodersMailbox->IsFresh())
+  {
+    Magic::EncoderCounts * counts = (Magic::EncoderCounts *)this->encodersMailbox->GetData();
+    this->wheelNodes[0]->roll(-(Ogre::Degree)counts->fr * 2.0);
+    this->wheelNodes[1]->roll((Ogre::Degree)counts->fl * 2.0);
+    this->wheelNodes[2]->roll(-(Ogre::Degree)counts->rr * 2.0);
+    this->wheelNodes[3]->roll((Ogre::Degree)counts->rl * 2.0);
   }
 }
 

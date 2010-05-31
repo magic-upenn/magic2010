@@ -87,6 +87,8 @@
   <plugin>
     <id>Robot0</id>
     <filename>MagicPlatform.so</filename>
+    <xyz>0 0 0.0825</xyz>
+    <lockXYZ>0 0 1</lockXYZ>
 
        <plugin>
           <id>axes</id>
@@ -101,8 +103,8 @@
     </plugin>
 
     <plugin>
-      <id>Lidar2DVisual</id>
-      <xyz>0.0 0 0</xyz>
+      <id>Lidar2DVisualLidar0</id>
+      <xyz>0.30 0 0.546</xyz>
       <rpy>0 0 0 </rpy>
       <filename>Lidar2DVisual.so</filename>
       <material>Transparent/Red</material>
@@ -111,14 +113,14 @@
       <plugin>
         <id>dataConverter</id>
         <filename>MagicLidarScan2VisLidarData.so</filename>
-        <msgName>Robot2/Lidar0</msgName>
+        <msgName>Robot0/Lidar0</msgName>
       </plugin>
 
     </plugin>
     
     <plugin>
-      <id>Lidar2DVisual2</id>
-      <xyz>0.0 0 0</xyz>
+      <id>Lidar2DVisualLidar1</id>
+      <xyz>0.35 0 0.35</xyz>
       <rpy>1.57 0 0 </rpy>
       <filename>Lidar2DVisual.so</filename>
       <material>Transparent/Yellow</material>
@@ -127,7 +129,7 @@
       <plugin>
         <id>dataConverter</id>
         <filename>MagicLidarScan2VisLidarData.so</filename>
-        <msgName>Robot2/Lidar1</msgName>
+        <msgName>Robot0/Lidar1</msgName>
       </plugin>
 
     </plugin>
