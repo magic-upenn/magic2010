@@ -3,7 +3,7 @@
 
 //communications with host
 #include "uart0.h"
-#define HOST_BAUD_RATE 115200
+#define HOST_BAUD_RATE 1000000
 #define HOST_COM_PORT_INIT    uart0_init
 #define HOST_COM_PORT_SETBAUD uart0_setbaud
 #define HOST_COM_PORT_GETCHAR uart0_getchar
