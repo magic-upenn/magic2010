@@ -13,7 +13,7 @@
         <name>cam2</name>
         <position>-0.8 0 2</position>
         <lookAt>0 0 0</lookAt>
-        <clipDist>1</clipDist>
+        <clipDist>0.01</clipDist>
       </camera>
     </frame>
   </gui>
@@ -21,13 +21,13 @@
   <plugin>
     <id>light1</id>
     <filename>Light.so</filename>
-    <position>0 0 100</position>
+    <position>30 0 100</position>
     <diffuse>1 1 1</diffuse>
     <specular>1 1 1</specular>
   </plugin>
-
-  <ipcHost>192.168.10.102</ipcHost>
 <!--
+  <ipcHost>192.168.10.102</ipcHost>
+
 
   <plugin>
     <id>grid</id>
@@ -70,7 +70,7 @@
 
 
   
-  
+<!--  
   <plugin>
     <id>Robot0Odom</id>
     <filename>Hummingbird.so</filename>
@@ -83,18 +83,16 @@
       <material>Colors/Blue</material>
     </plugin>
   </plugin>
-
+/-->
   <plugin>
     <id>Robot0</id>
-    <filename>Hummingbird.so</filename>
-    
-    <plugin>
-      <id>mark</id>
-      <filename>Box.so</filename>
-      <xyz>0.11 0 0</xyz>
-      <dims>0.07 0.019 0.007</dims>
-      <material>Colors/Red</material>
-    </plugin>
+    <filename>MagicPlatform.so</filename>
+
+       <plugin>
+          <id>axes</id>
+          <filename>Axes.so</filename>
+          <length>1 1 1</length>
+        </plugin>
 
     <plugin>
       <id>poseUpdater</id>
