@@ -6,7 +6,8 @@ global POSE USER_INPUT
 SetMagicPaths;
 
 
-ipcInit('192.168.10.102');
+%ipcInit('192.168.10.102');
+ipcInit('localhost');
 poseInit;
 omapInit;
 emapInit;
@@ -14,10 +15,15 @@ emapInit;
 POSE.cntr =1;
 USER_INPUT.fresh =0;
 %id of the robot that maps should be received from
-setenv('ROBOT_ID','2');
+setenv('ROBOT_ID','0');
 
 ipcReceiveSetFcn(GetMsgName('Pose'), @PoseMsgHander);
 ipcReceiveSetFcn(GetMsgName('MapIncUpdate'), @MapUpdateMsgHandler);
+
+%set the message queue lengths so that messages dont get built up on
+%central
+ipcAPI('set_msg_queue_length',GetMsgName('Pose'),1);
+ipcAPI('set_msg_queue_length',GetMsgName('MapIncUpdate'),10);
 
 trajMsgName = GetMsgName('Traj');
 ipcAPIDefine(trajMsgName);

@@ -17,7 +17,6 @@ if isempty(ENCODERS) || (ENCODERS.initialized ~= 1)
   ipcInit;
   ipcAPIDefine(ENCODERS.msgName,MagicEncoderCountsSerializer('getFormat'));
   
-  
   ENCODERS.initialized  = 1;
   disp('Encoders initialized');
 end

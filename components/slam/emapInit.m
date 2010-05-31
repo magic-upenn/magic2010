@@ -20,7 +20,7 @@ if isempty(EMAP) || ~isfield(EMAP,'initialized') || (EMAP.initialized ~= 1)
   EMAP.msgName    = [GetRobotName '/ExplorationMap2D_map2d'];
   
   ipcInit;
-  ipcAPIDefine(EMAP.msgName,VisMap2DSerializer('getFormat'));
+  if checkVis, ipcAPIDefine(EMAP.msgName,VisMap2DSerializer('getFormat')); end
   EMAP.initialized  = 1;
   disp('Exploration map initialized');
 end

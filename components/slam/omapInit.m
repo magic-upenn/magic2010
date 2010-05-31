@@ -24,7 +24,7 @@ if isempty(OMAP) || ~isfield(OMAP,'initialized') ||(OMAP.initialized ~= 1)
   OMAP.delta.data  = zeros(size(OMAP.map.data),'uint8');
   
   ipcInit;
-  ipcAPIDefine(OMAP.msgName,VisMap2DSerializer('getFormat'));
+  if checkVis, ipcAPIDefine(OMAP.msgName,VisMap2DSerializer('getFormat')); end
   OMAP.initialized  = 1;
   disp('Obstacle map initialized');
 end
