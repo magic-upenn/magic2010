@@ -1,0 +1,10 @@
+Robot0:
+export LIDAR0_SERIAL=00904022
+export LIDAR1_SERIAL=00904026
+
+Robot1:
+
+
+Robot2:
+
+

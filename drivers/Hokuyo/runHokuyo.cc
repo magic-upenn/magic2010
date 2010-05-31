@@ -124,6 +124,8 @@ int main(int argc, char * argv[])
 	}
 
   string serial = dev->GetSerial();
+  PRINT_INFO("Sensor's serial number is "<<serial<<"\n");
+
   if (id.empty())
   {
     char * lidar0serial = getenv("LIDAR0_SERIAL");
