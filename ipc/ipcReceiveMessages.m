@@ -1,8 +1,12 @@
-function nmsg = ipcReceiveMessages
+function nmsg = ipcReceiveMessages(dt)
 
 global IPC
 
-msgs = ipcAPI('listenWait',10);
+if nargin <1
+    dt=10;
+end
+
+msgs = ipcAPI('listenWait',dt);
 nmsg = length(msgs);
 
 for mi=1:nmsg
