@@ -1,0 +1,7 @@
+Robot0:
+SUBSYSTEMS=="usb", ATTRS{serial}=="A700dztc", SYMLINK+="microGateway"
+
+Robot1:
+
+Robot2:
+
