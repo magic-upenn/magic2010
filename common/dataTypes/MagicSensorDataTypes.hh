@@ -148,11 +148,14 @@ namespace Magic
     double t;
     double v;
     double w;
+    int vCmd;
+    int wCmd;
 
-    VelocityCmd(): t(0), v(0), w(0) {}
-    VelocityCmd(double _t, double _v, double _w): t(_t), v(_v), w(_w) {}
+    VelocityCmd(): t(0), v(0), w(0), vCmd(0), wCmd(0) {}
+    VelocityCmd(double _t, double _v, double _w, int _vCmd, int _wCmd): 
+         t(_t), v(_v), w(_w), vCmd(_vCmd), wCmd(_wCmd) {}
 
-    #define MagicVelocityCmd_FORMAT "{double,double,double}"
+    #define MagicVelocityCmd_FORMAT "{double,double,double,int,int}"
 
     static const char *getIPCFormat(void)
     {

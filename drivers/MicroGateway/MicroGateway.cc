@@ -186,17 +186,17 @@ void MicroGateway::VelocityCmdMsgHandler(MSG_INSTANCE msgRef,
   VelocityCmd * vcmd = (VelocityCmd*)callData;
 
 
-  if (vcmd->v > 127)
-    vcmd->v = 127;
-  else if (vcmd->v < -127)
-    vcmd->v = -127;
+  if (vcmd->vCmd > 127)
+    vcmd->vCmd = 127;
+  else if (vcmd->vCmd < -127)
+    vcmd->vCmd = -127;
 
-  if (vcmd->w > 127)
-    vcmd->w = 127;
-  else if (vcmd->w < -127)
-    vcmd->w = -127;
+  if (vcmd->wCmd > 127)
+    vcmd->wCmd = 127;
+  else if (vcmd->wCmd < -127)
+    vcmd->wCmd = -127;
 
-  uint8_t cmd[] = {vcmd->v, vcmd->w,0,0};
+  uint8_t cmd[] = {vcmd->vCmd, vcmd->wCmd,0,0};
 
   const int bufSize=256;
   uint8_t * tempBuf = new uint8_t[bufSize];

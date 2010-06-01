@@ -15,7 +15,7 @@
 
 #define VIS_PLUGIN MagicPlatformSimPlugin
 
-#define MAGIC_PLATFORM_CONTROL_CMD_TIMOUT 0.1
+#define MAGIC_PLATFORM_CONTROL_CMD_TIMOUT 0.2
 
 using namespace Magic;
 

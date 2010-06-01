@@ -224,13 +224,15 @@ int VelocityCmd::ReadFromMatlab(mxArray * mxArr, int index)
 
   MEX_READ_FIELD(mxArr,index,t,numFieldsRead);
   MEX_READ_FIELD(mxArr,index,v,numFieldsRead);
-  MEX_READ_FIELD(mxArr,index,w,numFieldsRead); 
+  MEX_READ_FIELD(mxArr,index,w,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,vCmd,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,wCmd,numFieldsRead); 
   
   return numFieldsRead;
 }
 int VelocityCmd::CreateMatlabStructMatrix(mxArray ** mxArrPP,int m, int n)
 {
-  const char * fields[]= {"t", "v", "w"};
+  const char * fields[]= {"t", "v", "w","vCmd","wCmd"};
   const int nfields = sizeof(fields)/sizeof(*fields);
   *mxArrPP = mxCreateStructMatrix(m,n,nfields,fields);
   return 0;
@@ -241,6 +243,8 @@ int VelocityCmd::WriteToMatlab(mxArray * mxArr, int index)
   MEX_WRITE_FIELD(mxArr,index,t);
   MEX_WRITE_FIELD(mxArr,index,v);
   MEX_WRITE_FIELD(mxArr,index,w);
+  MEX_WRITE_FIELD(mxArr,index,vCmd);
+  MEX_WRITE_FIELD(mxArr,index,wCmd);
   return 0;
 } 
 
