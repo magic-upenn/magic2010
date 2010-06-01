@@ -17,7 +17,7 @@ global SLAM OMAP POSE TRAJ
 
 SetMagicPaths;
 
-SLAM.updateExplorationMap = 1;
+SLAM.updateExplorationMap = 0;
 poseInit;
 
 SLAM.x            = POSE.xInit;
@@ -241,12 +241,10 @@ if (SLAM.updateExplorationMap)
     end
 end
 
-
-TRAJ.cntr = TRAJ.cntr+1;
-TRAJ.traj(:,TRAJ.cntr) = [SLAM.x; SLAM.y; SLAM.yaw; hmax];
-
 %send out robot trajectory to vis
-if (mod(SLAM.lidar0Cntr,100) == 0)
+if (mod(SLAM.lidar0Cntr,40) == 0)
+  TRAJ.cntr = TRAJ.cntr+1;
+  TRAJ.traj(:,TRAJ.cntr) = [SLAM.x; SLAM.y; SLAM.yaw; hmax];
   trajMsgName = [GetRobotName 'Traj' VisMarshall('getMsgSuffix','TrajPos3DColorDoubleRGBA')];
   txs = TRAJ.traj(1,1:TRAJ.cntr-1);
   tys = TRAJ.traj(2,1:TRAJ.cntr-1);

@@ -1,14 +1,14 @@
 function trajFollower(tUpdate)
 
 if nargin < 1,
-  tUpdate = 0.02;
+  tUpdate = 0.05;
 end
 
 trajFollowerStart;
 
 loop = 1;
 while (loop),
-  pause(tUpdate);
+  %pause(tUpdate);
   trajFollowerUpdate;
 end
 
@@ -42,11 +42,15 @@ global POSE
 if ~isempty(msg)
   POSE.data = MagicPoseSerializer('deserialize',msg);
 end
-
+dt = toc;
+if (dt>0.1)
+    fprintf(1,'large delay!!!!!!\n');
+end
+tic
 trajFollowerFollow;
 
 function trajFollowerUpdate
-ipcReceiveMessages;
+ipcReceiveMessages(50);
 
 
 function trajFollowerFollow
