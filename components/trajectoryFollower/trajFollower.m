@@ -1,5 +1,5 @@
 function trajFollower(tUpdate)
-
+tic
 if nargin < 1,
   tUpdate = 0.05;
 end
@@ -43,10 +43,10 @@ if ~isempty(msg)
   POSE.data = MagicPoseSerializer('deserialize',msg);
 end
 dt = toc;
+tic
 if (dt>0.1)
     fprintf(1,'large delay!!!!!!\n');
 end
-tic
 trajFollowerFollow;
 
 function trajFollowerUpdate
@@ -89,7 +89,7 @@ fprintf(1,'traj index %d\n',TRAJ.itraj);
 %calculate distance to the next path point
 di = norm([traj.waypoints(TRAJ.itraj).x-pose.x, traj.waypoints(TRAJ.itraj).y-pose.y]);
 
-proximityThreshold = 0.05; %meters
+proximityThreshold = 0.11; %meters
 
 while(di < proximityThreshold && TRAJ.itraj < TRAJ.traj.size)
   TRAJ.itraj = TRAJ.itraj +1;
@@ -123,12 +123,12 @@ if k > 1
   wdes=wdes/k;
 end
 
-fprintf(1,'sending vels %f %f\n',vdes,wdes);
-
 if minDist < 0.1
     vdes = 0;
     wdes = 0;
 end
+
+fprintf(1,'sending vels %f %f\n',vdes,wdes);
 
 %send out velocity
 SetVelocity(vdes,wdes);

@@ -41,15 +41,18 @@ namespace vis
     /// \brief Update the plugin
     public: void UpdatePlugin();
     
-    VehicleDynamics2D * dyn;
-    IPCMailbox * controlMailbox;
-    string robotName;
-    string encodersMsgName;
-    Upenn::Timer timer0;
-    Upenn::Timer cmdTimeoutTimer;
-    string truthMsgName;
-    bool publishTruth;
-    int id;
+    private: Upenn::Timer timer0;
+    private: Upenn::Timer cmdTimeoutTimer;
+    private: VehicleDynamics2D * dyn;
+    private: IPCMailbox * controlMailbox;
+
+    private: string robotName;
+    private: string encodersMsgName;
+    private: string imuMsgName;
+    private: string truthMsgName;
+
+    private: bool publishTruth;
+    private: int id;
   };
 }
 
@@ -110,6 +113,11 @@ void VIS_PLUGIN::InitializePlugin()
                 Magic::Pose::getIPCFormat()) != IPC_OK)
       vthrow("could not define thruth pose message")
   }
+
+  this->imuMsgName = this->robotName + "/ImuFiltered";
+  if (IPC_defineMsg(this->imuMsgName.c_str(),IPC_VARIABLE_LENGTH,
+                Magic::ImuFiltered::getIPCFormat()) != IPC_OK)
+    vthrow("could not define output pose message");
     
   this->timer0.Tic();
   this->cmdTimeoutTimer.Tic();
@@ -170,6 +178,20 @@ void VIS_PLUGIN::UpdatePlugin()
     if (IPC_publishData(this->truthMsgName.c_str(),&mpose) != IPC_OK)
       vthrow("could not publish thruth message\n");
   }
+
+  double wroll,wpitch,wyaw;
+  this->dyn->GetWRPY(wroll,wpitch,wyaw);
+  Magic::ImuFiltered imu;
+  imu.roll   = roll;
+  imu.pitch  = pitch;
+  imu.yaw    = yaw;
+  imu.wroll  = wroll;
+  imu.wpitch = wpitch;
+  imu.wyaw   = wyaw;
+  imu.t      = Upenn::Timer::GetAbsoluteTime();
+
+  if (IPC_publishData(this->imuMsgName.c_str(),&imu) != IPC_OK)
+    vthrow("could not publish imu message\n");
 }
 
 using namespace std;

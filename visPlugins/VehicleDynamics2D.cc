@@ -152,6 +152,14 @@ int VehicleDynamics2D::GetRPY(double &roll, double &pitch, double &yaw)
   return 0;
 }
 
+int VehicleDynamics2D::GetWRPY(double &wroll, double &wpitch, double &wyaw)
+{
+  wroll  = 0;
+  wpitch = 0;
+  wyaw   = this->w;
+  return 0;
+}
+
 
 int VehicleDynamics2D::GetCounts(uint16_t &cntr, int16_t &fr, int16_t &fl, int16_t &rr, int16_t &rl)
 {

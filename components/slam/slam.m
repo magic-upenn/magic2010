@@ -45,7 +45,6 @@ TRAJ.hTraj        = [];
 ipcInit;
 omapInit;
 emapInit;
-encodersSubscribe;
 lidar0Init;
 lidar1Init;
 motorsInit;

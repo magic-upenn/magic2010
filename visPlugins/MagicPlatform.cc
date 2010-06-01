@@ -81,6 +81,7 @@ void VIS_PLUGIN::InitializePlugin()
   Ogre::Entity * ent = sceneMgr->createEntity( id + "_body" , "magic2010_base.mesh" );
   Ogre::SceneNode * tempNode = this->sceneNode->createChildSceneNode(this->id + "_temp");
   tempNode->attachObject( ent );
+  ent->setQueryFlags(0);
 
   double dx=0.33;
   double dy=0.215;
@@ -100,6 +101,7 @@ void VIS_PLUGIN::InitializePlugin()
     ss<<this->id<<"_wheel"<<ii;
     Ogre::SceneNode * wheelNode = this->sceneNode->createChildSceneNode(ss.str());
     Ogre::Entity * wheelEnt = sceneMgr->createEntity( ss.str() , "magic2010_wheel.mesh" );
+    wheelEnt->setQueryFlags(0);
     wheelNode->attachObject(wheelEnt);
     wheelNode->setPosition(wheelOffsets[0][ii],wheelOffsets[1][ii],wheelOffsets[2][ii]);
     wheelNode->pitch((Ogre::Radian)wheelPitch[ii]);

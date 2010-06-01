@@ -31,6 +31,8 @@ namespace Magic
     //get the current values
     public: int GetXYZ(double &x, double &y, double &z);
     public: int GetRPY(double &roll, double &pitch, double &yaw);
+    public: int GetWRPY(double &wroll, double &wpitch, double &wyaw);
+
     public: int GetCounts(uint16_t &cntr, int16_t &fr, int16_t &fl, 
                           int16_t &rr, int16_t &rl);
     public: int GetCounts(EncoderCounts * counts);

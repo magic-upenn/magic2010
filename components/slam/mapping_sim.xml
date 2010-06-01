@@ -13,7 +13,7 @@
         <name>cam2</name>
         <position>-0.8 0 2</position>
         <lookAt>0 0 0</lookAt>
-        <clipDist>1</clipDist>
+        <clipDist>0.1</clipDist>
       </camera>
     </frame>
   </gui>
@@ -72,24 +72,29 @@
 
   <plugin>
     <id>Robot0</id>
-    <filename>Hummingbird.so</filename>
+    <filename>MagicPlatform.so</filename>
+
+    <xyz>0 0 0.0825</xyz>
+    <lockXYZ>0 0 1</lockXYZ>
 
     <plugin>
       <id>axes</id>
       <filename>Axes.so</filename>
+      <length>1 1 1</length>
+    
     </plugin>
 
     <plugin>
       <id>sim</id>
       <filename>MagicPlatformSim.so</filename>
-      <truthMsgName>Robot0/Pose</truthMsgName>
+      <truthMsgName>Robot0/PoseTruth</truthMsgName>
       <robotName>Robot0</robotName>
     </plugin>
 
     <plugin>
 		  <id>Hokuyo_UTM-30LX</id>
 		  <filename>Lidar2D.so</filename>
-      <xyz>0 0 0</xyz>
+      <xyz>0.30 0 0.546</xyz>
       <invalidRange>0.05</invalidRange>
       <minRange>0.05</minRange>
       <maxRange>30</maxRange>
@@ -106,13 +111,13 @@
 		    <filename>Lidar2DVisual.so</filename>
         <material>Transparent/Yellow</material>
 	    </plugin>
-<!--
+
       <plugin>
 	      <id>dataPublisher</id>
 	      <filename>MagicLidarScanPublisher.so</filename>
 		    <msgName>Robot0/Lidar0</msgName>
 	    </plugin>
-/-->
+
 
 	  </plugin>
   </plugin>
