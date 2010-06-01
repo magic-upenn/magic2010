@@ -28,6 +28,8 @@ namespace Upenn
                         double seekTime);
                         
     public: ifstream & GetHeader();
+    
+    public: double GetLogStartTime();
 
     
     protected: Db * db;
@@ -40,6 +42,7 @@ namespace Upenn
     protected: vector<string> info;
     protected: string header;
     private: bool firstTime;
+    private: double initSeekTime;
   };
 }
 #endif

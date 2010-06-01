@@ -11,7 +11,7 @@ MAGIC_INCLUDE_DIR = $(MAGIC_DIR)/include
 
 INCLUDES += $(shell xml2-config --cflags) -I$(MAGIC_INCLUDE_DIR)
 LIB_DIRS += -L$(MAGIC_LIB_DIR)
-LIBS     += -ldb_cxx -lpthread -lgz -lSerialDevice -lipc
+LIBS     += -ldb_cxx -lpthread -lSerialDevice -lgz -lipc
 
 ifdef MAGIC_OSX
   ARCH = -arch i386

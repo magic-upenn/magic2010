@@ -9,11 +9,12 @@ using namespace Upenn;
 
 DataPlaybackDB::DataPlaybackDB()
 {
-  this->db         = NULL;
-  this->dbc        = NULL;
-  this->dbcFirst   = NULL;
-  this->dbcLast    = NULL;
-  this->firstTime  = true;
+  this->db           = NULL;
+  this->dbc          = NULL;
+  this->dbcFirst     = NULL;
+  this->dbcLast      = NULL;
+  this->firstTime    = true;
+  this->initSeekTime = -1;
 }
 
 DataPlaybackDB::~DataPlaybackDB()
@@ -110,10 +111,15 @@ int DataPlaybackDB::Open(string filename)
 
   //read in the timestamps from the file
   
+  PRINT_INFO("reading log file...");
   
+  
+  int entryCntr=0;
   while(true)
   {
-    printf("."); fflush(stdout);
+    entryCntr++;
+    if (entryCntr % 1000 == 0)
+      printf("."); fflush(stdout);
     
     this->infoStream >> cntr;
     this->infoStream >> timestamp;
@@ -174,6 +180,15 @@ int DataPlaybackDB::Close()
   return 0;
 }
 
+double DataPlaybackDB::GetLogStartTime()
+{
+  if (this->fileOpen)
+    return this->logStartTime;
+  
+  PRINT_ERROR("log is not initialized\n");
+  return -1;
+}
+
 int DataPlaybackDB::GetData(char ** dataPtrPtr, int & dataLength, 
                             double & timestamp, string & infoStr, 
                             double seekTime)
@@ -225,11 +240,31 @@ int DataPlaybackDB::GetData(char ** dataPtrPtr, int & dataLength,
     }
     else
     {
+      if (firstTime)
+      {
+        if (seekTime == 0)
+        {
+          PRINT_ERROR("initial seek time cannot be zero\n");
+          return -1;
+        }
+        else
+          this->initSeekTime = seekTime;
+      }
+      
+      if (seekTime ==0)
+      {
+        this->playStartTime = Timer::GetAbsoluteTime();
+        seekTime = this->initSeekTime;
+        this->lastLogTime = -1; 
+      }
+    
+    
       //find the closest time stamp
       unsigned int nTimestamps = this->timestamps.size();
       double * pt = &(this->timestamps[1]);
       uint32_t recno;
 
+      //timestamps start from index 1
       for (unsigned int ii=1; ii<nTimestamps; ii++)
       {
         if (dir > 0)
@@ -307,11 +342,12 @@ int DataPlaybackDB::GetData(char ** dataPtrPtr, int & dataLength,
   else
   {
     double dt         = logTime - this->lastLogTime;
-    timestamp         = this->lastReturnedTime + fabs(dt)/this->speed;
+    timestamp         = this->lastReturnedTime + this->logPausedTime + fabs(dt)/this->speed;
     
   }
   this->lastLogTime      = logTime;
   this->lastReturnedTime = timestamp;
+  this->logPausedTime = 0;
   
   *dataPtrPtr = (char*)data.get_data();
   dataLength  = data.get_size();
