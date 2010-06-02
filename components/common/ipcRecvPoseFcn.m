@@ -1,7 +1,7 @@
-function ipcRecvPoseFcn(msg)
+function ipcRecvPoseFcn(data,name)
 
 global POSE
 
-if ~isempty(msg)
-  POSE.data = MagicPoseSerializer('deserialize',msg);
+if ~isempty(data)
+  POSE.data = MagicPoseSerializer('deserialize',data);
 end

@@ -79,11 +79,11 @@ ipcReceiveMessages;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Lidar0 message handler (horizontal lidar)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function slamProcessLidar0(msg)
+function slamProcessLidar0(data,name)
 global SLAM LIDAR0 OMAP EMAP POSE IMU TRAJ
 
-if ~isempty(msg)
-  LIDAR0.scan = MagicLidarScanSerializer('deserialize',msg);
+if ~isempty(data)
+  LIDAR0.scan = MagicLidarScanSerializer('deserialize',data);
 else
   return;
 end
@@ -333,22 +333,22 @@ ipcAPIPublishVC(POSE.msgName,MagicPoseSerializer('serialize',POSE.data));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Lidar0 message handler (horizontal lidar)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function slamProcessLidar1(msg)
+function slamProcessLidar1(data,name)
 global SLAM LIDAR1 OMAP EMAP POSE IMU TRAJ
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Encoder message handler
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function slamProcessEncoders(msg)
+function slamProcessEncoders(data,name)
 global ENCODERS SLAM IMU
 
 if isempty(IMU)
     return
 end
 
-if ~isempty(msg)
-  ENCODERS.counts  = MagicEncoderCountsSerializer('deserialize',msg);
+if ~isempty(data)
+  ENCODERS.counts  = MagicEncoderCountsSerializer('deserialize',data);
   ENCODERS.cntr    = ENCODERS.cntr + 1;
   
   if isempty(ENCODERS.tLastReset)

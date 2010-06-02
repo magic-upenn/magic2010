@@ -1,7 +1,7 @@
-function ipcRecvImuFcn(msg)
+function ipcRecvImuFcn(data,name)
 
 global IMU
 
-if ~isempty(msg)
-  IMU.data = MagicImuFilteredSerializer('deserialize',msg);
+if ~isempty(data)
+  IMU.data = MagicImuFilteredSerializer('deserialize',data);
 end
