@@ -26,7 +26,6 @@ figure(1);
 
 % run this when changing to different camera:
 %    bumblebeeWriteContextToFile('context.txt');
-%
 
 %Buildmap % Lookup table which converts quantized RGB color (4bit/channel) to YCbCr
 
@@ -40,6 +39,7 @@ weighting = weighting(1:2:end,1:2:end);
 %%%%%%%%%%%%%%%%%%
 bumblebeeInit;
 
+bumblebeeWriteContextToFile('context.txt');
 bumblebeeStartTransmission;
 libdc1394('videoGetSupportedModes');
 
@@ -84,10 +84,10 @@ while(1)
     %     indices = sub2ind(size(lookupCbCr),round(Cr(:)),round(Cb(:)));
     %     imCr = reshape(lookupCbCr(indices),size(Cr));
 
-    subplot(1,2,2);
-    %    imagesc(dispmap);
+    %subplot(1,2,2);
+    %    imagesc(dispmap); axis image;
     %     imagesc(imCr_filt); axis image;
-    imagesc(Cr); axis image;
+    %imagesc(Cr); 
 
     %        subplot(1,3,3);
     %imCr_filt = bwareaopen(imCr_filt,20); % filter out small noisy patches
