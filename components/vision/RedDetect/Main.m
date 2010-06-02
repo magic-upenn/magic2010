@@ -62,7 +62,7 @@ counter = 0;
 while(1)
     %for counter = 1:100
     counter = counter + 1;
-    
+
     [yRaw,info,Exposure] = bumblebeeCapture;
     [yLeft, yRight] = bumblebeeRawToLeftRight(yRaw);
     [yRight,dispmap] = DoStereo(yLeft,yRight,maxdisp,0);
@@ -209,6 +209,11 @@ while(1)
             else
                 targetY = targetY - 0.001;
             end
+        end
+
+        % if no good red regions then reset targetY
+        if curr_av_score < 0.2
+            targetY = 0.5;
         end
     end
 end
