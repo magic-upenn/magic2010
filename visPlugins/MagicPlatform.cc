@@ -80,13 +80,14 @@ void VIS_PLUGIN::InitializePlugin()
   
   Ogre::Entity * ent = sceneMgr->createEntity( id + "_body" , "magic2010_base.mesh" );
   Ogre::SceneNode * tempNode = this->sceneNode->createChildSceneNode(this->id + "_temp");
+  tempNode->setPosition(-0.165,0,0);
   tempNode->attachObject( ent );
   ent->setQueryFlags(0);
 
   double dx=0.33;
   double dy=0.215;
 
-  double wheelOffsets[3][4] = { {dx,dx,0,0},
+  double wheelOffsets[3][4] = { {dx-0.165,dx-0.165,-0.165,-0.165},
                                 {0,0,0,0},
                                 {dy, -dy, dy, -dy} 
                                  };
@@ -108,51 +109,7 @@ void VIS_PLUGIN::InitializePlugin()
     this->wheelNodes.push_back(wheelNode);
   }
 
-/*
-  
-
-
-
-  //const double scale = 0.007;
-  //tempNode->setScale(scale,scale,scale);
-  //tempNode->pitch((Ogre::Radian)M_PI/2);
-  tempNode->yaw((Ogre::Radian)M_PI/2);
-  tempNode->setPosition(0,0,0);
-  ent->setCastShadows(false);
-
-  stringstream ss;
-
-  const double dx1 = 0.16;
-  const double dx2 = 0.008;
-  const double dx3 = -0.15;
-  const double dy1 = 0.13;
-  const double dy2 = 0.16;
-  const double dz = 0.0;
-  double legOffsets[3][6] = { {dx1, dx2, dx3, dx1, dx2, dx3}, 
-                                {-dy1, -dy2, -dy1, dy1, dy2, dy1}, 
-                                {dz, dz,  dz,  dz, dz, dz} };
-
-  for (int ii=0; ii<6; ii++)
-  {
-    ss<<this->id << "_leg_node" <<ii;
-    Ogre::SceneNode * legNode = this->sceneNode->createChildSceneNode( ss.str() );
-
-    ss.str(""); ss<<this->id << "_leg_node_temp" <<ii;
-    Ogre::SceneNode * legTempNode = legNode->createChildSceneNode( ss.str() );
-
-    ss.str(""); ss<<this->id<<"_leg_ent"<<ii;
-    Ogre::Entity * legEnt = sceneMgr->createEntity( ss.str() , "rdk_leg.mesh" );
-    
-    legTempNode->attachObject( legEnt );
-    legTempNode->setPosition(0, -0.045, -0.0282);
-  
-    legNode->setPosition(legOffsets[0][ii],legOffsets[2][ii],-legOffsets[1][ii]);
-    legNode->yaw((Ogre::Radian)RDK_LEG_DEF_YAW);    
-
-    this->legSceneNodes.push_back(legNode);
-  }
-
-*/  //initiliaze the mailboxes
+  //initiliaze the mailboxes
   this->pose3DMailbox = new IPCMailbox(id + POSE_3D_MAILBOX_SUFFIX);
   this->encodersMailbox = new IPCMailboxQueue(id + "/Encoders");
   
