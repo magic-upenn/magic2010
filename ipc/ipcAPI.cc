@@ -21,9 +21,10 @@
 #include <string>
 #include "string.h"
 #include <set>
-#include <deque>
+#include <list>
 #include <unistd.h>
 #include <iostream>
+#include <sys/time.h>
 //#include <sys/types.h>
 
 #define MAX_HOSTNAME_LENGTH 128
@@ -49,8 +50,8 @@ struct MSG_INFO
 static bool connected=false;
 static bool start = false;
 
-//hash map that stores the vectors of pointers to received data for each message type
-deque<MSG_INFO> ipc_messages;
+//queue that stores the vectors of pointers to received data for each message type
+list<MSG_INFO> ipc_messages;
 
 
 struct ltstr
@@ -184,30 +185,37 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
     char pid[MAX_PID_LENGTH];
     snprintf(pid,MAX_PID_LENGTH,"%d",(int)getpid());
-  
-    if (got_host_name == 0)
-      process_name = string("(") + string(hostname) + string(")-ipcAPI-") + string(pid);
-    else
-      process_name = string("(") + string("unknown_host") + string(")-ipcAPI") + string(pid);
-  
-    //connect to IPC host
-    if (nrhs < 2)
-    { 
-      //use localhost as the address of central if the address is not provided
-      if (IPC_connectModule(process_name.c_str(),"localhost") != IPC_OK)
-        mexErrMsgTxt("ipcAPI: connect: could not connect to ipc");
-    }
 
-    else
+    char nrand[MAX_PID_LENGTH];
+    struct timeval currTime;
+    gettimeofday(&currTime,NULL);
+    snprintf(nrand,MAX_PID_LENGTH,"%d",currTime.tv_usec);
+  
+   
+    char central_hostname[BUFLEN] = "localhost";
+
+    //check if central host address is provided
+    if (nrhs > 1)
     {
-      //attempt to connect to provided address
-      char central_hostname[BUFLEN];
       if (mxGetString(prhs[1], central_hostname, BUFLEN) != 0)
         mexErrMsgTxt("ipcAPI: connect: Could not read string (hostname of central).");
-
-      if (IPC_connectModule(process_name.c_str(),central_hostname) != IPC_OK)
-        mexErrMsgTxt("ipcAPI: connect: could not connect to central.");
     }
+
+    //check if custom process name suffix is provided (for running several ipcAPI instances from same matlab instance)
+    //otherwise a random number will be appended to avoid duplicate ipc clients
+    if (nrhs > 2)
+    {
+      snprintf(nrand,MAX_PID_LENGTH,"%d",(int)mxGetPr(prhs[2])[0]);
+    }
+
+    if (got_host_name == 0)
+      process_name = string("(") + string(hostname) + string(")-ipcAPI-") + string(pid) + "-" + string(nrand);
+    else
+      process_name = string("(") + string("unknown_host") + string(")-ipcAPI-") + string(pid) + "-" + string(nrand);
+
+
+    if (IPC_connectModule(process_name.c_str(),central_hostname) != IPC_OK)
+        mexErrMsgTxt("ipcAPI: connect: could not connect to central.");
 
     connected=true;
 
@@ -458,8 +466,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
 
     //if there are already messages that are buffered, don't call ipc to receive more
-    if (ipc_messages.empty())
-      IPC_listen(timeout_ms);
+    //if (ipc_messages.empty())
+    IPC_listen(timeout_ms);
       
     
     //convert the messages to matlab data structures

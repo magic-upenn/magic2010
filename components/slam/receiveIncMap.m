@@ -5,17 +5,16 @@ global POSE USER_INPUT
 
 SetMagicPaths;
 
-
-%ipcInit('192.168.10.102');
-ipcInit('localhost');
+ipcInit('192.168.10.100');
 poseInit;
 omapInit;
 emapInit;
 
 POSE.cntr =1;
-USER_INPUT.fresh =0;
+USER_INPUT.freshClick =0;
 %id of the robot that maps should be received from
 setenv('ROBOT_ID','0');
+
 
 ipcReceiveSetFcn(GetMsgName('Pose'), @PoseMsgHander);
 ipcReceiveSetFcn(GetMsgName('MapIncUpdate'), @MapUpdateMsgHandler);
@@ -35,12 +34,12 @@ set(gcf,'WindowButtonUpFcn',@mouseClickCallback);
 while(1)
   ipcReceiveMessages;
   
-  if (USER_INPUT.fresh)
+  if (USER_INPUT.freshClick)
     fprintf(1,'got user input %f %f\n',USER_INPUT.x, USER_INPUT.y);
-    USER_INPUT.fresh = 0;
+    USER_INPUT.freshClick = 0;
     
     traj.size = 1;
-    traj.waypoints(1).y = USER_INPUT.x;
+    traj.waypoints(1).y = USER_INPUT.x;    %switch the order here
     traj.waypoints(1).x = USER_INPUT.y;
     goal.x = USER_INPUT.x;
     goal.y = USER_INPUT.y;

@@ -1,3 +1,7 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Simple trajectory follower
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function trajFollower(tUpdate)
 tic
 if nargin < 1,
@@ -15,6 +19,9 @@ end
 trajFollowerStop;
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Initialize trajectory follower process
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function trajFollowerStart
 clear all;
 global TRAJ POSE
@@ -23,17 +30,28 @@ SetMagicPaths;
 TRAJ.traj = [];
 POSE.data = [];
 
-%connect to ipc
+%connect to ipc on localhost
 ipcInit;
 ipcReceiveSetFcn(GetMsgName('Pose'),        @ipcRecvPoseFcn);
 ipcReceiveSetFcn(GetMsgName('Traj'),        @ipcRecvTrajFcn);
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Message handler for a new trajectory
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function ipcRecvTrajFcn(msg)
 global TRAJ
 
 fprintf(1,'got traj message\n');
 TRAJ.traj = deserialize(msg);
-TRAJ.itraj   = 1;
+TRAJ.itraj   = 1;   %reset the current waypoint
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Receive and handle ipc messages
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function trajFollowerUpdate
+ipcReceiveMessages(50);
 
 function ipcRecvPoseFcn(msg)
 
@@ -49,8 +67,7 @@ if (dt>0.1)
 end
 trajFollowerFollow;
 
-function trajFollowerUpdate
-ipcReceiveMessages(50);
+
 
 
 function trajFollowerFollow

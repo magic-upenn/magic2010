@@ -14,7 +14,7 @@ for mi=1:nmsg
   name(name=='/')='_';
   if isfield(IPC.handler,name),
     %try
-      IPC.handler.(name)(msgs(mi).data);
+      IPC.handler.(name)(msgs(mi).data,msgs(mi).name);
     %catch
     %  disp(sprintf('Error in ipc %s handler: %s', name, lasterror.message));
     %end
