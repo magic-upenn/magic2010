@@ -11,6 +11,16 @@
 % FOV atand(44/72)*2=62.86 degrees
 % angle = atand((xpixel-xcenter)/dist) 
 
+SetMagicPaths;
+
+ipcInit;
+imageMsgName = GetMsgName('Image');
+staticOoiMsgName = GetMsgName('StaticOOI');
+ipcAPIDefine(imageMsgName);
+ipcAPIDefine(staticOoiMsgName);
+
+%%%%%%%%%%%%%%%%%%
+
 savedir = '~/data/Hill_May31/';
 figure(1);
 
@@ -41,8 +51,6 @@ libdc1394('featureSetValue','Exposure', 500);
 
 maxdisp = 32;
 init_stereo(maxdisp);
-
-%%%%% initialize IPC %%%%%
 
 %%%%%%%%%%%%%%%%%%
 
@@ -144,11 +152,18 @@ for counter = 1:10000
 if mod(counter,5)==0
     jpg = cjpeg(yRight);
     %%%%% send compressed jpg image through IPC %%%%%
+    imPacket.id = str2double(getenv('ROBOT_ID'));
+    imPacket.t  = GetUnixtime();
+    imPacket.jpg = jpg;
+    ipcAPIPublish(imageMsgName,serialize(imPacket));
     
     [maxr,indr] = max([r.redbinscore]); % best red bin candidate
     if maxr > 0.5
-        r = r(indr); 
+        r = r(indr);
+        r.id = str2double(getenv('ROBOT_ID'));
+        r.t = GetUnixTime();
         %%%%% send struct r through IPC %%%%%
+        ipcAPIPublish(staticOoiMsgName,serialize(r));
     end
 end
 
