@@ -4,40 +4,21 @@ clear all
 global ROBOTS
 SetMagicPaths
 
-nRobots=4;
+ids=[1 2 3 4];
 
-for ii=1:nRobots
-  %initialize the ids
-  ROBOTS(ii).id     = ii;
-
-  %initialize the ipcAPI function handles
-  ROBOTS(ii).ipcAPI = str2func(sprintf('ipcAPI%d',ii));
-  
-  %specify ip address and (optionally) port 
-  %in format 'xxx.xxx.xxx.xxx:port'
-  ROBOTS(ii).addr   = 'localhost'; %sprintf('192.168.10.%d',ii+100);
-end
-
-for ii=1:length(ROBOTS)
-  %use the a different ipcAPI for each robot
-  %provide index as 3rd argument to generate unique name for each
-  %connection
-  ROBOTS(ii).ipcAPI('connect',ROBOTS(ii).addr,ii);
-end
-
+masterConnectRobots(ids);
 
 messages = {'Pose','GPS','HeartBeat','State'};
 handles  = {@ipcRecvPoseFcn,@ipcRecvGpsFcn, ...
             @ipcRecvHeartBeatFcn,@ipcRecvStateFcn};
+
 %subscribe to messages
+masterSubscribeRobots(messages,handles);
 
-for ii=1:length(ROBOTS)
-  for jj=1:length(messages)
-    msgName = sprintf('Robot%d/%s',ROBOTS(ii).id,messages{jj});
-    ipcReceiveSetFcn(msgName,handles{jj},ROBOTS(ii).ipcAPI);
-  end
+while(1)
+  %listen to messages 10ms at a time (frome each robot)
+  masterReceiveFromRobots(10)
 end
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %handle pose messages

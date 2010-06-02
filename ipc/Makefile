@@ -10,6 +10,11 @@ ipcAPI.$(MEXEXT): ipcAPI.cc
 	cp ipcAPI.$(MEXEXT) ipcAPI3.$(MEXEXT)
 	cp ipcAPI.$(MEXEXT) ipcAPI4.$(MEXEXT)
 	cp ipcAPI.$(MEXEXT) ipcAPI5.$(MEXEXT)
+	cp ipcAPI.$(MEXEXT) ipcAPI6.$(MEXEXT)
+	cp ipcAPI.$(MEXEXT) ipcAPI7.$(MEXEXT)
+	cp ipcAPI.$(MEXEXT) ipcAPI8.$(MEXEXT)
+	cp ipcAPI.$(MEXEXT) ipcAPI9.$(MEXEXT)
+	cp ipcAPI.$(MEXEXT) ipcAPI10.$(MEXEXT)
 
 clean:
 	rm -f *.mex* *~
