@@ -5,7 +5,8 @@ global POSE USER_INPUT
 
 SetMagicPaths;
 
-ipcInit('192.168.10.100');
+%ipcInit('192.168.10.100');
+ipcInit('localhost')
 poseInit;
 omapInit;
 emapInit;
@@ -48,13 +49,13 @@ while(1)
   end
 end
 
-function PoseMsgHander(msg)
+function PoseMsgHander(data,name)
 global POSE MAP_FIGURE
-  if isempty(msg)
+  if isempty(data)
     return;
   end
   
-  POSE.data = MagicPoseSerializer('deserialize',msg);
+  POSE.data = MagicPoseSerializer('deserialize',data);
   
   if isempty(MAP_FIGURE)
     return
@@ -75,15 +76,15 @@ global POSE MAP_FIGURE
   
   %fprintf(1,'got pose update\n');
 
-function MapUpdateMsgHandler(msg)
+function MapUpdateMsgHandler(data,name)
 global OMAP MAP_FIGURE POSE
-  if isempty(msg)
+  if isempty(data)
     return
   end
   
-  msgSize = length(msg);
+  msgSize = length(data);
   fprintf(1,'got map update of size %d\n',msgSize);
-  update = deserialize(msg);
+  update = deserialize(data);
   xis = ceil((update.xs - OMAP.xmin) * OMAP.invRes);
   yis = ceil((update.ys - OMAP.ymin) * OMAP.invRes);
   

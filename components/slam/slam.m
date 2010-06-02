@@ -121,6 +121,7 @@ Y=X*T;  %reverse the order because of transpose
 %don't use the points that supposedly hit the ground (check!!)
 indGood = Y(:,3) > -0.3;
 
+%in sensor frame
 xsss = Y(indGood,1);
 ysss = Y(indGood,2);
 zsss = Y(indGood,3);
@@ -150,9 +151,13 @@ aCand = (-yawRange:yawRange)*dyaw+SLAM.yaw + IMU.data.wyaw*0.025;
 xCand = (-xRange:xRange)*dx+SLAM.xOdom;
 yCand = (-yRange:yRange)*dy+SLAM.yOdom;
 
+offsetsx = LIDAR0.offsetx*cos(aCand) - LIDAR0.offsety*sin(aCand);
+offsetsy = LIDAR0.offsetx*sin(aCand) + LIDAR0.offsety*cos(aCand);
+
 
 %get a local 3D sampling of pose likelihood
-hits = ScanMatch2D('match',OMAP.map.data,xsss,ysss,xCand,yCand,aCand);
+hits = ScanMatch2D('match',OMAP.map.data,xsss,ysss, ...
+              xCand+offsetsx,yCand+offsetsy,aCand);
 
 %find maximum
 [hmax imax] = max(hits(:));
@@ -184,7 +189,7 @@ if (SLAM.lidar0Cntr > 1)
 end
 
 %update the map
-T = (trans([SLAM.x SLAM.y SLAM.z])*rotz(SLAM.yaw))';
+T = (trans([SLAM.x SLAM.y SLAM.z])*rotz(SLAM.yaw)*trans([LIDAR0.offsetx LIDAR0.offsety LIDAR0.offsetz]))';
 X = [xsss ysss zsss onez];
 Y=X*T;  %reverse the order because of transpose
 

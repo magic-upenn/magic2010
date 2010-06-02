@@ -104,7 +104,7 @@
 
     <plugin>
       <id>Lidar2DVisualLidar0</id>
-      <xyz>0.30 0 0.546</xyz>
+      <xyz>0.137 0 0.546</xyz>
       <rpy>0 0 0 </rpy>
       <filename>Lidar2DVisual.so</filename>
       <material>Transparent/Red</material>

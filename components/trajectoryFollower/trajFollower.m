@@ -39,11 +39,11 @@ ipcReceiveSetFcn(GetMsgName('Traj'),        @ipcRecvTrajFcn);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Message handler for a new trajectory
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function ipcRecvTrajFcn(msg)
+function ipcRecvTrajFcn(data,name)
 global TRAJ
 
 fprintf(1,'got traj message\n');
-TRAJ.traj = deserialize(msg);
+TRAJ.traj = deserialize(data);
 TRAJ.itraj   = 1;   %reset the current waypoint
 
 
@@ -53,12 +53,12 @@ TRAJ.itraj   = 1;   %reset the current waypoint
 function trajFollowerUpdate
 ipcReceiveMessages(50);
 
-function ipcRecvPoseFcn(msg)
+function ipcRecvPoseFcn(data,name)
 
 global POSE
 
-if ~isempty(msg)
-  POSE.data = MagicPoseSerializer('deserialize',msg);
+if ~isempty(data)
+  POSE.data = MagicPoseSerializer('deserialize',data);
 end
 dt = toc;
 tic

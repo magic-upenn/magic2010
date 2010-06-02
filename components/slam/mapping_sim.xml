@@ -94,7 +94,7 @@
     <plugin>
 		  <id>Hokuyo_UTM-30LX</id>
 		  <filename>Lidar2D.so</filename>
-      <xyz>0.30 0 0.546</xyz>
+      <xyz>0.137 0 0.546</xyz>
       <invalidRange>0.05</invalidRange>
       <minRange>0.05</minRange>
       <maxRange>30</maxRange>

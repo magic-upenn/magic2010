@@ -10,6 +10,9 @@ if isempty(LIDAR0) || (LIDAR0.initialized ~= 1)
   LIDAR0.cosines = cos(LIDAR0.angles);
   LIDAR0.sines   = sin(LIDAR0.angles);
   LIDAR0.scan    = [];
+  LIDAR0.offsetx = 0.137;
+  LIDAR0.offsety = 0;
+  LIDAR0.offsetz = 0.628;
   
   ipcInit;
   ipcAPIDefine(LIDAR0.msgName,MagicLidarScanSerializer('getFormat'));
