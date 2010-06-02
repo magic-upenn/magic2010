@@ -12,7 +12,7 @@ for ii=1:maxRobots
   
   %specify ip address and (optionally) port 
   %in format 'xxx.xxx.xxx.xxx:port'
-  ROBOTS(ii).addr   = 'localhost'; %sprintf('192.168.10.%d',ii+100);
+  ROBOTS(ii).addr   = sprintf('192.168.10.%d',ii+100);
   ROBOTS(ii).connected = 0;
 end
 

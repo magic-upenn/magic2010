@@ -12,7 +12,7 @@ if nRobots < 1
   error('ROBOTS struct has length < 1: not connected');
 end
 
-if narging < 3
+if nargin < 3
   setQueueLengths = 0;
 else
   setQueueLengths = 1;
