@@ -8,7 +8,18 @@ costmap(costmap<=50)=0;
 elevmap = costmap*4;
 covmap = EMAP.map.data;
 %covmap(covmap~=0) = 249;
-
+%{
+    imagesc(costmap');
+    colormap gray;
+    hold on;
+    tempX = (SLAM.x-EMAP.xmin)*EMAP.invRes;
+    tempY = (SLAM.y-EMAP.ymin)*EMAP.invRes;
+    plot(tempX,tempY,'bx');
+    temp = 20*EMAP.invRes;
+    axis([tempX-temp tempX+temp tempY-temp tempY+temp]);
+    axis xy;
+    drawnow;
+%}
 %send full update
 full_update.timestamp = GetUnixTime();
 full_update.sent_cost_x = size(costmap,1);

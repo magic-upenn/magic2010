@@ -6,6 +6,8 @@ using namespace std;
 #include "headers.h"
 #include "envMagic.h"
 #include "MagicTraj.hh"
+#include "unistd.h"
+#include <string>
 
 //GET RID OF THESE (temporary for Jon's matlab visualization)
 //#include "map_globals.h"
@@ -17,6 +19,8 @@ using namespace std;
 
 #define min(a,b) (a<b?a:b)
 #define max(a,b) (a>b?a:b)
+
+int count=0;
 
 int size_x=0;
 int size_y=0;
@@ -126,7 +130,7 @@ static void GP_FULL_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, vo
 	IPC_unmarshall(IPC_msgInstanceFormatter(msgRef), callData, (void **)&gp_full_update_p);
 	printf("Handler: Receiving %s (size %lu) [%s] \n", IPC_msgInstanceName(msgRef),  sizeof(callData), (char *)clientData);
 
-  if(size_x != gp_full_update_p->sent_cost_x || size_y != gp_full_update_p->sent_cost_y || env == NULL){
+  if(true || size_x != gp_full_update_p->sent_cost_x || size_y != gp_full_update_p->sent_cost_y || env == NULL){
     //update size variables
     int old_size_x = size_x;
     size_x = gp_full_update_p->sent_cost_x;
@@ -134,8 +138,16 @@ static void GP_FULL_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, vo
     global_x_offset = gp_full_update_p->UTM_x;
     global_y_offset = gp_full_update_p->UTM_y;
     
-    if(env != NULL)
+    if(env != NULL){
+      /*
+      count++;
+      //delete planner;
+      if(count>8){
+        exit(0);
+      }
+      */
       delete env;
+    }
 
     env = new EnvironmentMAGICLAT();
     env->SetEnvParameter("cost_obsthresh",254);
@@ -342,37 +354,49 @@ void makeTrajMap(){
 
 
 int main(int argc, char** argv){
+  char* id = getenv("ROBOT_ID");
+
   printf("\nIPC_connect(%s)\n", MODULE_NAME);
   IPC_connect(MODULE_NAME);
 
   //Subscribe to the messages that this module listens to.
 	printf("\nIPC_subscribe(%s, GP_MAP_DATA_Handler, %s)\n", GP_MAP_DATA_MSG, MODULE_NAME);
 	IPC_subscribe(GP_MAP_DATA_MSG, GP_MAP_DATA_Handler, (void *)MODULE_NAME);
+  IPC_setMsgQueueLength(GP_MAP_DATA_MSG, 1);
 
 	printf("\nIPC_subscribe(%s, GP_ROBOT_PARAMETER_Handler, %s)\n", GP_ROBOT_PARAMETER_MSG, MODULE_NAME);
 	IPC_subscribe(GP_ROBOT_PARAMETER_MSG, GP_ROBOT_PARAMETER_Handler, (void *)MODULE_NAME);
+  IPC_setMsgQueueLength(GP_ROBOT_PARAMETER_MSG, 1);
 
 	printf("\nIPC_subscribe(%s, GP_FULL_UPDATE_Handler, %s)\n", GP_FULL_UPDATE_MSG, MODULE_NAME);
-	IPC_subscribe(GP_FULL_UPDATE_MSG, GP_FULL_UPDATE_Handler, (void *)MODULE_NAME);
+	//IPC_subscribe(GP_FULL_UPDATE_MSG, GP_FULL_UPDATE_Handler, (void *)MODULE_NAME);
+	IPC_subscribe("Lattice Planner Full Update", GP_FULL_UPDATE_Handler, (void *)MODULE_NAME);
+  IPC_setMsgQueueLength(GP_FULL_UPDATE_MSG, 1);
 
 	printf("\nIPC_subscribe(%s, GP_SHORT_UPDATE_Handler, %s)\n", GP_SHORT_UPDATE_MSG, MODULE_NAME);
 	IPC_subscribe(GP_SHORT_UPDATE_MSG, GP_SHORT_UPDATE_Handler, (void *)MODULE_NAME);
 
 	printf("\nIPC_subscribe(%s, GP_POSITION_UPDATE_Handler, %s)\n", GP_POSITION_UPDATE_MSG, MODULE_NAME);
-	IPC_subscribe(GP_POSITION_UPDATE_MSG, GP_POSITION_UPDATE_Handler, (void *)MODULE_NAME);
+	//IPC_subscribe(GP_POSITION_UPDATE_MSG, GP_POSITION_UPDATE_Handler, (void *)MODULE_NAME);
+	IPC_subscribe("Lattice Planner Position Update", GP_POSITION_UPDATE_Handler, (void *)MODULE_NAME);
+  IPC_setMsgQueueLength(GP_POSITION_UPDATE_MSG, 1);
 
   printf("\nIPC_subscribe(%s, msg2Handler, %s)\n", GP_TRAJECTORY_MSG, MODULE_NAME);
   IPC_subscribe(GP_TRAJECTORY_MSG, GPTRAJHandler, (void *)MODULE_NAME);
+  IPC_setMsgQueueLength(GP_TRAJECTORY_MSG, 1);
+
 
   Magic::MotionTraj path_msg;
-  IPC_defineMsg("Trajectory", IPC_VARIABLE_LENGTH, path_msg.getIPCFormat());
+  string robotName = string("Robot") + id;
+  string trajName = robotName + "/Trajectory"; 
+  IPC_defineMsg(trajName.c_str(), IPC_VARIABLE_LENGTH, path_msg.getIPCFormat());
 
   // call IPC and wait for messages
   vector<int> solution_stateIDs;
   vector<EnvMAGICLAT3Dpt_t> sbpl_path;
   
   path_msg.waypoints = NULL;
-  
+
   while(1){
     IPC_listenWait(100);
     if(initialized == INIT_DONE){
@@ -419,7 +443,7 @@ int main(int argc, char** argv){
         path_msg.waypoints[i].yaw = sbpl_path[i].theta;
         path_msg.waypoints[i].v = 0.5;
       }
-      IPC_publishData("Trajectory", &path_msg);
+      IPC_publishData(trajName.c_str(), &path_msg);
       
       initialized = NEED_UPDATE;
     }

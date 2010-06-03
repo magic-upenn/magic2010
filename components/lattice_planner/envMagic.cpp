@@ -2638,10 +2638,10 @@ void EnvironmentMAGICLAT::InitializeEnvironment()
 	EnvMAGICLATHashEntry_t* HashEntry;
 
 	int maxsize = EnvMAGICLATCfg.EnvWidth_c*EnvMAGICLATCfg.EnvHeight_c*MAGICLAT_THETADIRS;
-
+/*
 	if(maxsize <= SBPL_XYTHETALAT_MAXSTATESFORLOOKUP)
 	{
-		printf("environment stores states in lookup table\n");
+		printf("environment stores states in lookup table %d\n",maxsize);
 
 		Coord2StateIDHashTable_lookup = new EnvMAGICLATHashEntry_t*[maxsize]; 
 		for(int i = 0; i < maxsize; i++)
@@ -2655,6 +2655,7 @@ void EnvironmentMAGICLAT::InitializeEnvironment()
 	}
 	else
 	{		
+  */
 		printf("environment stores states in hashtable\n");
 
 		//initialize the map from Coord to StateID
@@ -2665,7 +2666,7 @@ void EnvironmentMAGICLAT::InitializeEnvironment()
 
 		//not using hash
 		Coord2StateIDHashTable_lookup = NULL;
-	}
+	//}
 
 
 	//initialize the map from StateID to Coord

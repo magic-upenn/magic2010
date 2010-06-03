@@ -6,6 +6,8 @@ ipcAPIDefine('Global Planner Map Initialization',MagicGP_MAP_DATASerializer('get
 ipcAPIDefine('Global Planner Robot Parameters',MagicGP_ROBOT_PARAMETERSerializer('getFormat'));
 ipcAPIDefine('Global Planner Full Update',MagicGP_FULL_UPDATESerializer('getFormat'));
 ipcAPIDefine('Global Planner Position Update',MagicGP_POSITION_UPDATESerializer('getFormat'));
+ipcAPIDefine('Lattice Planner Full Update',MagicGP_FULL_UPDATESerializer('getFormat'));
+ipcAPIDefine('Lattice Planner Position Update',MagicGP_POSITION_UPDATESerializer('getFormat'));
 
 %initialze map over IPC
 map_init.timestamp = GetUnixTime();

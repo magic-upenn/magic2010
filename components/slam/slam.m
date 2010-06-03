@@ -18,6 +18,8 @@ global SLAM OMAP POSE TRAJ
 SetMagicPaths;
 
 SLAM.updateExplorationMap = 0;
+SLAM.explorationUpdateTime = GetUnixTime();
+SLAM.plannerUpdateTime = GetUnixTime();
 poseInit;
 
 SLAM.x            = POSE.xInit;
@@ -240,8 +242,15 @@ if (SLAM.updateExplorationMap)
     %axis xy;
     %drawnow;
     %EMAP.map.data(cis) = EMAP.map.data(cis)+1;
-    if (mod(SLAM.lidar0Cntr,300) == 0)
+    if (GetUnixTime()-SLAM.plannerUpdateTime > 2) %(mod(SLAM.lidar0Cntr,300) == 0)
+      PublishMapsToMotionPlanner;
+      fprintf('sent planner map\n');
+      SLAM.plannerUpdateTime = GetUnixTime();
+    end
+    if (GetUnixTime()-SLAM.explorationUpdateTime > 10) %(mod(SLAM.lidar0Cntr,300) == 0)
       PublishMapsToExplorationPlanner;
+      fprintf('sent exploration maps\n');
+      SLAM.explorationUpdateTime = GetUnixTime();
     end
 end
 
