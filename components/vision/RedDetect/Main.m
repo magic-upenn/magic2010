@@ -39,7 +39,6 @@ weighting = weighting(1:2:end,1:2:end);
 %%%%%%%%%%%%%%%%%%
 bumblebeeInit;
 
-bumblebeeWriteContextToFile('context.txt');
 bumblebeeStartTransmission;
 libdc1394('videoGetSupportedModes');
 
@@ -84,9 +83,9 @@ while(1)
     %     indices = sub2ind(size(lookupCbCr),round(Cr(:)),round(Cb(:)));
     %     imCr = reshape(lookupCbCr(indices),size(Cr));
 
-    %subplot(1,2,2);
+    subplot(1,2,2);
     %    imagesc(dispmap); axis image;
-    %     imagesc(imCr_filt); axis image;
+         imagesc(imCr_filt); axis image;
     %imagesc(Cr); 
 
     %        subplot(1,3,3);
@@ -122,16 +121,21 @@ while(1)
         %        r(i).CbCr_mean = mean([Cbcrop(:),Crcrop(:)]);
         %        r(i).CbCr_cov = cov([Cbcrop(:),Crcrop(:)]);
     end
-    % Calculate current max score of boxes
-    shape_ratios = []; redness = []; KLdist = [];
+    % Create a score for each red box
     hold on;
     for i = 1:length(r)
-        shape_ratios(i) = exp(-((r(i).BoundingBox(4)/r(i).BoundingBox(3)) - 1.4)^2/(2*0.5^2));
-        %         KLdist(i) =  exp(-(1/2*(CbCr_mean - r(i).CbCr_mean)*inv(r(i).CbCr_cov)*(CbCr_mean - r(i).CbCr_mean)' + ...
+        mean_disp = mean(mean(imcrop(dispmap,round(r(i).BoundingBox)))); % ave disparity in bounding box
+        r(i).distance = GetDistfromDisp(mean_disp); % in meters
+        r(i).angle = atand((r(i).centroid(2)-256/2)/(72/44*256/2));
+        [expected_xwidth,expected_yheight] = GetRedSizefromDist(r(i).distance); % [xwidth yheight] in pixels
+        xwidth_score = exp(-(r(i).BoundingBox(3) - expected_xwidth)^2/(2*20^2));
+        yheight_score = exp(-(r(i).BoundingBox(4) - expected_yheight)^2/(2*20^2));
+        %shape_ratios = exp(-((r(i).BoundingBox(4)/r(i).BoundingBox(3)) - 1.4)^2/(2*0.5^2));
+        %         KLdist =  exp(-(1/2*(CbCr_mean - r(i).CbCr_mean)*inv(r(i).CbCr_cov)*(CbCr_mean - r(i).CbCr_mean)' + ...
         %             + 1/2*log(det(r(i).CbCr_cov)/det(CbCr_cov)) + ...
         %             + 1/2*trace(CbCr_cov*inv(r(i).CbCr_cov)- eye(2)))/4);
-        redness(i) = exp(-(r(i).Cr_mean-220)^2/(2*20^2));
-        r(i).redbinscore = shape_ratios(i) * r(i).Extent * redness(i); % Extent is redpixels/areaofbox
+        %redness = exp(-(r(i).Cr_mean-220)^2/(2*20^2));
+        r(i).redbinscore = xwidth_score * yheight_score * r(i).Extent;% * redness; % Extent is redpixels/areaofbox
 
         if r(i).redbinscore > 0.5    % Display candidate red boxes
             linecolor = 'g';
@@ -142,10 +146,7 @@ while(1)
         line([r(i).BoundingBox(1)+r(i).BoundingBox(3),r(i).BoundingBox(1)+r(i).BoundingBox(3)],[r(i).BoundingBox(2),r(i).BoundingBox(2)+r(i).BoundingBox(4)],'Color',linecolor);
         line([r(i).BoundingBox(1),r(i).BoundingBox(1)],[r(i).BoundingBox(2),r(i).BoundingBox(2)+r(i).BoundingBox(4)],'Color',linecolor);
         line([r(i).BoundingBox(1),r(i).BoundingBox(1)+r(i).BoundingBox(3)],[r(i).BoundingBox(2)+r(i).BoundingBox(4),r(i).BoundingBox(2)+r(i).BoundingBox(4)],'Color',linecolor);
-        mean_disp = mean(mean(imcrop(dispmap,round(r(i).BoundingBox)))); % ave disparity in bounding box
-        r(i).distance = (1.613/(0.01355*mean_disp + 0.03485) - 2.375)/3.281; % in meters
         text(r(i).BoundingBox(1),r(i).BoundingBox(2),sprintf('%2.2f',r(i).distance),'color','g');
-        r(i).angle = atand((r(i).centroid(2)-256/2)/(72/44*256/2));
         text(r(i).BoundingBox(1),r(i).BoundingBox(2)+r(i).BoundingBox(4),sprintf('%2.2f',r(i).angle),'color','g');
     end
     hold off;
@@ -155,7 +156,7 @@ while(1)
         jpg = cjpeg(yRight);
         %%%%% send compressed jpg image through IPC %%%%%
         imPacket.id = str2double(getenv('ROBOT_ID'));
-        imPacket.t  = GetUnixtime();
+        imPacket.t  = GetUnixTime();
         imPacket.jpg = jpg;
         ipcAPIPublish(imageMsgName,serialize(imPacket));
 
@@ -199,15 +200,15 @@ while(1)
         curr_av_score = mean(score_hist);
         if curr_max_score > curr_av_score
             if targetY > Ymean
-                targetY = targetY + 0.001;
+                targetY = targetY + 0.002;
             else
-                targetY = targetY - 0.001;
+                targetY = targetY - 0.002;
             end
         else
             if targetY < Ymean
-                targetY = targetY + 0.001;
+                targetY = targetY + 0.002;
             else
-                targetY = targetY - 0.001;
+                targetY = targetY - 0.002;
             end
         end
 

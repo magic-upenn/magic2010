@@ -1,7 +1,7 @@
 function init_stereo(maxdisp)
 % Initialize stereo
-
-    triclopsAPI('loadContext', ['context.txt']);
+    context_filename = sprintf('context%s.txt',getenv('ROBOT_ID'));
+    triclopsAPI('loadContext', context_filename);
     triclopsAPI('setResolution', 192, 256);% 384,512
     triclopsAPI('setDisparity', 0, maxdisp);%40
     triclopsAPI('setSubpixelInterpolation', 0);%0
