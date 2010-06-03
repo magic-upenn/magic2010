@@ -1,20 +1,23 @@
-function receiveIncMap
-clear all;
+function receiveIncMap(host)
+global POSE USER_INPUT VIS
 
-global POSE USER_INPUT
+if nargin < 1
+  host = 'localhost';
+end
 
 SetMagicPaths;
 
 %ipcInit('192.168.10.100');
-ipcInit('localhost')
+ipcInit(host)
 poseInit;
+cmapInit;
 omapInit;
 emapInit;
 
 POSE.cntr =1;
 USER_INPUT.freshClick =0;
 %id of the robot that maps should be received from
-setenv('ROBOT_ID','0');
+setenv('ROBOT_ID','1');
 
 
 ipcReceiveSetFcn(GetMsgName('Pose'), @PoseMsgHander);
@@ -31,6 +34,33 @@ ipcAPIDefine(trajMsgName);
 figure(1), clf(gcf);
 drawnow;
 set(gcf,'WindowButtonUpFcn',@mouseClickCallback);
+
+
+
+%vis stuff
+VIS.mapMsgName = 'Robot1/CostMap2D_map2d';
+mapMsgFormat = VisMap2DSerializer('getFormat');
+
+VIS.updateRectMsgName   = 'Robot1/CostMap2D_map2dUpdateRect';
+updateRectMsgFormat = VisMap2DUpdateRectSerializer('getFormat'); 
+
+VIS.updatePointsMsgName   = 'Robot1/CostMap2D_map2dUpdatePoints';
+updatePointsMsgFormat = VisMap2DUpdatePointsSerializer('getFormat'); 
+
+ipcAPIConnect;
+ipcAPIDefine(VIS.mapMsgName,mapMsgFormat);
+ipcAPIDefine(VIS.updateRectMsgName,updateRectMsgFormat);
+ipcAPIDefine(VIS.updatePointsMsgName,updatePointsMsgFormat);
+
+
+
+
+%%%%%
+
+
+
+
+
 
 while(1)
   ipcReceiveMessages;
@@ -77,7 +107,7 @@ global POSE MAP_FIGURE
   %fprintf(1,'got pose update\n');
 
 function MapUpdateMsgHandler(data,name)
-global OMAP MAP_FIGURE POSE
+global CMAP MAP_FIGURE POSE VIS
   if isempty(data)
     return
   end
@@ -85,27 +115,37 @@ global OMAP MAP_FIGURE POSE
   msgSize = length(data);
   fprintf(1,'got map update of size %d\n',msgSize);
   update = deserialize(data);
-  xis = ceil((update.xs - OMAP.xmin) * OMAP.invRes);
-  yis = ceil((update.ys - OMAP.ymin) * OMAP.invRes);
+  %plot(update.cs); drawnow;
+  xis = ceil((update.xs - CMAP.xmin) * CMAP.invRes);
+  yis = ceil((update.ys - CMAP.ymin) * CMAP.invRes);
   
-  indGood = (xis > 1) & (yis > 1) & (xis < OMAP.map.sizex) & (yis < OMAP.map.sizey);
-  inds = sub2ind(size(OMAP.map.data),xis(indGood),yis(indGood));
+  indGood = (xis > 1) & (yis > 1) & (xis < CMAP.map.sizex) & (yis < CMAP.map.sizey);
+  inds = sub2ind(size(CMAP.map.data),xis(indGood),yis(indGood));
   
-  OMAP.map.data(inds) = update.cs(indGood);
+  CMAP.map.data(inds) = update.cs(indGood);
   
   if isempty(MAP_FIGURE)
     hold on;
-    MAP_FIGURE.hMap = image(100-OMAP.map.data'); %transpose to make x horizontal
-    set(MAP_FIGURE.hMap,'xdata',[OMAP.xmin OMAP.xmax], ...
-             'ydata',[OMAP.ymin OMAP.ymax]);
+    MAP_FIGURE.hMap = imagesc(CMAP.map.data'); %transpose to make x horizontal
+    set(MAP_FIGURE.hMap,'xdata',[CMAP.xmin CMAP.xmax], ...
+             'ydata',[CMAP.ymin CMAP.ymax]);
     colormap gray;
     hold off;
   else
-    set(MAP_FIGURE.hMap,'xdata',[OMAP.xmin OMAP.xmax], ...
-                        'ydata',[OMAP.ymin OMAP.ymax], ...
-                        'cdata',100-OMAP.map.data');
+    set(MAP_FIGURE.hMap,'xdata',[CMAP.xmin CMAP.xmax], ...
+                        'ydata',[CMAP.ymin CMAP.ymax], ...
+                        'cdata',CMAP.map.data');
   end
   drawnow;
+  
+  map.xmin      = CMAP.xmin;
+  map.ymin      = CMAP.ymin;
+  map.res       = CMAP.res;
+  map.map.sizex = CMAP.map.sizex;
+  map.map.sizey = CMAP.map.sizey;
+  map.map.data  = uint8(CMAP.map.data + 127);
+  content = VisMap2DSerializer('serialize',map);
+  ipcAPIPublishVC(VIS.mapMsgName,content);
   
   expandSize = 50;
   xExpand = 0;
@@ -114,8 +154,8 @@ global OMAP MAP_FIGURE POSE
   [xi yi] = Pos2OmapInd(POSE.data.x + [-30  30], POSE.data.y + [-30 30]);
   if (xi(1) < 1), xExpand = -expandSize; end
   if (yi(1) < 1), yExpand = -expandSize; end
-  if (xi(2) > OMAP.map.sizex), xExpand = expandSize; end
-  if (yi(2) > OMAP.map.sizey), yExpand = expandSize; end
+  if (xi(2) > CMAP.map.sizex), xExpand = expandSize; end
+  if (yi(2) > CMAP.map.sizey), yExpand = expandSize; end
 
   if (xExpand ~=0 || yExpand ~=0)
     %expand the map
@@ -126,7 +166,7 @@ global OMAP MAP_FIGURE POSE
   
   
 function [xi yi] = Pos2OmapInd(x,y)
-global OMAP
+global CMAP
 
-xi = ceil((x - OMAP.xmin) * OMAP.invRes);
-yi = ceil((y - OMAP.ymin) * OMAP.invRes);
+xi = ceil((x - CMAP.xmin) * CMAP.invRes);
+yi = ceil((y - CMAP.ymin) * CMAP.invRes);

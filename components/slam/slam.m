@@ -1,6 +1,15 @@
-function slam()
+function slam(addr,id)
+global SLAM;
 
-clear all;
+if nargin < 1
+  SLAM.addr = 'localhost';
+else
+  SLAM.addr = addr;
+end
+
+if nargin >1
+  setenv('ROBOT_ID',sprintf('%d',id));
+end
 
 slamStart;
 
@@ -16,11 +25,12 @@ function slamStart
 global SLAM OMAP POSE TRAJ
 
 SetMagicPaths;
+ipcInit(SLAM.addr);
 
 SLAM.updateExplorationMap = 0;
 SLAM.explorationUpdateTime = GetUnixTime();
 SLAM.plannerUpdateTime = GetUnixTime();
-poseInit;
+poseInit();
 
 SLAM.x            = POSE.xInit;
 SLAM.y            = POSE.yInit;
@@ -44,11 +54,20 @@ TRAJ.hTraj        = [];
 %in future, this should be the start UTM coordinate!!
 
 
-ipcInit;
+SLAM.imuTimeout    = 0.2;
+SLAM.lidar0Timeout = 0.2;
+SLAM.lidar1Timeout = 0.2;
+SLAM.servo1Timeout = 0.2;
+
+SLAM.cMapInc = 1;
+
+
 omapInit;
 emapInit;
+cmapInit;
 lidar0Init;
 lidar1Init;
+servo1Init;
 motorsInit;
 DefineVisMsgs;
 DefineSensorMessages;
@@ -58,6 +77,7 @@ DefinePlannerMessages;
 ipcReceiveSetFcn(GetMsgName('Pose'),        @ipcRecvPoseFcn);
 ipcReceiveSetFcn(GetMsgName('Lidar0'),      @slamProcessLidar0);
 ipcReceiveSetFcn(GetMsgName('Lidar1'),      @slamProcessLidar1);
+ipcReceiveSetFcn(GetMsgName('Servo1'),      @slamProcessServo1);
 ipcReceiveSetFcn(GetMsgName('Encoders'),    @slamProcessEncoders);
 ipcReceiveSetFcn(GetMsgName('ImuFiltered'), @ipcRecvImuFcn);
 
@@ -82,7 +102,7 @@ ipcReceiveMessages;
 % Lidar0 message handler (horizontal lidar)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function slamProcessLidar0(data,name)
-global SLAM LIDAR0 OMAP EMAP POSE IMU TRAJ
+global SLAM LIDAR0 OMAP EMAP POSE IMU TRAJ CMAP
 
 if ~isempty(data)
   LIDAR0.scan = MagicLidarScanSerializer('deserialize',data);
@@ -190,6 +210,9 @@ if (SLAM.lidar0Cntr > 1)
   
 end
 
+%send out pose message
+ipcAPIPublishVC(POSE.msgName,MagicPoseSerializer('serialize',POSE.data));
+
 %update the map
 T = (trans([SLAM.x SLAM.y SLAM.z])*rotz(SLAM.yaw)*trans([LIDAR0.offsetx LIDAR0.offsety LIDAR0.offsetz]))';
 X = [xsss ysss zsss onez];
@@ -211,15 +234,17 @@ if (SLAM.lidar0Cntr == 1)
 end
 
 OMAP.map.data(inds)=OMAP.map.data(inds)+inc;
+
+CMAP.map.data(inds)=CMAP.map.data(inds)+SLAM.cMapInc;
 OMAP.delta.data(inds) = 1;
 
 %send out map updates
 if (mod(SLAM.lidar0Cntr,200) == 0)
   [xdi ydi] = find(OMAP.delta.data);
   
-  MapUpdate.xs = single(xdi * OMAP.res + OMAP.xmin);
-  MapUpdate.ys = single(ydi * OMAP.res + OMAP.ymin);
-  MapUpdate.cs = OMAP.map.data(sub2ind(size(OMAP.map.data),xdi,ydi));
+  MapUpdate.xs = single(xdi * CMAP.res + CMAP.xmin);
+  MapUpdate.ys = single(ydi * CMAP.res + CMAP.ymin);
+  MapUpdate.cs = CMAP.map.data(sub2ind(size(CMAP.map.data),xdi,ydi));
   content = serialize(MapUpdate);
   ipcAPIPublish(SLAM.MapIncUpdateMsgName,content);
   
@@ -335,20 +360,157 @@ SLAM.t          = GetUnixTime();
 
 %publish the full obstacle map (to vis)
 if (mod(SLAM.lidar0Cntr,200) == 0)
-  PublishObstacleMap;
+  %PublishObstacleMap;
 end
 
-%send out pose message
-ipcAPIPublishVC(POSE.msgName,MagicPoseSerializer('serialize',POSE.data));
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Check imu status
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function ret = CheckImu()
+global IMU SLAM
 
+if isempty(IMU), ret=0; return, end
+if ~isfield(IMU,'data'), ret=0; return, end
+if ~isfield(IMU.data,'t'), ret=0; return, end
+
+%{
+if (IMU.data.t - GetUnixTime() > SLAM.imuTimeout)
+  ret=0;
+  return;
+end
+%}
+ret=1;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Check lidar0 status
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function ret = CheckLidar0()
+global LIDAR0 SLAM
+
+if isempty(LIDAR0), ret=0; return, end
+if ~isfield(LIDAR0,'scan'), ret=0; return, end
+if ~isfield(LIDAR0.scan,'startTime'), ret=0; return, end
+%{
+if (LIDAR0.scan.startTime - GetUnixTime() > SLAM.lidar0Timeout)
+  ret=0;
+  return;
+end
+%}
+ret=1;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Check lidar1 status
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function ret = CheckLidar1()
+global LIDAR1 SLAM
+
+if isempty(LIDAR1), ret=0; return, end
+if ~isfield(LIDAR1,'scan'), ret=0; return, end
+if ~isfield(LIDAR1.scan,'startTime'), ret=0; return, end
+%{
+if (LIDAR1.scan.startTime - GetUnixTime() > SLAM.lidar1Timeout)
+  ret=0;
+  return;
+end
+%}
+ret=1;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Check servo1 status
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function ret = CheckServo1()
+global SERVO1 SLAM
+
+if isempty(SERVO1), ret=0; return, end
+if ~isfield(SERVO1,'data'), ret=0; return, end
+if ~isfield(SERVO1.data,'t'), ret=0; return, end
+
+%{
+if (SERVO1.data.t - GetUnixTime() > SLAM.servo1Timeout)
+  ret=0;
+  return;
+end
+%}
+
+ret=1;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Lidar0 message handler (horizontal lidar)
+% Servo1 message handler 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function slamProcessServo1(data,name)
+global SERVO1
+
+SERVO1.data = MagicServoStateSerializer('deserialize',data);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Lidar1 message handler (vertical lidar)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function slamProcessLidar1(data,name)
-global SLAM LIDAR1 OMAP EMAP POSE IMU TRAJ
+global SLAM LIDAR1 SERVO1 OMAP CMAP EMAP POSE IMU
+
+if ~isempty(data)
+  LIDAR1.scan = MagicLidarScanSerializer('deserialize',data);
+else
+  return;
+end
+
+%make sure we have fresh data
+if (CheckImu() ~= 1), return; end
+if (CheckServo1() ~= 1), return; end
+servoAngle = SERVO1.data.position;
+Tservo1 = trans([SERVO1.offsetx SERVO1.offsety SERVO1.offsetz])*rotz(SERVO1.data.position);
+Tlidar1 = trans([SERVO1.offsetx LIDAR1.offsety LIDAR1.offsetz]) * ...
+          rotx(pi/2);
+Timu = roty(IMU.data.pitch)*rotx(IMU.data.roll);
+Tpos = trans([SLAM.x SLAM.y SLAM.z])*rotz(SLAM.yaw);
+
+T = (Tpos*Timu*Tservo1*Tlidar1);
+        
+
+ranges = double(LIDAR1.scan.ranges); %convert from float to double
+indGood = ranges >0.25;
+
+xs = ranges.*LIDAR1.cosines;
+ys = ranges.*LIDAR1.sines;
+zs = zeros(size(xs));
+xsg=xs(indGood);
+ysg=ys(indGood);
+zsg=zs(indGood);
+onesg=ones(size(xsg));
+
+%apply the transformation given current roll and pitch
+
+X = [xsg; ysg; zsg; onesg];
+Y=T*X;
+
+%in sensor frame
+xss = Y(1,:);
+yss = Y(2,:);
+zss = Y(3,:);
+onez = ones(size(xss));
+
+LIDAR1.xs = xss;
+LIDAR1.ys = yss;
+
+%publishVisPointCloud('lidar1map',xss,yss,zss);
+
+xis = ceil((xss - OMAP.xmin) * OMAP.invRes);
+yis = ceil((yss - OMAP.ymin) * OMAP.invRes);
+
+indGood = (xis > 1) & (yis > 1) & (xis < OMAP.map.sizex) & (yis < OMAP.map.sizey);
+inds = sub2ind(size(OMAP.map.data),xis(indGood),yis(indGood));
+
+dzs = [diff(zss) 0];
+indsBad = abs(dzs) > 0.05;
+czs = -ones(size(dzs));
+czs(indsBad) = 10;
+
+CMAP.map.data(inds)=CMAP.map.data(inds)+czs;
+OMAP.delta.data(inds) = 1;
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -23,6 +23,10 @@ if isempty(OMAP) || ~isfield(OMAP,'initialized') ||(OMAP.initialized ~= 1)
   OMAP.delta.sizey = OMAP.map.sizey;
   OMAP.delta.data  = zeros(size(OMAP.map.data),'uint8');
   
+  OMAP.cost.sizex  = OMAP.map.sizex;
+  OMAP.cost.sizey  = OMAP.map.sizey;
+  OMAP.cost.data   = zeros(size(OMAP.map.data),'single');
+  
   ipcInit;
   if checkVis, ipcAPIDefine(OMAP.msgName,VisMap2DSerializer('getFormat')); end
   OMAP.initialized  = 1;

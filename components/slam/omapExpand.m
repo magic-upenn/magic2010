@@ -1,6 +1,6 @@
 %expand the map by some number of meters in x and y direction
 function omapExpand(x,y)
-global OMAP EMAP
+global OMAP EMAP CMAP
 
 
 if (x==0 && y==0)
@@ -69,6 +69,10 @@ OMAP.map.data = [m11     m12       m13;
 OMAP.delta.data = [m11     m12         m13;
                    m21 OMAP.delta.data m23;
                    m31     m32         m33];
+                 
+CMAP.map.data = [m11     m12         m13;
+                   m21 CMAP.map.data m23;
+                   m31     m32         m33];
                
 EMAP.map.data = [m11     m12       m13;
                  m21 EMAP.map.data m23;
@@ -85,12 +89,20 @@ EMAP.ymin       = EMAP.ymin - size(m21,2)*EMAP.res;
 EMAP.xmax       = EMAP.xmax + size(m32,1)*EMAP.res;
 EMAP.ymax       = EMAP.ymax + size(m23,2)*EMAP.res;
 
+CMAP.xmin       = CMAP.xmin - size(m12,1)*CMAP.res;
+CMAP.ymin       = CMAP.ymin - size(m21,2)*CMAP.res;
+CMAP.xmax       = CMAP.xmax + size(m32,1)*CMAP.res;
+CMAP.ymax       = CMAP.ymax + size(m23,2)*CMAP.res;
+
 
 OMAP.map.sizex  = (OMAP.xmax - OMAP.xmin) / OMAP.res + 1;
 OMAP.map.sizey  = (OMAP.ymax - OMAP.ymin) / OMAP.res + 1;
 
 OMAP.delta.sizex  = (OMAP.xmax - OMAP.xmin) / OMAP.res + 1;
 OMAP.delta.sizey  = (OMAP.ymax - OMAP.ymin) / OMAP.res + 1;
+
+CMAP.map.sizex  = (CMAP.xmax - CMAP.xmin) / CMAP.res + 1;
+CMAP.map.sizey  = (CMAP.ymax - CMAP.ymin) / CMAP.res + 1;
 
 
 EMAP.map.sizex  = (EMAP.xmax - EMAP.xmin) / EMAP.res + 1;
