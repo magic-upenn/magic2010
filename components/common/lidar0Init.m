@@ -1,7 +1,7 @@
 function lidar0Init
 global LIDAR0
 
-if isempty(LIDAR0) || (LIDAR0.initialized ~= 1)
+if isempty(LIDAR0) || ~isfield(LIDAR0,'initialized') || (LIDAR0.initialized ~= 1)
   LIDAR0.msgName = [GetRobotName '/Lidar0'];
   LIDAR0.resd    = 0.25;
   LIDAR0.res     = LIDAR0.resd/180*pi; 
@@ -12,7 +12,7 @@ if isempty(LIDAR0) || (LIDAR0.initialized ~= 1)
   LIDAR0.scan    = [];
   LIDAR0.offsetx = 0.137;
   LIDAR0.offsety = 0;
-  LIDAR0.offsetz = 0.628;
+  LIDAR0.offsetz = 0.54;  %from the body origin (not floor)
   
   ipcInit;
   ipcAPIDefine(LIDAR0.msgName,MagicLidarScanSerializer('getFormat'));
