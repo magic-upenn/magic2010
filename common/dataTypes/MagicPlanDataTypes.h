@@ -11,7 +11,7 @@
 //Map Initialization 
 //Types:
 #define GP_MAP_DATA_FORM "{double, int, int, int, int, int, int, float, float, float}"
-#define GP_MAP_DATA_MSG "Global Planner Map Initialization"
+#define GP_MAP_DATA_MSG "Global_Planner_Map_Initialization"
 
 typedef struct {
 	double timestamp;			// time when new map values go into effect
@@ -61,7 +61,7 @@ typedef struct {
 //Types:
 
 #define GP_ROBOT_PARAMETER_FORM "{float, float, int, int, float, short, <double:3,4>}"
-#define GP_ROBOT_PARAMETER_MSG "Global Planner Robot Parameters"
+#define GP_ROBOT_PARAMETER_MSG "Global_Planner_Robot_Parameters"
 
 typedef struct{
 	float MAX_VELOCITY;		// maximum velocity in m/s (1)
@@ -97,6 +97,39 @@ typedef struct{
 //"global_planner_robot_init" with data type GP_ROBOT_PARAMETER_FORM
 //Message contains robot parameters and a list of points defining the perimeter vertices of the robot.  
 //
+//Planner Initialization
+typedef struct{
+	float GP_PLAN_TIME; // seconds to allow for planning
+	float IG_RATIO; // ratio of total possible unknown to remaining unknown before switching to pure greedy search
+	float LR_MARGIN; // amount one side must be greater to influence pan angles
+	float VIEW_PROB_FACTOR; // retards calculated speed based on likelihood of observation
+	bool WRITE_FILES; // flag to write files out
+	bool DISPLAY_OUTPUT; // flag to display any output
+} GP_PLANNER_PARAMETER, *GP_PLANNER_PARAMETER_PTR;
+
+#define GP_PLANNER_PARAMETER_FORM "{float, float, float, float, boolean, boolean}"
+#define GP_PLANNER_PARAMETER_MSG "Global_Planner_Parameters"
+//
+//Variables:
+//float GP_PLAN_TIME
+//time in seconds to allow the planner to find a plan (there is an additional ~.5 seconds of setup/overhead on top of this value)
+//default is 5 seconds
+//
+//float IG_RATIO
+//ratio of unknown to known areas before shifting to pure greedy (closest unknown) exploration scheme.  default is .01
+//
+//float LR_MARGIN
+//multiplier that the right or left sectors must exceed the other in order for the pan angle recommendations to shift (for example, with the default of 10, 
+//if one side is more than 10x the other, the algorithm will concentrate on the higher side, otherwise, the algorithm will recommend sweeping the full extent of pan angles)
+//
+//float VIEW_PROB_FACTOR
+//a number between 0 and 1 that roughly descibes the probability that a cell within the maximum range will become "known" after a single sweep
+//used to slow the robot down to allow multiple sweeps of a cell. Default is .3
+//
+//Boolean WRITE_FILES, DISPLAY_OUTPUT
+//boolean variables that tell the algorithm whether to display and/or write output to file
+//
+//
 //
 //Each Timestep (System -> Global Planner)
 //
@@ -104,7 +137,7 @@ typedef struct{
 //Types:
 
 #define GP_POSITION_UPDATE_FORM "{double, float, float, float}"	
-#define GP_POSITION_UPDATE_MSG "Global Planner Position Update"
+#define GP_POSITION_UPDATE_MSG "Global_Planner_Position_Update"
 typedef struct {
 	double timestamp;		// timestamp of when position was accurate
 	float x;			// x position of robot reference point in meters
@@ -121,7 +154,7 @@ typedef struct {
 
 
 #define GP_FULL_UPDATE_FORM "{double, float, float, int, int, int, int, int, int, <ubyte: 4, 5>, <ubyte: 6, 7>, <short: 8, 9>}"
-#define GP_FULL_UPDATE_MSG "Global Planner Full Update"
+#define GP_FULL_UPDATE_MSG "Global_Planner_Full_Update"
 typedef struct {
 	double timestamp;		// timestamp for map update
 //global reference point
@@ -148,7 +181,7 @@ typedef struct {
 
 
 #define GP_SHORT_UPDATE_FORM "{double, int, int, int, int, int, int, int, int, int, int, int, int, <ubyte: 2, 3>, <ubyte: 4, 5>, <short: 6,7>}"
-#define GP_SHORT_UPDATE_MSG "Global Planner Short Update"
+#define GP_SHORT_UPDATE_MSG "Global_Planner_Short_Update"
 typedef struct {
 	double timestamp;		// timestamp of map update
 				// following  sizes refer to what is actually transmitted
@@ -218,7 +251,7 @@ typedef struct {
 
 
 #define GP_TRAJECTORY_FORM "{int, int, <float: 1, 2>}"
-#define GP_TRAJECTORY_MSG "Global Planner Trajectory"
+#define GP_TRAJECTORY_MSG "Global_Planner_Trajectory"
 typedef struct {
 	int num_traj_pts;	  // number of points in the trajectory (1)
 	int traj_dim;	  // width of trajectory array (x,y,theta, velocity, panr, 				  // panl) (2)
@@ -257,7 +290,7 @@ typedef struct {
 } GP_GOAL_ASSIGN, *GP_GOAL_ASSIGN_PTR;
 
 #define GP_GOAL_ASSIGN_FORM "{double, float, float, float, float, float, float}"  
-#define GP_GOAL_ASSIGN_MSG "Global Planner Goal Assignment"
+#define GP_GOAL_ASSIGN_MSG "Global_Planner_Goal_Assignment"
 
 #endif //MAGIC_PLAN_DATA_TYPES
 
