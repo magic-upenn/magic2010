@@ -28,16 +28,13 @@ global TRAJ POSE
 SetMagicPaths;
 
 TRAJ.traj = [];
-TRAJ.handle = -1;
 POSE.data = [];
-POSE.handle = -1;
-figure(1);
-hold on;
 
 %connect to ipc on localhost
 ipcInit;
 ipcReceiveSetFcn(GetMsgName('Pose'),        @ipcRecvPoseFcn);
-ipcReceiveSetFcn(GetMsgName('Trajectory'),  @ipcRecvTrajFcn);
+ipcReceiveSetFcn(GetMsgName('Traj'),        @ipcRecvTrajFcn);
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Message handler for a new trajectory
@@ -46,24 +43,8 @@ function ipcRecvTrajFcn(data,name)
 global TRAJ
 
 fprintf(1,'got traj message\n');
-TRAJ.traj = MagicMotionTrajSerializer('deserialize',data);
+TRAJ.traj = deserialize(data);
 TRAJ.itraj   = 1;   %reset the current waypoint
-%{
-if(TRAJ.traj.size > 0)
-  if(TRAJ.handle ~= -1)
-      delete(TRAJ.handle);
-  end
-  figure(1)
-  hold on;
-  temp = zeros(TRAJ.traj.size,2);
-  for i=1:size(temp,1)
-      temp(i,1) = TRAJ.traj.waypoints(i).x;
-      temp(i,2) = TRAJ.traj.waypoints(i).y;
-  end
-  TRAJ.handle = plot(temp(:,1),temp(:,2));
-  drawnow;
-end
-%}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -78,17 +59,6 @@ global POSE
 
 if ~isempty(data)
   POSE.data = MagicPoseSerializer('deserialize',data);
-  %{
-  if(POSE.handle ~= -1)
-    delete(POSE.handle);
-  end
-  figure(1)
-  hold on;
-  POSE.handle = plot(POSE.data.x,POSE.data.y,'bx');
-  temp = 20;
-  axis([POSE.data.x-temp POSE.data.x+temp POSE.data.y-temp POSE.data.y+temp]);
-  drawnow;
-  %}
 end
 dt = toc;
 tic
