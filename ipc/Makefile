@@ -1,7 +1,7 @@
 MEXEXT=$(shell mexext)
 MEX=mex
 
-default_targets: ipcAPI.$(MEXEXT)
+default_targets: ipcAPI.$(MEXEXT) ipcWrapperAPI.$(MEXEXT)
 
 ipcAPI.$(MEXEXT): ipcAPI.cc
 	$(MEX) -O ipcAPI.cc -L. -lipc
@@ -16,5 +16,7 @@ ipcAPI.$(MEXEXT): ipcAPI.cc
 	cp ipcAPI.$(MEXEXT) ipcAPI9.$(MEXEXT)
 	cp ipcAPI.$(MEXEXT) ipcAPI10.$(MEXEXT)
 
+ipcWrapperAPI.$(MEXEXT): ipcWrapperAPI.cc IpcWrapper.cc
+	$(MEX) -O $^ -I../include -L../lib -lSerialDevice -lipc
 clean:
 	rm -f *.mex* *~
