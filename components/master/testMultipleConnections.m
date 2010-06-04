@@ -12,8 +12,10 @@ messages = {'Pose','GPS','HeartBeat','State'};
 handles  = {@ipcRecvPoseFcn,@ipcRecvGpsFcn, ...
             @ipcRecvHeartBeatFcn,@ipcRecvStateFcn};
 
+queueLengths = [5 5 5 5];
+          
 %subscribe to messages
-masterSubscribeRobots(messages,handles);
+masterSubscribeRobots(messages,handles,queueLengths);
 
 while(1)
   %listen to messages 10ms at a time (frome each robot)
