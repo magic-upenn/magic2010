@@ -73,7 +73,7 @@ void static MsgHandler(MSG_INSTANCE msg_inst, BYTE_ARRAY ipc_data_ptr, void * no
 #ifdef IPC_API_DEBUG
   printf("ipcAPI: Received a message of type '%s' with length %d\n",msg_name,msg_length); 
 #endif
-  printf("."); fflush(stdout);
+  //printf("."); fflush(stdout);
 }
 
 //function handle for the message. It simply fills in the data into the members of this class
