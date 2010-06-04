@@ -2,10 +2,10 @@
 using namespace std;
 #include "global_planner.h"
 #include "astarpoint.h"
-#include "MagicPlanDataTypes.h"
+#include "../../common/dataTypes/MagicPlanDataTypes.h"
 #include "ipc.h"
 #include "filetransfer.h"
-#include "/home/robotman0/ros/pkgs/motion_planners/sbpl/src/sbpl/headers.h" // SBPL
+#include "../sbpl/src/sbpl/headers.h" // SBPL
 
 #define MODULE_NAME "Global Planner Linux"
 using namespace std;
@@ -49,7 +49,7 @@ int16_t sensor_height=120; // sensor height in cm
 float inflation_size=0;  //size in cells to inflate obstacles
 float MAX_VELOCITY=5.0; // meters per second
 float MAX_TURN_RATE=1.0; // radians per second
-float GP_PLAN_TIME=1.0; // seconds to allow for planning
+float GP_PLAN_TIME=5.0; // seconds to allow for planning
 int HIGH_IG_THRES = 50000; // set by initialization and full map updates
 float IG_RATIO = 0.01; // ratio of total possible unknown to remaining unknown before switching to pure greedy search
 float LR_MARGIN = 10; // amount one side must be greater to influence pan angles
@@ -139,7 +139,7 @@ bool OnMap(int x, int y) {
 }
 
 double return_path(int x_target, int y_target, const int dijkstra[], vector<Traj_pt_s> & traj) {
-	// function to return the optimal path to a target location
+	// function to return the optimal path to a target location given a dijkstra map
 	Traj_pt_s current;
 	vector<Traj_pt_s> inv_traj;
 	int x_val, y_val, best_x_val, best_y_val;
@@ -188,7 +188,7 @@ double return_path(int x_target, int y_target, const int dijkstra[], vector<Traj
 		}
 		return (cost*cost_cell_size);
 	}
-	else { /*printf("WARNING: Invalid goal location - %i %i\n", x_target, y_target);*/ return(-1); }
+	else { printf("WARNING: Invalid goal location - %i %i\n", x_target, y_target); return(-1); }
 }
 
 void map_alloc(void) {
@@ -244,7 +244,7 @@ void sample_point(int &x_target, int &y_target, const int dijkstra[], const unsi
 		//    cover_map[(x_target-1) + coverage_size_x*(y_target)],
 		//    cover_map[(x_target) + coverage_size_x*(y_target-1)]);
 		frontier.pop();
-		if ((pow((prev_x-x_target), 2) + pow((prev_y-y_target),2))>10) {
+		if ((pow((float)(prev_x-x_target), 2) + pow((float)(prev_y-y_target),2))>10) {
 			prev_x = x_target; prev_y = y_target; break; }
 
 	}
@@ -417,10 +417,28 @@ void global_planner(float goal_x, float goal_y, float goal_theta) {
 		}
 	}
 
-	// ensure that the robot cell is not an obstacle
+	// ensure that the robot cell is not an obstacle and clear a little box if there is
 	cover_map[robot_x+coverage_size_x*robot_y] = KNOWN;
-	if (cost_map[robot_x+cost_size_x*robot_y] >= OBSTACLE) { cost_map[robot_x+cost_size_x*robot_y] = OBSTACLE -10;}
-	if (inflated_cost_map[robot_x+cost_size_x*robot_y] >= OBSTACLE) { inflated_cost_map[robot_x+cost_size_x*robot_y] = OBSTACLE -1;}
+	if (cost_map[robot_x+cost_size_x*robot_y] >= OBSTACLE) {
+		for(int xxx=0;xxx<11; xxx++){
+			for(int yyy=0; yyy<11;yyy++) {
+				if (OnMap(robot_x+xxx-5,robot_y+yyy-5)) {
+					cost_map[robot_x+xxx-5+cost_size_x*(robot_y+yyy-5)] = OBSTACLE -10;
+				}
+			}
+		}		
+	}
+	if (inflated_cost_map[robot_x+cost_size_x*robot_y] >= OBSTACLE) {
+		for(int xxx=0;xxx<11; xxx++){
+			for(int yyy=0; yyy<11;yyy++) {
+				if (OnMap(robot_x+xxx-5,robot_y+yyy-5)) {
+					inflated_cost_map[robot_x+xxx-5+cost_size_x*(robot_y+yyy-5)] = OBSTACLE -1;
+				}
+			}
+		}		
+	}
+
+
 
 
 	// setup search environment
@@ -440,7 +458,7 @@ void global_planner(float goal_x, float goal_y, float goal_theta) {
 
 	find_frontier(IG_map, dijkstra);
 
-	double best_score=-1e20; // tracks best score this run
+	double best_score=0; // tracks best score this run
 	int x_target, y_target;//, best_x, best_y;
 	vector<Traj_pt_s> test_traj; // temp trajectory
 	vector<int> traj_score_l; // storage for score at each point along trajectory for post processing
@@ -517,7 +535,7 @@ void global_planner(float goal_x, float goal_y, float goal_theta) {
 	} // else find good point
 	// select highest scoring trajectory after XX seconds
 	best_score = 0;
-	if (traj.empty()) { cout << " no valid trajectory" << endl;}
+	if (traj.empty()) { cout << " traj is empty - no valid trajectory" << endl;}
 	else {cout << "final best goal "  << traj.back().x << "," << traj.back().y << " size " << traj.size() <<  endl; }
 	//allocate space for scores
 	traj_score_l.resize(traj.size());
@@ -903,7 +921,7 @@ int main (void) {
 	printf("\nIPC_subscribe(%s, GP_POSITION_UPDATE_Handler, %s)\n", GP_POSITION_UPDATE_MSG, MODULE_NAME);
 	IPC_subscribe(GP_POSITION_UPDATE_MSG, GP_POSITION_UPDATE_Handler, (void *)MODULE_NAME);
 
-	printf("\nIPC_subscribe(%s, GP_POSITION_UPDATE_Handler, %s)\n", GP_GOAL_ASSIGN_MSG, MODULE_NAME);
+	printf("\nIPC_subscribe(%s, GP_GOAL_UPDATE_Handler, %s)\n", GP_GOAL_ASSIGN_MSG, MODULE_NAME);
 	IPC_subscribe(GP_GOAL_ASSIGN_MSG, GP_GOAL_ASSIGN_Handler, (void *)MODULE_NAME);
 
 	printf("\nIPC_subscribe(%s, GP_FULL_UPDATE_Handler, %s)\n", GP_FULL_UPDATE_MSG, MODULE_NAME);
