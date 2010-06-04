@@ -59,7 +59,8 @@ SLAM.lidar0Timeout = 0.2;
 SLAM.lidar1Timeout = 0.2;
 SLAM.servo1Timeout = 0.2;
 
-SLAM.cMapInc = 1;
+SLAM.cMapIncFree = -5;
+SLAM.cMapIncObs  = 10;
 
 
 omapInit;
@@ -235,11 +236,11 @@ end
 
 OMAP.map.data(inds)=OMAP.map.data(inds)+inc;
 
-CMAP.map.data(inds)=CMAP.map.data(inds)+SLAM.cMapInc;
+CMAP.map.data(inds)=CMAP.map.data(inds)+SLAM.cMapIncObs;
 OMAP.delta.data(inds) = 1;
 
 %send out map updates
-if (mod(SLAM.lidar0Cntr,200) == 0)
+if (mod(SLAM.lidar0Cntr,40) == 0)
   [xdi ydi] = find(OMAP.delta.data);
   
   MapUpdate.xs = single(xdi * CMAP.res + CMAP.xmin);
@@ -459,25 +460,29 @@ end
 %make sure we have fresh data
 if (CheckImu() ~= 1), return; end
 if (CheckServo1() ~= 1), return; end
-servoAngle = SERVO1.data.position;
-Tservo1 = trans([SERVO1.offsetx SERVO1.offsety SERVO1.offsetz])*rotz(SERVO1.data.position);
-Tlidar1 = trans([SERVO1.offsetx LIDAR1.offsety LIDAR1.offsetz]) * ...
+servoAngle = SERVO1.data.position + 3/180*pi;
+Tservo1 = trans([SERVO1.offsetx SERVO1.offsety SERVO1.offsetz])*rotz(servoAngle);
+Tlidar1 = trans([LIDAR1.offsetx LIDAR1.offsety LIDAR1.offsetz]) * ...
           rotx(pi/2);
 Timu = roty(IMU.data.pitch)*rotx(IMU.data.roll);
 Tpos = trans([SLAM.x SLAM.y SLAM.z])*rotz(SLAM.yaw);
 
 T = (Tpos*Timu*Tservo1*Tlidar1);
         
-
+nStart = 250;
 ranges = double(LIDAR1.scan.ranges); %convert from float to double
-indGood = ranges >0.25;
+indGood = ranges >0.15;
+indGood(1:nStart-1) = 0;
 
-xs = ranges.*LIDAR1.cosines;
-ys = ranges.*LIDAR1.sines;
+rangesGood = ranges(indGood);
+
+xs = rangesGood.*LIDAR1.cosines(indGood);
+ys = rangesGood.*LIDAR1.sines(indGood);
 zs = zeros(size(xs));
-xsg=xs(indGood);
-ysg=ys(indGood);
-zsg=zs(indGood);
+
+xsg=xs;
+ysg=ys;
+zsg=zs;
 onesg=ones(size(xsg));
 
 %apply the transformation given current roll and pitch
@@ -499,13 +504,23 @@ LIDAR1.ys = yss;
 xis = ceil((xss - OMAP.xmin) * OMAP.invRes);
 yis = ceil((yss - OMAP.ymin) * OMAP.invRes);
 
-indGood = (xis > 1) & (yis > 1) & (xis < OMAP.map.sizex) & (yis < OMAP.map.sizey);
+zmax = 0.8;
+
+indGood = (xis > 1) & (yis > 1) & (xis < OMAP.map.sizex) & (yis < OMAP.map.sizey) & (zss<zmax);
 inds = sub2ind(size(OMAP.map.data),xis(indGood),yis(indGood));
 
-dzs = [diff(zss) 0];
-indsBad = abs(dzs) > 0.05;
-czs = -ones(size(dzs));
-czs(indsBad) = 10;
+dzs = [diff(zss(indGood)) 0];
+%plot(dzs);
+%drawnow;
+
+%indsBad = abs(dzs) > 0.05;
+indsBad = zss(indGood) > 0.05;
+firstBad = find(indsBad,1);
+
+%czs = ones(size(dzs)) * SLAM.cMapIncFree;
+czs = zeros(size(dzs));
+czs(1:firstBad-1) = SLAM.cMapIncFree;
+czs(indsBad) = SLAM.cMapIncObs;
 
 CMAP.map.data(inds)=CMAP.map.data(inds)+czs;
 OMAP.delta.data(inds) = 1;
