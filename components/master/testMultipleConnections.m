@@ -4,7 +4,7 @@ clear all
 global ROBOTS
 SetMagicPaths
 
-ids=[1];
+ids=[1 3];
 
 masterConnectRobots(ids);
 
