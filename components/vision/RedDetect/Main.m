@@ -67,11 +67,14 @@ while(1)
     [yRight,dispmap] = DoStereo(yLeft,yRight,maxdisp,0);
 
     %            [Y,Cb,Cr] = colorspace('rgb->YCbCr',yRight);
+    notwhite = sum(yRight,3)<765;
+    
     [Y,Cr] = Get_YCr_only(yRight);
     Ymod = Y.*weighting; % bottom of image weighted more than top
+    Ymod = Ymod(notwhite(:));
     Ymean = mean(Ymod(:)/256)*2;
 
-    Cr_threshold = max(Cr(:)) - 20;
+    Cr_threshold = max(190,max(Cr(:)) - 20);
     imCr_filt = Cr > Cr_threshold;
     %     BinIm = floor(double(yRight)/16)+1; % quantize RGB color to 4bits/channel
     %     mapind = sub2ind([16,16,16],BinIm(:,:,1),BinIm(:,:,2),BinIm(:,:,3)); % convert to YCbCr
@@ -85,8 +88,8 @@ while(1)
 
     subplot(1,2,2);
     %    imagesc(dispmap); axis image;
-         imagesc(imCr_filt); axis image;
-    %imagesc(Cr); 
+    %     imagesc(imCr_filt); axis image;
+    imagesc(Cr); axis image;
 
     %        subplot(1,3,3);
     %imCr_filt = bwareaopen(imCr_filt,20); % filter out small noisy patches
@@ -213,7 +216,7 @@ while(1)
         end
 
         % if no good red regions then reset targetY
-        if curr_av_score < 0.2
+        if curr_av_score < 0.1
             targetY = 0.5;
         end
     end
