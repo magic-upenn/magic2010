@@ -6,6 +6,9 @@
 #include <string>
 #include "Timer.hh"
 #include <list>
+#include <stdint.h>
+#include <string.h>
+#include <stdlib.h>
 
 #define __IPC_WRAPPER_GET_SEND_LOCK_RETRIES 3
 
