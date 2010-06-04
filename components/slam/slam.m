@@ -473,7 +473,7 @@ T = (Tpos*Timu*Tservo1*Tlidar1);
         
 nStart = 250; %throw out points that pick up our own body
 ranges = double(LIDAR1.scan.ranges); %convert from float to double
-indGood = ranges >0.05;
+indGood = ranges >0.25;
 indGood(1:nStart-1) = 0;
 
 rangesGood = ranges(indGood);
@@ -511,25 +511,59 @@ zmax = 0.8;
 indGood = (xis > 1) & (yis > 1) & (xis < OMAP.map.sizex) & (yis < OMAP.map.sizey) & (zss<zmax);
 inds = sub2ind(size(OMAP.map.data),xis(indGood),yis(indGood));
 
-dzs = [diff(zss(indGood)) 0];
-%plot(dzs);
-%drawnow;
+cellChange = diff(inds);
+newCellLogic = cellChange ~=0;
+cellChangeInds  = [1 find(newCellLogic)];
 
+nCells = length(cellChangeInds);
+
+zsGood = zss(indGood);
+
+indsBadLogic = logical(zeros(size(inds)));
+for ii=1:nCells-2
+    zsc = zsGood(cellChangeInds(ii):cellChangeInds(ii+2));
+    minCurr = min(zsc);
+    maxCurr = max(zsc);
+    minMax = maxCurr - minCurr;
+    if (minMax > 0.08)
+        indsBadLogic(cellChangeInds(ii):cellChangeInds(ii+1)) = 1;
+    end
+   
+    
+end
+
+
+indsBad = inds(indsBadLogic);
+%indsBad = inds(indsBadLogic);
+
+%CMAP.map.data(indsBad) = CMAP.map.data(indsBad) + SLAM.cMapIncObs;
+firstBad = find(indsBadLogic,1);
+indsGood = inds(1:firstBad-1);
+
+%dzs = [diff(zss) 0];
 %indsBad = abs(dzs) > 0.05;
-indsBad = zss(indGood) > 0.05;
-firstBad = find(indsBad,1);
+%indsBad = zss(indGood) > 0.05;
+CMAP.map.data(indsBad) = CMAP.map.data(indsBad) + SLAM.cMapIncObs;
+CMAP.map.data(indsGood) = CMAP.map.data(indsGood) + SLAM.cMapIncFree;
 
 %czs = ones(size(dzs)) * SLAM.cMapIncFree;
-czs = zeros(size(dzs));
-czs(1:firstBad-1) = SLAM.cMapIncFree;
-czs(indsBad) = SLAM.cMapIncObs;
+%czs = zeros(size(dzs));
+%czs(1:firstBad-1) = SLAM.cMapIncFree;
+%CMAP.map.data(inds)=CMAP.map.data(inds)+czs;
 
-CMAP.map.data(inds)=CMAP.map.data(inds)+czs;
+%czs(indsBad) = SLAM.cMapIncObs;
+
+%CMAP.map.data(inds)=CMAP.map.data(inds)+czs;
+
+%make sure that the costs stay bounded
 tooLarge = CMAP.map.data(inds) > SLAM.maxCost;
 tooSmall = CMAP.map.data(inds) < SLAM.minCost;
 CMAP.map.data(inds(tooLarge)) = SLAM.maxCost;
 CMAP.map.data(inds(tooSmall)) = SLAM.minCost;
-OMAP.delta.data(inds) = 1;
+
+%mark the cells as modified
+OMAP.delta.data(indsBad)  = 1;
+OMAP.delta.data(indsGood) = 1;
 
 
 
