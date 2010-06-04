@@ -253,10 +253,13 @@ int main(int argc, char * argv[])
         IPC_publishData(lidarScanMsgName.c_str(),&lidarScan);
 
         //publis heart beat message
-        if (hBeatPublisher.Publish(0))
+        if (lidarScan.counter % 40 == 0)
         {
-          PRINT_ERROR("could not publish heartbeat\n");
-          return -1;
+          if (hBeatPublisher.Publish(0))
+          {
+            PRINT_ERROR("could not publish heartbeat\n");
+            //return -1;
+          }
         }
 
         printf(".");fflush(stdout);
