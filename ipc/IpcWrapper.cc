@@ -254,6 +254,11 @@ int IpcWrapperConnect(string taskName,
   if (ret == IPC_OK)
   {
     printf("connected to ipc\n");
+    
+    IPC_disconnect();
+    
+    ret = IPC_connectModule(IpcHelper::GetProcessName(taskName).c_str(), 
+                              serverName.c_str());
 
     if (multiThread)
     {
@@ -286,8 +291,8 @@ int IpcWrapperDisconnect()
   pthread_join(__ipcWrapperThread,NULL);
   printf("stopped thread\n");
   
-  IPC_disconnect();
-  printf("disconnected from ipc\n");
+  //IPC_disconnect();
+  //printf("disconnected from ipc\n");
 
   return 0;
 }
