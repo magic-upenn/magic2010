@@ -49,7 +49,7 @@ int16_t sensor_height=120; // sensor height in cm
 float inflation_size=0;  //size in cells to inflate obstacles
 float MAX_VELOCITY=5.0; // meters per second
 float MAX_TURN_RATE=1.0; // radians per second
-float GP_PLAN_TIME=5.0; // seconds to allow for planning
+float GP_PLAN_TIME=1.0; // seconds to allow for planning
 int HIGH_IG_THRES = 50000; // set by initialization and full map updates
 float IG_RATIO = 0.01; // ratio of total possible unknown to remaining unknown before switching to pure greedy search
 float LR_MARGIN = 10; // amount one side must be greater to influence pan angles
@@ -423,7 +423,7 @@ void global_planner(float goal_x, float goal_y, float goal_theta) {
 		for(int xxx=0;xxx<11; xxx++){
 			for(int yyy=0; yyy<11;yyy++) {
 				if (OnMap(robot_x+xxx-5,robot_y+yyy-5)) {
-					cost_map[robot_x+xxx-5+cost_size_x*(robot_y+yyy-5)] = OBSTACLE -10;
+					cost_map[robot_x+xxx-5+cost_size_x*(robot_y+yyy-5)] = OBSTACLE -2;
 				}
 			}
 		}		
@@ -432,7 +432,7 @@ void global_planner(float goal_x, float goal_y, float goal_theta) {
 		for(int xxx=0;xxx<11; xxx++){
 			for(int yyy=0; yyy<11;yyy++) {
 				if (OnMap(robot_x+xxx-5,robot_y+yyy-5)) {
-					inflated_cost_map[robot_x+xxx-5+cost_size_x*(robot_y+yyy-5)] = OBSTACLE -1;
+					inflated_cost_map[robot_x+xxx-5+cost_size_x*(robot_y+yyy-5)] = OBSTACLE -10;
 				}
 			}
 		}		
