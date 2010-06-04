@@ -61,6 +61,8 @@ SLAM.servo1Timeout = 0.2;
 
 SLAM.cMapIncFree = -5;
 SLAM.cMapIncObs  = 10;
+SLAM.maxCost     = 100;
+SLAM.minCost     = -100;
 
 
 omapInit;
@@ -469,9 +471,9 @@ Tpos = trans([SLAM.x SLAM.y SLAM.z])*rotz(SLAM.yaw);
 
 T = (Tpos*Timu*Tservo1*Tlidar1);
         
-nStart = 250;
+nStart = 250; %throw out points that pick up our own body
 ranges = double(LIDAR1.scan.ranges); %convert from float to double
-indGood = ranges >0.15;
+indGood = ranges >0.05;
 indGood(1:nStart-1) = 0;
 
 rangesGood = ranges(indGood);
@@ -523,6 +525,10 @@ czs(1:firstBad-1) = SLAM.cMapIncFree;
 czs(indsBad) = SLAM.cMapIncObs;
 
 CMAP.map.data(inds)=CMAP.map.data(inds)+czs;
+tooLarge = CMAP.map.data(inds) > SLAM.maxCost;
+tooSmall = CMAP.map.data(inds) < SLAM.minCost;
+CMAP.map.data(inds(tooLarge)) = SLAM.maxCost;
+CMAP.map.data(inds(tooSmall)) = SLAM.minCost;
 OMAP.delta.data(inds) = 1;
 
 
