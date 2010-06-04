@@ -1,3 +1,4 @@
+function RedDetect
 % Display pixels that are red using only Cr channel (in YCbCr space),
 % online. Adjust exposure to balance average luminance Y to setvalue.
 % Also adjust target Y according to red bin score.
@@ -12,12 +13,16 @@
 % angle = atand((xpixel-xcenter)/dist)
 
 SetMagicPaths;
+global POSE
+POSE.data = [];
 
 ipcInit;
 imageMsgName = GetMsgName('Image');
 staticOoiMsgName = GetMsgName('StaticOOI');
 ipcAPIDefine(imageMsgName);
 ipcAPIDefine(staticOoiMsgName);
+
+ipcReceiveSetFcn(GetMsgName('Pose'), @PoseMsgHander);
 
 %%%%%%%%%%%%%%%%%%
 
@@ -57,6 +62,7 @@ damping_factor = 50; % for changing Exposure setpoints
 targetY = 0.5;
 score_hist = zeros(5,1);
 counter = 0;
+
 % tic
 while(1)
     %for counter = 1:100
@@ -154,7 +160,7 @@ while(1)
     end
     hold off;
     drawnow;
-
+    
     if mod(counter,5)==0
         jpg = cjpeg(yRight);
         %%%%% send compressed jpg image through IPC %%%%%
@@ -163,12 +169,23 @@ while(1)
         imPacket.jpg = jpg;
         ipcAPIPublish(imageMsgName,serialize(imPacket));
 
-        if ~isempty(r)
+        if ~isempty(r) && counter > 50
             [maxr,indr] = max([r.redbinscore]); % best red bin candidate
             if maxr > 0.5
+                counter = 0;
                 r = r(indr);
+                  ipcReceiveMessages;
+                %    POSE.data
                 r.id = str2double(getenv('ROBOT_ID'));
                 r.t = GetUnixTime();
+                r.x = POSE.data.x;
+                r.y = POSE.data.y;
+                r.z = POSE.data.z;
+                r.v = POSE.data.v;
+                r.w = POSE.data.w;
+                r.roll = POSE.data.roll;
+                r.pitch = POSE.data.pitch;
+                r.yaw = POSE.data.yaw;
                 %%%%% send struct r through IPC %%%%%
                 ipcAPIPublish(staticOoiMsgName,serialize(r));
             end
@@ -227,3 +244,10 @@ end
 bumblebeeStopTransmission;
 
 %profile viewer
+function PoseMsgHander(data,name)
+global POSE
+  if isempty(data)
+    return;
+  end
+  
+  POSE.data = MagicPoseSerializer('deserialize',data);
