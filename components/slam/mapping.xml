@@ -26,8 +26,11 @@
     <specular>1 1 1</specular>
   </plugin>
 
-  <ipcHost>192.168.10.101</ipcHost>
 <!--
+<ipcHost>192.168.10.101</ipcHost>
+
+  
+
 
   <plugin>
     <id>grid</id>
