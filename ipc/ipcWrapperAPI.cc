@@ -402,7 +402,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   }
 
   //receive and return a message to matlab.
-  else if (strcasecmp(command, "receive") == 0)
+  else if (strcasecmp(command, "receive") == 0 || strcasecmp(command, "listen") == 0 ||
+           strcasecmp(command, "listenClear") == 0 || strcasecmp(command, "listenWait") == 0)
   {
     if (!connected)
       mexErrMsgTxt("ipcAPI: receive: not connected to ipc");

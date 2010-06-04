@@ -41,6 +41,8 @@ struct IpcPublishQueueEntry
 std::list<IpcPublishQueueEntry> __publishQueue;
 std::list<IpcPublishQueueEntry> __publishVCQueue;
 
+std::list<uint8_t*> __freeRawQueue;
+
 int __IpcWrapperCheckPendingActions()
 {
   int nActions;
@@ -86,10 +88,10 @@ void *__IpcWrapperThreadFunc(void * input)
     }
 
     __ipcTimer.Tic();
-    printf("?"); fflush(stdout);
+    //printf("?"); fflush(stdout);
     
     //try to receive messages
-    int ret = IPC_listen(10);
+    int ret = IPC_listenWait(10);
     
     switch (ret)
     {
@@ -98,7 +100,7 @@ void *__IpcWrapperThreadFunc(void * input)
       case IPC_Error:
         printf("not connected!\n");
       case IPC_Timeout:
-        printf("."); fflush(stdout);
+        //printf("."); fflush(stdout);
         break;
       default:
         break;
@@ -152,6 +154,21 @@ void *__IpcWrapperThreadFunc(void * input)
       pthread_mutex_lock( &__ipcWrapperActionRequestMutex );
       __publishVCQueue.pop_front();
       empty = __publishVCQueue.empty(); 
+      pthread_mutex_unlock( &__ipcWrapperActionRequestMutex );
+    }
+
+
+
+    pthread_mutex_lock( &__ipcWrapperActionRequestMutex );
+    empty = __freeRawQueue.empty(); 
+    pthread_mutex_unlock( &__ipcWrapperActionRequestMutex );
+    
+    while(!empty)
+    {
+      IPC_freeByteArray(__freeRawQueue.front());
+      pthread_mutex_lock( &__ipcWrapperActionRequestMutex );
+      __freeRawQueue.pop_front();
+      empty = __freeRawQueue.empty(); 
       pthread_mutex_unlock( &__ipcWrapperActionRequestMutex );
     }
     
@@ -411,6 +428,8 @@ int IpcWrapperQueryResponseData(const char * msgName, void * data,
 
 int IpcWrapperFreeData(const char * format, void * data)
 {
+
+
   int ret = __IpcWrapperGetActionLock();
   if (ret) return -1;
 
@@ -439,6 +458,7 @@ int IpcWrapperFreeData(FORMATTER_PTR formatter, void * data)
 
 int IpcWrapperFreeByteArray(void * data)
 {
+/*
   int ret = __IpcWrapperGetActionLock();
   if (ret) return -1;
 
@@ -447,6 +467,13 @@ int IpcWrapperFreeByteArray(void * data)
   ret = __IpcWrapperReleaseActionLock();
   if (ret) return -2;
   else return 0;
+*/
+
+  pthread_mutex_lock( &__ipcWrapperActionRequestMutex );
+  __freeRawQueue.push_back((uint8_t*)data);
+  pthread_mutex_unlock( &__ipcWrapperActionRequestMutex );
+
+  return 0;
 }
 
 int IpcWrapperSetMsgQueueLength(string msgName, int length)
