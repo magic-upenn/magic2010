@@ -4,7 +4,7 @@ clear all
 global ROBOTS
 SetMagicPaths
 
-ids=[1 2 3 4];
+ids=[1];
 
 masterConnectRobots(ids);
 
@@ -17,7 +17,8 @@ masterSubscribeRobots(messages,handles);
 
 while(1)
   %listen to messages 10ms at a time (frome each robot)
-  masterReceiveFromRobots(10)
+  masterReceiveFromRobots(10);
+  pause(0.1);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -52,6 +53,7 @@ global ROBOTS
 
 id = GetIdFromName(name);
 ROBOTS(id).heartbeat.data = MagicHeartBeatSerializer('deserialize',data);
+data = ROBOTS(id).heartbeat.data
 fprintf(1,'got heartbeat message from robot %d\n',id);
 
 

@@ -3,12 +3,15 @@ global ROBOTS
 %initialize the data structure for the maximum number of robots
 maxRobots = 10;
 
+%ipcAPIPrefix = 'ipcAPI';
+ipcAPIPrefix = 'ipcWrapperAPI';
+
 for ii=1:maxRobots
   %initialize the ids
   ROBOTS(ii).id     = ii;
 
   %initialize the ipcAPI function handles
-  ROBOTS(ii).ipcAPI = str2func(sprintf('ipcAPI%d',ii));
+  ROBOTS(ii).ipcAPI = str2func(sprintf('%s%d',ipcAPIPrefix,ii));
   
   %specify ip address and (optionally) port 
   %in format 'xxx.xxx.xxx.xxx:port'
