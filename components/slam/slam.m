@@ -239,6 +239,12 @@ end
 OMAP.map.data(inds)=OMAP.map.data(inds)+inc;
 
 CMAP.map.data(inds)=CMAP.map.data(inds)+SLAM.cMapIncObs;
+
+tooLarge = CMAP.map.data(inds) > SLAM.maxCost;
+tooSmall = CMAP.map.data(inds) < SLAM.minCost;
+CMAP.map.data(inds(tooLarge)) = SLAM.maxCost;
+CMAP.map.data(inds(tooSmall)) = SLAM.minCost;
+
 OMAP.delta.data(inds) = 1;
 
 %send out map updates
@@ -492,7 +498,7 @@ onesg=ones(size(xsg));
 X = [xsg; ysg; zsg; onesg];
 Y=T*X;
 
-%in sensor frame
+%in body
 xss = Y(1,:);
 yss = Y(2,:);
 zss = Y(3,:);
@@ -516,35 +522,78 @@ newCellLogic = cellChange ~=0;
 cellChangeInds  = [1 find(newCellLogic)];
 
 nCells = length(cellChangeInds);
+nCounts = zeros(1,length(inds));
 
+xsGood = xss(indGood);
+ysGood = yss(indGood);
 zsGood = zss(indGood);
+rsGood = rangesGood(indGood);
+
 
 indsBadLogic = logical(zeros(size(inds)));
-for ii=1:nCells-2
-    zsc = zsGood(cellChangeInds(ii):cellChangeInds(ii+2));
+
+zMinPrev = 0;
+zMaxPrev = 0;
+xPrev = 0;
+yPrev = 0;
+
+angles = zeros(1,nCells-1);
+
+inc=1;
+for ii=1:nCells-inc
+    zsc = zsGood(cellChangeInds(ii):cellChangeInds(ii+inc));
+    nCounts(cellChangeInds(ii):cellChangeInds(ii+inc)) = cellChangeInds(ii+inc)-cellChangeInds(ii);
     minCurr = min(zsc);
     maxCurr = max(zsc);
-    minMax = maxCurr - minCurr;
-    if (minMax > 0.08)
-        indsBadLogic(cellChangeInds(ii):cellChangeInds(ii+1)) = 1;
-    end
-   
+    minMax = abs(maxCurr - minCurr);
     
+    if (minMax > 0.06)
+        indsBadLogic(cellChangeInds(ii):cellChangeInds(ii+inc)) = 1;
+    end
+    
+    
+    xCurr  = xsGood(cellChangeInds(ii));
+    yCurr  = ysGood(cellChangeInds(ii));
+    rCurr  = rsGood(cellChangeInds(ii));
+    
+    if (ii>1)
+        z1 = abs(maxCurr-zMinPrev);
+        z2 = abs(zMaxPrev-minCurr);
+        vert = max([z1,z2]);
+        dist = norm([xCurr-xPrev; yCurr-yPrev]);
+        angle = atan2(vert,dist);
+        dr = abs(rCurr-rPrev);
+        
+        %angles(ii) = vert; %angle/pi*180;
+        
+        if ((dr > 0.07) && (abs(angle) > 20/180*pi))
+            indsBadLogic(cellChangeInds(ii):cellChangeInds(ii+inc)) = 1;
+        end
+    end
+    
+    zMinPrev = minCurr;
+    zMaxPrev = maxCurr;
+    xPrev    = xCurr;
+    yPrev    = yCurr;
+    rPrev    = rCurr;
 end
 
+%plot(angles); drawnow;
 
 indsBad = inds(indsBadLogic);
 %indsBad = inds(indsBadLogic);
 
 %CMAP.map.data(indsBad) = CMAP.map.data(indsBad) + SLAM.cMapIncObs;
 firstBad = find(indsBadLogic,1);
-indsGood = inds(1:firstBad-1);
+
+indsGoodLogicInds = 1:firstBad-1;
+indsGood = inds(indsGoodLogicInds);
 
 %dzs = [diff(zss) 0];
 %indsBad = abs(dzs) > 0.05;
 %indsBad = zss(indGood) > 0.05;
-CMAP.map.data(indsBad) = CMAP.map.data(indsBad) + SLAM.cMapIncObs;
-CMAP.map.data(indsGood) = CMAP.map.data(indsGood) + SLAM.cMapIncFree;
+CMAP.map.data(indsBad) = CMAP.map.data(indsBad) + nCounts(indsBadLogic).*SLAM.cMapIncObs;
+CMAP.map.data(indsGood) = CMAP.map.data(indsGood) + nCounts(indsGoodLogicInds)*SLAM.cMapIncFree;
 
 %czs = ones(size(dzs)) * SLAM.cMapIncFree;
 %czs = zeros(size(dzs));
