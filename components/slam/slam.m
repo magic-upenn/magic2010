@@ -68,9 +68,12 @@ SLAM.maxCost     = 100;
 SLAM.minCost     = -100;
 
 
+initMapProps;
 omapInit;
 emapInit;
 cmapInit;
+dvmapInit;
+dhmapInit;
 lidar0Init;
 lidar1Init;
 servo1Init;
@@ -108,7 +111,7 @@ ipcReceiveMessages;
 % Lidar0 message handler (horizontal lidar)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function slamProcessLidar0(data,name)
-global SLAM LIDAR0 OMAP EMAP POSE IMU TRAJ CMAP
+global SLAM LIDAR0 OMAP EMAP POSE IMU TRAJ CMAP DHMAP
 
 if ~isempty(data)
   LIDAR0.scan = MagicLidarScanSerializer('deserialize',data);
@@ -240,19 +243,18 @@ if (SLAM.lidar0Cntr == 1)
 end
 
 OMAP.map.data(inds)=OMAP.map.data(inds)+inc;
-
-CMAP.map.data(inds)=CMAP.map.data(inds)+SLAM.cMapIncObs;
+CMAP.map.data(inds)=CMAP.map.data(inds)+SLAM.cMapIncObs;  %TODO: add weight to cells with multiple hits
 
 tooLarge = CMAP.map.data(inds) > SLAM.maxCost;
 tooSmall = CMAP.map.data(inds) < SLAM.minCost;
 CMAP.map.data(inds(tooLarge)) = SLAM.maxCost;
 CMAP.map.data(inds(tooSmall)) = SLAM.minCost;
 
-OMAP.delta.data(inds) = 1;
+DHMAP.map.data(inds) = 1;
 
 %send out map updates
 if (mod(SLAM.lidar0Cntr,40) == 0)
-  [xdi ydi] = find(OMAP.delta.data);
+  [xdi ydi] = find(DHMAP.map.data);
   
   MapUpdate.xs = single(xdi * CMAP.res + CMAP.xmin);
   MapUpdate.ys = single(ydi * CMAP.res + CMAP.ymin);
@@ -261,7 +263,7 @@ if (mod(SLAM.lidar0Cntr,40) == 0)
   ipcAPIPublish(SLAM.MapIncUpdateMsgName,content);
   
   %reset the delta map
-  OMAP.delta.data = zeros(size(OMAP.delta.data),'uint8');
+  DHMAP.map.data = zeros(size(DHMAP.map.data),'uint8');
 end
 
 if (SLAM.updateExplorationMap) 
@@ -362,7 +364,11 @@ if (yi(2) > OMAP.map.sizey), yExpand = expandSize; end
 
 if (xExpand ~=0 || yExpand ~=0)
   %expand the map
-  omapExpand(xExpand,yExpand);
+  %omapExpand(xExpand,yExpand);
+  expandMap(OMAP);
+  expandMap(DHMAP);
+  expandMap(DVMAP);
+  expandMAP(CMAP);
   
   %update the boundaries
   ScanMatch2D('setBoundaries',OMAP.xmin,OMAP.ymin,OMAP.xmax,OMAP.ymax);
@@ -467,7 +473,7 @@ SERVO1.data = MagicServoStateSerializer('deserialize',data);
 % Lidar1 message handler (vertical lidar)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function slamProcessLidar1(data,name)
-global SLAM LIDAR1 SERVO1 OMAP CMAP EMAP POSE IMU
+global SLAM LIDAR1 SERVO1 OMAP CMAP EMAP POSE IMU DVMAP
 
 if ~isempty(data)
   LIDAR1.scan = MagicLidarScanSerializer('deserialize',data);
@@ -621,8 +627,8 @@ CMAP.map.data(inds(tooLarge)) = SLAM.maxCost;
 CMAP.map.data(inds(tooSmall)) = SLAM.minCost;
 
 %mark the cells as modified
-OMAP.delta.data(indsBad)  = 1;
-OMAP.delta.data(indsGood) = 1;
+DVMAP.map.data(indsBad)  = 1;
+DVMAP.map.data(indsGood) = 1;
 
 
 

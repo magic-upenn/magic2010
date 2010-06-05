@@ -145,7 +145,7 @@ global CMAP MAP_FIGURE POSE VIS
   map.res       = CMAP.res;
   map.map.sizex = CMAP.map.sizex;
   map.map.sizey = CMAP.map.sizey;
-  map.map.data  = uint8(CMAP.map.data + 127);
+  map.map.data  = uint8(CMAP.map.data + 100);
   content = VisMap2DSerializer('serialize',map);
   ipcAPI2('publishVC',VIS.mapMsgName,content);
   

@@ -207,7 +207,7 @@
       <id>colormap</id>
       <filename>CmGray.so</filename>
       <min_val>0</min_val>
-      <max_val>255</max_val>
+      <max_val>200</max_val>
     </plugin>
 
 	</plugin>
@@ -236,7 +236,7 @@
       <id>colormap</id>
       <filename>CmJet.so</filename>
       <min_val>0</min_val>
-      <max_val>255</max_val>
+      <max_val>200</max_val>
     </plugin>
 
 	</plugin>

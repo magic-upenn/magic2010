@@ -1,23 +1,23 @@
 function emapInit
-global EMAP POSE
+global EMAP MAPS
 
 if isempty(EMAP) || ~isfield(EMAP,'initialized') || (EMAP.initialized ~= 1)
 
-  EMAP.res        = 0.05;
-  EMAP.invRes     = 1/EMAP.res;
-
-  windowSize      = 40;
-  EMAP.xmin       = POSE.xInit - windowSize;
-  EMAP.ymin       = POSE.yInit - windowSize;
-  EMAP.xmax       = POSE.xInit + windowSize;
-  EMAP.ymax       = POSE.yInit + windowSize;
-  EMAP.zmin       = 0;
-  EMAP.zmax       = 5;
-
-  EMAP.map.sizex  = (EMAP.xmax - EMAP.xmin) / EMAP.res + 1;
-  EMAP.map.sizey  = (EMAP.ymax - EMAP.ymin) / EMAP.res + 1;
+  EMAP.res        = MAPS.res;
+  EMAP.invRes     = MAPS.invRes;
+  EMAP.xmin       = MAPS.xmin;
+  EMAP.ymin       = MAPS.ymin;
+  EMAP.xmax       = MAPS.xmax;
+  EMAP.ymax       = MAPS.ymax;
+  EMAP.zmin       = MAPS.zmin;
+  EMAP.zmax       = MAPS.zmax;
+  EMAP.map.sizex  = MAPS.map.sizex;
+  EMAP.map.sizey  = MAPS.map.sizey;
+  
   EMAP.map.data   = zeros(EMAP.map.sizex,EMAP.map.sizey,'uint8');
   EMAP.msgName    = [GetRobotName '/ExplorationMap2D_map2d'];
+  
+  EMAP.name       = 'Exploration Map';
   
   ipcInit;
   if checkVis, ipcAPIDefine(EMAP.msgName,VisMap2DSerializer('getFormat')); end

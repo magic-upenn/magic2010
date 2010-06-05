@@ -1,31 +1,23 @@
 function omapInit
-global OMAP POSE
+global OMAP MAPS
 
 if isempty(OMAP) || ~isfield(OMAP,'initialized') ||(OMAP.initialized ~= 1)
 
-  OMAP.res        = 0.05;
-  OMAP.invRes     = 1/OMAP.res;
+  OMAP.res        = MAPS.res;
+  OMAP.invRes     = MAPS.invRes;
+  OMAP.xmin       = MAPS.xmin;
+  OMAP.ymin       = MAPS.ymin;
+  OMAP.xmax       = MAPS.xmax;
+  OMAP.ymax       = MAPS.ymax;
+  OMAP.zmin       = MAPS.zmin;
+  OMAP.zmax       = MAPS.zmax;
+  OMAP.map.sizex  = MAPS.map.sizex;
+  OMAP.map.sizey  = MAPS.map.sizey;
   
-  windowSize      = 40;
-  OMAP.xmin       = POSE.xInit - windowSize;
-  OMAP.ymin       = POSE.yInit - windowSize;
-  OMAP.xmax       = POSE.xInit + windowSize;
-  OMAP.ymax       = POSE.yInit + windowSize;
-  OMAP.zmin       = 0;
-  OMAP.zmax       = 5;
-
-  OMAP.map.sizex  = (OMAP.xmax - OMAP.xmin) / OMAP.res + 1;
-  OMAP.map.sizey  = (OMAP.ymax - OMAP.ymin) / OMAP.res + 1;
   OMAP.map.data   = zeros(OMAP.map.sizex,OMAP.map.sizey,'uint8');
   OMAP.msgName    = [GetRobotName '/ObstacleMap2D_map2d'];
   
-  OMAP.delta.sizex = OMAP.map.sizex;
-  OMAP.delta.sizey = OMAP.map.sizey;
-  OMAP.delta.data  = zeros(size(OMAP.map.data),'uint8');
-  
-  OMAP.cost.sizex  = OMAP.map.sizex;
-  OMAP.cost.sizey  = OMAP.map.sizey;
-  OMAP.cost.data   = zeros(size(OMAP.map.data),'single');
+  OMAP.name = 'Occupancy Map';
   
   ipcInit;
   if checkVis, ipcAPIDefine(OMAP.msgName,VisMap2DSerializer('getFormat')); end
