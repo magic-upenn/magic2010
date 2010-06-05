@@ -5,14 +5,25 @@ function slamProcessLidar1(data,name)
 global SLAM LIDAR1 SERVO1 OMAP CMAP EMAP POSE IMU
 
 
-disp('.');
-return;
-
 if ~isempty(data)
   LIDAR1.scan = MagicLidarScanSerializer('deserialize',data);
 else
   return;
 end
+
+ranges = double(LIDAR1.scan.ranges); %convert from float to double
+xLidar = ranges.*LIDAR1.cosines;
+yLidar = ranges.*LIDAR1.sines;
+
+plot(xLidar, yLidar, '.-');
+drawnow
+
+
+return;
+
+
+
+
 
 %make sure we have fresh data
 if (CheckImu() ~= 1), return; end
