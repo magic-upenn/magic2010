@@ -171,7 +171,7 @@ while(1)
 
         if ~isempty(r) && counter > 50
             [maxr,indr] = max([r.redbinscore]); % best red bin candidate
-            if maxr > 0.5
+            if ~isempty(POSE) && maxr > 0.5
                 counter = 0;
                 r = r(indr);
                   ipcReceiveMessages;
