@@ -161,7 +161,7 @@ while(1)
     hold off;
     drawnow;
     
-    if mod(counter,5)==0
+    if mod(counter,2)==0
         jpg = cjpeg(yRight);
         %%%%% send compressed jpg image through IPC %%%%%
         imPacket.id = str2double(getenv('ROBOT_ID'));
@@ -171,21 +171,32 @@ while(1)
 
         if ~isempty(r) && counter > 50
             [maxr,indr] = max([r.redbinscore]); % best red bin candidate
-            if ~isempty(POSE) && maxr > 0.5
+            if maxr > 0.5
                 counter = 0;
                 r = r(indr);
                   ipcReceiveMessages;
                 %    POSE.data
                 r.id = str2double(getenv('ROBOT_ID'));
-                r.t = GetUnixTime();
-                r.x = POSE.data.x;
-                r.y = POSE.data.y;
-                r.z = POSE.data.z;
-                r.v = POSE.data.v;
-                r.w = POSE.data.w;
-                r.roll = POSE.data.roll;
-                r.pitch = POSE.data.pitch;
-                r.yaw = POSE.data.yaw;
+                r.t = GetUnixTime()
+		if ~isempty(POSE.data)
+			r.x = POSE.data.x;
+			r.y = POSE.data.y;
+			r.z = POSE.data.z;
+			r.v = POSE.data.v;
+			r.w = POSE.data.w;
+			r.roll = POSE.data.roll;
+			r.pitch = POSE.data.pitch;
+			r.yaw = POSE.data.yaw;
+		else
+			r.x = []; 
+			r.y = []; 
+			r.z = []; 
+			r.v = []; 
+			r.w = []; 
+			r.roll = []; 
+			r.pitch = []; 
+			r.yaw = []; 
+		end 
                 %%%%% send struct r through IPC %%%%%
                 ipcAPIPublish(staticOoiMsgName,serialize(r));
             end
@@ -246,8 +257,9 @@ bumblebeeStopTransmission;
 %profile viewer
 function PoseMsgHander(data,name)
 global POSE
+  POSE.data = [];
   if isempty(data)
     return;
   end
-  
+
   POSE.data = MagicPoseSerializer('deserialize',data);
