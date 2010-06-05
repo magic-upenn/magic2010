@@ -10,6 +10,7 @@ SetMagicPaths;
 %ipcInit('192.168.10.100');
 ipcInit(host)
 poseInit;
+initMapProps;
 cmapInit;
 omapInit;
 emapInit;
@@ -22,7 +23,7 @@ ids=[1 3];
 
 masterConnectRobots(ids);
 
-messages = {'Pose','MapIncUpdate'};
+messages = {'PoseExternal','IncMapUpdateH'};
 handles  = {@PoseMsgHandler,@MapUpdateMsgHandler};
 
 queueLengths = [5 5];
@@ -44,6 +45,12 @@ ipcAPI('connect');
 ipcAPI('define',VIS.mapMsgName,mapMsgFormat);
 ipcAPI('define',VIS.updateRectMsgName,updateRectMsgFormat);
 ipcAPI('define',VIS.updatePointsMsgName,updatePointsMsgFormat);
+
+
+for ii=1:10
+  ipcAPI('define',sprintf('Robot%s/Pose',ii),MagicPoseSerializer('getFormat'));
+end
+
 
 while(1)
   %listen to messages 10ms at a time (frome each robot)
@@ -77,31 +84,16 @@ while(1)
 end
 
 function PoseMsgHandler(data,name)
-global POSE MAP_FIGURE
+global ROBOTS MAP_FIGURE
   if isempty(data)
     return;
   end
   
-  POSE.data = MagicPoseSerializer('deserialize',data);
+  id = GetIdFromName(name);
+  ROBOTS(id).pose.data = MagicPoseSerializer('deserialize',data);
+  fprintf('got pose of robot %d\n',id);
   
-  if isempty(MAP_FIGURE)
-    return
-  end
-  
-  if ~isfield(POSE,'hPose')
-    hold on;
-    POSE.hPose = plot(POSE.data.x,POSE.data.y,'r*');
-    hold off;
-  else
-    set(POSE.hPose,'xdata',POSE.data.x,'ydata',POSE.data.y);
-  end
-  
-  POSE.cntr = POSE.cntr +1;
-  if (mod(POSE.cntr,10) == 0)
-    drawnow;
-  end
-  
-  ipcAPI('publishVC',POSE.msgName,MagicPoseSerializer('serialize',POSE.data));
+  ipcAPI('publishVC',sprintf('Robot%d/Pose',id),MagicPoseSerializer('serialize',ROBOTS(id).pose.data));
   
   %fprintf(1,'got pose update\n');
 
