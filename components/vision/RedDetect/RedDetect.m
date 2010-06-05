@@ -162,7 +162,7 @@ while(1)
     drawnow;
     
     if mod(counter,2)==0
-        jpg = cjpeg(yLeft);
+        jpg = cjpeg(yRight);
         %%%%% send compressed jpg image through IPC %%%%%
         imPacket.id = str2double(getenv('ROBOT_ID'));
         imPacket.t  = GetUnixTime();
