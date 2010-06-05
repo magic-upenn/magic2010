@@ -48,7 +48,7 @@ ipcAPI('define',VIS.updatePointsMsgName,updatePointsMsgFormat);
 
 
 for ii=1:10
-  ipcAPI('define',sprintf('Robot%s/Pose',ii),MagicPoseSerializer('getFormat'));
+  ipcAPI('define',sprintf('Robot%d/Pose',ii),MagicPoseSerializer('getFormat'));
 end
 
 
