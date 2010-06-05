@@ -28,6 +28,9 @@ SetMagicPaths;
 ipcInit(SLAM.addr);
 
 SLAM.updateExplorationMap = 0;
+SLAM.explorationUpdatePeriod = 5;
+SLAM.plannerUpdatePeriod = 2;
+
 SLAM.explorationUpdateTime = GetUnixTime();
 SLAM.plannerUpdateTime = GetUnixTime();
 poseInit();
@@ -276,12 +279,19 @@ if (SLAM.updateExplorationMap)
     %axis xy;
     %drawnow;
     %EMAP.map.data(cis) = EMAP.map.data(cis)+1;
-    if (GetUnixTime()-SLAM.plannerUpdateTime > 2) %(mod(SLAM.lidar0Cntr,300) == 0)
+    if (GetUnixTime()-SLAM.plannerUpdateTime > SLAM.plannerUpdatePeriod) %(mod(SLAM.lidar0Cntr,300) == 0)
       PublishMapsToMotionPlanner;
       fprintf('sent planner map\n');
       SLAM.plannerUpdateTime = GetUnixTime();
+    else
+      %send pose
+      position_update.timestamp = GetUnixTime();
+      position_update.x = SLAM.x;
+      position_update.y = SLAM.y;
+      position_update.theta = SLAM.yaw;
+      ipcAPIPublishVC('Lattice Planner Position Update',MagicGP_POSITION_UPDATESerializer('serialize',position_update));
     end
-    if (GetUnixTime()-SLAM.explorationUpdateTime > 10) %(mod(SLAM.lidar0Cntr,300) == 0)
+    if (GetUnixTime()-SLAM.explorationUpdateTime > SLAM.explorationUpdatePeriod) %(mod(SLAM.lidar0Cntr,300) == 0)
       PublishMapsToExplorationPlanner;
       fprintf('sent exploration maps\n');
       SLAM.explorationUpdateTime = GetUnixTime();
