@@ -41,6 +41,7 @@ updateRectMsgFormat = VisMap2DUpdateRectSerializer('getFormat');
 VIS.updatePointsMsgName   = 'Robot1/CostMap2D_map2dUpdatePoints';
 updatePointsMsgFormat = VisMap2DUpdatePointsSerializer('getFormat'); 
 
+%define messages for local viewing
 ipcAPI('connect');
 ipcAPI('define',VIS.mapMsgName,mapMsgFormat);
 ipcAPI('define',VIS.updateRectMsgName,updateRectMsgFormat);
