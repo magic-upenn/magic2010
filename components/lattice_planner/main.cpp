@@ -20,6 +20,8 @@ using namespace std;
 #define min(a,b) (a<b?a:b)
 #define max(a,b) (a>b?a:b)
 
+#define PLANNING_TIME 1.0
+
 int count=0;
 
 int size_x=0;
@@ -39,7 +41,8 @@ float inner_radius = 0;
 float outer_radius = 0;
 float padding = 3;
 int exploration_obst_thresh = 250;
-int obst_thresh = 255;
+int obst_thresh = 254;
+int inner_obst_thresh = obst_thresh-1;
 float close_to_path = 6;
 
 double global_x_offset = 0;
@@ -66,7 +69,7 @@ char initialized = 0;
 #define UPDATED_MAP 1<<5
 #define UPDATED_POS 1<<6
 #define INIT_DONE (INIT_RES | INIT_PARAMS | INIT_MAP | INIT_POSE | INIT_TRAJ | UPDATED_MAP | UPDATED_POS)
-#define NEED_UPDATE (INIT_RES | INIT_PARAMS | INIT_MAP | INIT_POSE | INIT_TRAJ)
+#define NEED_UPDATE (INIT_RES | INIT_PARAMS | INIT_MAP | INIT_POSE | INIT_TRAJ | UPDATED_MAP)
 
 
 
@@ -108,7 +111,8 @@ static void GP_ROBOT_PARAMETER_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData
     sbpl_2Dpt_t pt;
     pt.x = gp_robot_parameter_p->PerimeterArray[i*gp_robot_parameter_p->J_DIMENSION];
     pt.y = gp_robot_parameter_p->PerimeterArray[i*gp_robot_parameter_p->J_DIMENSION+1];
-    perimeterptsV.push_back(pt);
+    //THIS IS A POINT ROBOT!!!!!! 
+    //perimeterptsV.push_back(pt);
     float r = sqrt(pt.x*pt.x+pt.y*pt.y);
     if(r>outer_radius)
       outer_radius = r;
@@ -150,8 +154,8 @@ static void GP_FULL_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, vo
     }
 
     env = new EnvironmentMAGICLAT();
-    env->SetEnvParameter("cost_obsthresh",254);
-    env->SetEnvParameter("cost_inscribed_thresh",253);
+    env->SetEnvParameter("cost_obsthresh",obst_thresh);
+    env->SetEnvParameter("cost_inscribed_thresh",inner_obst_thresh);
     env->SetEnvParameter("cost_possibly_circumscribed_thresh",252);
 
     const char* primitive_filename = "magic.mprim";
@@ -212,6 +216,17 @@ static void GP_FULL_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, vo
 
   for(int x=0; x<size_x; x++){
     for(int y=0; y<size_y; y++){
+      if(costmap[x][y] <= outer_radius)
+        costmap[x][y] = 254;
+      else if(costmap[x][y] <= padding)
+        costmap[x][y] = max((padding-costmap[x][y])*150/(padding-outer_radius), rawcostmap[x][y]);
+      else
+        costmap[x][y] = rawcostmap[x][y];
+    }
+  }
+  /*
+  for(int x=0; x<size_x; x++){
+    for(int y=0; y<size_y; y++){
       if(costmap[x][y] == 0)
         costmap[x][y] = 254;
       else if(costmap[x][y] <= inner_radius)
@@ -224,6 +239,7 @@ static void GP_FULL_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, vo
         costmap[x][y] = rawcostmap[x][y];
     }
   }
+  */
 
 	//free memory used by message
 	IPC_freeDataElements(IPC_msgInstanceFormatter(msgRef), (void *) gp_full_update_p);
@@ -256,6 +272,17 @@ static void GP_SHORT_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, v
 
   for(int x=0; x<size_x; x++){
     for(int y=0; y<size_y; y++){
+      if(costmap[x][y] <= outer_radius)
+        costmap[x][y] = 254;
+      else if(costmap[x][y] <= padding)
+        costmap[x][y] = max((padding-costmap[x][y])*150/(padding-outer_radius), rawcostmap[x][y]);
+      else
+        costmap[x][y] = rawcostmap[x][y];
+    }
+  }
+  /*
+  for(int x=0; x<size_x; x++){
+    for(int y=0; y<size_y; y++){
       if(costmap[x][y] == 0)
         costmap[x][y] = 254;
       else if(costmap[x][y] <= inner_radius)
@@ -268,6 +295,7 @@ static void GP_SHORT_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, v
         costmap[x][y] = rawcostmap[x][y];
     }
   }
+  */
 
 	//free the message data
 	IPC_freeDataElements(IPC_msgInstanceFormatter(msgRef), (void *) gp_short_update_p);
@@ -371,7 +399,7 @@ int main(int argc, char** argv){
 	printf("\nIPC_subscribe(%s, GP_FULL_UPDATE_Handler, %s)\n", GP_FULL_UPDATE_MSG, MODULE_NAME);
 	//IPC_subscribe(GP_FULL_UPDATE_MSG, GP_FULL_UPDATE_Handler, (void *)MODULE_NAME);
 	IPC_subscribe("Lattice Planner Full Update", GP_FULL_UPDATE_Handler, (void *)MODULE_NAME);
-  IPC_setMsgQueueLength(GP_FULL_UPDATE_MSG, 1);
+  IPC_setMsgQueueLength("Lattice Planner Full Update", 1);
 
 	printf("\nIPC_subscribe(%s, GP_SHORT_UPDATE_Handler, %s)\n", GP_SHORT_UPDATE_MSG, MODULE_NAME);
 	IPC_subscribe(GP_SHORT_UPDATE_MSG, GP_SHORT_UPDATE_Handler, (void *)MODULE_NAME);
@@ -379,7 +407,7 @@ int main(int argc, char** argv){
 	printf("\nIPC_subscribe(%s, GP_POSITION_UPDATE_Handler, %s)\n", GP_POSITION_UPDATE_MSG, MODULE_NAME);
 	//IPC_subscribe(GP_POSITION_UPDATE_MSG, GP_POSITION_UPDATE_Handler, (void *)MODULE_NAME);
 	IPC_subscribe("Lattice Planner Position Update", GP_POSITION_UPDATE_Handler, (void *)MODULE_NAME);
-  IPC_setMsgQueueLength(GP_POSITION_UPDATE_MSG, 1);
+  IPC_setMsgQueueLength("Lattice Planner Position Update", 1);
 
   printf("\nIPC_subscribe(%s, msg2Handler, %s)\n", GP_TRAJECTORY_MSG, MODULE_NAME);
   IPC_subscribe(GP_TRAJECTORY_MSG, GPTRAJHandler, (void *)MODULE_NAME);
@@ -405,15 +433,26 @@ int main(int argc, char** argv){
         makeTrajMap();
 
       //copy data to map
+      double temp_rad_sqr = outer_radius/resolution;
+      temp_rad_sqr *= temp_rad_sqr;
+      double start_cell_x = global_start_x/resolution;
+      double start_cell_y = global_start_y/resolution;
       for(int x=0; x < size_x; x++){
         for(int y=0; y < size_y; y++){
           unsigned char c;
-          if(costmap[x][y] < 252)
-            c = (unsigned char)min(max(costmap[x][y], trajmap[x][y]),251);
-            //c = (unsigned char)min(costmap[x][y] + trajmap[x][y], 251);
-          else
-            c= (unsigned char)costmap[x][y];
-          env->UpdateCost(x, y, c);
+          double dist = (start_cell_x-x)*(start_cell_x-x) + (start_cell_y-y)*(start_cell_y-y);
+          if(dist < temp_rad_sqr){
+            c = min(costmap[x][y], inner_obst_thresh-1);
+            env->UpdateCost(x,y,c);
+          }
+          else{
+            if(costmap[x][y] < 252)
+              c = (unsigned char)min(max(costmap[x][y], trajmap[x][y]),251);
+              //c = (unsigned char)min(costmap[x][y] + trajmap[x][y], 251);
+            else
+              c= (unsigned char)costmap[x][y];
+            env->UpdateCost(x, y, c);
+          }
         }
       }
       planner->costs_changed();
@@ -424,7 +463,7 @@ int main(int argc, char** argv){
       planner->set_goal(env->SetGoal(global_goal_x-global_x_offset,
                                      global_goal_y-global_y_offset,
                                      global_goal_theta));
-      if(planner->replan(1.0, &solution_stateIDs))
+      if(planner->replan(PLANNING_TIME, &solution_stateIDs))
           printf("Solution is found\n");
       else{
           printf("Solution does not exist\n");

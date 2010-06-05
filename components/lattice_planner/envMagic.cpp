@@ -42,6 +42,7 @@ static clock_t time_getsuccs = 0;
 
 static long int checks = 0; 
 
+#define LEAVING_OBSTACLE_PENALTY 255*100
 #define XYTHETA2INDEX(X,Y,THETA) (THETA + X*MAGICLAT_THETADIRS + Y*EnvMAGICLATCfg.EnvWidth_c*MAGICLAT_THETADIRS)
 
 //-----------------constructors/destructors-------------------------------
@@ -1279,16 +1280,20 @@ int EnvironmentMAGICLATTICE::GetActionCost(int SourceX, int SourceY, int SourceT
 
 	//TODO - go over bounding box (minpt and maxpt) to test validity and skip testing boundaries below, also order intersect cells so that the four farthest pts go first
 	
-	if(!IsValidCell(SourceX, SourceY))
+  if(!IsWithinMapCell(SourceX, SourceY))
 		return INFINITECOST;
-	if(!IsValidCell(SourceX + action->dX, SourceY + action->dY))
+  if(!IsWithinMapCell(SourceX+action->dX, SourceY+action->dY) || 
+      (EnvMAGICLATCfg.Grid2D[SourceX][SourceY] < EnvMAGICLATCfg.obsthresh && 
+       EnvMAGICLATCfg.Grid2D[SourceX+action->dX][SourceY+action->dY] >= EnvMAGICLATCfg.obsthresh))
 		return INFINITECOST;
-
+/*
 	if(EnvMAGICLATCfg.Grid2D[SourceX + action->dX][SourceY + action->dY] >= EnvMAGICLATCfg.cost_inscribed_thresh)
 		return INFINITECOST;
+    */
 
 	//need to iterate over discretized center cells and compute cost based on them
-	unsigned char maxcellcost = 0;
+	unsigned int maxcellcost = 0;
+  int obs_count = 0;
 	for(i = 0; i < (int)action->interm3DcellsV.size(); i++)
 	{
 		interm3Dcell = action->interm3DcellsV.at(i);
@@ -1302,9 +1307,18 @@ int EnvironmentMAGICLATTICE::GetActionCost(int SourceX, int SourceY, int SourceT
 		maxcellcost = __max(maxcellcost, EnvMAGICLATCfg.Grid2D[interm3Dcell.x][interm3Dcell.y]);
 
 		//check that the robot is NOT in the cell at which there is no valid orientation
-		if(maxcellcost >= EnvMAGICLATCfg.cost_inscribed_thresh)
-			return INFINITECOST;
+    if(EnvMAGICLATCfg.Grid2D[SourceX][SourceY] < EnvMAGICLATCfg.obsthresh){
+      if(maxcellcost >= EnvMAGICLATCfg.cost_inscribed_thresh)
+        return INFINITECOST;
+    }
+    else{
+      if(maxcellcost >= EnvMAGICLATCfg.cost_inscribed_thresh){
+        obs_count++;
+      }
+    }
 	}
+  if(obs_count > 0)
+    maxcellcost += obs_count * LEAVING_OBSTACLE_PENALTY;
 
 
 	//check collisions that for the particular footprint orientation along the action
@@ -1678,6 +1692,7 @@ bool EnvironmentMAGICLATTICE::InitializeEnv(int width, int height,
 			printf("ERROR: failed to read in motion primitive file\n");
 			exit(1);
 		}
+    fclose(fMotPrim);
 	}
 
 	if(EnvMAGICLATCfg.mprimV.size() != 0)
@@ -2408,8 +2423,8 @@ void EnvironmentMAGICLAT::GetSuccs(int SourceStateID, vector<int>* SuccIDV, vect
 		int newY = HashEntry->Y + nav3daction->dY;
 		int newTheta = NORMALIZEDISCTHETA(nav3daction->endtheta, MAGICLAT_THETADIRS);	
 
-        //skip the invalid cells
-        if(!IsValidCell(newX, newY)) 
+        //skip cells that are off the map
+        if(!IsWithinMapCell(newX, newY))
 			continue;
 
 		//get cost
@@ -2469,8 +2484,8 @@ void EnvironmentMAGICLAT::GetPreds(int TargetStateID, vector<int>* PredIDV, vect
 		int predTheta = nav3daction->starttheta;	
 	
 	
-		//skip the invalid cells
-        if(!IsValidCell(predX, predY))
+		//skip the cells that are off the map
+        if(!IsWithinMapCell(predX, predY))
 			continue;
 
 		//get cost
