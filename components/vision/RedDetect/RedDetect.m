@@ -28,6 +28,9 @@ ipcReceiveSetFcn(GetMsgName('Pose'), @PoseMsgHander);
 
 %savedir = '~/data/Hill_May31/';
 figure(1);
+subplot(1,3,1); handle1 = image([]); axis([1 256 1 192]); axis ij; axis equal;
+subplot(1,3,2); handle2 = image([]); axis([1 256 1 192]); axis ij; axis equal; axis off;
+subplot(1,3,3); handle3 = image([]); axis([1 256 1 192]); axis ij; axis equal; axis off;
 
 % run this when changing to different camera:
 %    bumblebeeWriteContextToFile('context.txt');
@@ -92,11 +95,10 @@ while(1)
     %     indices = sub2ind(size(lookupCbCr),round(Cr(:)),round(Cb(:)));
     %     imCr = reshape(lookupCbCr(indices),size(Cr));
 
-    subplot(1,2,2);
+    set(handle3,'CData',dispmap);
     %    imagesc(dispmap); axis image;
     %     imagesc(imCr_filt); axis image;
-    imagesc(Cr); axis image;
-
+    set(handle2,'CData',imCr_filt*255);
     %        subplot(1,3,3);
     %imCr_filt = bwareaopen(imCr_filt,20); % filter out small noisy patches
 
@@ -108,7 +110,7 @@ while(1)
 
     r = r([r.area] >= 20);
 
-    subplot(1,2,1);
+    subplot(1,3,1);
     imshow(yRight);
 
     %     subplot(1,3,3);
@@ -116,11 +118,15 @@ while(1)
     %     plotcov2(CbCr_mean,CbCr_cov,'conf',0.7,'plot-opts',{'Color', 'g', 'LineWidth', 1});
 
     % Calculate mean of boxes
+    hold on;
     for i = 1:length(r)
         r(i).BoundingBox = [r(i).boundingBox(1,2) r(i).boundingBox(1,1) r(i).boundingBox(2,2)-r(i).boundingBox(1,2)+1 r(i).boundingBox(2,1)-r(i).boundingBox(1,1)+1];
         r(i).Extent = r(i).area/r(i).BoundingBox(3)/r(i).BoundingBox(4);
         Crcrop = imcrop(Cr,r(i).BoundingBox);
         r(i).Cr_mean = mean(Crcrop(:));
+        
+        Redpix = imcrop(imCr_filt,r(i).BoundingBox);
+        
         %        Icrop = imcrop(BinIm,r(i).BoundingBox);
         %         mapind = sub2ind([16,16,16],Icrop(:,:,1),Icrop(:,:,2),Icrop(:,:,3)); % convert to YCbCr
         %         Cbcrop = reshape(Cbmap(mapind(:)),size(Icrop,1),size(Icrop,2));
@@ -129,16 +135,24 @@ while(1)
         %
         %        r(i).CbCr_mean = mean([Cbcrop(:),Crcrop(:)]);
         %        r(i).CbCr_cov = cov([Cbcrop(:),Crcrop(:)]);
-    end
-    % Create a score for each red box
-    hold on;
-    for i = 1:length(r)
+
+        % Create a score for each red box
         mean_disp = mean(mean(imcrop(dispmap,round(r(i).BoundingBox)))); % ave disparity in bounding box
         r(i).distance = GetDistfromDisp(mean_disp); % in meters
         r(i).angle = atand((r(i).centroid(2)-256/2)/(72/44*256/2));
         [expected_xwidth,expected_yheight] = GetRedSizefromDist(r(i).distance); % [xwidth yheight] in pixels
-        xwidth_score = exp(-(r(i).BoundingBox(3) - expected_xwidth)^2/(2*20^2));
-        yheight_score = exp(-(r(i).BoundingBox(4) - expected_yheight)^2/(2*20^2));
+        if r(i).BoundingBox(3) > 0.66*expected_xwidth && r(i).BoundingBox(3) < 1.33*expected_xwidth
+            xwidth_score = 1;
+        else
+            xwidth_score = 0;
+        end
+        if r(i).BoundingBox(4) > 0.66*expected_yheight && r(i).BoundingBox(4) < 1.33*expected_yheight
+            yheight_score = 1;
+        else
+            yheight_score = 0;
+        end
+%        xwidth_score = exp(-(r(i).BoundingBox(3) - expected_xwidth)^2/(2*20^2));
+%        yheight_score = exp(-(r(i).BoundingBox(4) - expected_yheight)^2/(2*20^2));
         %shape_ratios = exp(-((r(i).BoundingBox(4)/r(i).BoundingBox(3)) - 1.4)^2/(2*0.5^2));
         %         KLdist =  exp(-(1/2*(CbCr_mean - r(i).CbCr_mean)*inv(r(i).CbCr_cov)*(CbCr_mean - r(i).CbCr_mean)' + ...
         %             + 1/2*log(det(r(i).CbCr_cov)/det(CbCr_cov)) + ...
@@ -146,21 +160,20 @@ while(1)
         %redness = exp(-(r(i).Cr_mean-220)^2/(2*20^2));
         r(i).redbinscore = xwidth_score * yheight_score * r(i).Extent;% * redness; % Extent is redpixels/areaofbox
 
+        linecolor = 'g';
         if r(i).redbinscore > 0.5    % Display candidate red boxes
-            linecolor = 'g';
-        else
-            linecolor = 'y';
-        end
         line([r(i).BoundingBox(1),r(i).BoundingBox(1)+r(i).BoundingBox(3)],[r(i).BoundingBox(2),r(i).BoundingBox(2)],'Color',linecolor);
         line([r(i).BoundingBox(1)+r(i).BoundingBox(3),r(i).BoundingBox(1)+r(i).BoundingBox(3)],[r(i).BoundingBox(2),r(i).BoundingBox(2)+r(i).BoundingBox(4)],'Color',linecolor);
         line([r(i).BoundingBox(1),r(i).BoundingBox(1)],[r(i).BoundingBox(2),r(i).BoundingBox(2)+r(i).BoundingBox(4)],'Color',linecolor);
         line([r(i).BoundingBox(1),r(i).BoundingBox(1)+r(i).BoundingBox(3)],[r(i).BoundingBox(2)+r(i).BoundingBox(4),r(i).BoundingBox(2)+r(i).BoundingBox(4)],'Color',linecolor);
         text(r(i).BoundingBox(1),r(i).BoundingBox(2),sprintf('%2.2f',r(i).distance),'color','g');
         text(r(i).BoundingBox(1),r(i).BoundingBox(2)+r(i).BoundingBox(4),sprintf('%2.2f',r(i).angle),'color','g');
+        end
     end
     hold off;
     drawnow;
     
+    %%%% send images and OOI to vision GUI console through IPC %%%%%
     if mod(counter,2)==0
         jpg = cjpeg(yRight);
         %%%%% send compressed jpg image through IPC %%%%%
@@ -169,7 +182,7 @@ while(1)
         imPacket.jpg = jpg;
         ipcAPIPublish(imageMsgName,serialize(imPacket));
 
-        if ~isempty(r) && counter > 50
+        if ~isempty(r) && counter > 20
             [maxr,indr] = max([r.redbinscore]); % best red bin candidate
             if maxr > 0.5
                 counter = 0;
@@ -202,13 +215,16 @@ while(1)
             end
         end
     end
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     %%%% log images to disk
     %     imname = sprintf('%sred%08d_Exp%03d.jpg',savedir,counter,Exposure);
     %     print ('-djpeg', imname);
     %     rect_name = sprintf('%srect%08d_Exp%03d.jpg',savedir,counter,Exposure);
     %     imwrite(yRight,rect_name,'JPG');
-
+    %%%%%%%%%%%%%%%%%%%%%%%
+    
+    
     if length(r) >= 1
         curr_max_score = max([r.redbinscore]); % max is better than mean
     else
