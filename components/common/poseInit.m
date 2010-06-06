@@ -2,7 +2,8 @@ function poseInit
 global POSE
 
 if isempty(POSE) || ~isfield(POSE,'initialized') ||(POSE.initialized ~= 1)
-  POSE.msgName = [GetRobotName '/Pose'];
+  POSE.msgName    = [GetRobotName '/Pose'];
+  POSE.extMsgName = [GetRobotName '/PoseExternal']; 
   POSE.pose = [];
   POSE.xInit   = 0;
   POSE.yInit   = 0;
@@ -19,6 +20,7 @@ if isempty(POSE) || ~isfield(POSE,'initialized') ||(POSE.initialized ~= 1)
   
   ipcInit;
   ipcAPIDefine(POSE.msgName,MagicPoseSerializer('getFormat'));
+  ipcAPIDefine(POSE.extMsgName,MagicPoseSerializer('getFormat'));
   POSE.initialized  = 1;
   disp('Pose initialized');
 end
