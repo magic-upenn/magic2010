@@ -38,20 +38,23 @@ queueLengths = [5 5 5];
 masterSubscribeRobots(messages,handles,queueLengths);
 
 %vis stuff
-VIS.mapMsgName = 'Robot1/CostMap2D_map2d';
-mapMsgFormat = VisMap2DSerializer('getFormat');
+if checkVis
+  VIS.mapMsgName = 'Robot1/CostMap2D_map2d';
+  mapMsgFormat = VisMap2DSerializer('getFormat');
 
-VIS.updateRectMsgName   = 'Robot1/CostMap2D_map2dUpdateRect';
-updateRectMsgFormat = VisMap2DUpdateRectSerializer('getFormat'); 
+  VIS.updateRectMsgName   = 'Robot1/CostMap2D_map2dUpdateRect';
+  updateRectMsgFormat = VisMap2DUpdateRectSerializer('getFormat'); 
 
-VIS.updatePointsMsgName   = 'Robot1/CostMap2D_map2dUpdatePoints';
-updatePointsMsgFormat = VisMap2DUpdatePointsSerializer('getFormat'); 
+  VIS.updatePointsMsgName   = 'Robot1/CostMap2D_map2dUpdatePoints';
+  updatePointsMsgFormat = VisMap2DUpdatePointsSerializer('getFormat');
+
 
 %define messages for local viewing
 ipcAPI('connect');
 ipcAPI('define',VIS.mapMsgName,mapMsgFormat);
 ipcAPI('define',VIS.updateRectMsgName,updateRectMsgFormat);
 ipcAPI('define',VIS.updatePointsMsgName,updatePointsMsgFormat);
+end
 
 nRobots = length(ROBOTS);
 for ii=1:nRobots
@@ -225,9 +228,12 @@ global CMAP POSE VIS OMAP;
   map.map.sizex = CMAP.map.sizex;
   map.map.sizey = CMAP.map.sizey;
   map.map.data  = uint8(CMAP.map.data + 100);
-  content = VisMap2DSerializer('serialize',map);
-  ipcAPI('publishVC',VIS.mapMsgName,content);
   
+  if checkVis
+    content = VisMap2DSerializer('serialize',map);
+    ipcAPI('publishVC',VIS.mapMsgName,content);
+  end
+    
   expandSize = 50;
   xExpand = 0;
   yExpand = 0;
