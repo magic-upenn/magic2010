@@ -1,4 +1,6 @@
 function slam(addr,id)
+clear all;
+
 global SLAM;
 
 if nargin < 1

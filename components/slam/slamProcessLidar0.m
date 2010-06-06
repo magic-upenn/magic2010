@@ -1,5 +1,5 @@
 function slamProcessLidar0(data,name)
-global SLAM LIDAR0 OMAP EMAP POSE IMU TRAJ CMAP DHMAP MAPS
+global SLAM LIDAR0 OMAP EMAP POSE IMU TRAJ CMAP DHMAP MAPS DVMAP
 
 if ~isempty(data)
   LIDAR0.scan = MagicLidarScanSerializer('deserialize',data);
@@ -110,6 +110,10 @@ end
 %send out pose message
 ipcAPIPublishVC(POSE.msgName,MagicPoseSerializer('serialize',POSE.data));
 
+if mod(SLAM.lidar0Cntr,10) == 0
+    ipcAPIPublishVC(POSE.extMsgName,MagicPoseSerializer('serialize',POSE.data));
+end
+
 %update the map
 T = (trans([SLAM.x SLAM.y SLAM.z])*rotz(SLAM.yaw)*trans([LIDAR0.offsetx LIDAR0.offsety LIDAR0.offsetz]))';
 X = [xsss ysss zsss onez];
@@ -136,15 +140,20 @@ DHMAP.map.data(inds) = 1;
 %send out map updates
 if (mod(SLAM.lidar0Cntr,40) == 0)
   [xdi ydi] = find(DHMAP.map.data);
-  
-  MapUpdateH.xs = single(xdi * MAPS.res + MAPS.xmin);
-  MapUpdateH.ys = single(ydi * MAPS.res + MAPS.ymin);
+  MapUpdateH.xs = single(xdi * MAPS.res + OMAP.xmin);
+  MapUpdateH.ys = single(ydi * MAPS.res + OMAP.ymin);
   MapUpdateH.cs = OMAP.map.data(sub2ind(size(OMAP.map.data),xdi,ydi));
-  content = serialize(MapUpdateH);
-  ipcAPIPublish(SLAM.IncMapUpdateHMsgName,content);
+  ipcAPIPublish(SLAM.IncMapUpdateHMsgName,serialize(MapUpdateH));
+  
+  [xdi ydi] = find(DVMAP.map.data);
+  MapUpdateV.xs = single(xdi * MAPS.res + OMAP.xmin);
+  MapUpdateV.ys = single(ydi * MAPS.res + OMAP.ymin);
+  MapUpdateV.cs = CMAP.map.data(sub2ind(size(CMAP.map.data),xdi,ydi));
+  ipcAPIPublish(SLAM.IncMapUpdateVMsgName,serialize(MapUpdateV));
   
   %reset the delta map
   DHMAP.map.data = zeros(size(DHMAP.map.data),'uint8');
+  DVMAP.map.data = zeros(size(DVMAP.map.data),'uint8');
 end
 
 if (SLAM.updateExplorationMap) 
@@ -231,30 +240,25 @@ if (mod(SLAM.lidar0Cntr,20) == 0)
 end
 
 
-%see if we need to increase the size of the map
-[xi yi] = Pos2OmapInd(SLAM.x + [-30  30], SLAM.y + [-30 30]);
+%see if we need to shift the map
+shiftAmount = 10; %meters
+xShift = 0;
+yShift = 0;
 
-expandSize = 50;
-xExpand = 0;
-yExpand = 0;
+if (SLAM.x - OMAP.xmin < MAPS.edgeProx), xShift = -shiftAmount; end
+if (SLAM.y - OMAP.ymin < MAPS.edgeProx), yShift = -shiftAmount; end
+if (OMAP.xmax - SLAM.x < MAPS.edgeProx), xShift = shiftAmount; end
+if (OMAP.ymax - SLAM.y < MAPS.edgeProx), yShift = shiftAmount; end
 
-if (xi(1) < 1), xExpand = -expandSize; end
-if (yi(1) < 1), yExpand = -expandSize; end
-if (xi(2) > OMAP.map.sizex), xExpand = expandSize; end
-if (yi(2) > OMAP.map.sizey), yExpand = expandSize; end
 
-if (xExpand ~=0 || yExpand ~=0)
-  %expand the map
-  %omapExpand(xExpand,yExpand);
-  expandMap(OMAP);
-  expandMap(DHMAP);
-  expandMap(DVMAP);
-  expandMAP(CMAP);
-  
-  %update the boundaries
-  ScanMatch2D('setBoundaries',OMAP.xmin,OMAP.ymin,OMAP.xmax,OMAP.ymax);
+if (xShift ~= 0 || yShift ~= 0)
+    OMAP  = mapResize(OMAP,xShift,yShift);
+    CMAP  = mapResize(CMAP,xShift,yShift);
+    DHMAP = mapResize(DHMAP,xShift,yShift);
+    DVMAP = mapResize(DVMAP,xShift,yShift);
+    ScanMatch2D('setBoundaries',OMAP.xmin,OMAP.ymin,OMAP.xmax,OMAP.ymax);
 end
-  
+
 
 POSE.data.x     = SLAM.x;
 POSE.data.y     = SLAM.y;
