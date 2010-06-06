@@ -13,6 +13,7 @@
 #include <limits>
 #include <fstream>
 #include <string>
+#include <algorithm>
 
 //#include "stdint.h" // only for XP MS C++
 

@@ -418,21 +418,22 @@ void global_planner(float goal_x, float goal_y, float goal_theta) {
 	}
 
 	// ensure that the robot cell is not an obstacle and clear a little box if there is
+	int rad = ceil(inflation_size);
 	cover_map[robot_x+coverage_size_x*robot_y] = KNOWN;
 	if (cost_map[robot_x+cost_size_x*robot_y] >= OBSTACLE) {
-		for(int xxx=0;xxx<11; xxx++){
-			for(int yyy=0; yyy<11;yyy++) {
-				if (OnMap(robot_x+xxx-5,robot_y+yyy-5)) {
-					cost_map[robot_x+xxx-5+cost_size_x*(robot_y+yyy-5)] = OBSTACLE -2;
+		for(int xxx=-rad;xxx<rad; xxx++){
+			for(int yyy=-rad; yyy<rad;yyy++) {
+				if (OnMap(robot_x+xxx,robot_y+yyy)) {
+					cost_map[robot_x+xxx+cost_size_x*(robot_y+yyy)] = min((int)cost_map[robot_x+xxx+cost_size_x*(robot_y+yyy)], OBSTACLE -(108/(1+abs(xxx*yyy))));
 				}
 			}
 		}		
 	}
 	if (inflated_cost_map[robot_x+cost_size_x*robot_y] >= OBSTACLE) {
-		for(int xxx=0;xxx<11; xxx++){
-			for(int yyy=0; yyy<11;yyy++) {
-				if (OnMap(robot_x+xxx-5,robot_y+yyy-5)) {
-					inflated_cost_map[robot_x+xxx-5+cost_size_x*(robot_y+yyy-5)] = OBSTACLE -10;
+		for(int xxx=-rad;xxx<rad; xxx++){
+			for(int yyy=-rad; yyy<rad;yyy++) {
+				if (OnMap(robot_x+xxx,robot_y+yyy)) {
+					inflated_cost_map[robot_x+xxx+cost_size_x*(robot_y+yyy)] = min((int)inflated_cost_map[robot_x+xxx+cost_size_x*(robot_y+yyy)], OBSTACLE -(200/(1+abs(xxx*yyy))));
 				}
 			}
 		}		
