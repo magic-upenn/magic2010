@@ -1,5 +1,7 @@
 function receiveIncMapMultiple(host)
-global POSE USER_INPUT VIS
+clear all;
+
+global POSE USER_INPUT VIS ROBOTS
 
 if nargin < 1
   host = 'localhost';
@@ -19,14 +21,14 @@ POSE.cntr =1;
 USER_INPUT.freshClick =0;
 %id of the robot that maps should be received from
 
-ids=[1 3];
+ids=[1];
 
 masterConnectRobots(ids);
 
-messages = {'PoseExternal','IncMapUpdateH'};
-handles  = {@PoseMsgHandler,@MapUpdateMsgHandler};
+messages = {'PoseExternal','IncMapUpdateH','IncMapUpdateV'};
+handles  = {@PoseMsgHandler,@MapUpdateMsgHandlerH, @MapUpdateMsgHandlerV};
 
-queueLengths = [5 5];
+queueLengths = [5 5 5];
           
 %subscribe to messages
 masterSubscribeRobots(messages,handles,queueLengths);
@@ -47,15 +49,15 @@ ipcAPI('define',VIS.mapMsgName,mapMsgFormat);
 ipcAPI('define',VIS.updateRectMsgName,updateRectMsgFormat);
 ipcAPI('define',VIS.updatePointsMsgName,updatePointsMsgFormat);
 
-
-for ii=1:10
+nRobots = length(ROBOTS);
+for ii=1:nRobots
+  ROBOTS(ii).tr = eye(4);
   ipcAPI('define',sprintf('Robot%d/Pose',ii),MagicPoseSerializer('getFormat'));
 end
 
 
 while(1)
-  %listen to messages 10ms at a time (frome each robot)
-  masterReceiveFromRobots(10);
+  masterReceiveFromRobots(); %will return without blocking
   pause(0.1);
 end
 
@@ -98,14 +100,37 @@ global ROBOTS MAP_FIGURE
   
   %fprintf(1,'got pose update\n');
 
-function MapUpdateMsgHandler(data,name)
+function MapUpdateMsgHandlerV(data,name)
+global CMAP MAP_FIGURE POSE VIS OMAP;
+
+  if isempty(data)
+    return
+  end
+  
+  msgSize = length(data);
+  fprintf(1,'got vertical map update of size %d from %s\n',msgSize,name);
+  id = GetIdFromName(name);
+  
+  update = deserialize(data);
+  
+  xis = ceil((update.xs - CMAP.xmin) * CMAP.invRes);
+  yis = ceil((update.ys - CMAP.ymin) * CMAP.invRes);
+
+  indGood = (xis > 1) & (yis > 1) & (xis < CMAP.map.sizex) & (yis < CMAP.map.sizey);
+  inds = sub2ind(size(CMAP.map.data),xis(indGood),yis(indGood));
+  CMAP.map.data(inds) = update.cs(indGood);
+  
+  
+  
+  
+function MapUpdateMsgHandlerH(data,name)
 global CMAP MAP_FIGURE POSE VIS OMAP;
   if isempty(data)
     return
   end
   
   msgSize = length(data);
-  fprintf(1,'got map update of size %d from %s\n',msgSize,name);
+  fprintf(1,'got horizontal map update of size %d from %s\n',msgSize,name);
   id = GetIdFromName(name);
   
   update = deserialize(data);
