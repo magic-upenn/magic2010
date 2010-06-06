@@ -25,8 +25,13 @@ ids=[1];
 
 masterConnectRobots(ids);
 
-messages = {'PoseExternal','IncMapUpdateH','IncMapUpdateV'};
-handles  = {@PoseMsgHandler,@MapUpdateMsgHandlerH, @MapUpdateMsgHandlerV};
+messages = {'PoseExternal', ...
+            'IncMapUpdateH', ...
+            'IncMapUpdateV'};
+handles  = {@PoseMsgHandler, ...
+            @MapUpdateMsgHandlerH, ... 
+            @MapUpdateMsgHandlerV};
+          
 queueLengths = [5 5 5];
           
 %subscribe to messages
