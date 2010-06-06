@@ -27,7 +27,6 @@ masterConnectRobots(ids);
 
 messages = {'PoseExternal','IncMapUpdateH','IncMapUpdateV'};
 handles  = {@PoseMsgHandler,@MapUpdateMsgHandlerH, @MapUpdateMsgHandlerV};
-
 queueLengths = [5 5 5];
           
 %subscribe to messages
@@ -124,7 +123,7 @@ global CMAP MAP_FIGURE POSE VIS OMAP;
   
   
 function MapUpdateMsgHandlerH(data,name)
-global CMAP MAP_FIGURE POSE VIS OMAP;
+global CMAP POSE VIS OMAP;
   if isempty(data)
     return
   end
@@ -134,9 +133,6 @@ global CMAP MAP_FIGURE POSE VIS OMAP;
   id = GetIdFromName(name);
   
   update = deserialize(data);
-  %plot(update.cs); drawnow;
-  
-  
   
   if (id==1)
     xis = ceil((update.xs - CMAP.xmin) * CMAP.invRes);
