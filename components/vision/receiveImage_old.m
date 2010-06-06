@@ -1,18 +1,29 @@
 function receiveImage
-clear all
 
-global ROBOTS
+global STATIC_OOI
+
+for ii=1:10
+STATIC_OOI(ii).area = [];
+STATIC_OOI(ii).centroid = [];
+STATIC_OOI(ii).boundingBox = [];
+STATIC_OOI(ii).BoundingBox = [];
+STATIC_OOI(ii).Extent = [];
+STATIC_OOI(ii).Cr_mean = [];
+STATIC_OOI(ii).distance = [];
+STATIC_OOI(ii).angle = [];
+STATIC_OOI(ii).redbinscore = [];
+STATIC_OOI(ii).id = [];
+STATIC_OOI(ii).t = [];
+end
 SetMagicPaths
 
 figure(1);
-%h1 = subplot(1,3,1);
-%set(h1, 'ButtonDownFcn', @RedAcknowledge)
+confbutton3 = uicontrol('Position',[1200 380 100 25],'String','Confirm OOI','Callback','confirmOOI3');
+manual3 = uicontrol('Position',[1400 380 100 25],'String','Manual OOI','Callback','manualOOI3');
 
-ids=[1 3];
+ids=[3];
 
 masterConnectRobots(ids);
-
-disp('connected');
 
 messages = {'Image','StaticOOI'};
 handles  = {@ipcRecvImageFcn,@ipcRecvStaticOoiFcn};
@@ -22,16 +33,16 @@ masterSubscribeRobots(messages,handles,[10 10]);
 
 while(1)
   %listen to messages 10ms at a time (frome each robot)
-  fprintf(1,'?');
+%  fprintf(1,'?');
   masterReceiveFromRobots(10);
-  fprintf(1,'.');
+%  fprintf(1,'.');
 end
 
 
 
 function ipcRecvImageFcn(msg,name)
 
-fprintf(1,'got image name %s\n',name);
+%fprintf(1,'got image name %s\n',name);
 imPacket = deserialize(msg);
 im = djpeg(imPacket.jpg);
 subplot(1,3,imPacket.id);image(im); axis image;
@@ -39,8 +50,10 @@ drawnow;
 
 
 function ipcRecvStaticOoiFcn(msg,name)
-fprintf(1,'got static ooi\n');
+global STATIC_OOI
+%fprintf(1,'got static ooi\n');
 r = deserialize(msg);
+STATIC_OOI(3) = r;
 subplot(1,3,r.id);
 hold on;
         line([r.BoundingBox(1),r.BoundingBox(1)+r.BoundingBox(3)],[r.BoundingBox(2),r.BoundingBox(2)],'Color','g');
@@ -52,10 +65,13 @@ hold on;
 hold off;
 drawnow;
 
-function RedAcknowledge(hObject, eventdata)
-%hFig = get(hObject, 'Children');
-disp('Clicked in subplot')
+function confirmOOI3()
+global STATIC_OOI
+disp('Clicked Confirm OOI');
+STATIC_OOI(3)
 
+function manualOOI3()
+disp('Clicked manual OOI');
 
 %{
 ipcInit('192.168.10.101');
