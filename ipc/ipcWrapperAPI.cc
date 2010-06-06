@@ -107,8 +107,8 @@ void FlushLocalQueue()
 void mexExit(void)
 {
 	printf("Exiting ipcAPI\n"); fflush(stdout);
-  FlushLocalQueue();
 	IpcWrapperDisconnect();
+  FlushLocalQueue();
   subscribed_message_names.clear();
   connected=false;
 }
