@@ -29,6 +29,9 @@ global SLAM OMAP POSE
 SetMagicPaths;
 ipcInit(SLAM.addr);
 
+spreadInit;
+
+
 SLAM.updateExplorationMap    = 0;
 SLAM.explorationUpdatePeriod = 5;
 SLAM.plannerUpdatePeriod     = 2;
