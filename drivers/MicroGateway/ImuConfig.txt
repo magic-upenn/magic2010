@@ -1,0 +1,7 @@
+imu biases
+
+Robot3:
+ax = 680
+ay = 663
+az = 670 
+
