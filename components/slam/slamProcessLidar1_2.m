@@ -83,6 +83,9 @@ yig = ceil((ysg - CMAP.ymin) * CMAP.invRes);
 
 mapInds = sub2ind(size(CMAP.map.data),xig,yig);
 
+
+%TODO: some points may end up outside of any bin! Not sure if this is
+%possible given current scan and range constraints enforced above
 iGndPts     = iGnd(bins);
 iObsPts     = iObs(bins);
 iFirstObs   = find(iObsPts,1);
