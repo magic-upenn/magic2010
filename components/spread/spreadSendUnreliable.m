@@ -6,7 +6,7 @@ if isempty(hostname),
   hostname = gethostname;
 end
 
-group = [hostname '/' name];
+group = [hostname '_' name];
 service_type = 1; % UNRELIABLE_MESS
 mess_type = 0;
   
