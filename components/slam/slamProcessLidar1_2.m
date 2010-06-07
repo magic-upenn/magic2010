@@ -10,7 +10,7 @@ else
   return;
 end
 
-xBinLength = 0.05; % meters
+xBinLength = 0.1; % meters
 xBinMax = round((25.0)/xBinLength);
 xBin = xBinLength*[1:xBinMax];
 
@@ -28,9 +28,11 @@ Tpos = trans([SLAM.x SLAM.y SLAM.z])*rotz(SLAM.yaw);
 T = (Tpos*Timu*Tservo1*Tlidar1);
 
 nStart = 250; %throw out points that pick up our own body
+nStop  = 750;
 ranges = double(LIDAR1.scan.ranges); %convert from float to double
-indGood = ranges >0.25;
+indGood = ranges >0.25 & ranges < 15;
 indGood(1:nStart-1) = 0;
+indGood(nStop:end) = 0;
 
 rangesGood = ranges(indGood);
 
@@ -42,21 +44,21 @@ zss = zeros(size(xss));
 %global frame
 X = [xss; yss; zss; ones(size(xss))];
 pRot = T*X;
-rLidar = sqrt(pRot(1,:).^2+pRot(2,:).^2);
+rLidar = sqrt((pRot(1,:)-SLAM.x).^2+(pRot(2,:)-SLAM.y).^2);
 zLidar = pRot(3,:);
 
 % Ignore inside robot, and too high:
   indClip = find((rangesGood > 0.3) & (zLidar < 1.5));
 if isempty(indClip), return, end
 
-xClip = rangesGood(indClip);
+xClip = rLidar(indClip);
 zClip = zLidar(indClip);
 
 
 % Detect negative cliffs:
 zDiff = zClip([2:end end]) - zClip;
 xDiff = xClip([2:end end]) - xClip;
-iCliff = find(zDiff < min(-0.04, -tand(15)*xDiff));
+iCliff = zDiff < min(-0.04, -tand(15)*xDiff);
 xCliff = xClip(iCliff);
 zCliff = zClip(iCliff);
 
@@ -68,7 +70,7 @@ counts = [stats.count];
 zMean = [stats.mean];
 zMaxMin = [stats.max] - [stats.min];
 
-iGnd = (counts >= 3) & (zMaxMin < 0.05) & ...
+iGnd = (counts >= 2) & (zMaxMin < 0.05) & ...
 	    (zMean < 0.3*xBin + 0.05) & (zMean > -0.3*xBin -0.05);
 
 iObs = (zMaxMin > 0.06) | (zMean > 0.4*xBin + 0.10);
@@ -90,12 +92,14 @@ if isempty(iFirstObs), iFirstObs = 99999; end
 if isempty(iFirstCliff), iFirstCliff = 99999; end
 iFirstBad = min([iFirstObs,iFirstCliff,length(iGndPts)]);
 
-
+countsPts   = counts(bins);
 iGndMap   = mapInds(iGndPts(1:iFirstBad-5));
+countsGnd = countsPts(iGndPts(1:iFirstBad-5));
 iObsMap   = [mapInds(iObsPts) mapInds(iCliff)];
+countsObs   = [find(countsPts(iObsPts)) find(iCliff)];
 
-CMAP.map.data(iObsMap) = CMAP.map.data(iObsMap) + SLAM.cMapIncObs;
-CMAP.map.data(iGndMap) = CMAP.map.data(iGndMap) + SLAM.cMapIncFree;
+CMAP.map.data(iObsMap) = CMAP.map.data(iObsMap) + countsObs*SLAM.cMapIncObs;
+CMAP.map.data(iGndMap) = CMAP.map.data(iGndMap) + countsGnd*SLAM.cMapIncFree;
 
 tooLarge = CMAP.map.data(mapInds) > SLAM.maxCost;
 tooSmall = CMAP.map.data(mapInds) < SLAM.minCost;
@@ -106,11 +110,14 @@ CMAP.map.data(mapInds(tooSmall)) = SLAM.minCost;
 DVMAP.map.data(iGndMap)  = 1;
 DVMAP.map.data(iObsMap)  = 1;
 
+plotFig = 1;
 
-plot(xClip, zClip, '-');
-hold on;
-plot(xBin(iGnd), zMean(iGnd),'go', ...
-     xBin(iObs), zMean(iObs), 'rx', ...
-     xCliff, zCliff, 'r*');
-hold off;
-drawnow;
+if plotFig
+    plot(xClip, zClip, '-');
+    hold on;
+    plot(xBin(iGnd), zMean(iGnd),'go', ...
+         xBin(iObs), zMean(iObs), 'rx', ...
+         xCliff, zCliff, 'r*');
+    hold off;
+    drawnow;
+end
