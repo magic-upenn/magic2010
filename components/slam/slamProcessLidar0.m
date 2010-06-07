@@ -128,6 +128,8 @@ end
 %publish pose message going out to outside world
 if mod(SLAM.lidar0Cntr,10) == 0
     ipcAPIPublishVC(POSE.extMsgName,MagicPoseSerializer('serialize',POSE.data));
+
+    spreadSendUnreliable('Pose', serialize(POSE.data));
 end
 
 %update the map
@@ -160,12 +162,19 @@ if (mod(SLAM.lidar0Cntr,40) == 0)
   MapUpdateH.ys = single(ydi * MAPS.res + OMAP.ymin);
   MapUpdateH.cs = OMAP.map.data(sub2ind(size(OMAP.map.data),xdi,ydi));
   ipcAPIPublish(SLAM.IncMapUpdateHMsgName,serialize(MapUpdateH));
+
+  spreadSendUnreliable('MapUpdateH', serialize(MapUpdateH));
   
+
+
   [xdi ydi] = find(DVMAP.map.data);
   MapUpdateV.xs = single(xdi * MAPS.res + OMAP.xmin);
   MapUpdateV.ys = single(ydi * MAPS.res + OMAP.ymin);
   MapUpdateV.cs = CMAP.map.data(sub2ind(size(CMAP.map.data),xdi,ydi));
   ipcAPIPublish(SLAM.IncMapUpdateVMsgName,serialize(MapUpdateV));
+
+  spreadSendUnreliable('MapUpdateV', serialize(MapUpdateV));
+
   
   %reset the delta map
   DHMAP.map.data = zeros(size(DHMAP.map.data),'uint8');
