@@ -13,7 +13,7 @@ function RedDetect
 % angle = atand((xpixel-xcenter)/dist)
 
 SetMagicPaths;
-global POSE
+global POSE targetY
 POSE.data = [];
 
 ipcInit;
@@ -23,6 +23,7 @@ ipcAPIDefine(imageMsgName);
 ipcAPIDefine(staticOoiMsgName);
 
 ipcReceiveSetFcn(GetMsgName('Pose'), @PoseMsgHander);
+ipcReceiveSetFcn(GetMsgName('CamParam'), @CamParamMsgHander);
 
 %%%%%%%%%%%%%%%%%%
 
@@ -174,12 +175,15 @@ while(1)
     drawnow;
     
     %%%% send images and OOI to vision GUI console through IPC %%%%%
+     ipcReceiveMessages;
+
     if mod(counter,2)==0
         jpg = cjpeg(yRight);
         %%%%% send compressed jpg image through IPC %%%%%
         imPacket.id = str2double(getenv('ROBOT_ID'));
         imPacket.t  = GetUnixTime();
         imPacket.jpg = jpg;
+        imPacket.Ymean = Ymean;
         ipcAPIPublish(imageMsgName,serialize(imPacket));
 
         if ~isempty(r) && counter > 20
@@ -187,8 +191,7 @@ while(1)
             if maxr > 0.5
                 counter = 0;
                 r = r(indr);
-                  ipcReceiveMessages;
-                %    POSE.data
+                %  add POSE.data
                 r.id = str2double(getenv('ROBOT_ID'));
                 r.t = GetUnixTime()
 		if ~isempty(POSE.data)
@@ -243,27 +246,27 @@ while(1)
     score_hist(5) = curr_max_score;
 
     % adjust targetY to get better redbin score
-    if counter > 5 % make sure score_hist has enough values in buffer
-        curr_av_score = mean(score_hist);
-        if curr_max_score > curr_av_score
-            if targetY > Ymean
-                targetY = targetY + 0.002;
-            else
-                targetY = targetY - 0.002;
-            end
-        else
-            if targetY < Ymean
-                targetY = targetY + 0.002;
-            else
-                targetY = targetY - 0.002;
-            end
-        end
+%     if counter > 5 % make sure score_hist has enough values in buffer
+%         curr_av_score = mean(score_hist);
+%         if curr_max_score > curr_av_score
+%             if targetY > Ymean
+%                 targetY = targetY + 0.002;
+%             else
+%                 targetY = targetY - 0.002;
+%             end
+%         else
+%             if targetY < Ymean
+%                 targetY = targetY + 0.002;
+%             else
+%                 targetY = targetY - 0.002;
+%             end
+%         end
 
         % if no good red regions then reset targetY
-        if curr_av_score < 0.1
-            targetY = 0.5;
-        end
-    end
+%        if curr_av_score < 0.1
+%            targetY = 0.5;
+%        end
+%    end
 end
 % toc
 
@@ -271,6 +274,7 @@ end
 bumblebeeStopTransmission;
 
 %profile viewer
+
 function PoseMsgHander(data,name)
 global POSE
   POSE.data = [];
@@ -279,3 +283,11 @@ global POSE
   end
 
   POSE.data = MagicPoseSerializer('deserialize',data);
+
+  function CamParamMsgHander(data,name)
+      global targetY
+  if isempty(data)
+    return;
+  end
+
+  targetY = deserialize(data);
