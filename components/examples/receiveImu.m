@@ -2,7 +2,7 @@ SetMagicPaths;
 
 servoMsgName = GetMsgName('ImuFiltered');
 
-ipcAPIConnect;
+ipcAPIConnect('192.168.10.101');
 ipcAPISubscribe(servoMsgName);
 
 oldT = 0;

@@ -15,6 +15,7 @@ if isempty(LIDAR1) || ~isfield(LIDAR1,'initialized') ||(LIDAR1.initialized ~= 1)
   LIDAR1.offsetx = 0.064;
   LIDAR1.offsety = -0.038;
   LIDAR1.offsetz = 0;
+  LIDAR1.timeout = 0.1;
   
   ipcInit;
   ipcAPIDefine(LIDAR1.msgName,MagicLidarScanSerializer('getFormat'));

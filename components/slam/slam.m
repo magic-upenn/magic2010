@@ -24,17 +24,17 @@ end
 % Initialize slam process
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function slamStart
-global SLAM OMAP POSE TRAJ
+global SLAM OMAP POSE
 
 SetMagicPaths;
 ipcInit(SLAM.addr);
 
-SLAM.updateExplorationMap = 0;
+SLAM.updateExplorationMap    = 0;
 SLAM.explorationUpdatePeriod = 5;
-SLAM.plannerUpdatePeriod = 2;
+SLAM.plannerUpdatePeriod     = 2;
 
-SLAM.explorationUpdateTime = GetUnixTime();
-SLAM.plannerUpdateTime = GetUnixTime();
+SLAM.explorationUpdateTime   = GetUnixTime();
+SLAM.plannerUpdateTime       = GetUnixTime();
 poseInit();
 
 SLAM.x            = POSE.xInit;
@@ -53,53 +53,44 @@ SLAM.xOdom        = SLAM.x;
 SLAM.yOdom        = SLAM.y;
 SLAM.yawOdom      = SLAM.yaw;
 
-TRAJ.cntr         = 0;
-TRAJ.traj         = zeros(4,100000);
-TRAJ.hTraj        = [];
-
-%initialize the pose struct so that the maps are initialized around the initial pose
-%in future, this should be the start UTM coordinate!!
-
-
-SLAM.imuTimeout    = 0.2;
-SLAM.lidar0Timeout = 0.2;
-SLAM.lidar1Timeout = 0.2;
-SLAM.servo1Timeout = 0.2;
-
 SLAM.cMapIncFree = -5;
 SLAM.cMapIncObs  = 10;
 SLAM.maxCost     = 100;
 SLAM.minCost     = -100;
 
-
+%initialize maps
 initMapProps;
-omapInit;
-emapInit;
-cmapInit;
-dvmapInit;
-dhmapInit;
+omapInit;        %localization map
+emapInit;        %exploration map ??
+cmapInit;        %vertical lidar map
+dvmapInit;       %vertical lidar delta map
+dhmapInit;       %horizontal lidar delta map
+
+%initialize data structures
 lidar0Init;
 lidar1Init;
 servo1Init;
 motorsInit;
-DefineVisMsgs;
+
+%define messages
 DefineSensorMessages;
 DefinePlannerMessages;
 
+if checkVis
+  DefineVisMsgs;
+end
+
 %assign the message handlers
-ipcAPIHandle = @ipcAPI;
+ipcAPIHandle = @ipcAPI; %@ipcWrapperAPI
+
+%arguments are (msgName, function handle, ipcAPI handle, queue length)
 ipcReceiveSetFcn(GetMsgName('Lidar0'),      @slamProcessLidar0,   ipcAPIHandle,5);
 ipcReceiveSetFcn(GetMsgName('Lidar1'),      @slamProcessLidar1_2, ipcAPIHandle,5);
 ipcReceiveSetFcn(GetMsgName('Servo1'),      @slamProcessServo1,   ipcAPIHandle,5);
 ipcReceiveSetFcn(GetMsgName('Encoders'),    @slamProcessEncoders, ipcAPIHandle,5);
 ipcReceiveSetFcn(GetMsgName('ImuFiltered'), @ipcRecvImuFcn,       ipcAPIHandle,5);
 
-
-
-%publish initial maps
-PublishObstacleMap;
-%PublishExplorationMap;
-
+%initialize scan matching function
 ScanMatch2D('setBoundaries',OMAP.xmin,OMAP.ymin,OMAP.xmax,OMAP.ymax);
 ScanMatch2D('setResolution',OMAP.res);
 
@@ -109,5 +100,4 @@ ScanMatch2D('setResolution',OMAP.res);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function slamUpdate
 ipcReceiveMessages;
-
 

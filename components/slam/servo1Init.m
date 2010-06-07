@@ -9,6 +9,7 @@ if isempty(SERVO1) || ~isfield(SERVO1,'initialized') ||(SERVO1.initialized ~= 1)
   SERVO1.offsetx = 0.165;
   SERVO1.offsety = 0;
   SERVO1.offsetz = 0.40;
+  SERVO1.timeout = 0.1;
   
   switch(id)
       case 1

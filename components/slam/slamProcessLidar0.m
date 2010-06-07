@@ -3,7 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function slamProcessLidar0(data,name)
-global SLAM LIDAR0 OMAP EMAP POSE IMU TRAJ CMAP DHMAP MAPS DVMAP
+global SLAM LIDAR0 OMAP EMAP POSE IMU CMAP DHMAP MAPS DVMAP
 
 if ~isempty(data)
   LIDAR0.scan = MagicLidarScanSerializer('deserialize',data);
@@ -65,6 +65,7 @@ xRange   = floor(nxs/2);
 yRange   = floor(nys/2);
 
 %resolution of the candidate poses
+%TODO: make this dependent on angular velocity / motion speed
 dyaw = 0.1/180.0*pi;
 dx   = 0.01;
 dy   = 0.01;
@@ -74,6 +75,7 @@ aCand = (-yawRange:yawRange)*dyaw+SLAM.yaw + IMU.data.wyaw*0.025;
 xCand = (-xRange:xRange)*dx+SLAM.xOdom;
 yCand = (-yRange:yRange)*dy+SLAM.yOdom;
 
+%offsets due to lidar position offset and rotation of the robot
 offsetsx = LIDAR0.offsetx*cos(aCand) - LIDAR0.offsety*sin(aCand);
 offsetsy = LIDAR0.offsetx*sin(aCand) + LIDAR0.offsety*cos(aCand);
 
@@ -108,12 +110,22 @@ if (SLAM.lidar0Cntr > 1)
   SLAM.yaw = aCand(jmax);
   SLAM.x   = xGrid(cimin);
   SLAM.y   = yGrid(cimin);
-  
 end
 
-%send out pose message
-ipcAPIPublishVC(POSE.msgName,MagicPoseSerializer('serialize',POSE.data));
+POSE.data.x     = SLAM.x;
+POSE.data.y     = SLAM.y;
+POSE.data.z     = SLAM.z;
+POSE.data.roll  = IMU.data.roll;
+POSE.data.pitch = IMU.data.pitch;
+POSE.data.yaw   = SLAM.yaw;
+POSE.t          = GetUnixTime();
 
+%send out pose message
+if mod(SLAM.lidar0Cntr,4) == 0
+  ipcAPIPublishVC(POSE.msgName,MagicPoseSerializer('serialize',POSE.data));
+end
+  
+%publish pose message going out to outside world
 if mod(SLAM.lidar0Cntr,10) == 0
     ipcAPIPublishVC(POSE.extMsgName,MagicPoseSerializer('serialize',POSE.data));
 end
@@ -194,24 +206,6 @@ if (SLAM.updateExplorationMap)
     end
 end
 
-%send out robot trajectory to vis
-if (mod(SLAM.lidar0Cntr,40) == 0)
-  TRAJ.cntr = TRAJ.cntr+1;
-  TRAJ.traj(:,TRAJ.cntr) = [SLAM.x; SLAM.y; SLAM.yaw; hmax];
-  trajMsgName = [GetRobotName 'Traj' VisMarshall('getMsgSuffix','TrajPos3DColorDoubleRGBA')];
-  txs = TRAJ.traj(1,1:TRAJ.cntr-1);
-  tys = TRAJ.traj(2,1:TRAJ.cntr-1);
-  tzs = 0.1*ones(size(txs));
-  trs = ones(size(txs));
-  tgs = zeros(size(txs));
-  tbs = zeros(size(txs));
-  tas = ones(size(txs));
-
-  traj = [txs;tys;tzs;trs;tgs;tbs;tas]; 
-  content = VisMarshall('marshall','TrajPos3DColorDoubleRGBA',traj);
-  ipcAPIPublishVC(trajMsgName,content);
-end
-
 %decay the map around the vehicle
 if (mod(SLAM.lidar0Cntr,20) == 0)
   xiCenter = ceil((SLAM.x - OMAP.xmin) * OMAP.invRes);
@@ -262,24 +256,3 @@ if (xShift ~= 0 || yShift ~= 0)
     DVMAP = mapResize(DVMAP,xShift,yShift);
     ScanMatch2D('setBoundaries',OMAP.xmin,OMAP.ymin,OMAP.xmax,OMAP.ymax);
 end
-
-
-POSE.data.x     = SLAM.x;
-POSE.data.y     = SLAM.y;
-POSE.data.z     = SLAM.z;
-POSE.data.roll  = IMU.data.roll;
-POSE.data.pitch = IMU.data.pitch;
-POSE.data.yaw   = SLAM.yaw;
-SLAM.t          = GetUnixTime();
-
-%publish the full obstacle map (to vis)
-if (mod(SLAM.lidar0Cntr,200) == 0)
-  %PublishObstacleMap;
-end
-
-
-function [xi yi] = Pos2OmapInd(x,y)
-global OMAP
-
-xi = ceil((x - OMAP.xmin) * OMAP.invRes);
-yi = ceil((y - OMAP.ymin) * OMAP.invRes);
