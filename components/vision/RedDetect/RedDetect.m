@@ -184,6 +184,7 @@ while(1)
         imPacket.t  = GetUnixTime();
         imPacket.jpg = jpg;
         imPacket.Ymean = Ymean;
+        imPacket.POSE = POSE.data;
         ipcAPIPublish(imageMsgName,serialize(imPacket));
 
         if ~isempty(r) && counter > 20
@@ -191,30 +192,32 @@ while(1)
             if maxr > 0.5
                 counter = 0;
                 r = r(indr);
+                OOIpacket.OOI = r;
                 %  add POSE.data
-                r.id = str2double(getenv('ROBOT_ID'));
-                r.t = GetUnixTime()
+                OOIpacket.id = str2double(getenv('ROBOT_ID'));
+                OOIpacket.t = GetUnixTime()
 		if ~isempty(POSE.data)
-			r.x = POSE.data.x;
-			r.y = POSE.data.y;
-			r.z = POSE.data.z;
-			r.v = POSE.data.v;
-			r.w = POSE.data.w;
-			r.roll = POSE.data.roll;
-			r.pitch = POSE.data.pitch;
-			r.yaw = POSE.data.yaw;
+			OOIpacket.POSE = POSE.data;
+%			r.y = POSE.data.y;
+%			r.z = POSE.data.z;
+%			r.v = POSE.data.v;
+%			r.w = POSE.data.w;
+%			r.roll = POSE.data.roll;
+%			r.pitch = POSE.data.pitch;
+%			r.yaw = POSE.data.yaw;
 		else
-			r.x = []; 
-			r.y = []; 
-			r.z = []; 
-			r.v = []; 
-			r.w = []; 
-			r.roll = []; 
-			r.pitch = []; 
-			r.yaw = []; 
+			OOIpacket.POSE = [];
+%            r.x = []; 
+%			r.y = []; 
+%			r.z = []; 
+%			r.v = []; 
+%			r.w = []; 
+%			r.roll = []; 
+%			r.pitch = []; 
+%			r.yaw = []; 
 		end 
                 %%%%% send struct r through IPC %%%%%
-                ipcAPIPublish(staticOoiMsgName,serialize(r));
+                ipcAPIPublish(staticOoiMsgName,serialize(OOIpacket));
             end
         end
     end
