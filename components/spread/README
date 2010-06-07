@@ -1,0 +1,29 @@
+This directory contains code to embed spread IPC
+into Matlab:
+
+spreadAPI.mexglx: Mex file containing low-level calls to spread API.
+	Typically should not be called directly
+
+spreadAPIConnect(proc_name,...)
+spreadAPIJoin(group)
+spreadAPIMulticastReliable(group, data)
+spreadAPIMulticastFIFO(group, data)
+spreadAPIMulticastCausal(group, data)
+spreadAPIReceive
+
+
+To start spread, make sure spread.conf is properly configured.
+Then start daemon:
+spread -n localhost
+
+To manually interact with spread from command line:
+spuser -s 4803 (with appropriate port number in spread.conf)
+
+
+Example using Matlab calls is in test_spread.m
+
+To serialize/deserialize Matlab variables into uint8 arrays,
+s = serialize(x);
+x = deserialize(s);
+
+
