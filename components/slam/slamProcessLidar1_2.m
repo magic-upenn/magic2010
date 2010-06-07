@@ -110,7 +110,7 @@ CMAP.map.data(mapInds(tooSmall)) = SLAM.minCost;
 DVMAP.map.data(iGndMap)  = 1;
 DVMAP.map.data(iObsMap)  = 1;
 
-plotFig = 1;
+plotFig = 0;
 
 if plotFig
     plot(xClip, zClip, '-');

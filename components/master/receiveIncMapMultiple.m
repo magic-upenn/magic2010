@@ -21,7 +21,7 @@ POSE.cntr =1;
 USER_INPUT.freshClick =0;
 %id of the robot that maps should be received from
 
-ids=[1];
+ids=[3];
 
 masterConnectRobots(ids);
 
@@ -142,7 +142,7 @@ global CMAP POSE VIS OMAP;
   
   update = deserialize(data);
   
-  if (id==1)
+  if (1)
     xis = ceil((update.xs - CMAP.xmin) * CMAP.invRes);
     yis = ceil((update.ys - CMAP.ymin) * CMAP.invRes);
 
