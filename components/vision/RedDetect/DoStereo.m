@@ -4,7 +4,7 @@ function [xrgb,xdisparity] = DoStereo(yLeft,yRight,maxdisp,mode)
        triclopsAPI('setInputLeft', yLeft);
        triclopsAPI('setInputRight', yRight);
  
-       yrgb = triclopsAPI('imageRGB');
+       yrgb = triclopsAPI('imageRGBl');
        xrgb = permute(yrgb,[2 1 3]); % rectified right image
  
         if mode == 1
