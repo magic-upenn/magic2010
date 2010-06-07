@@ -1,12 +1,7 @@
 #ifndef MAGIC_SENSOR_DATA_TYPES_HH
 #define MAGIC_SENSOR_DATA_TYPES_HH
 
-#ifndef  __APPLE__
 #include "VisDataTypes.hh"
-#else
-#include <Vis/VisDataTypes.hh>
-#endif
-
 #include <string.h>
 
 using namespace vis;
