@@ -1,4 +1,4 @@
-function test_hokuyo1(addr,id)
+function test_lidar1(addr,id)
 
 SetMagicPaths;
 ipcInit('localhost');

@@ -1,3 +1,7 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Lidar0 message handler (horizontal lidar)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 function slamProcessLidar0(data,name)
 global SLAM LIDAR0 OMAP EMAP POSE IMU TRAJ CMAP DHMAP MAPS DVMAP
 
