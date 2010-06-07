@@ -36,12 +36,6 @@ subplot(1,3,3); handle3 = image([]); axis([1 256 1 192]); axis ij; axis equal; a
 % run this when changing to different camera:
 %    bumblebeeWriteContextToFile('context.txt');
 
-%Buildmap % Lookup table which converts quantized RGB color (4bit/channel) to YCbCr
-
-%load CbCr.mat % Learned Gaussian of red color in YCbCr space
-%lookupCbCr(200:end,:) = 1; % Threshold of red. Cr > 200 means very red.
-%load Cr_params.mat % quadratic coefficients of Cr threshold vs exposure
-
 load weighting.mat
 weighting = weighting(1:2:end,1:2:end);
 
@@ -77,89 +71,55 @@ while(1)
     [yRight,dispmap] = DoStereo(yLeft,yRight,maxdisp,0);
 
     %            [Y,Cb,Cr] = colorspace('rgb->YCbCr',yRight);
-    notwhite = sum(yRight,3)<765;
-    
     [Y,Cr] = Get_YCr_only(yRight);
+    notwhite = sum(yRight,3)<765; % mask out completely white pixels 
     Ymod = Y.*weighting; % bottom of image weighted more than top
     Ymod = Ymod(notwhite(:));
     Ymean = mean(Ymod(:)/256)*2;
 
     Cr_threshold = max(190,max(Cr(:)) - 20);
     imCr_filt = Cr > Cr_threshold;
-    %     BinIm = floor(double(yRight)/16)+1; % quantize RGB color to 4bits/channel
-    %     mapind = sub2ind([16,16,16],BinIm(:,:,1),BinIm(:,:,2),BinIm(:,:,3)); % convert to YCbCr
-    %     %Y = reshape(Ymap(mapind(:)),size(yRight,1),size(yRight,2)); % in image format
-    %     Cb = reshape(Cbmap(mapind(:)),size(yRight,1),size(yRight,2));
-    %     Cr = reshape(Crmap(mapind(:)),size(yRight,1),size(yRight,2));
 
-    % create heatmap of probabilities of seeing red
-    %     indices = sub2ind(size(lookupCbCr),round(Cr(:)),round(Cb(:)));
-    %     imCr = reshape(lookupCbCr(indices),size(Cr));
-
-    set(handle3,'CData',dispmap);
-    %    imagesc(dispmap); axis image;
-    %     imagesc(imCr_filt); axis image;
+    set(handle3,'CData',dispmap); % update images on screen
     set(handle2,'CData',imCr_filt*255);
-    %        subplot(1,3,3);
-    %imCr_filt = bwareaopen(imCr_filt,20); % filter out small noisy patches
-
-    %       imagesc(imCr_filt); axis equal;
-
-    %    [Lred nred] = bwlabeln(imCr_filt);
-    %    r = regionprops(Lred, 'BoundingBox','Extent');
-    r = connected_regions(uint8(imCr_filt));
-
-    r = r([r.area] >= 20);
 
     subplot(1,3,1);
     imshow(yRight);
 
-    %     subplot(1,3,3);
-    %     plot(Cb(:),Cr(:),'b.'); axis([0 250 40 250]);hold on;
-    %     plotcov2(CbCr_mean,CbCr_cov,'conf',0.7,'plot-opts',{'Color', 'g', 'LineWidth', 1});
+    r = connected_regions(uint8(imCr_filt));
+    r = r([r.area] >= 20);
 
-    % Calculate mean of boxes
+    % Calculate details of each red box candidate
     hold on;
     for i = 1:length(r)
-        r(i).BoundingBox = [r(i).boundingBox(1,2) r(i).boundingBox(1,1) r(i).boundingBox(2,2)-r(i).boundingBox(1,2)+1 r(i).boundingBox(2,1)-r(i).boundingBox(1,1)+1];
+        r(i).BoundingBox = [max(1,r(i).boundingBox(1,2)) max(1,r(i).boundingBox(1,1)) r(i).boundingBox(2,2)-r(i).boundingBox(1,2)+1 r(i).boundingBox(2,1)-r(i).boundingBox(1,1)+1];
         r(i).Extent = r(i).area/r(i).BoundingBox(3)/r(i).BoundingBox(4);
         Crcrop = imcrop(Cr,r(i).BoundingBox);
         r(i).Cr_mean = mean(Crcrop(:));
         
-        Redpix = imcrop(imCr_filt,r(i).BoundingBox);
-        
-        %        Icrop = imcrop(BinIm,r(i).BoundingBox);
-        %         mapind = sub2ind([16,16,16],Icrop(:,:,1),Icrop(:,:,2),Icrop(:,:,3)); % convert to YCbCr
-        %         Cbcrop = reshape(Cbmap(mapind(:)),size(Icrop,1),size(Icrop,2));
-        %         Crcrop = reshape(Crmap(mapind(:)),size(Icrop,1),size(Icrop,2));
-        %        plot(Cbcrop(:),Crcrop(:),'r.');
-        %
-        %        r(i).CbCr_mean = mean([Cbcrop(:),Crcrop(:)]);
-        %        r(i).CbCr_cov = cov([Cbcrop(:),Crcrop(:)]);
-
-        % Create a score for each red box
-        mean_disp = mean(mean(imcrop(dispmap,round(r(i).BoundingBox)))); % ave disparity in bounding box
+        %mean_disp = mean(mean(imcrop(dispmap,round(r(i).BoundingBox)))); % ave disparity in bounding box
+        BB = r(i).BoundingBox;
+        temp = zeros(size(imCr_filt)); % temp will store red pixels inside bounding box
+        temp(BB(2):BB(2)+BB(4)-1,BB(1):BB(1)+BB(3)-1) = imCr_filt(BB(2):BB(2)+BB(4)-1,BB(1):BB(1)+BB(3)-1);
+        mean_disp = mean(dispmap(logical(temp))); % ave disparity in red pixels in bounding box
         r(i).distance = GetDistfromDisp(mean_disp); % in meters
         r(i).angle = atand((r(i).centroid(2)-256/2)/(72/44*256/2));
-        [expected_xwidth,expected_yheight] = GetRedSizefromDist(r(i).distance); % [xwidth yheight] in pixels
-        if r(i).BoundingBox(3) > 0.66*expected_xwidth && r(i).BoundingBox(3) < 1.33*expected_xwidth
+
+        % filter out by expected size of red bin
+        cropImCr = imcrop(imCr_filt,r(i).BoundingBox);
+        [MajorLen,MinorLen] = GetMajorLengths(cropImCr); % get dimensions of bin in image which could be rotated
+        [expected_xwidth,expected_yheight] = GetRedSizefromDist(r(i).distance); % [xwidth yheight] in pixels. From distance estimate
+        if MinorLen > 0.66*expected_xwidth && MinorLen < 1.33*expected_xwidth
             xwidth_score = 1;
         else
             xwidth_score = 0;
         end
-        if r(i).BoundingBox(4) > 0.66*expected_yheight && r(i).BoundingBox(4) < 1.33*expected_yheight
+        if MajorLen > 0.66*expected_yheight && MajorLen < 1.33*expected_yheight
             yheight_score = 1;
         else
             yheight_score = 0;
         end
-%        xwidth_score = exp(-(r(i).BoundingBox(3) - expected_xwidth)^2/(2*20^2));
-%        yheight_score = exp(-(r(i).BoundingBox(4) - expected_yheight)^2/(2*20^2));
-        %shape_ratios = exp(-((r(i).BoundingBox(4)/r(i).BoundingBox(3)) - 1.4)^2/(2*0.5^2));
-        %         KLdist =  exp(-(1/2*(CbCr_mean - r(i).CbCr_mean)*inv(r(i).CbCr_cov)*(CbCr_mean - r(i).CbCr_mean)' + ...
-        %             + 1/2*log(det(r(i).CbCr_cov)/det(CbCr_cov)) + ...
-        %             + 1/2*trace(CbCr_cov*inv(r(i).CbCr_cov)- eye(2)))/4);
-        %redness = exp(-(r(i).Cr_mean-220)^2/(2*20^2));
-        r(i).redbinscore = xwidth_score * yheight_score * r(i).Extent;% * redness; % Extent is redpixels/areaofbox
+        r(i).redbinscore = xwidth_score * yheight_score * r(i).Extent;% Extent is redpixels/areaofbox
 
         linecolor = 'g';
         if r(i).redbinscore > 0.5    % Display candidate red boxes
@@ -198,23 +158,8 @@ while(1)
                 OOIpacket.t = GetUnixTime()
 		if ~isempty(POSE.data)
 			OOIpacket.POSE = POSE.data;
-%			r.y = POSE.data.y;
-%			r.z = POSE.data.z;
-%			r.v = POSE.data.v;
-%			r.w = POSE.data.w;
-%			r.roll = POSE.data.roll;
-%			r.pitch = POSE.data.pitch;
-%			r.yaw = POSE.data.yaw;
 		else
 			OOIpacket.POSE = [];
-%            r.x = []; 
-%			r.y = []; 
-%			r.z = []; 
-%			r.v = []; 
-%			r.w = []; 
-%			r.roll = []; 
-%			r.pitch = []; 
-%			r.yaw = []; 
 		end 
                 %%%%% send struct r through IPC %%%%%
                 ipcAPIPublish(staticOoiMsgName,serialize(OOIpacket));
