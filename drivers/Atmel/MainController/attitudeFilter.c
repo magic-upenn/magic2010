@@ -24,6 +24,13 @@ float wxb = 0;
 float wyb = 0;
 float wzb = 0;
 
+uint16_t wxcMin = 1023;
+uint16_t wxcMax = 0;
+uint16_t wycMin = 1023;
+uint16_t wycMax = 0;
+uint16_t wzcMin = 1023;
+uint16_t wzcMax = 0;
+
 //error in biases (experimental)
 float wxdb = 0;
 float wydb = 0;
@@ -74,6 +81,13 @@ void ResetImu()
   wxb = 0;
   wyb = 0;
   wzb = 0;
+
+  wxcMin = 1023;
+  wxcMax = 0;
+  wycMin = 1023;
+  wycMax = 0;
+  wzcMin = 1023;
+  wzcMax = 0;
 }
 
 
@@ -116,6 +130,24 @@ int ProcessImuReadings(uint16_t * adcVals, float * rpy, float * wrpy)
       wxb+= (int16_t)adcVals[ADC_WX_IND];
       wyb+= (int16_t)adcVals[ADC_WY_IND];
       wzb+= (int16_t)adcVals[ADC_WZ_IND];
+
+      if (adcVals[ADC_WX_IND] < wxcMin)
+        wxcMin = adcVals[ADC_WX_IND];
+
+      if (adcVals[ADC_WY_IND] < wycMin)
+        wycMin = adcVals[ADC_WY_IND];
+
+      if (adcVals[ADC_WZ_IND] < wzcMin)
+        wzcMin = adcVals[ADC_WZ_IND];
+
+      if (adcVals[ADC_WX_IND] > wxcMax)
+        wxcMax = adcVals[ADC_WX_IND];
+
+      if (adcVals[ADC_WY_IND] > wycMax)
+        wycMax = adcVals[ADC_WY_IND];
+
+      if (adcVals[ADC_WZ_IND] > wzcMax)
+        wzcMax = adcVals[ADC_WZ_IND];
     }
     
     
@@ -131,7 +163,10 @@ int ProcessImuReadings(uint16_t * adcVals, float * rpy, float * wrpy)
           wyb > (NOMINAL_GYRO_BIAS + GYRO_BIAS_MARGIN) ||
           wyb < (NOMINAL_GYRO_BIAS - GYRO_BIAS_MARGIN) ||
           wzb > (NOMINAL_GYRO_BIAS + GYRO_BIAS_MARGIN) ||
-          wzb < (NOMINAL_GYRO_BIAS - GYRO_BIAS_MARGIN) )
+          wzb < (NOMINAL_GYRO_BIAS - GYRO_BIAS_MARGIN) ||
+          (wxcMax - wxcMin) > MAX_GYRO_CALIB_NOSE ||
+          (wycMax - wycMin) > MAX_GYRO_CALIB_NOSE ||
+          (wzcMax - wzcMin) > MAX_GYRO_CALIB_NOSE  )
       {
         //sometime bad happened during gyro calibration, so reset
         ResetImu();
