@@ -11,7 +11,7 @@ while ~isempty(m),
   group = m.groups;
   if isfield(SPREAD.handler,group),
     try
-      SPREAD.handler.(group)(m.message);
+      SPREAD.handler.(group)(m.message, group);
     catch
       disp(sprintf('Error in spread %s handler: %s', group, lasterror.message));
     end
