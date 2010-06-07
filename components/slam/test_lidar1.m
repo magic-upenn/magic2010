@@ -6,7 +6,7 @@ ipcInit('localhost');
 lidar1Init;
 servo1Init;
 
-ipcReceiveSetFcn(GetMsgName('Lidar1'),      @slamProcessLidar1);
+ipcReceiveSetFcn(GetMsgName('Lidar1'),      @slamProcessLidar1Test);
 ipcReceiveSetFcn(GetMsgName('ImuFiltered'), @ipcRecvImuFcn);
 ipcReceiveSetFcn(GetMsgName('Servo1'),      @slamProcessServo1);
 
