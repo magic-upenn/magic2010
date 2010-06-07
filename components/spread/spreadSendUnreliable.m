@@ -3,7 +3,7 @@ function y = spreadSendUnreliable(name, data);
 persistent hostname
 
 if isempty(hostname),
-  [status, hostname] = system('hostname');
+  hostname = gethostname;
 end
 
 group = [hostname '/' name];
