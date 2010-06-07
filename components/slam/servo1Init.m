@@ -7,6 +7,7 @@ if isempty(SERVO1) || ~isfield(SERVO1,'initialized') ||(SERVO1.initialized ~= 1)
   SERVO1.offsetx = 0.165;
   SERVO1.offsety = 0;
   SERVO1.offsetz = 0.40;
+  SERVO1.offsetYaw = 0/180*pi;  %TODO: load this from config file
   
   ipcInit;
   ipcAPIDefine(SERVO1.msgName,MagicServoStateSerializer('getFormat'));

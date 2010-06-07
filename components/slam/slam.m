@@ -87,12 +87,12 @@ DefineSensorMessages;
 DefinePlannerMessages;
 
 %assign the message handlers
-ipcReceiveSetFcn(GetMsgName('Pose'),        @ipcRecvPoseFcn);
-ipcReceiveSetFcn(GetMsgName('Lidar0'),      @slamProcessLidar0);
-ipcReceiveSetFcn(GetMsgName('Lidar1'),      @slamProcessLidar1_1);
-ipcReceiveSetFcn(GetMsgName('Servo1'),      @slamProcessServo1);
-ipcReceiveSetFcn(GetMsgName('Encoders'),    @slamProcessEncoders);
-ipcReceiveSetFcn(GetMsgName('ImuFiltered'), @ipcRecvImuFcn);
+ipcAPIHandle = @ipcAPI;
+ipcReceiveSetFcn(GetMsgName('Lidar0'),      @slamProcessLidar0,   ipcAPIHandle,5);
+ipcReceiveSetFcn(GetMsgName('Lidar1'),      @slamProcessLidar1_2, ipcAPIHandle,5);
+ipcReceiveSetFcn(GetMsgName('Servo1'),      @slamProcessServo1,   ipcAPIHandle,5);
+ipcReceiveSetFcn(GetMsgName('Encoders'),    @slamProcessEncoders, ipcAPIHandle,5);
+ipcReceiveSetFcn(GetMsgName('ImuFiltered'), @ipcRecvImuFcn,       ipcAPIHandle,5);
 
 
 

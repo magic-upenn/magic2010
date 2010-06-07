@@ -10,9 +10,11 @@
 #include <float.h>
 #include <vector>
 #include "mex.h"
+#include <string.h>
 
 std::vector<int> count;
 std::vector<double> sumY, sumYY, maxY, minY;
+std::vector<double> nbin;
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -44,6 +46,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   sumYY.resize(n);
   maxY.resize(n);
   minY.resize(n);
+  nbin.resize(nX,-1);
   for (int i = 0; i < n; i++) {
     count[i] = 0;
     sumY[i] = 0;
@@ -60,10 +63,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       sumYY[j] += prY[i]*prY[i];
       if (prY[i] > maxY[j]) maxY[j] = prY[i];
       if (prY[i] < minY[j]) minY[j] = prY[i];
+      nbin[i] = (double)j+1;
     }
   }
 
-  const char *fields[] = {"count", "mean", "std", "max", "min"};
+  const char *fields[] = {"count", "mean", "std", "max", "min","nbin"};
   const int nfields = sizeof(fields)/sizeof(*fields);
   plhs[0] = mxCreateStructMatrix(n, 1, nfields, fields);
   for (int i = 0; i < n; i++) { 
@@ -82,5 +86,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       mxSetField(plhs[0], i, "max", mxCreateDoubleScalar(0));
       mxSetField(plhs[0], i, "min", mxCreateDoubleScalar(0));
     }
+  }
+
+  if (nlhs >=2)
+  {
+    plhs[1] = mxCreateDoubleMatrix(1,nX,mxREAL);
+    memcpy(mxGetData(plhs[1]),&(nbin[0]),nX*sizeof(double));
   }
 }

@@ -13,7 +13,7 @@ end
 %make sure we have fresh data
 if (CheckImu() ~= 1), return; end
 if (CheckServo1() ~= 1), return; end
-servoAngle = SERVO1.data.position + 3/180*pi;
+servoAngle = SERVO1.data.position + SERVO1.offsetYaw;
 Tservo1 = trans([SERVO1.offsetx SERVO1.offsety SERVO1.offsetz])*rotz(servoAngle);
 Tlidar1 = trans([LIDAR1.offsetx LIDAR1.offsety LIDAR1.offsetz]) * ...
           rotx(pi/2);
