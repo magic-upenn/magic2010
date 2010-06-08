@@ -12,6 +12,10 @@ using namespace std;
 // Module written by Jonathan Michael Butzke 
 //	serves as the main subroutine to determine a path.  
 
+static IPC_CONTEXT_PTR central_local_host;
+static IPC_CONTEXT_PTR central_robot2;
+
+
 int map_sizex_m=0;
 int map_sizey_m=0;
 float coverage_cell_size=0;
@@ -419,7 +423,7 @@ void global_planner(float goal_x, float goal_y, float goal_theta) {
 
 	// ensure that the robot cell is not an obstacle and clear a little box if there is
 	int rad = ceil(inflation_size+1);
-	float rad_2 = pow(inflation_size,2);
+	float rad_2 = pow(inflation_size+1,2);
 	cover_map[robot_x+coverage_size_x*robot_y] = KNOWN;
 	if (cost_map[robot_x+cost_size_x*robot_y] >= OBSTACLE) {
 		for(int xxx=-rad;xxx<rad; xxx++){
@@ -642,6 +646,9 @@ void global_planner(float goal_x, float goal_y, float goal_theta) {
 
 	//publish message to screen and to server
 	//IPC_printData(IPC_msgFormatter (GP_TRAJECTORY_MSG), stdout, &gp_traj);
+IPC_setContext(central_local_host);
+	IPC_publishData(GP_TRAJECTORY_MSG, &gp_traj); // needed for XP
+IPC_setContext(central_robot2);
 	IPC_publishData(GP_TRAJECTORY_MSG, &gp_traj); // needed for XP
 
 	// frees un-needed arrays
@@ -664,7 +671,9 @@ static void GP_MAP_DATA_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, void 
 	GP_MAP_DATA_PTR gp_map_data_p;
 	IPC_unmarshall(IPC_msgInstanceFormatter(msgRef), callData, (void **)&gp_map_data_p);
 	printf("Handler: Receiving %s (size %lu) [%s] \n", IPC_msgInstanceName(msgRef),  sizeof(callData), (char *)clientData);
-
+static int count=0;
+count++;
+printf("map count is %d\n", count);
 	//function to print message to screen
 	//IPC_printData(IPC_msgInstanceFormatter(msgRef), stdout, gp_map_data_p);
 
@@ -752,7 +761,10 @@ static void GP_ROBOT_PARAMETER_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData
 
 static void GP_POSITION_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData) {
 	//function handles the position update messages
-	GP_POSITION_UPDATE_PTR gp_position_update_p;
+	static int count=0;
+  count++;
+  printf("pose count is now %d\n", count);
+  GP_POSITION_UPDATE_PTR gp_position_update_p;
 	IPC_unmarshall(IPC_msgInstanceFormatter(msgRef), callData, (void **)&gp_position_update_p);
 	printf("Handler: Receiving %s (size %lu) [%s] \n", IPC_msgInstanceName(msgRef),  sizeof(callData), (char *)clientData);
 
@@ -763,7 +775,7 @@ static void GP_POSITION_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData
 	// .... and as an int in cells
 	int temp_robot_x= (int)(robot_xx/cost_cell_size);
 	int temp_robot_y= (int)(robot_yy/cost_cell_size);
-
+printf("wtf: %d %d\n", temp_robot_x, temp_robot_y);
 	//updtes orientation
 	theta = gp_position_update_p->theta;
 
@@ -774,7 +786,6 @@ static void GP_POSITION_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData
 	if (OnMap(temp_robot_x, temp_robot_y) && ( temp_robot_x !=0) && (temp_robot_y !=0)) { 
 		robot_x = temp_robot_x; 
 		robot_y = temp_robot_y; 
-		global_planner(-1, -1, -1);
 	}
 	else { cout << " Invalid position received " << endl; }
 
@@ -816,11 +827,16 @@ static void GP_FULL_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, vo
 	GP_FULL_UPDATE_PTR gp_full_update_p;
 	IPC_unmarshall(IPC_msgInstanceFormatter(msgRef), callData, (void **)&gp_full_update_p);
 	printf("Handler: Receiving %s (size %lu) [%s] \n", IPC_msgInstanceName(msgRef),  sizeof(callData), (char *)clientData);
+static int count =0;
+count++;
+printf("map count is %d\n", count);
+
 
 	// function to print received message to screen
 	//IPC_printData(IPC_msgInstanceFormatter(msgRef), stdout, gp_full_update_p);
 	//update size variables
-	cost_size_x = gp_full_update_p->sent_cost_x;
+
+cost_size_x = gp_full_update_p->sent_cost_x;
 	cost_size_y = gp_full_update_p->sent_cost_y;
 	coverage_size_x = gp_full_update_p->sent_cover_x;
 	coverage_size_y = gp_full_update_p->sent_cover_y;
@@ -842,6 +858,7 @@ static void GP_FULL_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, vo
 	memcpy((void *)cost_map, (void *)gp_full_update_p->cost_map, cost_size_x*cost_size_y*sizeof(unsigned char));
 	memcpy((void *)elev_map, (void *)gp_full_update_p->elev_map, elev_size_x*elev_size_y*sizeof(int16_t));
 
+		global_planner(-1, -1, -1);
 	//free memory used by message
 	IPC_freeDataElements(IPC_msgInstanceFormatter(msgRef), (void *) gp_full_update_p);
 	IPC_freeByteArray(callData);
@@ -907,9 +924,18 @@ int main (void) {
 
 	/* Connect to the central server */
 	printf("\nIPC_connect(%s)\n", MODULE_NAME);
-	IPC_connect(MODULE_NAME);
+	IPC_connectModule(MODULE_NAME, "192.168.10.102");
+central_robot2 = IPC_getContext();
 
-	///* Define the messages that this module publishes */
+
+	printf("\nIPC_defineMsg(%s, IPC_VARIABLE_LENGTH, %s)\n", GP_TRAJECTORY_MSG, GP_TRAJECTORY_FORM);
+	IPC_defineMsg(GP_TRAJECTORY_MSG, IPC_VARIABLE_LENGTH, GP_TRAJECTORY_FORM);
+  IPC_setMsgQueueLength(GP_TRAJECTORY_MSG, 1);
+
+///* Define the messages that this module publishes */
+IPC_connectModule(MODULE_NAME, "localhost");
+central_local_host = IPC_getContext();
+
 	printf("\nIPC_defineMsg(%s, IPC_VARIABLE_LENGTH, %s)\n", GP_TRAJECTORY_MSG, GP_TRAJECTORY_FORM);
 	IPC_defineMsg(GP_TRAJECTORY_MSG, IPC_VARIABLE_LENGTH, GP_TRAJECTORY_FORM);
   IPC_setMsgQueueLength(GP_TRAJECTORY_MSG, 1);
@@ -942,6 +968,8 @@ int main (void) {
 	//	printf("\nIPC_subscribeFD(%d, stdinHnd, %s)\n", _fileno(stdin),MODULE_NAME);
 	//IPC_subscribeFD(_fileno(stdin), stdinHnd, (void *)MODULE_NAME);
 	printf("\nType 'q' to quit\n");
+
+	IPC_setContext(central_local_host);
 
 	IPC_setVerbosity(IPC_Print_Errors);
 
