@@ -20,7 +20,7 @@ using namespace std;
 #define min(a,b) (a<b?a:b)
 #define max(a,b) (a>b?a:b)
 
-#define PLANNING_TIME 1.0
+#define PLANNING_TIME 0.75
 
 int count=0;
 
@@ -69,7 +69,7 @@ char initialized = 0;
 #define UPDATED_MAP 1<<5
 #define UPDATED_POS 1<<6
 #define INIT_DONE (INIT_RES | INIT_PARAMS | INIT_MAP | INIT_POSE | INIT_TRAJ | UPDATED_MAP | UPDATED_POS)
-#define NEED_UPDATE (INIT_RES | INIT_PARAMS | INIT_MAP | INIT_POSE | INIT_TRAJ | UPDATED_MAP)
+#define NEED_UPDATE (INIT_RES | INIT_PARAMS | INIT_MAP | INIT_POSE | INIT_TRAJ)
 
 
 
@@ -111,8 +111,7 @@ static void GP_ROBOT_PARAMETER_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData
     sbpl_2Dpt_t pt;
     pt.x = gp_robot_parameter_p->PerimeterArray[i*gp_robot_parameter_p->J_DIMENSION];
     pt.y = gp_robot_parameter_p->PerimeterArray[i*gp_robot_parameter_p->J_DIMENSION+1];
-    //THIS IS A POINT ROBOT!!!!!! 
-    //perimeterptsV.push_back(pt);
+    perimeterptsV.push_back(pt);
     float r = sqrt(pt.x*pt.x+pt.y*pt.y);
     if(r>outer_radius)
       outer_radius = r;
@@ -159,6 +158,8 @@ static void GP_FULL_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, vo
     env->SetEnvParameter("cost_possibly_circumscribed_thresh",252);
 
     const char* primitive_filename = "magic.mprim";
+    //THIS IS A POINT ROBOT!!!!!! 
+    perimeterptsV.clear();
     env->InitializeEnv(size_x, // width
                        size_y, // height
                        0, // mapdata
@@ -398,16 +399,16 @@ int main(int argc, char** argv){
 
 	printf("\nIPC_subscribe(%s, GP_FULL_UPDATE_Handler, %s)\n", GP_FULL_UPDATE_MSG, MODULE_NAME);
 	//IPC_subscribe(GP_FULL_UPDATE_MSG, GP_FULL_UPDATE_Handler, (void *)MODULE_NAME);
-	IPC_subscribe("Lattice Planner Full Update", GP_FULL_UPDATE_Handler, (void *)MODULE_NAME);
-  IPC_setMsgQueueLength("Lattice Planner Full Update", 1);
+	IPC_subscribe("Lattice_Planner_Full_Update", GP_FULL_UPDATE_Handler, (void *)MODULE_NAME);
+  IPC_setMsgQueueLength("Lattice_Planner_Full_Update", 1);
 
 	printf("\nIPC_subscribe(%s, GP_SHORT_UPDATE_Handler, %s)\n", GP_SHORT_UPDATE_MSG, MODULE_NAME);
 	IPC_subscribe(GP_SHORT_UPDATE_MSG, GP_SHORT_UPDATE_Handler, (void *)MODULE_NAME);
 
 	printf("\nIPC_subscribe(%s, GP_POSITION_UPDATE_Handler, %s)\n", GP_POSITION_UPDATE_MSG, MODULE_NAME);
 	//IPC_subscribe(GP_POSITION_UPDATE_MSG, GP_POSITION_UPDATE_Handler, (void *)MODULE_NAME);
-	IPC_subscribe("Lattice Planner Position Update", GP_POSITION_UPDATE_Handler, (void *)MODULE_NAME);
-  IPC_setMsgQueueLength("Lattice Planner Position Update", 1);
+	IPC_subscribe("Lattice_Planner_Position_Update", GP_POSITION_UPDATE_Handler, (void *)MODULE_NAME);
+  IPC_setMsgQueueLength("Lattice_Planner_Position_Update", 1);
 
   printf("\nIPC_subscribe(%s, msg2Handler, %s)\n", GP_TRAJECTORY_MSG, MODULE_NAME);
   IPC_subscribe(GP_TRAJECTORY_MSG, GPTRAJHandler, (void *)MODULE_NAME);
@@ -433,10 +434,11 @@ int main(int argc, char** argv){
         makeTrajMap();
 
       //copy data to map
-      double temp_rad_sqr = outer_radius/resolution;
-      temp_rad_sqr *= temp_rad_sqr;
-      double start_cell_x = global_start_x/resolution;
-      double start_cell_y = global_start_y/resolution;
+      double temp_rad_sqr = (outer_radius+1)*(outer_radius+1);
+      double start_cell_x = (global_start_x-global_x_offset)/resolution;
+      double start_cell_y = (global_start_y-global_y_offset)/resolution;
+      printf("start clear (%f %f) ", start_cell_x, start_cell_y);
+      int count2 = 0;
       for(int x=0; x < size_x; x++){
         for(int y=0; y < size_y; y++){
           unsigned char c;
@@ -444,6 +446,7 @@ int main(int argc, char** argv){
           if(dist < temp_rad_sqr){
             c = min(costmap[x][y], inner_obst_thresh-1);
             env->UpdateCost(x,y,c);
+            count2++;
           }
           else{
             if(costmap[x][y] < 252)
@@ -455,6 +458,7 @@ int main(int argc, char** argv){
           }
         }
       }
+      printf("footprint count = %d\n",count2);
       planner->costs_changed();
       planner->set_start(env->SetStart(global_start_x-global_x_offset, 
                                        global_start_y-global_y_offset, 

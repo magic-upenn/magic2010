@@ -2,12 +2,12 @@ SetMagicPaths;
 
 global OMAP EMAP
 
-ipcAPIDefine('Global Planner Map Initialization',MagicGP_MAP_DATASerializer('getFormat'));
-ipcAPIDefine('Global Planner Robot Parameters',MagicGP_ROBOT_PARAMETERSerializer('getFormat'));
-ipcAPIDefine('Global Planner Full Update',MagicGP_FULL_UPDATESerializer('getFormat'));
-ipcAPIDefine('Global Planner Position Update',MagicGP_POSITION_UPDATESerializer('getFormat'));
-ipcAPIDefine('Lattice Planner Full Update',MagicGP_FULL_UPDATESerializer('getFormat'));
-ipcAPIDefine('Lattice Planner Position Update',MagicGP_POSITION_UPDATESerializer('getFormat'));
+ipcAPIDefine('Global_Planner_Map_Initialization',MagicGP_MAP_DATASerializer('getFormat'));
+ipcAPIDefine('Global_Planner_Robot_Parameters',  MagicGP_ROBOT_PARAMETERSerializer('getFormat'));
+%ipcAPIDefine('Global_Planner_Full_Update',       MagicGP_FULL_UPDATESerializer('getFormat'));
+%ipcAPIDefine('Global_Planner_Position_Update',   MagicGP_POSITION_UPDATESerializer('getFormat'));
+ipcAPIDefine('Lattice_Planner_Full_Update',      MagicGP_FULL_UPDATESerializer('getFormat'));
+ipcAPIDefine('Lattice_Planner_Position_Update',  MagicGP_POSITION_UPDATESerializer('getFormat'));
 
 %initialze map over IPC
 map_init.timestamp = GetUnixTime();
@@ -20,7 +20,7 @@ map_init.coverage_size_y = size(EMAP.map.data,2);
 map_init.cost_cell_size = OMAP.res;
 map_init.elev_cell_size = OMAP.res;
 map_init.coverage_cell_size = EMAP.res;
-ipcAPIPublishVC('Global Planner Map Initialization',MagicGP_MAP_DATASerializer('serialize',map_init));
+ipcAPIPublishVC('Global_Planner_Map_Initialization',MagicGP_MAP_DATASerializer('serialize',map_init));
 
 %send robot parameters over IPC
 robot_params.MAX_VELOCITY = 1.0;
@@ -30,5 +30,5 @@ robot_params.J_DIMENSION = 2;
 robot_params.sensor_radius = 30;
 robot_params.sensor_height = 62.8;
 robot_params.PerimeterArray = [1;1;1;-1;-1;-1;-1;1]*0.25;
-ipcAPIPublishVC('Global Planner Robot Parameters',MagicGP_ROBOT_PARAMETERSerializer('serialize',robot_params));
+ipcAPIPublishVC('Global_Planner_Robot_Parameters',MagicGP_ROBOT_PARAMETERSerializer('serialize',robot_params));
 
