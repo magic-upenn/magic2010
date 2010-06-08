@@ -48,9 +48,10 @@ int robot_x=1, robot_y=1; // x and y cell coordinates of robot
 float theta = 0;
 
 //robot variables
-float sensor_radius= 10.0; // distance sensors can see in m
+float sensor_radius= 5.0; // distance sensors can see in m
 int16_t sensor_height=120; // sensor height in cm
 float inflation_size=0;  //size in cells to inflate obstacles
+const float SENSORWIDTH = 70*M_PI/180;  // sensor width in radians used to determine start and finish vectors for ray tracing
 float MAX_VELOCITY=5.0; // meters per second
 float MAX_TURN_RATE=1.0; // radians per second
 float GP_PLAN_TIME=1.0; // seconds to allow for planning
@@ -430,6 +431,7 @@ void global_planner(float goal_x, float goal_y, float goal_theta) {
 			for(int yyy=-rad; yyy<rad;yyy++) {
 				if (OnMap(robot_x+xxx,robot_y+yyy)&&((xxx*xxx+yyy*yyy)< rad_2)){
 					cost_map[robot_x+xxx+cost_size_x*(robot_y+yyy)] = min((int)cost_map[robot_x+xxx+cost_size_x*(robot_y+yyy)], OBSTACLE -((rad*rad)/(1+xxx*xxx+yyy*yyy)));
+					cover_map[robot_x+xxx+cost_size_x*(robot_y+yyy)] = KNOWN;
 				}
 			}
 		}		
@@ -726,7 +728,7 @@ static void GP_ROBOT_PARAMETER_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData
 	rasterCircle((int)(sensor_radius/cost_cell_size));
 
 	//determine start and stop vector numbers for each direction
-	int delta_vec = NUMVECTORS/3; // 120 degrees worth of vectors
+	int delta_vec = NUMVECTORS*SENSORWIDTH/(2*M_PI); // 120 degrees worth of vectors
 	int cardinal_vec = NUMVECTORS/8; // 45 degrees worth of vectors
 	for(int i=0; i<8; i++) {
 		FVR[i] = SVL[i] = ValidVec(cardinal_vec*i);
@@ -976,9 +978,9 @@ central_local_host = IPC_getContext();
 	IPC_dispatch();
 
 	//wait for messages
-	while(true) {
-		IPC_listen(1000);
-	}
+	//while(true) {
+		//IPC_listen(1000);
+	//}
 
 	//clean up on exit
 	IPC_disconnect();
