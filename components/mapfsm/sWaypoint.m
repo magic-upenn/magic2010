@@ -1,9 +1,9 @@
-function ret = sSpinLeft(event, varargin);
+function ret = sWaypoint(event, varargin);
 
 global MPOSE
 persistent DATA
 
-timeout = 60.0;
+timeout = 15.0;
 ret = [];
 switch event
  case 'entry'
@@ -17,18 +17,18 @@ switch event
    SetVelocity(0,0);  
   
  case 'update'
-   SetVelocity(0, .4);
+   SetVelocity(0, .3);
 
    if (gettime - DATA.t0 > timeout)
-     ret = 'timeout';
+    ret = 'timeout';
    end
-   
+
    heading = MPOSE.heading;
    DATA.dheading = DATA.dheading + (heading - DATA.heading0);
    DATA.heading0 = heading;
-   
-   if (DATA.dheading > 2*pi)
-     ret = 'done';
-   end
-   
+
+if (DATA.dheading > 2*pi)
+  ret = 'done';
+end
+
 end
