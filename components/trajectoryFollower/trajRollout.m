@@ -72,7 +72,7 @@ TRAJ.count = 0;
 POSE.data = [];
 
 vels = [.2 .4 .6]';
-w = [pi/32:pi/32:pi/8 pi/8:pi/8:pi/2]';
+w = [pi/32:pi/32:pi/8 pi/8:pi/8:pi/4]';
 for i = 1:size(vels, 1)
   if (i==1) 
     validw = [floor(size(w,1)/4) floor(size(w,1)/2)];
@@ -247,7 +247,7 @@ angleToLine
     if(dir==0)
         dir = 1;
     end
-    for w=3*pi/8:pi/16:pi/2 %was pi/8 to pi/4
+    for w=6*pi/16:pi/16:7*pi/16 %was pi/8 to pi/4
         v=0;
         ang = dir*w*timestep;
         new_pos = [pose(1:2), pose(3)+ang];
