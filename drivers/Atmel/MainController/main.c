@@ -247,12 +247,12 @@ int main(void)
     //check the state of the estop input
     if (ESTOP_PORT & _BV(ESTOP_PIN))
     {
-      estop = 0;
+      estop = 1;
       LED_ESTOP_PORT |= _BV(LED_ESTOP_PIN);
     }
     else
     {
-      estop = 1;
+      estop = 0;
       LED_ESTOP_PORT &= ~(_BV(LED_ESTOP_PIN));
     }
 
