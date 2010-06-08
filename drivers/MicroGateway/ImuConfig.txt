@@ -1,5 +1,14 @@
 imu biases
 
+Robot1:
+axb = 663
+ayb = 653
+azb = 674
+axs = 133
+ays = 133
+azs = 132
+
+
 Robot3:
 ax = 680
 ay = 663
