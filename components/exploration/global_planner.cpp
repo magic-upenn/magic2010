@@ -358,15 +358,16 @@ void find_frontier(unsigned int IG_map[], int dijkstra[]) {
 	while (!frontier.empty()) {	frontier.pop();}
 	for(int j=1;j< coverage_size_y-1; j++) { 
 		for(int i=1; i< coverage_size_x-1; i++) {
-			if (	(cover_map[i + coverage_size_x*j] == KNOWN) && (
-						(cover_map[(i+1) + coverage_size_x*(j)] != KNOWN) ||
-						(cover_map[(i-1) + coverage_size_x*(j)] != KNOWN) ||
-						(cover_map[(i) + coverage_size_x*(j+1)] != KNOWN) ||
-						(cover_map[(i) + coverage_size_x*(j-1)] != KNOWN) ) )  {
-				frontier_pts temp(i, j, IG_map[i+coverage_size_x*j], dijkstra[i+coverage_size_x*j], 1.0);
-				frontier.push(temp);
-				//cout << i << "," << j << " is on the frontier " << endl;
-
+			if ( dijkstra[i+coverage_size_x*j] < DIJKSTRA_LIMIT) {
+				if (	(cover_map[i + coverage_size_x*j] == KNOWN) && (
+							(cover_map[(i+1) + coverage_size_x*(j)] != KNOWN) ||
+							(cover_map[(i-1) + coverage_size_x*(j)] != KNOWN) ||
+							(cover_map[(i) + coverage_size_x*(j+1)] != KNOWN) ||
+							(cover_map[(i) + coverage_size_x*(j-1)] != KNOWN) ) )  {
+					frontier_pts temp(i, j, IG_map[i+coverage_size_x*j], dijkstra[i+coverage_size_x*j], 1.0);
+					frontier.push(temp);
+					//cout << i << "," << j << " is on the frontier " << endl;
+				}
 			}
 		}
 	}
