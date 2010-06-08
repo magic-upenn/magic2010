@@ -10,7 +10,7 @@ yPath = path(:,2);
 if (nPath == 1),
   xc = xPath;
   yc = yPath;
-  ac = atan2(yPath-yPos, xPath-xPos);
+  ac = 0;
   return;
 end
 
