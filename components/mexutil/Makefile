@@ -1,9 +1,9 @@
-all : gethostname time array_match array_scale array_threshold subs_asgn subs_accum
+all : gethostname gettime array_match array_scale array_threshold subs_asgn subs_accum
 
 gethostname: gethostname.c
 	mex -O $<
 
-time: time.cpp
+gettime: gettime.cpp
 	mex -O $<
 
 array_match: array_match.cpp
