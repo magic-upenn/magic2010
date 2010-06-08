@@ -1,4 +1,19 @@
+function driveRobot(id,addr)
+
 SetMagicPaths
+
+
+
+if nargin <1
+  setenv('ROBOT_ID',sprintf('%d',id));
+end
+
+if nargin <2
+  addr = sprintf('192.168.10.10%d',id);
+end
+
+ipcInit(addr);
+motorsInit;
 
 v=0;
 w=0;
