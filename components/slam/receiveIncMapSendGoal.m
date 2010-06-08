@@ -9,21 +9,22 @@ SetMagicPaths;
 %ipcInit('192.168.10.102');
 ipcInit('localhost');
 poseInit;
+initMapProps;
 omapInit;
 emapInit;
 
 POSE.cntr =1;
 USER_INPUT.fresh =0;
 %id of the robot that maps should be received from
-setenv('ROBOT_ID','0');
+setenv('ROBOT_ID','3');
 
 ipcReceiveSetFcn(GetMsgName('Pose'), @PoseMsgHander);
-ipcReceiveSetFcn(GetMsgName('MapIncUpdate'), @MapUpdateMsgHandler);
+ipcReceiveSetFcn(GetMsgName('IncMapUpdateH'), @MapUpdateMsgHandler);
 
 %set the message queue lengths so that messages dont get built up on
 %central
 ipcAPI('set_msg_queue_length',GetMsgName('Pose'),1);
-ipcAPI('set_msg_queue_length',GetMsgName('MapIncUpdate'),10);
+ipcAPI('set_msg_queue_length',GetMsgName('IncMapUpdateH'),10);
 
 trajMsgName = GetMsgName('Goal');
 ipcAPIDefine(trajMsgName);
@@ -47,7 +48,7 @@ while(1)
   end
 end
 
-function PoseMsgHander(msg)
+function PoseMsgHander(msg,name)
 global POSE MAP_FIGURE
   if isempty(msg)
     return;
@@ -74,7 +75,7 @@ global POSE MAP_FIGURE
   
   %fprintf(1,'got pose update\n');
 
-function MapUpdateMsgHandler(msg)
+function MapUpdateMsgHandler(msg,name)
 global OMAP MAP_FIGURE POSE
   if isempty(msg)
     return
