@@ -2,9 +2,7 @@ function driveRobot(id,addr)
 
 SetMagicPaths
 
-
-
-if nargin <1
+if nargin >0
   setenv('ROBOT_ID',sprintf('%d',id));
 end
 
