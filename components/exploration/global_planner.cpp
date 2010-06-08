@@ -620,6 +620,8 @@ void global_planner(float goal_x, float goal_y, float goal_theta) {
 		} // if !NOMOVE
 	} //for current_loc
 
+cout << "goal point " << traj.back().x << "," << traj.back().y << " cost val = " << cost_map[traj.back().x + cost_size_x*traj.back().y];
+
 	// post process traj to smooth 
 	// determine best direction to point sensor head
 	// determine best velocity
@@ -647,6 +649,7 @@ void global_planner(float goal_x, float goal_y, float goal_theta) {
 		gp_traj.traj_array[q*GP_TRAJ_DIM+5] = traj[q].left_pan;
 	}
 
+	cout << " UTM = " << gp_traj.traj_array[(gp_traj.num_traj_pts-1)*GP_TRAJ_DIM] << "," << gp_traj.traj_array[(gp_traj.num_traj_pts-1)*GP_TRAJ_DIM+1] << endl;
 	//publish message to screen and to server
 	//IPC_printData(IPC_msgFormatter (GP_TRAJECTORY_MSG), stdout, &gp_traj);
 IPC_setContext(central_local_host);
