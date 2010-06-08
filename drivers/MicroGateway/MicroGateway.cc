@@ -476,6 +476,7 @@ int MicroGateway::InitializeMessages()
   this->encMsgName = this->DefineMsg("Encoders",EncoderCounts::getIPCFormat());
   this->dynamixelIpcMsgNames.push_back(this->DefineMsg("Servo1",ServoState::getIPCFormat()));
   this->imuMsgName = this->DefineMsg("ImuFiltered",ImuFiltered::getIPCFormat());
+  this->estopMsgName = this->DefineMsg("EstopState",EstopState::getIPCFormat());
 
   //define all messages that this process will send out via IPC
   this->DefineMsg(MMC_MOTOR_CONTROLLER_DEVICE_ID, 
@@ -889,10 +890,28 @@ int MicroGateway::HandleSerialPacket(DynamixelPacket * dpacket)
     case MMC_DYNAMIXEL1_DEVICE_ID:
       this->ServoPacketHandler(dpacket);
       break;
+
+    case MMC_ESTOP_DEVICE_ID:
+      this->EstopPacketHandler(dpacket);
+      break;
     default:
       break;
   }
 
+  return 0;
+}
+
+int MicroGateway::EstopPacketHandler(DynamixelPacket * dpacket)
+{
+  int packetType = DynamixelPacketGetType(dpacket);
+  if (packetType == MMC_ESTOP_STATE)
+  {
+    EstopState estatePacket;
+    estatePacket.t     = Upenn::Timer::GetAbsoluteTime();
+    estatePacket.state = *(DynamixelPacketGetData(dpacket));
+    this->PublishMsg(this->estopMsgName,&estatePacket);
+    printf("got estop state %d\n",estatePacket.state); 
+  }
   return 0;
 }
 
@@ -1132,6 +1151,8 @@ int MicroGateway::ResetImu()
     PRINT_ERROR("could not wrap data\n");
 
   this->PushRS485Queue(tempBuf,len,false,true);
+
+  return 0;
 }
 
 int MicroGateway::PrintSerialPacket(DynamixelPacket * dpacket)

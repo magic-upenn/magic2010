@@ -109,6 +109,7 @@ namespace Upenn
     private: int HandleSerialPacket(DynamixelPacket * dpacket);
     private: int RcPacketHandler(DynamixelPacket * dpacket);
     private: int ServoPacketHandler(DynamixelPacket * dpacket);
+    private: int EstopPacketHandler(DynamixelPacket * dpacket);
 
     private: int DynamixelControllerUpdate(int id, DynamixelPacket * dpacket);
     
@@ -141,6 +142,7 @@ namespace Upenn
     private: string gpsMsgName;
     private: string encMsgName;
     private: string imuMsgName;
+    private: string estopMsgName;
   };
 }
 #endif

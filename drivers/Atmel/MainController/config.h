@@ -45,7 +45,7 @@
 
 //gps
 #include "uart2.h"
-#define GPS_BAUD_RATE 4800
+#define GPS_BAUD_RATE 9600
 #define GPS_COM_PORT_INIT uart2_init
 #define GPS_COM_PORT_SETBAUD uart2_setbaud
 #define GPS_COM_PORT_GETCHAR uart2_getchar
@@ -60,6 +60,9 @@
 #define XBEE_COM_PORT_PUTSTR  uart3_putstr
 
 
+//Estop input
+#define ESTOP_PORT       PINB
+#define ESTOP_PIN        PINB4
 
 //LEDs
 #define LED_ERROR_PIN   PH4

@@ -248,3 +248,28 @@ int VelocityCmd::WriteToMatlab(mxArray * mxArr, int index)
   return 0;
 } 
 
+//EstopState
+int EstopState::ReadFromMatlab(mxArray * mxArr, int index)
+{
+  int numFieldsRead = 0;
+
+  MEX_READ_FIELD(mxArr,index,state,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,t,numFieldsRead);
+  
+  return numFieldsRead;
+}
+int EstopState::CreateMatlabStructMatrix(mxArray ** mxArrPP,int m, int n)
+{
+  const char * fields[]= {"state","t"};
+  const int nfields = sizeof(fields)/sizeof(*fields);
+  *mxArrPP = mxCreateStructMatrix(m,n,nfields,fields);
+  return 0;
+}
+
+int EstopState::WriteToMatlab(mxArray * mxArr, int index)
+{
+  MEX_WRITE_FIELD(mxArr,index,state);
+  MEX_WRITE_FIELD(mxArr,index,t);
+  return 0;
+} 
+

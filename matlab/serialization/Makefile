@@ -4,7 +4,7 @@ INCLUDES += -I$(MAGIC_DIR)/common/dataTypes -I.
 
 MEX_EXT = $(shell mexext)
 
-DATA_TYPES = GP_MAP_DATA GP_ROBOT_PARAMETER GP_POSITION_UPDATE GP_FULL_UPDATE GP_SHORT_UPDATE GP_TRAJECTORY MotionTraj Pose LidarScan ServoState VelocityCmd EncoderCounts HeartBeat ImuFiltered GpsASCII ServoControllerCmd
+DATA_TYPES = GP_MAP_DATA GP_ROBOT_PARAMETER GP_POSITION_UPDATE GP_FULL_UPDATE GP_SHORT_UPDATE GP_TRAJECTORY MotionTraj Pose LidarScan ServoState VelocityCmd EncoderCounts HeartBeat ImuFiltered GpsASCII ServoControllerCmd EstopState
 
 HEADERS = MexIpcSerialization.hh MagicPlanDataTypes.h MagicPlanDataTypes.c MagicTraj.hh MagicTraj.cc MagicPose.hh MagicPose.cc MagicSensorDataTypes.hh  MagicSensorDataTypes.cc MagicHostCom.hh MagicHostCom.cc MagicStatus.hh MagicStatus.cc
 NAMESPACES = Magic

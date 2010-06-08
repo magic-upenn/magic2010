@@ -14,19 +14,13 @@ ISR(TIMER0_OVF_vect)
 
 ISR(TIMER0_COMPA_vect)
 {
-  //PORTE &= ~(_BV(PORTE4));
 }
 
 void timer0_init(void)
 {
   //TCCR0B = _BV(CS00) | _BV(CS01); // prescaler = 1/64, 1.024 ms cycle
-  TCCR0B = _BV(CS02); // prescaler = 1/256, 4.096 ms cycle
-  
-  //TCCR1B = _BV(WGM13) ; 
-  //TIMSK1 = _BV(OCIE1A);
-  
-  //DDRB |= _BV(DDB5);
-  //OCR1A = 3000;
+  //TCCR0B = _BV(CS02); // prescaler = 1/256, 4.096 ms cycle
+  TCCR0B = _BV(CS00) | _BV(CS02);  // prescaler = 1/1024, 16.3 ms cycle
 }
 
 void timer0_set_overflow_callback(void (*callback)(void))

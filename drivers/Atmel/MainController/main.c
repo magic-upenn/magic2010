@@ -43,11 +43,20 @@ volatile uint8_t rcInitialized = 0;
 volatile uint8_t rs485Blocked = 0;
 volatile uint8_t rcCmdPending = 0;
 
+uint8_t estop = 0;
+
 inline void PutUInt16(uint16_t val)
 {
   uint8_t * p = (uint8_t*)&val;
   HOST_COM_PORT_PUTCHAR(*(p+1));
   HOST_COM_PORT_PUTCHAR(*p);
+}
+
+void SendEstopStatus(void)
+{
+  HostSendPacket(MMC_ESTOP_DEVICE_ID,MMC_ESTOP_STATE,
+                 (uint8_t*)&estop,1);
+  return 0;
 }
 
 void RCTimingReset(void)
@@ -97,6 +106,11 @@ void init(void)
   timer1_init();
   timer1_set_compa_callback(RCTimingReset);
   //timer1_set_overflow_callback(RCTimout);
+
+
+  //timer for sending out estop status
+  timer3_init();
+  timer3_set_overflow_callback(SendEstopStatus);
   
   timer4_init();
   
@@ -121,12 +135,11 @@ int HostPacketHandler(DynamixelPacket * dpacket)
   //TODO: not all messages should be forwarded onto the bus
   uint8_t forward=1;
   uint8_t id = DynamixelPacketGetId(dpacket);
-  uint8_t type;
+  uint8_t type = DynamixelPacketGetType(dpacket);
 
   if (id == MMC_IMU_DEVICE_ID)
   {
     forward =0;
-    type = DynamixelPacketGetType(dpacket);
     switch(type)
     {
       case MMC_IMU_RESET:
@@ -135,6 +148,10 @@ int HostPacketHandler(DynamixelPacket * dpacket)
 
     }
   }
+
+  if ((estop == 1) && (id == MMC_MOTOR_CONTROLLER_DEVICE_ID) && 
+  (type == MMC_MOTOR_CONTROLLER_VELOCITY_SETTING) )
+    forward = 0;
 
   LED_PC_ACT_PORT ^= _BV(LED_PC_ACT_PIN);
 
@@ -227,6 +244,18 @@ int main(void)
   
   while(1)
   {
+    //check the state of the estop input
+    if (ESTOP_PORT & _BV(ESTOP_PIN))
+    {
+      estop = 0;
+      LED_ESTOP_PORT |= _BV(LED_ESTOP_PIN);
+    }
+    else
+    {
+      estop = 1;
+      LED_ESTOP_PORT &= ~(_BV(LED_ESTOP_PIN));
+    }
+
     //receive packet from host
     len=HostReceivePacket(&hostPacketIn);
     if (len>0)

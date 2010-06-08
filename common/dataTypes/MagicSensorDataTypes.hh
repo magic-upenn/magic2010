@@ -161,6 +161,26 @@ namespace Magic
       INSERT_SERIALIZATION_DECLARATIONS
     #endif
   };
+
+  struct EstopState
+  {
+    int state;
+    double t;
+
+    EstopState(): state(-1),t(0) {}
+    EstopState(int _state, double _t) : state(_state), t(_t) {}
+    
+    #define MagicEstopState_FORMAT "{int, double}"
+
+    static const char *getIPCFormat(void)
+    {
+      return MagicEstopState_FORMAT;
+    }
+
+    #ifdef MEX_IPC_SERIALIZATION
+      INSERT_SERIALIZATION_DECLARATIONS
+    #endif
+  };
 }
 
 #endif //MAGIC_SENSOR_DATA_TYPES_HH

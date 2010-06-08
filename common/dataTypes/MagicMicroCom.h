@@ -14,7 +14,8 @@ enum { MMC_MAIN_CONTROLLER_DEVICE_ID,
        MMC_DYNAMIXEL0_DEVICE_ID,
        MMC_DYNAMIXEL1_DEVICE_ID,
        MMC_GATEWAY_DEVICE_ID,
-       MMC_RC_DEVICE_ID
+       MMC_RC_DEVICE_ID,
+       MMC_ESTOP_DEVICE_ID
      };
 
 //gps packet types
@@ -39,6 +40,11 @@ enum { MMC_MOTOR_CONTROLLER_ENCODERS_REQUEST,
 enum { MMC_RC_RAW,
        MMC_RC_DECODED
      };
+
+//estop packet types
+enum { MMC_ESTOP_STATE
+     };
+
 
 #endif //MAGIC_MIRCO_COM_H
 
