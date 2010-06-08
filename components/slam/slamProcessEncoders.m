@@ -29,11 +29,32 @@ if ~isempty(data)
     ENCODERS.tLastReset = counts.t;
   end
   
+  encr = [ENCODERS.counts.fr ENCODERS.counts.rr];
+  encl = [ENCODERS.counts.fl ENCODERS.counts.rl];
   
   %get the mean travelled distance for left and right sides
-  rc = mean([ENCODERS.counts.rr ENCODERS.counts.fr]) * ENCODERS.metersPerTic;
-  lc = mean([ENCODERS.counts.rl ENCODERS.counts.fl]) * ENCODERS.metersPerTic;
+  dr = abs(encr(1) - encr(2));
+  dl = abs(encl(1) - encl(2));
   
+  [drmin drimin] = min(abs(encr));
+  [dlmin dlimin] = min(abs(encl));
+  
+  
+  diffThresh = 2;
+  %if the difference between wheel tics is greater than threshold, then use
+  %the value with the minimum magnitude (the other wheel may be slipping)
+  if (dr < diffThresh)
+    rc = mean(encr) * ENCODERS.metersPerTic;
+  else
+    rc = encr(drimin) * ENCODERS.metersPerTic;
+  end
+  
+  if (dl < diffThresh)
+    lc = mean(encl) * ENCODERS.metersPerTic;
+  else
+    lc = encl(dlimin) * ENCODERS.metersPerTic;
+  end
+    
   %rc = ENCODERS.counts.rr * ENCODERS.metersPerTic;
   %lc = ENCODERS.counts.rl * ENCODERS.metersPerTic;
   

@@ -1,4 +1,4 @@
-function receiveIncMap(host)
+function receiveIncMapVis(host)
 global POSE USER_INPUT VIS
 
 if nargin < 1
@@ -17,7 +17,7 @@ emapInit;
 POSE.cntr =1;
 USER_INPUT.freshClick =0;
 %id of the robot that maps should be received from
-setenv('ROBOT_ID','1');
+setenv('ROBOT_ID','0');
 
 
 ipcReceiveSetFcn(GetMsgName('Pose'), @PoseMsgHander);

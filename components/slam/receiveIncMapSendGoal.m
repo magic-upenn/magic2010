@@ -14,7 +14,7 @@ omapInit;
 emapInit;
 
 POSE.cntr =1;
-USER_INPUT.fresh =0;
+USER_INPUT.freshClick =0;
 %id of the robot that maps should be received from
 setenv('ROBOT_ID','3');
 
@@ -36,9 +36,9 @@ set(gcf,'WindowButtonUpFcn',@mouseClickCallback);
 while(1)
   ipcReceiveMessages;
   
-  if (USER_INPUT.fresh)
+  if (USER_INPUT.freshClick)
     fprintf(1,'got user input %f %f\n',USER_INPUT.x, USER_INPUT.y);
-    USER_INPUT.fresh = 0;
+    USER_INPUT.freshClick = 0;
     
     traj.size = 1;
     traj.waypoints(1).y = USER_INPUT.x;

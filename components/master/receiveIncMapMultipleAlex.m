@@ -23,7 +23,7 @@ USER_INPUT.freshClick =0;
 
 ids=[3];
 
-masterConnectRobots(ids);
+masterConnectRobots(ids,'localhost');
 
 messages = {'PoseExternal', ...
             'IncMapUpdateH', ...

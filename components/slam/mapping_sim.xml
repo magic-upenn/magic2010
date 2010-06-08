@@ -46,15 +46,17 @@
     <filename>Sky.so</filename>
   </plugin>
 
-  <plugin>
+  
+
+/-->
+
+<plugin>
     <id>floor1</id>
     <filename>Plane.so</filename>
     <segments>10</segments>
     <range>50 50</range>
     <material>carpet</material>
   </plugin>
-
-/-->
 
 
   <plugin>
@@ -118,8 +120,56 @@
 		    <msgName>Robot0/Lidar0</msgName>
 	    </plugin>
 
-
 	  </plugin>
+
+    <plugin>
+      <id>servo</id>
+      <minAngle>-40</minAngle>
+      <maxAngle>40</maxAngle>
+      <speed>40</speed>
+      <publishState>true</publishState>
+      <filename>Servo.so</filename>
+      <xyz>0.165 0 0.40</xyz>
+      <ipcMsgName>Robot0/Servo1</ipcMsgName>
+
+      <plugin>
+        <id>axes</id>
+        <filename>Axes.so</filename>
+        <length>0.2 0.2 0.2</length>
+      </plugin>
+
+      <plugin>
+		    <id>Hokuyo_UTM-30LX</id>
+		    <filename>Lidar2D.so</filename>
+        <xyz>0.064 -0.038 0.0</xyz>
+        <rpy>1.57 0 0 </rpy>
+        <invalidRange>0.02</invalidRange>
+        <minRange>0.05</minRange>
+        <maxRange>30</maxRange>
+        <scanRate>20</scanRate>
+        <angleStep>0.25</angleStep>
+        <msgPrefix>lidar</msgPrefix>
+        <publishPoints>false</publishPoints>
+        <publishRays>false</publishRays>
+        <pointsMsgPrefix>lidarPoints</pointsMsgPrefix>
+        <pointColor>0.5 0.2 0.2 0.7</pointColor>
+
+        <plugin>
+		      <id>Lidar2DVisual</id>
+		      <filename>Lidar2DVisual.so</filename>
+          <material>Transparent/Red</material>
+	      </plugin>
+
+        <plugin>
+	        <id>dataPublisher</id>
+	        <filename>MagicLidarScanPublisher.so</filename>
+		      <msgName>Robot0/Lidar1</msgName>
+	      </plugin>
+
+	    </plugin>
+
+    </plugin>
+
   </plugin>
 
 

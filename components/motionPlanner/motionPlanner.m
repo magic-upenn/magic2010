@@ -26,14 +26,16 @@ ipcAPIDefine(MPLANNER.trajMsgName);
 
 MPLANNER.initialized = 1;
 
-function ipcRecvGoalFcn(msg)
+function ipcRecvGoalFcn(msg,name)
 global GOAL
 
 if ~isempty(msg)
   GOAL = deserialize(msg);
 end
 
-function ipcRecvPoseFcn(msg)
+fprintf(1,'got goal1\n');
+
+function ipcRecvPoseFcn(msg,name)
 global POSE
 
 %unpack the message
@@ -46,7 +48,7 @@ end
 %run the planner??
 
 
-function ipcRecvOmapFcn(msg)
+function ipcRecvOmapFcn(msg,name)
 global POSE OMAP GOAL MPLANNER
 
 if ~isempty(msg)
@@ -67,6 +69,8 @@ endi = [ceil((GOAL.waypoints(1).x-OMAP.xmin)/OMAP.res);ceil((GOAL.waypoints(1).y
 map = double(OMAP.map.data')*100+1;
 footPrint = ones(10,10);
 map = conv2(map,footPrint,'same');
+
+%{
 [cost xiPrev yiPrev] = astar2D(map,starti,endi);
 
 traj = zeros(2,10000);
@@ -87,6 +91,26 @@ for ii=1:cntr
   trajOut.waypoints(ii).y = traj(2,cntr-ii+1)*OMAP.res + OMAP.ymin;
 end
 ipcAPIPublish(MPLANNER.trajMsgName,serialize(trajOut));
+%}
+
+
+costMap = double(OMAP.map.data)+1;
+heuristicMap=dijkstra(costMap,endi,starti);
+sizex = OMAP.map.sizex;
+sizey = OMAP.map.sizey;
+dplanner('initialize',costMap,heuristicMap,[1 sizex 1 1 sizey 1],'collisionProbTable6.dat');
+
+actionTime=1;
+dt=0.1;
+robot=[starti(1) starti(2) POSE.data.yaw 0 0 endi(1) endi(2)];
+
+[xs ys vs ws]=dplanner('compute',[],robot,actionTime,dt);
+
+plot(xs,ys);
+drawnow;
+
+return;
+
 
 imagesc(map);
 set(gca,'ydir','normal');

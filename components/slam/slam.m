@@ -1,6 +1,4 @@
 function slam(addr,id)
-clear all;
-
 global SLAM SPREAD
 
 if nargin < 1
@@ -26,10 +24,14 @@ end
 % Initialize slam process
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function slamStart
-global SLAM OMAP POSE SPREAD
+global SLAM OMAP POSE SPREAD LIDAR0
 
 SetMagicPaths;
-ipcInit(SLAM.addr);
+
+%ipcAPIHandle = @ipcAPI;
+ipcAPIHandle = @ipcWrapperAPI; %use threaded version
+
+ipcInit(SLAM.addr,ipcAPIHandle);
 
 if (SPREAD.useSpread)
   spreadInit;
@@ -88,8 +90,6 @@ if checkVis
 end
 
 %assign the message handlers
-ipcAPIHandle = @ipcAPI; %@ipcWrapperAPI
-
 %arguments are (msgName, function handle, ipcAPI handle, queue length)
 ipcReceiveSetFcn(GetMsgName('Lidar0'),      @slamProcessLidar0,   ipcAPIHandle,5);
 ipcReceiveSetFcn(GetMsgName('Lidar1'),      @slamProcessLidar1_2, ipcAPIHandle,5);
@@ -100,6 +100,7 @@ ipcReceiveSetFcn(GetMsgName('ImuFiltered'), @ipcRecvImuFcn,       ipcAPIHandle,5
 %initialize scan matching function
 ScanMatch2D('setBoundaries',OMAP.xmin,OMAP.ymin,OMAP.xmax,OMAP.ymax);
 ScanMatch2D('setResolution',OMAP.res);
+ScanMatch2D('setSensorOffsets',[LIDAR0.offsetx LIDAR0.offsety LIDAR0.offsetz]);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

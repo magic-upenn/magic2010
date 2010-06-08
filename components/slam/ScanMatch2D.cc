@@ -10,6 +10,9 @@
 double xmin,ymin,zmin,xmax,ymax,zmax;
 double res = DEFAULT_RESOLUTION;
 double invRes = 1.0/res;
+double sensorOffsetX = 0;
+double sensorOffsetY = 0;
+double sensorOffsetZ = 0;
 
 double lxss[1081];
 double lyss[1081];
@@ -43,6 +46,19 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     xmax = *mxGetPr(prhs[3]);
     ymax = *mxGetPr(prhs[4]);
     printf("ScanMatch2D: set the boundaries\n");
+    return;
+  }
+
+  if (strcasecmp(command, "setSensorOffsets") == 0) 
+  {
+    if (nrhs != 2)
+      mexErrMsgTxt("please provide sensor xyz offsets as second argument");
+
+    double * offsets = mxGetPr(prhs[1]);
+    sensorOffsetX = offsets[0];
+    sensorOffsetY = offsets[1];
+    sensorOffsetZ = offsets[2];
+    printf("ScanMatch2D: set sensor offsets\n");
     return;
   }
 
@@ -121,6 +137,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       tpths++;
 
       double * likelihoodsXY = likelihoods + pthi*npxs*npys;
+      
+      //sensor global offset due to robot's yaw and local offsets
+      double offsetx = (sensorOffsetX*costh - sensorOffsetY*sinth)*invRes;
+      double offsety = (sensorOffsetX*sinth + sensorOffsetY*costh)*invRes;
 
       tlxs  = lxss;
       tlys  = lyss;
@@ -130,9 +150,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         double * tl = likelihoodsXY;          //reset the pointer to the likelyhoods of the poses
 
         //convert the laser points to the map coordinates
-
-        double xd = (*tlxs)*costh   - (*tlys)*sinth;
-        double yd = (*tlxs++)*sinth + (*tlys++)*costh;
+        double xd = (*tlxs)*costh   - (*tlys)*sinth   + offsetx;
+        double yd = (*tlxs++)*sinth + (*tlys++)*costh + offsety;
         
         tpys = pyss;
         for (int pyi=0; pyi<npys; pyi++)    //iterate over all pose ys
