@@ -46,6 +46,8 @@ MP.sm = entry(MP.sm);
 %==========
 function mapfsmUpdate
 
+global MP
+
 % Check IPC messages
 ipcReceiveMessages;
 
@@ -54,5 +56,7 @@ MP.sm = update(MP.sm);
 
 %==========
 function mapfsmExit
+
+global MP
 
 MP.sm = exit(MP.sm);
