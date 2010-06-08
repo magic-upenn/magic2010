@@ -650,6 +650,18 @@ cout << "goal point " << traj.back().x << "," << traj.back().y << " cost val = "
 	}
 
 	cout << " UTM = " << gp_traj.traj_array[(gp_traj.num_traj_pts-1)*GP_TRAJ_DIM] << "," << gp_traj.traj_array[(gp_traj.num_traj_pts-1)*GP_TRAJ_DIM+1] << endl;
+
+	for (int ww = -2; ww <= 2; ww++) {
+		for (int qq = -2; qq <= 2; qq++) {
+			if (OnMap( traj.back().x + qq,  traj.back().y + ww)) {
+				cout << cost_map[ traj.back().x + qq + cost_size_x*( traj.back().y + ww)];
+			}
+		}
+		cout << endl;
+	}
+
+
+
 	//publish message to screen and to server
 	//IPC_printData(IPC_msgFormatter (GP_TRAJECTORY_MSG), stdout, &gp_traj);
 IPC_setContext(central_local_host);
