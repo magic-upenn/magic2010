@@ -1,13 +1,13 @@
 MEX_EXT = $(shell mexext)
 
-TARGETS = ScanMatch2D.$(MEX_EXT) getMapCellsFromRay.$(MEX_EXT)
+TARGETS = ScanMatch2D.$(MEX_EXT) getMapCellsFromRay.$(MEX_EXT) binStats.$(MEX_EXT)
 
 all: $(TARGETS)
 
-ScanMatch2D.$(MEX_EXT): ScanMatch2D.cc
+%.$(MEX_EXT): %.cc
 	mex -O $^
 
-getMapCellsFromRay.$(MEX_EXT): getMapCellsFromRay.cpp
+%.$(MEX_EXT): %.cpp
 	mex -O $^
 
 

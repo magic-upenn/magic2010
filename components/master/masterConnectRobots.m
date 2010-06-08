@@ -1,4 +1,4 @@
-function ret = masterConnectRobots(ids)
+function ret = masterConnectRobots(ids,addr)
 global ROBOTS
 %initialize the data structure for the maximum number of robots
 maxRobots = 10;
@@ -15,7 +15,11 @@ for ii=1:maxRobots
   
   %specify ip address and (optionally) port 
   %in format 'xxx.xxx.xxx.xxx:port'
-  ROBOTS(ii).addr   = sprintf('192.168.10.%d',ii+100);
+  if nargin >1
+    ROBOTS(ii).addr   = addr;
+  else
+    ROBOTS(ii).addr   = sprintf('192.168.10.%d',ii+100);
+  end
   ROBOTS(ii).connected = 0;
 end
 

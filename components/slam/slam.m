@@ -1,7 +1,7 @@
 function slam(addr,id)
 clear all;
 
-global SLAM;
+global SLAM SPREAD
 
 if nargin < 1
   SLAM.addr = 'localhost';
@@ -12,6 +12,8 @@ end
 if nargin >1
   setenv('ROBOT_ID',sprintf('%d',id));
 end
+
+SPREAD.useSpread = 0;
 
 slamStart;
 
@@ -24,13 +26,14 @@ end
 % Initialize slam process
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function slamStart
-global SLAM OMAP POSE
+global SLAM OMAP POSE SPREAD
 
 SetMagicPaths;
 ipcInit(SLAM.addr);
 
-spreadInit;
-
+if (SPREAD.useSpread)
+  spreadInit;
+end
 
 SLAM.updateExplorationMap    = 0;
 SLAM.explorationUpdatePeriod = 5;
@@ -70,6 +73,7 @@ dvmapInit;       %vertical lidar delta map
 dhmapInit;       %horizontal lidar delta map
 
 %initialize data structures
+imuInit;
 lidar0Init;
 lidar1Init;
 servo1Init;

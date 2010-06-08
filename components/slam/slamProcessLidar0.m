@@ -3,7 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function slamProcessLidar0(data,name)
-global SLAM LIDAR0 OMAP EMAP POSE IMU CMAP DHMAP MAPS DVMAP
+global SLAM LIDAR0 OMAP EMAP POSE IMU CMAP DHMAP MAPS DVMAP SPREAD
 
 if ~isempty(data)
   LIDAR0.scan = MagicLidarScanSerializer('deserialize',data);
@@ -12,7 +12,7 @@ else
 end
 
 %wait for an initial imu message
-if isempty(IMU)
+if isempty(IMU.data)
   return
 end
   
@@ -129,7 +129,9 @@ end
 if mod(SLAM.lidar0Cntr,10) == 0
     ipcAPIPublishVC(POSE.extMsgName,MagicPoseSerializer('serialize',POSE.data));
 
-    spreadSendUnreliable('Pose', serialize(POSE.data));
+    if (SPREAD.useSpread)
+      spreadSendUnreliable('Pose', serialize(POSE.data));
+    end
 end
 
 %update the map
@@ -163,8 +165,9 @@ if (mod(SLAM.lidar0Cntr,40) == 0)
   MapUpdateH.cs = OMAP.map.data(sub2ind(size(OMAP.map.data),xdi,ydi));
   ipcAPIPublish(SLAM.IncMapUpdateHMsgName,serialize(MapUpdateH));
 
-  spreadSendUnreliable('MapUpdateH', serialize(MapUpdateH));
-  
+  if (SPREAD.useSpread)
+    spreadSendUnreliable('MapUpdateH', serialize(MapUpdateH));
+  end
 
 
   [xdi ydi] = find(DVMAP.map.data);
@@ -173,8 +176,9 @@ if (mod(SLAM.lidar0Cntr,40) == 0)
   MapUpdateV.cs = CMAP.map.data(sub2ind(size(CMAP.map.data),xdi,ydi));
   ipcAPIPublish(SLAM.IncMapUpdateVMsgName,serialize(MapUpdateV));
 
-  spreadSendUnreliable('MapUpdateV', serialize(MapUpdateV));
-
+  if (SPREAD.useSpread)
+    spreadSendUnreliable('MapUpdateV', serialize(MapUpdateV));
+  end
   
   %reset the delta map
   DHMAP.map.data = zeros(size(DHMAP.map.data),'uint8');
