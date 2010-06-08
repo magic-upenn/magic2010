@@ -1,17 +1,18 @@
 function ret = sWait(event, varargin);
 
-global DRIVE
+global MPOSE DRIVE
 
 ret = [];
 switch event
  case 'entry'
-  disp('sWait: Waiting for initial pose');
+ disp('sWait');
+DRIVE = [];
 
  case 'exit'
     
  case 'update'
-  if ~isempty(POSE),
-    ret = 'pose';
+  if ~isempty(DRIVE),
+    ret = 'start';
   end
 
 end

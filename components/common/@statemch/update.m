@@ -13,12 +13,16 @@ if isempty(h.nextState),
 
   for i = 1:length(h.events)
     event = h.events{i};
-    next = h.transitions{h.currentState}.(ret);
+if ~isfield(h.transitions{h.currentState}, event),
+      warning('Unknown event: %s from state %s', event, currentStateName);
+continue;
+end
+    next = h.transitions{h.currentState}.(event);
     if ~isempty(next),
       h.nextState = next;
       break;
     else
-      warning('Unknown event: %s from state %d', event, h.currentState);
+      warning('Unknown event: %s from state %s', event, currentStateName);
     end
   end
   h.events = {};

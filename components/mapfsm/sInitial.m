@@ -1,6 +1,6 @@
 function ret = sInitial(event, varargin);
 
-global POSE
+global MPOSE
 
 ret = [];
 switch event
@@ -10,7 +10,7 @@ switch event
  case 'exit'
     
  case 'update'
-  if ~isempty(POSE),
+  if ~isempty(MPOSE),
     ret = 'pose';
   end
 
