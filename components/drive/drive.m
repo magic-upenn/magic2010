@@ -52,9 +52,6 @@ DATA.nupdate = DATA.nupdate+1;
 % Check IPC messages
 ipcReceiveMessages;
 
-DRIVE.path = [1 0];
-DRIVE.speed = 1;
-
 if isempty(POSE.data),
   SetVelocity(0, 0);
   return;
@@ -70,22 +67,35 @@ if isempty(DRIVE.path)
   return;
 end
 
+dxEnd = DRIVE.path(end,1)-POSE.data.x;
+dyEnd = DRIVE.path(end,2)-POSE.data.y;
+dEnd = sqrt(dxEnd.^2+dyEnd.^2);
+
 [xNear, yNear, aNear] = pathClosestPoint(DRIVE.path, [POSE.data.x POSE.data.y]);
 dHeading = modAngle(aNear-POSE.data.yaw);
+if (dEnd < 0.3) && abs(dHeading) < 10*pi/180,
+   SetVelocity(0, 0);
+   return;
+end
+
 if abs(dHeading) > 45*pi/180,
   if (dHeading > 0),
-    SetVelocity(0, .5);
+    SetVelocity(0, .3);
   else
-    SetVelocity(0, -.5);
+    SetVelocity(0, -.3);
   end
   return;
 end
 
 [turnPath, cost] = turnControl(DRIVE.path, POSE.data);
+% Slow down if not on trajectory
+costFactor = 0.1 + 0.9*exp(-max(cost-2.0, 0));
+%speed = costFactor*speed;
+
 v = DRIVE.speed;
 w = turnPath*max(v, 0.1);
 disp(sprintf('drive: %.4f %.4f',v,w));
-SetVelocity(v, w);
+SetVelocity(v, .5*w);
 
 
 %==========
