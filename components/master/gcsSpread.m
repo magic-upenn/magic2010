@@ -4,11 +4,11 @@ tUpdate = 0.1;
 ids = [1 3];
 %ids = [3];
 
-gcsEntry(ids)
+gcsEntrySpread(ids)
 mapDisplay('entry');
 
 while 1,
   pause(tUpdate);
-  gcsUpdate;
+  gcsUpdateSpread;
   mapDisplay('update');
 end

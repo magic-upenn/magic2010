@@ -1,3 +1,0 @@
-function close(h)
-% close
-
