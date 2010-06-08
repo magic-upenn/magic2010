@@ -21,7 +21,7 @@ POSE.cntr =1;
 USER_INPUT.freshClick =0;
 %id of the robot that maps should be received from
 
-ids=[3];
+ids=[2];
 
 masterConnectRobots(ids,'localhost');
 
@@ -36,6 +36,11 @@ queueLengths = [5 5 5];
           
 %subscribe to messages
 masterSubscribeRobots(messages,handles,queueLengths);
+
+%connect to central machine 
+%local_machine.ipcAPI = str2func(sprintf('%s%d','ipcWrapperAPI',100));
+%local_machine.ipcAPI('connect',host,100);
+MasterDefineExplorationMessages;
 
 %vis stuff
 if checkVis
@@ -60,11 +65,20 @@ nRobots = length(ROBOTS);
 for ii=1:nRobots
   ROBOTS(ii).tr = eye(4);
   ipcAPI('define',sprintf('Robot%d/Pose',ii),MagicPoseSerializer('getFormat'));
+  ROBOTS(ii).pose = [];
 end
 
-
+explorationUpdatePeriod = 10;
+lastExplorationUpdate = GetUnixTime();
 while(1)
   masterReceiveFromRobots(); %will return without blocking
+
+  if (GetUnixTime() - lastExplorationUpdate > explorationUpdatePeriod)
+    MasterPublishMapsToExplorationPlanner;
+    fprintf('sent exploration maps\n');
+    lastExplorationUpdate = GetUnixTime();
+  end
+
   pause(0.1);
 end
 
@@ -92,6 +106,7 @@ while(1)
     fprintf(1,'published traj\n');
   end
 end
+
 
 function PoseMsgHandler(data,name)
 global ROBOTS MAP_FIGURE
@@ -131,7 +146,7 @@ global CMAP MAP_FIGURE POSE VIS OMAP;
   
   
 function MapUpdateMsgHandlerH(data,name)
-global CMAP POSE VIS OMAP;
+global CMAP POSE VIS OMAP EMAP ROBOTS;
   if isempty(data)
     return
   end
@@ -155,6 +170,7 @@ global CMAP POSE VIS OMAP;
     indsObs = inds(indsObsLogic);
     
     OMAP.map.data(indsObs) = cs(indsObsLogic);
+
   else
     %try to match against the current map
     %number of poses in each dimension to try

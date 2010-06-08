@@ -1,7 +1,8 @@
 function planner_GUI
 setup_IPC();
 while(1)
-    ipcReceiveMessages(50);
+    ipcReceiveMessages(100);
+    pause(.1);
 end
 end
 
@@ -18,6 +19,7 @@ TRAJ.traj = [];
 TRAJ.handle = -1;
 POSE.data = [];
 POSE.handle = -1;
+POSE.handle2 = -1;
 GPFULL.data = [];
 GPFULL.data.sent_cost_x = -1;
 GPFULL.data.sent_cost_y = -1;
@@ -34,12 +36,12 @@ figure(1);
 hold on;
 
 %connect to ipc on localhost
-ipcInit;
-ipcReceiveSetFcn(GetMsgName('Pose'),        @PoseHandler);
-ipcAPISetMsgQueueLength(GetMsgName('Pose'), 1);
+ipcInit('localhost');
+ipcReceiveSetFcn('Global_Planner_Position_Update',        @PoseHandler);
+ipcAPISetMsgQueueLength(GetMsgName('Global_Planner_Position_Update'), 1);
 
-ipcReceiveSetFcn(GetMsgName('Trajectory'),  @TrajHandler);
-ipcAPISetMsgQueueLength(GetMsgName('Trajectory'), 1);
+%ipcReceiveSetFcn(GetMsgName('Trajectory'),  @TrajHandler);
+%ipcAPISetMsgQueueLength(GetMsgName('Trajectory'), 1);
 
 ipcReceiveSetFcn('Global_Planner_Trajectory', @GPTRAJHandler);
 ipcAPISetMsgQueueLength('Global_Planner_Trajectory', 1);
@@ -86,10 +88,12 @@ pts = (GPFULL.robotsize/GPFULL.res)*[sin(2*t*pi/100); cos(2*t*pi/100)]';
 
 %fprintf(1,'got pose message\n');
 if ~isempty(data)
-    POSE.data = MagicPoseSerializer('deserialize',data);
+    POSE.data = MagicGP_POSITION_UPDATESerializer('deserialize',data);
+    POSE.data.yaw = POSE.data.theta;
     
     if(POSE.handle ~= -1)
         delete(POSE.handle);
+        delete(POSE.handle2);
     end
     temp = (POSE.data.x-GPFULL.data.UTM_x)/GPFULL.res;
     POSE.data.x = (POSE.data.y-GPFULL.data.UTM_y)/GPFULL.res;
@@ -97,8 +101,8 @@ if ~isempty(data)
     figure(1)
     hold on;
     %POSE.handle = plot(POSE.data.x,POSE.data.y,'bx');
-    patch(pts(:,1)+POSE.data.x, pts(:,2)+POSE.data.y, [1 0 0]);
-    plot([POSE.data.x POSE.data.x+(GPFULL.robotsize/GPFULL.res)*sin(POSE.data.yaw)], [POSE.data.y POSE.data.y+(GPFULL.robotsize/GPFULL.res)*cos(POSE.data.yaw)], 'LineWidth', 5);
+    POSE.handle = patch(pts(:,1)+POSE.data.x, pts(:,2)+POSE.data.y, [1 0 0]);
+    POSE.handle2 = plot([POSE.data.x POSE.data.x+(GPFULL.robotsize/GPFULL.res)*sin(POSE.data.yaw)], [POSE.data.y POSE.data.y+(GPFULL.robotsize/GPFULL.res)*cos(POSE.data.yaw)], 'LineWidth', 5);
     temp = GPFULL.temp;
     axis([POSE.data.x-temp POSE.data.x+temp POSE.data.y-temp POSE.data.y+temp]);
     drawnow;
@@ -130,7 +134,9 @@ if ~isempty(data)
         GPTRAJ.handle = plot((GPTRAJ.data.traj_array(:,2)-GPFULL.data.UTM_x)/GPFULL.res,(GPTRAJ.data.traj_array(:,1)-GPFULL.data.UTM_y)/GPFULL.res,'g-');
         %temp(1,1:2)
         temp = GPFULL.temp;
-        axis([POSE.data.x-temp POSE.data.x+temp POSE.data.y-temp POSE.data.y+temp]);
+        if(~isempty(POSE.data))
+          axis([POSE.data.x-temp POSE.data.x+temp POSE.data.y-temp POSE.data.y+temp]);
+        end
         drawnow;
     end
 end
@@ -170,11 +176,13 @@ if ~isempty(data)
     else
       set(GPFULL.handle,'CData',map);
     end
-    axis xy;
+    axis xy equal;
     set(gca,'Xdir','reverse');
     colormap gray;
     temp = GPFULL.temp;
-    axis([POSE.data.x-temp POSE.data.x+temp POSE.data.y-temp POSE.data.y+temp]);
+    if(~isempty(POSE.data))
+      axis([POSE.data.x-temp POSE.data.x+temp POSE.data.y-temp POSE.data.y+temp]);
+    end
     drawnow;
     
 end
