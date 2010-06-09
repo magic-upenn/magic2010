@@ -326,19 +326,13 @@ int IpcWrapperDefineMsg(string msgName, string formatString)
 int IpcWrapperPublish(string msgName, unsigned int size,
                       void * data)
 {
-  //int ret = __IpcWrapperGetActionLock();
-  //if (ret) return -1;
-  
-  pthread_mutex_lock( &__ipcWrapperActionRequestMutex );
-  
   uint8_t * tempData = new uint8_t[size];
   memcpy(tempData,data,size);
+  
+  pthread_mutex_lock( &__ipcWrapperActionRequestMutex );
   __publishQueue.push_back(IpcPublishQueueEntry(msgName,true,size,tempData));
-
   pthread_mutex_unlock( &__ipcWrapperActionRequestMutex );
-  //ret = __IpcWrapperReleaseActionLock();
-  //if (ret) return -2;
-  //else return 0;
+
   return 0;
 }
 
@@ -361,16 +355,14 @@ int IpcWrapperPublishData(string msgName, void * data)
 
 int IpcWrapperPublishVC(string msgName, unsigned int size, void * data)
 {
-  int ret = __IpcWrapperGetActionLock();
-  if (ret) return -1;
-
   uint8_t * tempData = new uint8_t[size];
   memcpy(tempData,data,size);
-  __publishVCQueue.push_back(IpcPublishQueueEntry(msgName,true,size,tempData));
 
-  ret = __IpcWrapperReleaseActionLock();
-  if (ret) return -2;
-  else return 0;
+  pthread_mutex_lock( &__ipcWrapperActionRequestMutex );
+  __publishVCQueue.push_back(IpcPublishQueueEntry(msgName,true,size,tempData));
+  pthread_mutex_unlock( &__ipcWrapperActionRequestMutex );
+
+  return 0;
 }
 
 
