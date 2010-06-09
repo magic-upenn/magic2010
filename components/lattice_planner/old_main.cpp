@@ -6,9 +6,7 @@ using namespace std;
 //#include "headers.h"
 #include "../sbpl/src/sbpl/headers.h"
 #include "envMagic.h"
-#include "mapConverter.h"
 #include "MagicTraj.hh"
-#include "MagicPose.hh"
 #include "unistd.h"
 #include <string>
 
@@ -25,15 +23,11 @@ using namespace std;
 
 #define PLANNING_TIME 0.75
 
-float resolution=0.1;
-float max_velocity=1.0; //meters per sec
-float max_turn_rate=3.14; //radians per sec
-float outer_radius = sqrt(2*0.25*0.25)/resolution;
-
 int count=0;
 
 int size_x=0;
 int size_y=0;
+float resolution=0;
 unsigned char** rawcostmap = NULL;
 unsigned char** rawtrajmap = NULL;
 float** costmap = NULL;
@@ -41,8 +35,11 @@ float** trajmap = NULL;
 float** dummymap = NULL;
 EnvironmentMAGICLAT* env = NULL;
 ARAPlanner* planner = NULL;
+float max_velocity=0; //meters per sec
+float max_turn_rate=0; //radians per sec
 vector<sbpl_2Dpt_t> perimeterptsV;
 float inner_radius = 0;
+float outer_radius = 0;
 float padding = 3;
 int exploration_obst_thresh = 250;
 int obst_thresh = 254;
@@ -72,8 +69,8 @@ char initialized = 0;
 #define INIT_TRAJ   1<<4
 #define UPDATED_MAP 1<<5
 #define UPDATED_POS 1<<6
-#define INIT_DONE (INIT_MAP | INIT_POSE | INIT_TRAJ | UPDATED_MAP | UPDATED_POS)
-#define NEED_UPDATE (INIT_MAP | INIT_POSE | INIT_TRAJ)
+#define INIT_DONE (INIT_RES | INIT_PARAMS | INIT_MAP | INIT_POSE | INIT_TRAJ | UPDATED_MAP | UPDATED_POS)
+#define NEED_UPDATE (INIT_RES | INIT_PARAMS | INIT_MAP | INIT_POSE | INIT_TRAJ)
 
 
 
@@ -82,24 +79,66 @@ bool OnMap(int x, int y) {
   return ((x<size_x) && (x>=0) && (y<size_y) && (y >=0));
 }
 
+static void GP_MAP_DATA_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData) {
+	//function to handle map parameter update messages
+	GP_MAP_DATA_PTR gp_map_data_p;
+	IPC_unmarshall(IPC_msgInstanceFormatter(msgRef), callData, (void **)&gp_map_data_p);
+	printf("Handler: Receiving %s (size %lu) [%s] \n", IPC_msgInstanceName(msgRef),  sizeof(callData), (char *)clientData);
+
+	//update size variables
+	resolution = gp_map_data_p->cost_cell_size;
+  initialized |= INIT_RES;
+
+	//frees memory used by the message
+	IPC_freeDataElements(IPC_msgInstanceFormatter(msgRef), (void *) gp_map_data_p);
+	IPC_freeByteArray(callData);
+}
+
+static void GP_ROBOT_PARAMETER_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData) {
+	// function handles robot parameter update messages
+	GP_ROBOT_PARAMETER_PTR gp_robot_parameter_p;
+	IPC_unmarshall(IPC_msgInstanceFormatter(msgRef), callData, (void **)&gp_robot_parameter_p);
+	printf("Handler: Receiving %s (size %lu) [%s] \n", IPC_msgInstanceName(msgRef),  sizeof(callData), (char *)clientData);
+
+	//stores new parameters
+	max_velocity = gp_robot_parameter_p->MAX_VELOCITY;
+	max_turn_rate = gp_robot_parameter_p->MAX_TURN_RATE;
+
+	//get the robot perimeter
+  outer_radius = sqrt(pow(gp_robot_parameter_p->PerimeterArray[0],2) + pow(gp_robot_parameter_p->PerimeterArray[1],2));
+  inner_radius = min(fabs(gp_robot_parameter_p->PerimeterArray[0]),fabs(gp_robot_parameter_p->PerimeterArray[1]));
+  perimeterptsV.reserve(gp_robot_parameter_p->I_DIMENSION);
+  for (int i=0; i < gp_robot_parameter_p->I_DIMENSION; i++) {
+    sbpl_2Dpt_t pt;
+    pt.x = gp_robot_parameter_p->PerimeterArray[i*gp_robot_parameter_p->J_DIMENSION];
+    pt.y = gp_robot_parameter_p->PerimeterArray[i*gp_robot_parameter_p->J_DIMENSION+1];
+    perimeterptsV.push_back(pt);
+    float r = sqrt(pt.x*pt.x+pt.y*pt.y);
+    if(r>outer_radius)
+      outer_radius = r;
+    inner_radius = min(inner_radius,min(fabs(pt.x),fabs(pt.y)));
+  }
+  printf("outer_radius=%f inner_radius=%f\n",outer_radius,inner_radius);
+  inner_radius /= resolution;
+  outer_radius /= resolution;
+  initialized |= INIT_PARAMS;
+
+	//free the memory used by the message
+	IPC_freeDataElements(IPC_msgInstanceFormatter(msgRef), (void *) gp_robot_parameter_p);
+	IPC_freeByteArray(callData);
+}
+
 static void GP_FULL_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData) {
 	//function handles full map updates
-	GP_MAGIC_MAP_PTR gp_full_update_p;
+	GP_FULL_UPDATE_PTR gp_full_update_p;
 	IPC_unmarshall(IPC_msgInstanceFormatter(msgRef), callData, (void **)&gp_full_update_p);
 	printf("Handler: Receiving %s (size %lu) [%s] \n", IPC_msgInstanceName(msgRef),  sizeof(callData), (char *)clientData);
 
-  unsigned char* temp_map = NULL;
-  int new_size_x;
-  int new_size_y;
-  convertMap(gp_full_update_p, false, gp_full_update_p->resolution, 
-             &temp_map, NULL, NULL,
-             &new_size_x, &new_size_y);
-
-  if(true || size_x != new_size_x || size_y != new_size_y || env == NULL){
+  if(true || size_x != gp_full_update_p->sent_cost_x || size_y != gp_full_update_p->sent_cost_y || env == NULL){
     //update size variables
     int old_size_x = size_x;
-    size_x = new_size_x;
-    size_y = new_size_y;
+    size_x = gp_full_update_p->sent_cost_x;
+    size_y = gp_full_update_p->sent_cost_y;
     global_x_offset = gp_full_update_p->UTM_x;
     global_y_offset = gp_full_update_p->UTM_y;
     
@@ -171,12 +210,9 @@ static void GP_FULL_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, vo
   }
   initialized |= UPDATED_MAP;
 
-  for(int y=0; y<size_y; y++){
-    for(int x=0; x<size_x; x++){
-      rawcostmap[x][y] = temp_map[x+size_x*y];
-    }
-  }
-  delete [] temp_map;
+  for(int y=0; y<size_y; y++)
+    for(int x=0; x<size_x; x++)
+      rawcostmap[x][y] = gp_full_update_p->cost_map[x+size_x*y];
 
   computeDistancestoNonfreeAreas(rawcostmap, size_x, size_y, exploration_obst_thresh, costmap, dummymap);
 
@@ -212,16 +248,72 @@ static void GP_FULL_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, vo
 	IPC_freeByteArray(callData);
 }
 
+static void GP_SHORT_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData) {
+	// function handles short map updates
+	GP_SHORT_UPDATE_PTR gp_short_update_p;
+	IPC_unmarshall(IPC_msgInstanceFormatter(msgRef), callData, (void **)&gp_short_update_p);
+	printf("Handler: Receiving %s (size %lu) [%s] \n", IPC_msgInstanceName(msgRef),  sizeof(callData), (char *)clientData);
+
+	//variables for map coordinates
+	int lly = gp_short_update_p->y_cost_start; 
+	int llx = gp_short_update_p->x_cost_start; 
+	int sizey = gp_short_update_p->sent_cost_y; 
+	int sizex = gp_short_update_p->sent_cost_x; 
+
+	//place data into the correct arrays
+	for(int j = 0; j< sizey; j++){
+		for (int i=0;i< sizex;i++){
+			if (OnMap(i+llx, j+lly)) 
+        rawcostmap[i+llx][j+lly] = gp_short_update_p->cost_map[i+sizex*j];
+		}
+	}
+
+  initialized |= UPDATED_MAP;
+
+  computeDistancestoNonfreeAreas(rawcostmap, size_x, size_y, exploration_obst_thresh, costmap, dummymap);
+
+  for(int x=0; x<size_x; x++){
+    for(int y=0; y<size_y; y++){
+      if(costmap[x][y] <= outer_radius)
+        costmap[x][y] = 254;
+      else if(costmap[x][y] <= padding)
+        costmap[x][y] = max((padding-costmap[x][y])*150/(padding-outer_radius), rawcostmap[x][y]);
+      else
+        costmap[x][y] = rawcostmap[x][y];
+    }
+  }
+  /*
+  for(int x=0; x<size_x; x++){
+    for(int y=0; y<size_y; y++){
+      if(costmap[x][y] == 0)
+        costmap[x][y] = 254;
+      else if(costmap[x][y] <= inner_radius)
+        costmap[x][y] = 253;
+      else if(costmap[x][y] <= outer_radius)
+        costmap[x][y] = 150;
+      else if(costmap[x][y] <= padding)
+        costmap[x][y] = max((padding-costmap[x][y])*150/(padding-outer_radius), rawcostmap[x][y]);
+      else
+        costmap[x][y] = rawcostmap[x][y];
+    }
+  }
+  */
+
+	//free the message data
+	IPC_freeDataElements(IPC_msgInstanceFormatter(msgRef), (void *) gp_short_update_p);
+	IPC_freeByteArray(callData);
+}
+
 static void GP_POSITION_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData) {
 	//function handles the position update messages
-  Magic::Pose* gp_position_update_p;
+	GP_POSITION_UPDATE_PTR gp_position_update_p;
 	IPC_unmarshall(IPC_msgInstanceFormatter(msgRef), callData, (void **)&gp_position_update_p);
 	printf("Handler: Receiving %s (size %lu) [%s] \n", IPC_msgInstanceName(msgRef),  sizeof(callData), (char *)clientData);
 
   //set start
   global_start_x = gp_position_update_p->x;
   global_start_y = gp_position_update_p->y;
-  global_start_theta = gp_position_update_p->yaw;
+  global_start_theta = gp_position_update_p->theta;
 
   initialized |= INIT_POSE;
   initialized |= UPDATED_POS;
@@ -293,33 +385,41 @@ void makeTrajMap(){
 
 int main(int argc, char** argv){
   char* id = getenv("ROBOT_ID");
-  string robotName = string("Robot") + id;
-
-  string mapName = robotName + "/Cost_Map_Full"; 
-  string poseName = robotName + "/Pose"; 
-  string waypointsName = robotName + "/Waypoints"; 
-  string trajName = robotName + "/Trajectory"; 
 
   printf("\nIPC_connect(%s)\n", MODULE_NAME);
   IPC_connect(MODULE_NAME);
 
   //Subscribe to the messages that this module listens to.
-	IPC_subscribe(mapName.c_str(), GP_FULL_UPDATE_Handler, (void *)MODULE_NAME);
-  IPC_setMsgQueueLength((char*)mapName.c_str(), 1);
+	printf("\nIPC_subscribe(%s, GP_MAP_DATA_Handler, %s)\n", GP_MAP_DATA_MSG, MODULE_NAME);
+	IPC_subscribe(GP_MAP_DATA_MSG, GP_MAP_DATA_Handler, (void *)MODULE_NAME);
+  IPC_setMsgQueueLength(GP_MAP_DATA_MSG, 1);
 
-	IPC_subscribe(poseName.c_str(), GP_POSITION_UPDATE_Handler, (void *)MODULE_NAME);
-  IPC_setMsgQueueLength((char*)poseName.c_str(), 1);
+	printf("\nIPC_subscribe(%s, GP_ROBOT_PARAMETER_Handler, %s)\n", GP_ROBOT_PARAMETER_MSG, MODULE_NAME);
+	IPC_subscribe(GP_ROBOT_PARAMETER_MSG, GP_ROBOT_PARAMETER_Handler, (void *)MODULE_NAME);
+  IPC_setMsgQueueLength(GP_ROBOT_PARAMETER_MSG, 1);
 
-  IPC_subscribe(waypointsName.c_str(), GPTRAJHandler, (void *)MODULE_NAME);
-  IPC_setMsgQueueLength((char*)waypointsName.c_str(), 1);
+	printf("\nIPC_subscribe(%s, GP_FULL_UPDATE_Handler, %s)\n", GP_FULL_UPDATE_MSG, MODULE_NAME);
+	//IPC_subscribe(GP_FULL_UPDATE_MSG, GP_FULL_UPDATE_Handler, (void *)MODULE_NAME);
+	IPC_subscribe("Lattice_Planner_Full_Update", GP_FULL_UPDATE_Handler, (void *)MODULE_NAME);
+  IPC_setMsgQueueLength("Lattice_Planner_Full_Update", 1);
+
+	printf("\nIPC_subscribe(%s, GP_SHORT_UPDATE_Handler, %s)\n", GP_SHORT_UPDATE_MSG, MODULE_NAME);
+	IPC_subscribe(GP_SHORT_UPDATE_MSG, GP_SHORT_UPDATE_Handler, (void *)MODULE_NAME);
+
+	printf("\nIPC_subscribe(%s, GP_POSITION_UPDATE_Handler, %s)\n", GP_POSITION_UPDATE_MSG, MODULE_NAME);
+	//IPC_subscribe(GP_POSITION_UPDATE_MSG, GP_POSITION_UPDATE_Handler, (void *)MODULE_NAME);
+	IPC_subscribe("Lattice_Planner_Position_Update", GP_POSITION_UPDATE_Handler, (void *)MODULE_NAME);
+  IPC_setMsgQueueLength("Lattice_Planner_Position_Update", 1);
+
+  printf("\nIPC_subscribe(%s, msg2Handler, %s)\n", GP_TRAJECTORY_MSG, MODULE_NAME);
+  IPC_subscribe(GP_TRAJECTORY_MSG, GPTRAJHandler, (void *)MODULE_NAME);
+  IPC_setMsgQueueLength(GP_TRAJECTORY_MSG, 1);
 
 
   Magic::MotionTraj path_msg;
+  string robotName = string("Robot") + id;
+  string trajName = robotName + "/Trajectory"; 
   IPC_defineMsg(trajName.c_str(), IPC_VARIABLE_LENGTH, path_msg.getIPCFormat());
-
-
-  printf("IPC init done!\n");
-
 
   // call IPC and wait for messages
   vector<int> solution_stateIDs;

@@ -4,7 +4,7 @@
 #include "MagicPlanDataTypes.h"
 
 void convertMap(GP_MAGIC_MAP_PTR msg, bool makeAllMaps, float outRes, 
-                unsigned char* costmap, int16_t* elevmap, unsigned char* covmap,
+                unsigned char** costmap, int16_t** elevmap, unsigned char** covmap,
                 int* new_size_x, int* new_size_y);
 
 #endif
