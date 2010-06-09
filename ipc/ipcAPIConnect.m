@@ -5,6 +5,10 @@ if nargin < 1,
   hostname = 'localhost'; % Default hostname
 end
 
+if nargin < 2
+  ipcAPIHandle = @ipcAPI;
+end
+
 if ~(isempty(IPC) || ~isfield(IPC,'connected') || ~IPC.connected)
   result = 1;
   %disp('already connected to ipc');
