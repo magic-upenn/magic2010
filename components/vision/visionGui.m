@@ -15,7 +15,7 @@ function visionGuiInit
 global IMAGES STATIC_OOI ROBOTS
 
 nRobots = 10;
-ids = [3]; % list of ID's of available robots
+ids = [1 2]; % list of ID's of available robots
 
 for ii=1:nRobots
     IMAGES(ii).id = [];
