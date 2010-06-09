@@ -95,6 +95,7 @@ ipcReceiveSetFcn(GetMsgName('StateEvent'), @mapfsmRecvStateEventFcn);
 ipcReceiveSetFcn(GetMsgName('IncMapUpdateH'), @mapfsmRecvIncMapUpdateHFcn);
 ipcReceiveSetFcn(GetMsgName('IncMapUpdateV'), @mapfsmRecvIncMapUpdateVFcn);
 ipcReceiveSetFcn(GetMsgName('Path'), @mapfsmRecvPathFcn);
+ipcAPIDefine(GetMsgName('Cost_Map_Full'),MagicGP_MAGIC_MAPSerializer('getFormat'));
 
 
 %==========
@@ -119,7 +120,18 @@ if ~isempty(MPOSE) && rem(MP.nupdate, 10) == 0,
   end
 
   % Ship out map here for local planner:
-  % TODO
+  %{
+  [planMap.size_x, planMap.size_y] = size(MAP);
+  planMap.resolution = resolution(MAP);
+  xmap = x(MAP);
+  planMap.UTM_x = xmap(1);
+  ymap = y(MAP);
+  planMap.UTM_y = ymap(1);
+  planMap.map = char(getdata(MAP, 'cost'));
+  ipcAPIPublishVC(GetMsgName('Cost_Map_Full'), ...
+                  MagicGP_MAGIC_MAPSerializer('serialize', planMap));
+  %}
+  
 
   if (MP.debugPlot),
     imagesc(dx(MAP), dy(MAP), getdata(MAP, 'cost'), [-100 100]);
