@@ -160,7 +160,7 @@ if mod(SLAM.lidar0Cntr,10) == 0
     end
 end
 
-%{
+
 trackPeriod = 10;
 if mod(SLAM.lidar0Cntr,1) == 0
   %calculate the clusters
@@ -182,8 +182,8 @@ if mod(SLAM.lidar0Cntr,1) == 0
   yt = yTrack(isizeMatch);
   lt = obsLen(isizeMatch);
 
-  plot(xs,ys,'.'); hold on;
-  plot(xt,yt,'r*');
+  %plot(xs,ys,'.'); hold on;
+  %plot(xt,yt,'r*');
 
   if isempty(TRACK)
     TRACK.xs = repmat(xt,[1 trackPeriod]);
@@ -233,10 +233,10 @@ if mod(SLAM.lidar0Cntr,1) == 0
     TRACK.cs = [TRACK.cs(goodTracks); ones(size(xt(dmin2>0.10)))];
     %}
   end
-  hold off;
-  drawnow;
+  %hold off;
+  %drawnow;
 end
-%}
+
   
 %update the map
 T = (trans([SLAM.x SLAM.y SLAM.z])*rotz(SLAM.yaw)*trans([LIDAR0.offsetx LIDAR0.offsety LIDAR0.offsetz]))';
