@@ -121,7 +121,9 @@ void *__IpcWrapperThreadFunc(void * input)
     
     while(!empty)
     {
+      pthread_mutex_lock( &__ipcWrapperActionRequestMutex );
       IpcPublishQueueEntry & entry = __publishQueue.front();
+      pthread_mutex_unlock( &__ipcWrapperActionRequestMutex );
       ret = IPC_publish(entry.msgName.c_str(),entry.size,entry.data);
       if (ret != IPC_OK)
         printf("could not publish ipc message\n");
@@ -142,7 +144,9 @@ void *__IpcWrapperThreadFunc(void * input)
     
     while(!empty)
     {
+      pthread_mutex_lock( &__ipcWrapperActionRequestMutex );
       IpcPublishQueueEntry & entry = __publishVCQueue.front();
+      pthread_mutex_unlock( &__ipcWrapperActionRequestMutex );
       IPC_VARCONTENT_TYPE varcontent;
       varcontent.length  = entry.size;
       varcontent.content = entry.data;
@@ -168,7 +172,12 @@ void *__IpcWrapperThreadFunc(void * input)
     
     while(!empty)
     {
-      IPC_freeByteArray(__freeRawQueue.front());
+      pthread_mutex_lock( &__ipcWrapperActionRequestMutex );
+      uint8_t * entry = __freeRawQueue.front();
+      pthread_mutex_unlock( &__ipcWrapperActionRequestMutex );
+
+      IPC_freeByteArray(entry);
+
       pthread_mutex_lock( &__ipcWrapperActionRequestMutex );
       __freeRawQueue.pop_front();
       empty = __freeRawQueue.empty(); 

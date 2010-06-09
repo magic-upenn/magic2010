@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <iostream>
 #include <sys/time.h>
+#include <pthread.h>
 //#include <sys/types.h>
 
 #define MAX_HOSTNAME_LENGTH 128
@@ -49,6 +50,7 @@ struct MSG_INFO
 //keep track whether we are connected to IPC
 static bool connected=false;
 static bool start = false;
+pthread_mutex_t messageMutex = PTHREAD_MUTEX_INITIALIZER;
 
 //queue that stores the vectors of pointers to received data for each message type
 list<MSG_INFO> ipc_messages;
@@ -69,7 +71,9 @@ void static MsgHandler(MSG_INSTANCE msg_inst, BYTE_ARRAY ipc_data_ptr, void * no
 {
   const char * msg_name = IPC_msgInstanceName(msg_inst);
   unsigned int msg_length = IPC_dataLength(msg_inst);
+  pthread_mutex_lock(&messageMutex);
   ipc_messages.push_back(MSG_INFO(string(msg_name),msg_length,ipc_data_ptr));
+  pthread_mutex_unlock(&messageMutex);
 #ifdef IPC_API_DEBUG
   printf("ipcAPI: Received a message of type '%s' with length %d\n",msg_name,msg_length); 
 #endif
@@ -126,7 +130,10 @@ void ProcessMessages(mxArray ** plhs)
   //if there are messages, return all of them starting from the oldest one
   const char * fields[]= {"name","data"};
   const int nfields = sizeof(fields)/sizeof(*fields);
+
+  pthread_mutex_lock(&messageMutex);
   int n_messages = ipc_messages.size();
+
   plhs[0] = mxCreateStructMatrix(n_messages,1,nfields,fields);
 
   for (int m=0; m < n_messages; m++)
@@ -151,6 +158,7 @@ void ProcessMessages(mxArray ** plhs)
     ipc_messages.pop_front();
   }
 
+  pthread_mutex_unlock(&messageMutex);
 }
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
