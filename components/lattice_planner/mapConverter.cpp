@@ -10,17 +10,18 @@ void convertMap(GP_MAGIC_MAP_PTR msg, bool makeAllMaps, float outRes,
   int size_x = msg->size_x;
   int size_y = msg->size_y;
 
-  costmap = new unsigned char[size_x*size_y];
-  if(makeAllMaps){
-    elevmap = new int16_t[size_x*size_y];
-    covmap = new unsigned char[size_x*size_y];
-  }
-
   int step = (int)(outRes/msg->resolution+0.5);
   int sx = size_x/step;
   int sy = size_y/step;
   *new_size_x = sx;
   *new_size_y = sy;
+
+  costmap = new unsigned char[sx*sy];
+  if(makeAllMaps){
+    elevmap = new int16_t[sx*sy];
+    covmap = new unsigned char[sx*sy];
+  }
+
   for(int y=0; y<sy; y++){
     for(int x=0; x<sx; x++){
       bool isObstacle = false;
@@ -37,7 +38,7 @@ void convertMap(GP_MAGIC_MAP_PTR msg, bool makeAllMaps, float outRes,
   if(makeAllMaps){
     for(int y=0; y<sy; y++)
       for(int x=0; x<sx; x++)
-        elevmap[x+size_x*y] = ((int16_t)costmap[x+size_x*y])*4;
+        elevmap[x+sx*y] = ((int16_t)costmap[x+sx*y])*4;
 
     for(int y=0; y<sy; y++){
       for(int x=0; x<sx; x++){
