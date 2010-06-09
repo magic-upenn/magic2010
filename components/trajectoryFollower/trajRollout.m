@@ -71,7 +71,7 @@ TRAJ.count = 0;
 %TRAJ.fout = fopen('debug_log.txt','w');
 POSE.data = [];
 
-vels = [.2 .4 .6]';
+vels = [.3 .4 .6]';
 w = [pi/32:pi/32:pi/8 pi/8:pi/8:pi/4]';
 for i = 1:size(vels, 1)
   if (i==1) 
@@ -196,7 +196,7 @@ elseif(angleToLine < -pi)
     angleToLine = angleToLine + 2*pi;
 end
 
-if(abs(angleToLine) >= pi/2)
+if(abs(angleToLine) >= 3*pi/4)
     TRAJ.turning = true;
 elseif(abs(angleToLine) <= pi/10)
     TRAJ.turning = false;
@@ -247,7 +247,8 @@ angleToLine
     if(dir==0)
         dir = 1;
     end
-    for w=6*pi/16:pi/16:7*pi/16 %was pi/8 to pi/4
+    %for w=6*pi/16:pi/16:7*pi/16 %was pi/8 to pi/4
+    w=6*pi/16;
         v=0;
         ang = dir*w*timestep;
         new_pos = [pose(1:2), pose(3)+ang];
@@ -266,7 +267,7 @@ angleToLine
             best_control = [v,dir*w];
             best_new_pos = new_pos;
         end
-    end
+    %end
 end
 %fprintf('pos=(%f, %f, %f) rollout=(%f, %f, %f)\n',pose(1:3),best_new_pos(1:3));
 

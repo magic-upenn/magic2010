@@ -467,6 +467,20 @@ int main(int argc, char** argv){
       planner->set_goal(env->SetGoal(global_goal_x-global_x_offset,
                                      global_goal_y-global_y_offset,
                                      global_goal_theta));
+
+      int goal_cell_x = (global_goal_x-global_x_offset)/resolution;
+      int goal_cell_y = (global_goal_y-global_y_offset)/resolution;
+      printf("goal UTM(%f %f) cell(%d %d)\n",global_goal_x,global_goal_y,goal_cell_x,goal_cell_y);
+      for(int py=goal_cell_y-2; py<=goal_cell_y+2; py++){
+        for(int px=goal_cell_x-2; px<=goal_cell_x+2; px++){
+          if(OnMap(px,py))
+            printf("%d ",env->GetMapCost(px,py));
+          else
+            printf("? ");
+        }
+        printf("\n");
+      }
+
       if(planner->replan(PLANNING_TIME, &solution_stateIDs))
           printf("Solution is found\n");
       else{

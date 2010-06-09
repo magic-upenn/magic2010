@@ -25,7 +25,7 @@ DefinePlannerMessages;
 POSE.cntr =1;
 ROBOT.pose = [];
 
-plannerUpdatePeriod = 2;
+plannerUpdatePeriod = 3;
 lastPlannerUpdate = GetUnixTime();
 while(1)
   ipcReceiveMessages(100);

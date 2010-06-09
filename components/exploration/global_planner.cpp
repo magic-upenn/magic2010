@@ -620,7 +620,8 @@ void global_planner(float goal_x, float goal_y, float goal_theta) {
 		} // if !NOMOVE
 	} //for current_loc
 
-cout << "goal point " << traj.back().x << "," << traj.back().y << " cost val = " << cost_map[traj.back().x + cost_size_x*traj.back().y];
+if(!traj.empty())
+    cout << "goal point " << traj.back().x << "," << traj.back().y << " cost val = " << (int)cost_map[traj.back().x + cost_size_x*traj.back().y];
 
 	// post process traj to smooth 
 	// determine best direction to point sensor head
@@ -649,16 +650,18 @@ cout << "goal point " << traj.back().x << "," << traj.back().y << " cost val = "
 		gp_traj.traj_array[q*GP_TRAJ_DIM+5] = traj[q].left_pan;
 	}
 
+  if(!traj.empty()){
 	cout << " UTM = " << gp_traj.traj_array[(gp_traj.num_traj_pts-1)*GP_TRAJ_DIM] << "," << gp_traj.traj_array[(gp_traj.num_traj_pts-1)*GP_TRAJ_DIM+1] << endl;
 
 	for (int ww = -2; ww <= 2; ww++) {
 		for (int qq = -2; qq <= 2; qq++) {
 			if (OnMap( traj.back().x + qq,  traj.back().y + ww)) {
-				cout << cost_map[ traj.back().x + qq + cost_size_x*( traj.back().y + ww)];
+				printf("%3d ", (int)cost_map[ traj.back().x + qq + cost_size_x*( traj.back().y + ww)]);
 			}
 		}
 		cout << endl;
 	}
+  }
 
 
 

@@ -166,13 +166,13 @@ public:
     */
 	DiscreteSpaceInformation()
 	{
-
+    /*
 	  if((fDeb = fopen("envdebug.txt", "w")) == NULL)
 	    {
 	      printf("ERROR: failed to open debug file for environment\n");
 	      exit(1);
 	    }
-
+    */
 	}
 };
 

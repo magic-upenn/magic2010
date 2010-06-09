@@ -11,6 +11,7 @@ pos_y = (ROBOTS(2).pose.data.x-CMAP.xmin)/CMAP.res;
 pos_x = (ROBOTS(2).pose.data.y-CMAP.xmin)/CMAP.res;
 axis xy equal;
 axis([pos_x-temp pos_x+temp pos_y-temp pos_y+temp]);
+set(gca,'Xdir','reverse');
 
 
 %make 3 maps for the exploration planner
