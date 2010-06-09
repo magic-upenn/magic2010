@@ -178,6 +178,29 @@ typedef struct {
 } GP_POSITION_UPDATE, *GP_POSITION_UPDATE_PTR;
 
 
+
+#define GP_ALL_POSE_FORM "{float, float, float,float, float, float,float, float, float}"	
+#define GP_ALL_POSE_MSG "Global_Planner_All_Pose_Update"
+typedef struct {
+	float x1;			// x position of robot reference point in meters
+	float y1;			// y position of robot reference point in meters
+	float theta1; 		// robot heading referenced to 0 = positive x-axis
+		float x2;			// x position of robot reference point in meters
+	float y2;			// y position of robot reference point in meters
+	float theta2; 		// robot heading referenced to 0 = positive x-axis
+		float x3;			// x position of robot reference point in meters
+	float y3;			// y position of robot reference point in meters
+	float theta3; 		// robot heading referenced to 0 = positive x-axis
+  
+  static const char*  getIPCFormat() { return GP_ALL_POSE_FORM; };
+  
+#ifdef MEX_IPC_SERIALIZATION
+  INSERT_SERIALIZATION_DECLARATIONS
+#endif
+  
+} GP_ALL_POSE_UPDATE, *GP_ALL_POSE_PTR;
+
+
 #define GP_FULL_UPDATE_FORM "{double, float, float, int, int, int, int, int, int, <ubyte: 4, 5>, <ubyte: 6, 7>, <short: 8, 9>}"
 #define GP_FULL_UPDATE_MSG "Global_Planner_Full_Update"
 typedef struct {
