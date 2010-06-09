@@ -83,9 +83,11 @@ yig = ceil((ysg - CMAP.ymin) * CMAP.invRes);
 
 mapInds = sub2ind(size(CMAP.map.data),xig,yig);
 
+%assume that nothing is in the last bin, use it for points that did not fit
+%anywhere and assign counts value equal to zero
+bins(bins<1) = length(counts);
+counts(end)  = 0;
 
-%TODO: some points may end up outside of any bin! Not sure if this is
-%possible given current scan and range constraints enforced above
 iGndPts     = iGnd(bins);
 iObsPts     = iObs(bins);
 iFirstObs   = find(iObsPts,1);
@@ -96,9 +98,15 @@ if isempty(iFirstCliff), iFirstCliff = 99999; end
 iFirstBad = min([iFirstObs,iFirstCliff,length(iGndPts)]);
 
 countsPts   = counts(bins);
-iGndMap   = mapInds(iGndPts(1:iFirstBad-5));
-countsGnd = countsPts(iGndPts(1:iFirstBad-5));
-iObsMap   = [mapInds(iObsPts) mapInds(iCliff)];
+obsBuffer   = 5; %in number of 
+if iFirstBad == length(iGndPts) % there is actually no obstacle
+  obsBuffer = 0;
+end
+
+
+iGndMap     = mapInds(iGndPts(1:iFirstBad-obsBuffer));
+countsGnd   = countsPts(iGndPts(1:iFirstBad-obsBuffer));
+iObsMap     = [mapInds(iObsPts) mapInds(iCliff)];
 countsObs   = [find(countsPts(iObsPts)) find(iCliff)];
 
 CMAP.map.data(iObsMap) = CMAP.map.data(iObsMap) + countsObs*SLAM.cMapIncObs;
