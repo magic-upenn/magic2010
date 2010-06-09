@@ -160,7 +160,7 @@ if mod(SLAM.lidar0Cntr,10) == 0
     end
 end
 
-
+%{
 trackPeriod = 10;
 if mod(SLAM.lidar0Cntr,1) == 0
   %calculate the clusters
@@ -236,6 +236,7 @@ if mod(SLAM.lidar0Cntr,1) == 0
   %hold off;
   %drawnow;
 end
+%}
 
   
 %update the map
