@@ -2,6 +2,35 @@
 #include "MagicPlanDataTypes.h"
 
 
+
+int GP_SET_STATE::ReadFromMatlab(mxArray * mxArr, int index)
+{
+  int numFieldsRead = 0;
+
+  MEX_READ_FIELD(mxArr,index,shouldRun,numFieldsRead);
+
+  return numFieldsRead;
+}
+
+int GP_SET_STATE::CreateMatlabStructMatrix(mxArray ** mxArrPP,int m, int n)
+{
+  const char * fields[]= { "shouldRun"};
+  const int nfields = sizeof(fields)/sizeof(*fields);
+    
+  *mxArrPP = mxCreateStructMatrix(m,n,nfields,fields);
+  return 0;
+}
+
+int GP_SET_STATE::WriteToMatlab(mxArray * mxArr, int index)
+{
+  MEX_WRITE_FIELD(mxArr,index,shouldRun);
+
+  return 0;
+}
+
+
+
+
 int GP_MAGIC_MAP::ReadFromMatlab(mxArray * mxArr, int index)
 {
   int numFieldsRead = 0;

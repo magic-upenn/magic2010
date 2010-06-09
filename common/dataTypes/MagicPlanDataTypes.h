@@ -4,6 +4,22 @@
 #include <stdint.h>
 
 
+#define GP_SET_STATE_FORM "{int}"
+#define GP_SET_STATE_MSG "Global_Planner_Set_State"
+
+typedef struct {
+  int shouldRun;
+  
+  static const char*  getIPCFormat() { return GP_SET_STATE_FORM; };
+  
+  
+#ifdef MEX_IPC_SERIALIZATION
+  INSERT_SERIALIZATION_DECLARATIONS
+#endif
+  
+} GP_SET_STATE, *GP_SET_STATE_PTR;
+
+
 #define GP_MAGIC_MAP_FORM "{int, int, float, float, float, <ubyte: 1, 2>}"
 #define GP_MAGIC_MAP_MSG "Global_Planner_Magic_Map"
 

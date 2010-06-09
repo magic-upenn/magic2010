@@ -64,6 +64,7 @@ float* traj_path = NULL;
 bool reset_traj_map = false;
 
 //initialization flags
+bool shouldRun = true;
 char initialized = 0;
 #define INIT_RES    1<<0
 #define INIT_PARAMS 1<<1
@@ -231,6 +232,19 @@ static void GP_POSITION_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData
 	IPC_freeByteArray(callData);
 }
 
+static void GP_STATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData) {
+	//function handles the position update messages
+  GP_SET_STATE_PTR state_msg;
+	IPC_unmarshall(IPC_msgInstanceFormatter(msgRef), callData, (void **)&state_msg);
+	printf("Handler: Receiving %s (size %lu) [%s] \n", IPC_msgInstanceName(msgRef),  sizeof(callData), (char *)clientData);
+
+  shouldRun = state_msg->shouldRun;
+
+	//frees memory used by message
+	IPC_freeDataElements(IPC_msgInstanceFormatter(msgRef), (void *)state_msg);
+	IPC_freeByteArray(callData);
+}
+
 static void GPTRAJHandler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData) {
 	// handles incoming trajectory messages
 	GP_TRAJECTORY_PTR GP_Traj_p; // pointer to trajectory message
@@ -298,7 +312,8 @@ int main(int argc, char** argv){
   string mapName = robotName + "/Cost_Map_Full"; 
   string poseName = robotName + "/Pose"; 
   string waypointsName = robotName + "/Waypoints"; 
-  string trajName = robotName + "/Trajectory"; 
+  string trajName = robotName + "/Planner_Path"; 
+  string stateName = robotName + "/Planner_State"; 
 
   printf("\nIPC_connect(%s)\n", MODULE_NAME);
   IPC_connect(MODULE_NAME);
@@ -312,6 +327,9 @@ int main(int argc, char** argv){
 
   IPC_subscribe(waypointsName.c_str(), GPTRAJHandler, (void *)MODULE_NAME);
   IPC_setMsgQueueLength((char*)waypointsName.c_str(), 1);
+
+  IPC_subscribe(stateName.c_str(), GP_STATE_Handler, (void *)MODULE_NAME);
+  IPC_setMsgQueueLength((char*)stateName.c_str(), 1);
 
 
   Magic::MotionTraj path_msg;
@@ -329,7 +347,7 @@ int main(int argc, char** argv){
 
   while(1){
     IPC_listenWait(100);
-    if(initialized == INIT_DONE){
+    if(initialized == INIT_DONE && shouldRun){
 
       if(reset_traj_map)
         makeTrajMap();
@@ -395,7 +413,7 @@ int main(int argc, char** argv){
       path_msg.size = sbpl_path.size();
       path_msg.t = time(NULL);
       path_msg.waypoints = new Magic::MotionTrajWaypoint[sbpl_path.size()];
-      for(int i=0; i<sbpl_path.size(); i++){
+      for(unsigned int i=0; i<sbpl_path.size(); i++){
         path_msg.waypoints[i].x = sbpl_path[i].x+global_x_offset;
         path_msg.waypoints[i].y = sbpl_path[i].y+global_y_offset;
         path_msg.waypoints[i].yaw = sbpl_path[i].theta;
