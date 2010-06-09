@@ -53,6 +53,6 @@ switch event
    v = min(DATA.speed, maxSpeed);
    w = turnPath*max(v, 0.1);
    disp(sprintf('drive: %.4f %.4f',v,w));
-   SetVelocity(v, .5*w);
+   SetVelocity(v, .4*w);
 
 end
