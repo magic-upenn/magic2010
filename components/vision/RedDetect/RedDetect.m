@@ -12,6 +12,8 @@ function RedDetect
 % FOV atand(44/72)*2=62.86 degrees
 % angle = atand((xpixel-xcenter)/dist)
 
+DEBUG = 0;
+
 SetMagicPaths;
 global POSE targetY
 POSE.data = [];
@@ -28,10 +30,12 @@ ipcReceiveSetFcn(GetMsgName('CamParam'), @CamParamMsgHander);
 %%%%%%%%%%%%%%%%%%
 
 %savedir = '~/data/Hill_May31/';
-figure(1);
-subplot(1,3,1); handle1 = image([]); axis([1 256 1 192]); axis ij; axis equal;
-subplot(1,3,2); handle2 = image([]); axis([1 256 1 192]); axis ij; axis equal; axis off;
-subplot(1,3,3); handle3 = image([]); axis([1 256 1 192]); axis ij; axis equal; axis off;
+if DEBUG
+    figure(1);
+    subplot(1,3,1); handle1 = image([]); axis([1 256 1 192]); axis ij; axis equal;
+    subplot(1,3,2); handle2 = image([]); axis([1 256 1 192]); axis ij; axis equal; axis off;
+    subplot(1,3,3); handle3 = image([]); axis([1 256 1 192]); axis ij; axis equal; axis off;
+end
 
 % run this when changing to different camera:
 %    bumblebeeWriteContextToFile('context.txt');
@@ -79,18 +83,18 @@ while(1)
 
     Cr_threshold = max(190,max(Cr(:)) - 20);
     imCr_filt = Cr > Cr_threshold;
-
+if DEBUG
     set(handle3,'CData',dispmap); % update images on screen
     set(handle2,'CData',imCr_filt*255);
 
     subplot(1,3,1);
     imshow(yRight);
-
+end
     r = connected_regions(uint8(imCr_filt));
     r = r([r.area] >= 20);
 
     % Calculate details of each red box candidate
-    hold on;
+    if DEBUG hold on; end
     for i = 1:length(r)
         r(i).BoundingBox = [max(1,r(i).boundingBox(1,2)) max(1,r(i).boundingBox(1,1)) r(i).boundingBox(2,2)-r(i).boundingBox(1,2)+1 r(i).boundingBox(2,1)-r(i).boundingBox(1,1)+1];
         r(i).Extent = r(i).area/r(i).BoundingBox(3)/r(i).BoundingBox(4);
@@ -121,6 +125,7 @@ while(1)
         end
         r(i).redbinscore = xwidth_score * yheight_score * r(i).Extent;% Extent is redpixels/areaofbox
 
+        if DEBUG
         linecolor = 'g';
         if r(i).redbinscore > 0.5    % Display candidate red boxes
         line([r(i).BoundingBox(1),r(i).BoundingBox(1)+r(i).BoundingBox(3)],[r(i).BoundingBox(2),r(i).BoundingBox(2)],'Color',linecolor);
@@ -130,10 +135,13 @@ while(1)
         text(r(i).BoundingBox(1),r(i).BoundingBox(2),sprintf('%2.2f',r(i).distance),'color','g');
         text(r(i).BoundingBox(1),r(i).BoundingBox(2)+r(i).BoundingBox(4),sprintf('%2.2f',r(i).angle),'color','g');
         end
+        end
     end
-    hold off;
+
+    if DEBUG    hold off;
     drawnow;
-    
+end
+
     %%%% send images and OOI to vision GUI console through IPC %%%%%
      ipcReceiveMessages;
 
@@ -182,8 +190,9 @@ while(1)
         curr_max_score = 0;
     end
 
-    fprintf(1,'targetY %1.3f, Ymean %1.3f, score %1.3f, Exp_change %2.1f\n',targetY,Ymean,curr_max_score,damping_factor*(targetY-Ymean));
-    % adjust exposure to keep Ymean near targetY
+if DEBUG    fprintf(1,'targetY %1.3f, Ymean %1.3f, score %1.3f, Exp_change %2.1f\n',targetY,Ymean,curr_max_score,damping_factor*(targetY-Ymean));
+end
+% adjust exposure to keep Ymean near targetY
     if Ymean > targetY
         libdc1394('featureSetValue','Exposure', Exposure - max(1,round(damping_factor*(Ymean-targetY))));
     else
