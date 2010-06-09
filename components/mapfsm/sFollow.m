@@ -1,9 +1,9 @@
-function ret = sPath(event, varargin);
+function ret = sFollow(event, varargin);
 
 global MPOSE PATH
 persistent DATA
 
-timeout = 120.0;
+timeout = 10.0;
 ret = [];
 switch event
  case 'entry'
