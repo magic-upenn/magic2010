@@ -3,6 +3,31 @@
 
 #include <stdint.h>
 
+
+#define GP_MAGIC_MAP_FORM "{int, int, float, float, float, <ubyte: 1, 2>}"
+#define GP_MAGIC_MAP_MSG "Global_Planner_Magic_Map"
+
+typedef struct {
+  int size_x;
+  int size_y;
+  float resolution;
+  float UTM_x; //UTM x-coordinate of the lower-left corner [0][0]
+  float UTM_y; //UTM y-coordinate of the lower-left corner [0][0]
+  char* map;
+  
+  static const char*  getIPCFormat() { return GP_MAGIC_MAP_FORM; };
+  
+  
+#ifdef MEX_IPC_SERIALIZATION
+  INSERT_SERIALIZATION_DECLARATIONS
+#endif
+  
+} GP_MAGIC_MAP, *GP_MAGIC_MAP_PTR;
+
+
+
+
+
 //Global Planner Interface v1.3 1 Feb 2010
 // The following specification is based on the IPC1 protocol, but can be adopted for any messaging system desired.
 //

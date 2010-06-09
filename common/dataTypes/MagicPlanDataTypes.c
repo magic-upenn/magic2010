@@ -1,6 +1,51 @@
 #include "MexIpcSerialization.hh"
 #include "MagicPlanDataTypes.h"
 
+
+int GP_MAGIC_MAP::ReadFromMatlab(mxArray * mxArr, int index)
+{
+  int numFieldsRead = 0;
+
+  MEX_READ_FIELD(mxArr,index,size_x,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,size_y,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,resolution,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,UTM_x,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,UTM_y,numFieldsRead);
+  
+
+  MEX_READ_FIELD_RAW_ARRAY2D_CHAR(mxArr,index,map,numFieldsRead);
+
+  return numFieldsRead;
+}
+
+int GP_MAGIC_MAP::CreateMatlabStructMatrix(mxArray ** mxArrPP,int m, int n)
+{
+  const char * fields[]= { "size_x","size_y","resolution","UTM_x","UTM_y","map"};
+  const int nfields = sizeof(fields)/sizeof(*fields);
+    
+  *mxArrPP = mxCreateStructMatrix(m,n,nfields,fields);
+  return 0;
+}
+
+int GP_MAGIC_MAP::WriteToMatlab(mxArray * mxArr, int index)
+{
+  MEX_WRITE_FIELD(mxArr,index,size_x);
+  MEX_WRITE_FIELD(mxArr,index,size_y);
+  MEX_WRITE_FIELD(mxArr,index,resolution);
+  MEX_WRITE_FIELD(mxArr,index,UTM_x);
+  MEX_WRITE_FIELD(mxArr,index,UTM_y);
+  
+
+  MEX_WRITE_FIELD_RAW_ARRAY2D_CHAR(mxArr,index,map,size_x,size_y);
+
+  return 0;
+}
+
+
+
+
+
+
 int GP_MAP_DATA::ReadFromMatlab(mxArray * mxArr, int index)
 {
   int numFieldsRead = 0;
