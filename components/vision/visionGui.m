@@ -15,35 +15,21 @@ function visionGuiInit
 global IMAGES STATIC_OOI ROBOTS
 
 nRobots = 10;
-ids=[1]; % list of ID's of available robots
+ids = [3]; % list of ID's of available robots
 
 for ii=1:nRobots
     IMAGES(ii).id = [];
     IMAGES(ii).t = [];
     IMAGES(ii).jpg = [];
     IMAGES(ii).Ymean = [];
-    STATIC_OOI(ii).area = [];
-    STATIC_OOI(ii).centroid = [];
-    STATIC_OOI(ii).boundingBox = [];
-    STATIC_OOI(ii).BoundingBox = [];
-    STATIC_OOI(ii).Extent = [];
-    STATIC_OOI(ii).Cr_mean = [];
-    STATIC_OOI(ii).distance = [];
-    STATIC_OOI(ii).angle = [];
-    STATIC_OOI(ii).redbinscore = [];
+    IMAGES(ii).POSE = [];
+    STATIC_OOI(ii).OOI = [];
     STATIC_OOI(ii).id = [];
     STATIC_OOI(ii).t = [];
-    STATIC_OOI(ii).x = [];
-    STATIC_OOI(ii).y = [];
-    STATIC_OOI(ii).z = [];
-    STATIC_OOI(ii).v = [];
-    STATIC_OOI(ii).w = [];
-    STATIC_OOI(ii).roll = [];
-    STATIC_OOI(ii).pitch = [];
-    STATIC_OOI(ii).yaw = [];
+    STATIC_OOI(ii).POSE = [];
 end
 
-%ipcInit;
+ipcInit;
 
 masterConnectRobots(ids);
 
@@ -59,6 +45,10 @@ handles  = {@ipcRecvImageFcn,@ipcRecvStaticOoiFcn};
 %subscribe to messages
 masterSubscribeRobots(messages,handles,[1 1]);
 
+%setup local IPC to send confirmed OOI to Mapping Console 
+ipcAPIDefine('ConfirmedOOI');
+
+
 % Set up the figure
 function visionGuiSetupFigure
 global GUI PLOTHANDLES 
@@ -68,11 +58,8 @@ figure(1), clf(gcf)
 set(gcf,'NumberTitle','off','Name','Magic 2010 GUI Vision Station', ...
         'Position',[50 50 1500 840],'Toolbar','figure','KeyPressFcn',@confirmOOI);
       
-%GUI.hConf1 = uicontrol('Position',[150 800 100 25],'String','OOI data','Callback',@showOOI,'UserData',1);
 GUI.hMan(1) = uicontrol('Position',[350 800 100 25],'String','Manual OOI','Callback',@manualOOI,'UserData',1);
-%GUI.hConf2 = uicontrol('Position',[600 800 100 25],'String','OOI data','Callback',@showOOI,'UserData',2);
 GUI.hMan(2) = uicontrol('Position',[800 800 100 25],'String','Manual OOI','Callback',@manualOOI,'UserData',2);
-%GUI.hConf3 = uicontrol('Position',[1050 800 100 25],'String','OOI data','Callback',@showOOI,'UserData',3);
 GUI.hMan(3) = uicontrol('Position',[1250 800 100 25],'String','Manual OOI','Callback',@manualOOI,'UserData',3);
 
 subplot(2,3,1); PLOTHANDLES(1) = image([]); axis equal; axis([1 256 1 192]); axis ij;
@@ -93,15 +80,29 @@ uicontrol('Style','text','Position',[280 770 60 20],'FontSize',12, ...
 GUI.hYcurr(1) = uicontrol('Style','text','Position',[150 770 60 20],'FontSize',12, ...
           'String','0.5');
 GUI.hYmean(1) = uicontrol('Style','edit','Position',[350 770 60 20],'FontSize',12, ...
-          'String','0.5','Callback',@updateCam1);
+          'String','0.5','Callback',@updateCam,'UserData',1);
 GUI.hYcurr(2) = uicontrol('Style','text','Position',[600 770 60 20],'FontSize',12, ...
           'String','0.5');
 GUI.hYmean(2) = uicontrol('Style','edit','Position',[800 770 60 20],'FontSize',12, ...
-          'String','0.5','Callback',@updateCam2);
+          'String','0.5','Callback',@updateCam,'UserData',2);
 GUI.hYcurr(3) = uicontrol('Style','text','Position',[1050 770 60 20],'FontSize',12, ...
           'String','0.5');
 GUI.hYmean(3) = uicontrol('Style','edit','Position',[1250 770 60 20],'FontSize',12, ...
-          'String','0.5','Callback',@updateCam3);
+          'String','0.5','Callback',@updateCam,'UserData',3);
+
+GUI.hRobotXY(1) = uicontrol('Style','text','Position',[200 450 300 20],'FontSize',12, ...
+          'String',sprintf('X:%s, Y:%s, yaw:%s','0.0','0.0','0.0'));
+GUI.hRobotXY(2) = uicontrol('Style','text','Position',[620 450 300 20],'FontSize',12, ...
+          'String',sprintf('X:%s, Y:%s, yaw:%s','0.0','0.0','0.0'));
+GUI.hRobotXY(3) = uicontrol('Style','text','Position',[1050 450 300 20],'FontSize',12, ...
+          'String',sprintf('X:%s, Y:%s, yaw:%s','0.0','0.0','0.0'));
+
+GUI.hConfOOI(1) = uicontrol('Style','text','Position',[200 360 300 30],'FontSize',20, ...
+          'String','Press "1" to confirm OOI','Visible','off');
+GUI.hConfOOI(2) = uicontrol('Style','text','Position',[620 360 300 30],'FontSize',20, ...
+          'String','Press "2" to confirm OOI','Visible','off');
+GUI.hConfOOI(3) = uicontrol('Style','text','Position',[1050 360 300 30],'FontSize',20, ...
+          'String','Press "3" to confirm OOI','Visible','off');
 
 
 function ipcRecvImageFcn(msg,name)
@@ -112,59 +113,74 @@ IMAGES(imPacket.id) = imPacket;
 IMAGES(imPacket.id).jpg = djpeg(imPacket.jpg);
 set(PLOTHANDLES(imPacket.id),'CData',IMAGES(imPacket.id).jpg);
 set(GUI.hYcurr(imPacket.id),'String',num2str(imPacket.Ymean));
+if isempty(imPacket.POSE)
+    fprintf(1,'No POSE.data from Robot %d\n',imPacket.id);
+    return
+end
+set(GUI.hRobotXY(imPacket.id),'String',sprintf('X:%s, Y:%s, yaw:%s',num2str(imPacket.POSE.x),num2str(imPacket.POSE.y),num2str(imPacket.POSE.yaw)));
 
 %drawnow;
 
 function ipcRecvStaticOoiFcn(msg,name)
-global  IMAGES STATIC_OOI
+global  IMAGES STATIC_OOI GUI
 %fprintf(1,'got static ooi\n');
-r = deserialize(msg);
-STATIC_OOI(r.id) = r;
-subplot(2,3,r.id+3);
-imshow(IMAGES(r.id).jpg); axis image;
+OOIpacket = deserialize(msg);
+STATIC_OOI(OOIpacket.id) = OOIpacket;
+subplot(2,3,OOIpacket.id+3);
+imshow(IMAGES(OOIpacket.id).jpg); axis image;
 hold on;
-        line([r.BoundingBox(1),r.BoundingBox(1)+r.BoundingBox(3)],[r.BoundingBox(2),r.BoundingBox(2)],'Color','g');
-        line([r.BoundingBox(1)+r.BoundingBox(3),r.BoundingBox(1)+r.BoundingBox(3)],[r.BoundingBox(2),r.BoundingBox(2)+r.BoundingBox(4)],'Color','g');
-        line([r.BoundingBox(1),r.BoundingBox(1)],[r.BoundingBox(2),r.BoundingBox(2)+r.BoundingBox(4)],'Color','g');
-        line([r.BoundingBox(1),r.BoundingBox(1)+r.BoundingBox(3)],[r.BoundingBox(2)+r.BoundingBox(4),r.BoundingBox(2)+r.BoundingBox(4)],'Color','g');
-        text(r.BoundingBox(1),r.BoundingBox(2),sprintf('%2.2f',r.distance),'color','g');
-        text(r.BoundingBox(1),r.BoundingBox(2)+r.BoundingBox(4),sprintf('%2.2f',r.angle),'color','g');
+        BB = OOIpacket.OOI.BoundingBox;
+        line([BB(1),BB(1)+BB(3)],[BB(2),BB(2)],'Color','g');
+        line([BB(1)+BB(3),BB(1)+BB(3)],[BB(2),BB(2)+BB(4)],'Color','g');
+        line([BB(1),BB(1)],[BB(2),BB(2)+BB(4)],'Color','g');
+        line([BB(1),BB(1)+BB(3)],[BB(2)+BB(4),BB(2)+BB(4)],'Color','g');
+        text(BB(1),BB(2),sprintf('%2.2f',OOIpacket.OOI.distance),'color','g');
+        text(BB(1),BB(2)+BB(4),sprintf('%2.2f',OOIpacket.OOI.angle),'color','g');
 hold off;
+set(GUI.hConfOOI(OOIpacket.id),'Visible','on');
 drawnow;
-
-% function showOOI(hObj,eventdata)
-% global STATIC_OOI
-% id = get(hObj,'UserData');
-% STATIC_OOI(id)
 
 function manualOOI(hObj,eventdata)
 id = get(hObj,'UserData');
-fprintf(1,'Clicked Manual OOI %d\n',id);
+%fprintf(1,'Clicked Manual OOI %d\n',id);
 [xcrop,ycrop] = ginput(2);
-rect = [min(xcrop) min(ycrop) abs(xcrop(1)-xcrop(2)) abs(ycrop(1)-ycrop(2))]
+rect = [min(xcrop) min(ycrop) abs(xcrop(1)-xcrop(2)) abs(ycrop(1)-ycrop(2))];
 distance = GetDistfromYheight(abs(ycrop(1)-ycrop(2)))
+centroid = [mean(xcrop) mean(ycrop)];
+angle = atand((centroid(1)-256/2)/(72/44*256/2))
+    confOOI.OOI.area = [];
+    confOOI.OOI.centroid = centroid;
+    confOOI.OOI.boundingBox = [];
+    confOOI.OOI.BoundingBox = rect;
+    confOOI.OOI.Extent = [];
+    confOOI.OOI.Cr_mean = [];
+    confOOI.OOI.distance = distance;
+    confOOI.OOI.angle = angle;
+    confOOI.OOI.redbinscore = [];
+    confOOI.id = id;
+    confOOI.t = [];
+    confOOI.POSE = [];
+
+    ipcAPIPublish('ConfirmedOOI',serialize(confOOI));
+    disp('Confirmed OOI sent');
 
 function confirmOOI(hObj,eventdata)
-global STATIC_OOI
+global STATIC_OOI GUI
 if eventdata.Character == '1'
-    STATIC_OOI(1)
+    confOOI = STATIC_OOI(1)
+    set(GUI.hConfOOI(1),'Visible','off');
     subplot(2,3,4); image([]); axis equal; axis([1 256 1 192]); axis ij;
+    ipcAPIPublish('ConfirmedOOI',serialize(confOOI));
+    disp('Confirmed OOI sent');
 end
 
-function updateCam1(hObj,eventdata)
+function updateCam(hObj,eventdata)
     global ROBOTS
+    id = get(hObj,'UserData');
     newYmean = str2double(get(hObj,'string'));
     if isnan(newYmean)
         errordlg('You must enter a numeric value','Bad Input','modal')
         return
     end
-    ROBOTS(1).ipcAPI('publish','Robot1/CamParam',serialize(newYmean));
+    ROBOTS(id).ipcAPI('publish',sprintf('Robot%d/CamParam',id),serialize(newYmean));
     
-function updateCam3(hObj,eventdata)
-    global ROBOTS
-    newYmean = str2double(get(hObj,'string'));
-    if isnan(newYmean)
-        errordlg('You must enter a numeric value','Bad Input','modal')
-        return
-    end
-    ROBOTS(3).ipcAPI('publish','Robot3/CamParam',serialize(newYmean));
