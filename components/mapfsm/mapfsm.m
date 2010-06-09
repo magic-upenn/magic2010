@@ -8,10 +8,11 @@ if nargin < 1,
 end
 
 % Construct map:
-MAP = map2d(800,800,.10,'vlidar','hlidar','cost');
+MAP = map2d(600,600,.10,'vlidar','hlidar','cost');
 
 % Miscellaneous fields
 MP.nupdate = 0;
+MP.debugPlot = 0;
 
 % Construct state machine:
 MP.sm = statemch('sInitial');
@@ -19,7 +20,7 @@ MP.sm = addState(MP.sm, 'sWait');
 MP.sm = addState(MP.sm, 'sSpinLeft');
 MP.sm = addState(MP.sm, 'sSpinRight');
 MP.sm = addState(MP.sm, 'sBackup');
-MP.sm = addState(MP.sm, 'sWaypoint');
+MP.sm = addState(MP.sm, 'sPath');
 %MP.sm = addState(MP.sm, 'sLook');
 %MP.sm = addState(MP.sm, 'sTrackHuman');
 MP.sm = addState(MP.sm, 'sFreeze');
@@ -35,14 +36,17 @@ MP.sm = setTransition(MP.sm, 'sWait', ...
                              );
 MP.sm = setTransition(MP.sm, 'sSpinLeft', ...
                              'done', 'sWait', ...
+		      'stop', 'sWait', ...
                              'timeout', 'sWait' ...
                              );
 MP.sm = setTransition(MP.sm, 'sSpinRight', ...
                              'done', 'sWait', ...
-                             'timeout', 'sWait' ...
+		      'stop', 'sWait', ...
+                             'timeout', 'sWait' ...		         
                              );
 MP.sm = setTransition(MP.sm, 'sBackup', ...
                              'done', 'sWait', ...
+		      'stop', 'sWait', ...
                              'timeout', 'sWait' ...
                              );
 
@@ -74,7 +78,8 @@ ipcReceiveSetFcn(GetMsgName('IncMapUpdateV'), @mapfsmRecvIncMapUpdateVFcn);
 %==========
 function mapfsmUpdate
 
-global MP MPOSE
+global MP
+global MPOSE MAP
 
 MP.nupdate = MP.nupdate + 1;
 
@@ -83,16 +88,25 @@ ipcReceiveMessages;
 
 MP.sm = update(MP.sm);
 
-if rem(MP.nupdate, 10) == 0,
+if ~isempty(MPOSE) && rem(MP.nupdate, 10) == 0,
   % See if map needs to be shifted:
-  mapOrigin = origin(MAP);
-  if (abs(MPOSE.x - mapOrigin(1)) > 15.0) ||
-    (abs(MPOSE.x - mapOrigin(2)) > 15.0),
-    MAP = shift(MAP, mapOrigin(1), mapOrigin(2));
+  [mx0, my0] = origin(MAP);
+  if (abs(MPOSE.x - mx0) > 15.0) || ...
+    (abs(MPOSE.y - my0) > 15.0),
+    MAP = shift(MAP, MPOSE.x, MPOSE.y);
   end
 
-  % Ship out whole map here for local planners:
+  % Ship out map here for local planner:
   % TODO
+
+  if (MP.debugPlot),
+    imagesc(dx(MAP), dy(MAP), getdata(MAP, 'cost'), [-100 100]);
+    hold on;
+      plot(MPOSE.x, MPOSE.y, 'r*')
+    colormap jet;
+    drawnow
+  end
+  
 
 end
 
