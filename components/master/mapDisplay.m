@@ -1,7 +1,9 @@
 function mapDisplay(event, varargin)
 
+global GCS
 global RPOSE RMAP
-global RDISPLAY
+global GPOSE GMAP
+global RDISPLAY GDISPLAY
 
 axlim = 10;
 
@@ -9,9 +11,9 @@ ret = [];
 switch event
   case 'entry'
     RDISPLAY.iframe = 1;
-    for id = [1:length(RPOSE)],
-      if isempty(RPOSE{id}), continue, end;
 
+    % Setup individual robot windows
+    for id = GCS.ids,
       figure(id);
       clf;
       set(gcf,'NumberTitle', 'off', 'Name',sprintf('Map: Robot %d',id));
@@ -31,6 +33,7 @@ switch event
       colormap(jet);
 
       hfig = gcf;
+      RDISPLAY.hFigure{id} = hfig;
       Std.Interruptible = 'off';
       Std.BusyAction = 'queue';
       RDISPLAY.stopControl{id} = uicontrol(Std, ...
@@ -50,14 +53,14 @@ switch event
       RDISPLAY.spinLeftControl{id} = uicontrol(Std, ...
                                          'Parent', hfig, ...
                                          'Style', 'pushbutton', ...
-                                         'String', 'Spin Left', ...
+                                         'String', 'SpinLeft', ...
        'Callback', ['sendStateEvent(',num2str(id),',''spinLeft'')'], ...
                                          'Units', 'Normalized', ...
                                          'Position', [.025 .60 .15 .075]);
       RDISPLAY.spinRightControl{id} = uicontrol(Std, ...
                                          'Parent', hfig, ...
                                          'Style', 'pushbutton', ...
-                                         'String', 'Spin Right', ...
+                                         'String', 'SpinRight', ...
        'Callback', ['sendStateEvent(',num2str(id),',''spinRight'')'], ...
                                          'Units', 'Normalized', ...
                                          'Position', [.025 .50 .15 .075]);
@@ -68,17 +71,43 @@ switch event
        'Callback', ['ginputPath(',num2str(id),')'], ...
                                          'Units', 'Normalized', ...
                                          'Position', [.025 .40 .15 .075]);
+      RDISPLAY.forceControl{id} = uicontrol(Std, ...
+                                         'Parent', hfig, ...
+                                         'Style', 'pushbutton', ...
+                                         'String', 'Force', ...
+       'Callback', ['sendStateEvent(',num2str(id),',''force'')'], ...
+                                         'Units', 'Normalized', ...
+                                         'Position', [.025 .30 .15 .075]);
 
     end
 
+
+    % Setup global display window
+    GDISPLAY.hFigure = figure(id+1);
+    clf;
+    set(gcf,'NumberTitle', 'off', 'Name',sprintf('Global Map'));
+      
+    % Individual map
+    x1 = x(GMAP);
+    y1 = y(GMAP);
+    GDISPLAY.hMap = imagesc(x1, y1, ones(length(y1),length(x1)), [-100 100]);
+
+    % Robot poses
+    for id = GCS.ids,
+      GDISPLAY.hRobot{id} = plotRobot(0, 0, 0, id);
+    end
+
+    axis xy equal;
+    axis([-40 40 -40 40]);
+    GDISPLAY.hAxes = gca;
+    set(gca,'Position', [.2 .1 .8 .8], 'XLimMode', 'manual', 'YLimMode', 'manual');
+    colormap(jet);
     drawnow
 
   case 'update'
     RDISPLAY.iframe = RDISPLAY.iframe + 1;
 
-    for id = [1:length(RPOSE)],
-      if isempty(RPOSE{id}), continue, end;
-      
+    for id = GCS.ids,
       map1 = RMAP{id};
       cost = getdata(map1, 'cost');
       set(RDISPLAY.hMap{id}, 'CData', cost');
@@ -88,10 +117,17 @@ switch event
         yp = RPOSE{id}.y;
         ap = RPOSE{id}.yaw;
         plotRobot(xp, yp, ap, id, RDISPLAY.hRobot{id});
-
         shiftAxes(RDISPLAY.hAxes{id}, xp, yp);
       end
+        
+      if ~isempty(GPOSE{id}),
+        plotRobot(GPOSE{id}.x, GPOSE{id}.y, GPOSE{id}.yaw, id, GDISPLAY.hRobot{id});
+      end
+
     end
+
+    cost = getdata(GMAP, 'cost');
+    set(GDISPLAY.hMap, 'CData', cost');
 
     drawnow;
 

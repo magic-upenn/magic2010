@@ -1,6 +1,7 @@
-function handlerIncMapUpdateV(data, name)
+function gcsRecvIncMapUpdateV(data, name)
 
 global RMAP
+global GPOSE GMAP
 
 if isempty(data)
   return
@@ -18,3 +19,8 @@ cm = double(update.cs);
 
 asgn(RMAP{id}, 'vlidar', xm, ym, cm);
 asgn(RMAP{id}, 'cost', xm, ym, cm);
+
+if ~isempty(GPOSE{id}),
+  [xg, yg] = rpos_to_gpos(id, xm, ym);
+  asgn(GMAP, 'cost', xg, yg, cm);
+end
