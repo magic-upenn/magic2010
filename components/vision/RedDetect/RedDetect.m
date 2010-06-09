@@ -47,9 +47,9 @@ weighting = weighting(1:2:end,1:2:end);
 bumblebeeInit;
 
 bumblebeeStartTransmission;
-libdc1394('videoGetSupportedModes');
+%libdc1394('videoGetSupportedModes');
 
-libdc1394('printFeatureSet');
+%libdc1394('printFeatureSet');
 
 % adjust Exposure to meet a target average intensity of image
 libdc1394('featureSetModeManual','Exposure');
