@@ -4,6 +4,6 @@ global ROBOTS
 
 msgName = ['Robot',num2str(id),'/StateEvent'];
 
-if ~isempty(xp),
+if ~isempty(x),
   ROBOTS(id).ipcAPI('publish', msgName, serialize(x));
 end

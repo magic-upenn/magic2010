@@ -5,5 +5,5 @@ global RPOSE
   end
 
   id = GetIdFromName(name);
-  RPOSE{id}.data = MagicPoseSerializer('deserialize',data);
+  RPOSE{id} = MagicPoseSerializer('deserialize',data);
   fprintf('got pose of robot %d\n',id);

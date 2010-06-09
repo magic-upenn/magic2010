@@ -8,7 +8,10 @@ if nargin < 1,
 end
 
 for id = ids,
-  RPOSE{id}.data = [];
+  RPOSE{id}.x = 0;
+  RPOSE{id}.y = 0;
+  RPOSE{id}.yaw = 0;
+  RPOSE{id}.heading = 0;
   RMAP{id} = map2d(1500,1500,.10,'vlidar','hlidar','cost');
 end
 
@@ -30,7 +33,7 @@ masterSubscribeRobots(messages, handles, queueLengths);
 for id = ids,
   % Define IPC messages:
   msgNamePath = ['Robot',num2str(id),'/Path'];
-  ROBOTS(id).ipcAPI('define', msgName);
+  ROBOTS(id).ipcAPI('define', msgNamePath);
 
   msgNameStateEvent = ['Robot',num2str(id),'/StateEvent'];
   ROBOTS(id).ipcAPI('define', msgNameStateEvent);
