@@ -13,9 +13,16 @@ end
 
 %wait for an initial imu message
 if isempty(IMU.data)
+  disp('waiting for initial imu message');
   return
 end
-  
+
+%wait for initial encoders message
+if isempty(ENCODERS.counts)
+    disp('waiting for initial encoder message..');
+    return;
+end
+
 SLAM.lidar0Cntr = SLAM.lidar0Cntr+1;
 
 %fprintf(1,'got lidar scan\n');
