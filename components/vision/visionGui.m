@@ -141,6 +141,7 @@ set(GUI.hConfOOI(OOIpacket.id),'Visible','on');
 drawnow;
 
 function manualOOI(hObj,eventdata)
+global IMAGES
 id = get(hObj,'UserData');
 %fprintf(1,'Clicked Manual OOI %d\n',id);
 [xcrop,ycrop] = ginput(2);
@@ -159,7 +160,7 @@ angle = atand((centroid(1)-256/2)/(72/44*256/2))
     confOOI.OOI.redbinscore = [];
     confOOI.id = id;
     confOOI.t = [];
-    confOOI.POSE = [];
+    confOOI.POSE = IMAGES(id).POSE;
 
     ipcAPIPublish('ConfirmedOOI',serialize(confOOI));
     disp('Confirmed OOI sent');
