@@ -173,6 +173,20 @@ if eventdata.Character == '1'
     ipcAPIPublish('ConfirmedOOI',serialize(confOOI));
     disp('Confirmed OOI sent');
 end
+if eventdata.Character == '2'
+    confOOI = STATIC_OOI(2)
+    set(GUI.hConfOOI(2),'Visible','off');
+    subplot(2,3,5); image([]); axis equal; axis([1 256 1 192]); axis ij;
+    ipcAPIPublish('ConfirmedOOI',serialize(confOOI));
+    disp('Confirmed OOI sent');
+end
+if eventdata.Character == '3'
+    confOOI = STATIC_OOI(3)
+    set(GUI.hConfOOI(3),'Visible','off');
+    subplot(2,3,6); image([]); axis equal; axis([1 256 1 192]); axis ij;
+    ipcAPIPublish('ConfirmedOOI',serialize(confOOI));
+    disp('Confirmed OOI sent');
+end
 
 function updateCam(hObj,eventdata)
     global ROBOTS
