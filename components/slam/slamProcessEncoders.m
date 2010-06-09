@@ -4,7 +4,7 @@
 function slamProcessEncoders(data,name)
 global ENCODERS SLAM IMU
 
-if isempty(IMU)
+if isempty(IMU.data)
     return
 end
 
