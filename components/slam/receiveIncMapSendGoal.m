@@ -1,13 +1,19 @@
-function receiveIncMapSendGoal
-clear all;
+function receiveIncMapSendGoal(id,addr)
 
 global POSE USER_INPUT
 
 SetMagicPaths;
 
+if nargin < 1
+  id = 0;
+end
+
+if nargin < 2
+  addr = 'localhost';
+end
 
 %ipcInit('192.168.10.102');
-ipcInit('localhost');
+ipcInit(addr);
 poseInit;
 initMapProps;
 omapInit;
@@ -16,7 +22,7 @@ emapInit;
 POSE.cntr =1;
 USER_INPUT.freshClick =0;
 %id of the robot that maps should be received from
-setenv('ROBOT_ID','3');
+setenv('ROBOT_ID',sprintf('%d',id));
 
 ipcReceiveSetFcn(GetMsgName('Pose'), @PoseMsgHander);
 ipcReceiveSetFcn(GetMsgName('IncMapUpdateH'), @MapUpdateMsgHandler);

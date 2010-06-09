@@ -1,8 +1,5 @@
-function [istart, iend] = scanCluster(x, threshold, nmin);
-% Clusters consecutive scan distances in x using threshhold
-% Does not wrap-around for LDLRS!
+function [istart, iend] = scanCluster(x, threshold, nmin)
 
-  
 if nargin < 3,
   nmin = 1;
 end
@@ -21,7 +18,6 @@ ix = [0; abs(dx) < threshold; 0];
 istart = find(ix(2:end) & ~ix(1:end-1));
 iend = find(~ix(2:end) & ix(1:end-1));
 
-nmin = 0;
 % Remove small clusters:
 ivalid = (iend-istart >= nmin);
 istart = istart(ivalid);

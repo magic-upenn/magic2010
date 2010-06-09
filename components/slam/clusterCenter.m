@@ -1,4 +1,4 @@
-function [xc, yc] = clusterCenter(r, th, istart, iend);
+function [xc, yc] = clusterCenter(r, th, istart, iend)
 
 xr = r.*cos(th);
 yr = r.*sin(th);

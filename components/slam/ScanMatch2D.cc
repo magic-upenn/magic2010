@@ -1,9 +1,9 @@
-
 #include "mex.h"
 #include <inttypes.h>
 #include <string.h>
 #include <math.h>
 #include "Timer.hh"
+#include <vector>
 
 #define DEFAULT_RESOLUTION 0.05
 
@@ -16,6 +16,9 @@ double sensorOffsetZ = 0;
 
 double lxss[1081];
 double lyss[1081];
+
+vector<double> xss;
+vector<double> yss;
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -109,10 +112,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                               mxDOUBLE_CLASS,mxREAL);
     double * likelihoods = mxGetPr(plhs[0]);
 
+    //resize the container if needed
+    xss.resize(npxs);
+    yss.resize(npys);
 
-    double * pxss = new double[npxs];
-    double * pyss = new double[npys];
-    double * pthss = new double[npths];
+    //get pointers to the temporary arrays
+    double * pxss  = &(xss[0]);
+    double * pyss  = &(yss[0]);
     
     //divide the candidate pose xy by resolution, to save computations later
     //don't subtract the min values, since it will be done later
@@ -182,9 +188,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         }
       }
     }
-    delete [] pxss;
-    delete [] pyss;
-    delete [] pthss;
     //timer0.Toc(true);
   }
 

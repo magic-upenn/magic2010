@@ -3,7 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function slamProcessLidar0(data,name)
-global SLAM LIDAR0 OMAP EMAP POSE IMU CMAP DHMAP MAPS DVMAP SPREAD ENCODERS
+global SLAM LIDAR0 OMAP EMAP POSE IMU CMAP DHMAP MAPS DVMAP SPREAD ENCODERS TRACK
 
 if ~isempty(data)
   LIDAR0.scan = MagicLidarScanSerializer('deserialize',data);
@@ -160,6 +160,84 @@ if mod(SLAM.lidar0Cntr,10) == 0
     end
 end
 
+%{
+trackPeriod = 10;
+if mod(SLAM.lidar0Cntr,1) == 0
+  %calculate the clusters
+  clusterThreshold = 0.1;
+  clusterNMin      = 3;
+  [cistart ciend] = scanCluster(ranges,clusterThreshold,clusterNMin);
+
+  imean = ceil((cistart+ciend)/2);
+  rmean = ranges(imean);
+  obsLen = rmean .*(ciend-cistart)*0.25/180*pi; %s=r*theta
+
+  minLen = 0.2;
+  maxLen = 0.6;
+  isizeMatch = obsLen > minLen & obsLen < maxLen;
+  %find the middle range
+
+  [xTrack, yTrack] = clusterCenter(ranges,LIDAR0.angles,cistart,ciend);
+  xt = xTrack(isizeMatch);
+  yt = yTrack(isizeMatch);
+  lt = obsLen(isizeMatch);
+
+  plot(xs,ys,'.'); hold on;
+  plot(xt,yt,'r*');
+
+  if isempty(TRACK)
+    TRACK.xs = repmat(xt,[1 trackPeriod]);
+    TRACK.ys = repmat(yt,[1 trackPeriod]);
+    TRACK.ls = repmat(lt,[1 trackPeriod]);
+    TRACK.cs = ones(size(xt,1),1);
+  else
+    dxc = repmat(TRACK.xs(:,1),[1 length(xt)]) - repmat(xt',[size(TRACK.xs,1) 1]);
+    dyc = repmat(TRACK.ys(:,1),[1 length(yt)]) - repmat(yt',[size(TRACK.ys,1) 1]);
+    dist = dxc.^2+dyc.^2;
+    [dmin, imin]  = min(dist,[],2);
+    [dmin2,imin2] = min(dist,[],1); 
+
+    vx = -TRACK.xs(:,1)+xt(imin);
+    vy = -TRACK.ys(:,1)+yt(imin);
+
+
+    goodTracks = sqrt(vx.^2 +vy.^2) < 0.10;
+    xx = xt(imin);
+    yy = yt(imin);
+    ll = lt(imin);
+    
+   
+    
+    TRACK.cs(goodTracks) = TRACK.cs(goodTracks) + 1;
+    
+
+    itracked = TRACK.cs > 5;
+    %quiver(xx(itracked),yy(itracked),50*vx(itracked),50*vy(itracked),0,'g');
+    quiver(TRACK.xs(itracked,1),TRACK.ys(itracked,1),5*(xx(itracked) - TRACK.xs(itracked,trackPeriod)),5*(yy(itracked) - TRACK.ys(itracked,trackPeriod)),0,'g');
+    axis([-3 5 -7 3]);
+    
+    TRACK.xs = [xx(goodTracks) TRACK.xs(goodTracks,1:end-1) ];
+    TRACK.ys = [yy(goodTracks) TRACK.ys(goodTracks,1:end-1) ];
+    TRACK.ls = [ll(goodTracks) TRACK.ls(goodTracks,1:end-1) ];
+    TRACK.cs = TRACK.cs(goodTracks);
+    
+    TRACK.xs = [TRACK.xs; repmat(xt(dmin2>0.10),[1 trackPeriod])];
+    TRACK.ys = [TRACK.ys; repmat(yt(dmin2>0.10),[1 trackPeriod])];
+    TRACK.ls = [TRACK.ls; repmat(lt(dmin2>0.10),[1 trackPeriod])];
+    TRACK.cs = [TRACK.cs; ones(size(xt(dmin2>0.10),1),1)];
+    
+    %{
+    TRACK.xs = [xx(goodTracks); xt(dmin2>0.10) ];
+    TRACK.ys = [yy(goodTracks); yt(dmin2>0.10) ];
+    TRACK.ls = [ll(goodTracks); lt(dmin2>0.10) ];
+    TRACK.cs = [TRACK.cs(goodTracks); ones(size(xt(dmin2>0.10)))];
+    %}
+  end
+  hold off;
+  drawnow;
+end
+%}
+  
 %update the map
 T = (trans([SLAM.x SLAM.y SLAM.z])*rotz(SLAM.yaw)*trans([LIDAR0.offsetx LIDAR0.offsety LIDAR0.offsetz]))';
 X = [xsss ysss zsss onez];
