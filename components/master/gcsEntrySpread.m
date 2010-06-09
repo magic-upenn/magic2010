@@ -1,4 +1,4 @@
-function gcsEntry(ids)
+function gcsEntrySpread(ids)
 
 global RPOSE RMAP
 
@@ -9,7 +9,7 @@ end
 for i = ids,
   RPOSE{i}.data = [];
   %  RMAP{i} = map2d(1200,1200,.15,'vlidar','hlidar');
-  RMAP{i} = map2d(1200,1200,.15,'vlidar','hlidar');
+  RMAP{i} = map2d(1200,1200,.15,'vlidar','hlidar','cost');
 end
 
 spreadInit;

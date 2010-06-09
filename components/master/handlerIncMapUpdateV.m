@@ -12,5 +12,9 @@ id = GetIdFromName(name);
 
 update = deserialize(data);
 
-accum(RMAP{id}, 'vlidar', ...
-      double(update.xs), double(update.ys), double(update.cs)./256);
+xm = double(update.xs);
+ym = double(update.ys);
+cm = double(update.cs);
+
+asgn(RMAP{id}, 'vlidar', xm, ym, cm);
+asgn(RMAP{id}, 'cost', xm, ym, cm);

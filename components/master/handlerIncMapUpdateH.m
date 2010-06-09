@@ -12,5 +12,9 @@ id = GetIdFromName(name);
 
 update = deserialize(data);
 
-accum(RMAP{id}, 'hlidar', ...
-      double(update.xs), double(update.ys), double(update.cs)./256);
+xm = double(update.xs);
+ym = double(update.ys);
+cm = double(update.cs);
+
+asgn(RMAP{id}, 'hlidar', xm, ym, cm);
+asgn(RMAP{id}, 'cost', xm, ym, cm);

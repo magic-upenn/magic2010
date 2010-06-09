@@ -6,5 +6,7 @@ if isempty(data)
 end
 
 id = sscanf(name, 'robot%d_');
-RPOSE{id}.data = deserialize(data);
+RPOSE{id} = deserialize(data);
+RPOSE{id}.heading = RPOSE{id}.yaw;
+
 fprintf('got pose of robot %d\n',id);
