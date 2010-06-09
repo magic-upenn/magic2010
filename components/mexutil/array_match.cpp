@@ -38,7 +38,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   double *dy = mxGetPr(prhs[4]);
   double *da = mxGetPr(prhs[5]);
 
-  plhs[0] = mxCreateDoubleMatrix(mxGetM(prhs[3]), mxGetN(prhs[3]), mxREAL);
+  plhs[0] = mxCreateNumericArray(
+    mxGetNumberOfDimensions(prhs[3]), mxGetDimensions(prhs[3]),
+    mxDOUBLE_CLASS, mxREAL);
   double *olap = mxGetPr(plhs[0]);
 
   for (int is = 0; is < ns; is++) {
