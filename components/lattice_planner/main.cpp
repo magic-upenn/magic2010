@@ -3,7 +3,8 @@ using namespace std;
 #include <vector>
 #include "ipc.h"
 #include "MagicPlanDataTypes.h"
-#include "headers.h"
+//#include "headers.h"
+#include "../sbpl/src/sbpl/headers.h"
 #include "envMagic.h"
 #include "MagicTraj.hh"
 #include "unistd.h"
