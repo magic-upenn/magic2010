@@ -1,6 +1,6 @@
 function ret = sPath(event, varargin);
 
-global MPOSE PATH MAP
+global MPOSE PATH
 persistent DATA
 
 timeout = 120.0;
@@ -11,7 +11,7 @@ switch event
 
   DATA.t0 = gettime;
   DATA.tPredict = 0.1;
-  DATA.speed = 0.3;
+  DATA.speed = 0.5;
 
  case 'exit'
   
@@ -48,23 +48,9 @@ switch event
 
    [turnPath, cost] = turnControl(PATH, MPOSE);
 
-   % Check for obstacles ahead:
-   xp = MPOSE.x + [.4:.1:5]*cos(MPOSE.heading);
-   yp = MPOSE.y + [.4:.1:5]*sin(MPOSE.heading);
-   dObstacle = pathObstacleDistance(xp, yp, MAP)
+   maxSpeed = distToMaxSpeed(dEnd);
 
-   if (dObstacle < .3),
-     ret = 'obstacle';
-   end
-
-   maxSpeed = min(.5*distToMaxSpeed(dObstacle), 1);
-   if maxSpeed < DATA.speed,
-     DATA.speed = maxSpeed;
-   else
-     DATA.speed = DATA.speed + .2*(maxSpeed-DATA.speed);
-   end
-
-   v = DATA.speed;
+   v = min(DATA.speed, maxSpeed);
    w = turnPath*max(v, 0.1);
    disp(sprintf('drive: %.4f %.4f',v,w));
    SetVelocity(v, .5*w);
