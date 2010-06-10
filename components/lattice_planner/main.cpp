@@ -43,7 +43,7 @@ EnvironmentMAGICLAT* env = NULL;
 ARAPlanner* planner = NULL;
 vector<sbpl_2Dpt_t> perimeterptsV;
 float inner_radius = 0;
-float padding = 3;
+float padding = 0.8;
 int exploration_obst_thresh = 250;
 int obst_thresh = 254;
 int inner_obst_thresh = obst_thresh-1;
@@ -181,12 +181,14 @@ static void GP_FULL_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, vo
 
   computeDistancestoNonfreeAreas(rawcostmap, size_x, size_y, exploration_obst_thresh, costmap, dummymap);
 
+  double cell_padding = padding/resolution;
+
   for(int x=0; x<size_x; x++){
     for(int y=0; y<size_y; y++){
       if(costmap[x][y] <= outer_radius)
         costmap[x][y] = 254;
-      else if(costmap[x][y] <= padding)
-        costmap[x][y] = max((padding-costmap[x][y])*150/(padding-outer_radius), rawcostmap[x][y]);
+      else if(costmap[x][y] <= cell_padding)
+        costmap[x][y] = max((cell_padding-costmap[x][y])*200/(cell_padding-outer_radius), rawcostmap[x][y]);
       else
         costmap[x][y] = rawcostmap[x][y];
     }
