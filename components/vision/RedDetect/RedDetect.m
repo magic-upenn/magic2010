@@ -18,6 +18,8 @@ SetMagicPaths;
 global POSE targetY
 POSE.data = [];
 
+LOGIMAGES = 0;
+
 ipcInit;
 imageMsgName = GetMsgName('Image');
 staticOoiMsgName = GetMsgName('StaticOOI');
@@ -29,7 +31,9 @@ ipcReceiveSetFcn(GetMsgName('CamParam'), @CamParamMsgHander);
 
 %%%%%%%%%%%%%%%%%%
 
-%savedir = '~/data/Hill_May31/';
+if LOGIMAGES
+    savedir = '~/logimages/';
+end
 if DEBUG
     figure(1);
     subplot(1,3,1); handle1 = image([]); axis([1 256 1 192]); axis ij; axis equal;
@@ -76,7 +80,7 @@ while(1)
 
     %            [Y,Cb,Cr] = colorspace('rgb->YCbCr',yRight);
     [Y,Cr] = Get_YCr_only(yRight);
-    notwhite = sum(yRight,3)<765; % mask out completely white pixels 
+    notwhite = sum(yRight,3)<765; % mask out completely white pixels
     Ymod = Y.*weighting; % bottom of image weighted more than top
     Ymod = Ymod(notwhite(:));
     Ymean = mean(Ymod(:)/256)*2;
@@ -100,12 +104,13 @@ end
         r(i).Extent = r(i).area/r(i).BoundingBox(3)/r(i).BoundingBox(4);
         Crcrop = imcrop(Cr,r(i).BoundingBox);
         r(i).Cr_mean = mean(Crcrop(:));
-        
+
         %mean_disp = mean(mean(imcrop(dispmap,round(r(i).BoundingBox)))); % ave disparity in bounding box
         BB = r(i).BoundingBox;
         temp = zeros(size(imCr_filt)); % temp will store red pixels inside bounding box
         temp(BB(2):BB(2)+BB(4)-1,BB(1):BB(1)+BB(3)-1) = imCr_filt(BB(2):BB(2)+BB(4)-1,BB(1):BB(1)+BB(3)-1);
         mean_disp = mean(dispmap(logical(temp))); % ave disparity in red pixels in bounding box
+        %    fprintf(1,'mean_disp %2.3f\n',mean_disp);
         r(i).distance = GetDistfromDisp(mean_disp); % in meters
         r(i).angle = atand((r(i).centroid(2)-256/2)/(72/44*256/2));
 
@@ -128,12 +133,12 @@ end
         if DEBUG
         linecolor = 'g';
         if r(i).redbinscore > 0.5    % Display candidate red boxes
-        line([r(i).BoundingBox(1),r(i).BoundingBox(1)+r(i).BoundingBox(3)],[r(i).BoundingBox(2),r(i).BoundingBox(2)],'Color',linecolor);
-        line([r(i).BoundingBox(1)+r(i).BoundingBox(3),r(i).BoundingBox(1)+r(i).BoundingBox(3)],[r(i).BoundingBox(2),r(i).BoundingBox(2)+r(i).BoundingBox(4)],'Color',linecolor);
-        line([r(i).BoundingBox(1),r(i).BoundingBox(1)],[r(i).BoundingBox(2),r(i).BoundingBox(2)+r(i).BoundingBox(4)],'Color',linecolor);
-        line([r(i).BoundingBox(1),r(i).BoundingBox(1)+r(i).BoundingBox(3)],[r(i).BoundingBox(2)+r(i).BoundingBox(4),r(i).BoundingBox(2)+r(i).BoundingBox(4)],'Color',linecolor);
-        text(r(i).BoundingBox(1),r(i).BoundingBox(2),sprintf('%2.2f',r(i).distance),'color','g');
-        text(r(i).BoundingBox(1),r(i).BoundingBox(2)+r(i).BoundingBox(4),sprintf('%2.2f',r(i).angle),'color','g');
+            line([r(i).BoundingBox(1),r(i).BoundingBox(1)+r(i).BoundingBox(3)],[r(i).BoundingBox(2),r(i).BoundingBox(2)],'Color',linecolor);
+            line([r(i).BoundingBox(1)+r(i).BoundingBox(3),r(i).BoundingBox(1)+r(i).BoundingBox(3)],[r(i).BoundingBox(2),r(i).BoundingBox(2)+r(i).BoundingBox(4)],'Color',linecolor);
+            line([r(i).BoundingBox(1),r(i).BoundingBox(1)],[r(i).BoundingBox(2),r(i).BoundingBox(2)+r(i).BoundingBox(4)],'Color',linecolor);
+            line([r(i).BoundingBox(1),r(i).BoundingBox(1)+r(i).BoundingBox(3)],[r(i).BoundingBox(2)+r(i).BoundingBox(4),r(i).BoundingBox(2)+r(i).BoundingBox(4)],'Color',linecolor);
+            text(r(i).BoundingBox(1),r(i).BoundingBox(2),sprintf('%2.2f',r(i).distance),'color','g');
+            text(r(i).BoundingBox(1),r(i).BoundingBox(2)+r(i).BoundingBox(4),sprintf('%2.2f',r(i).angle),'color','g');
         end
         end
     end
@@ -143,7 +148,7 @@ end
 end
 
     %%%% send images and OOI to vision GUI console through IPC %%%%%
-     ipcReceiveMessages;
+    ipcReceiveMessages;
 
     if mod(counter,2)==0
         jpg = cjpeg(yRight);
@@ -164,13 +169,17 @@ end
                 %  add POSE.data
                 OOIpacket.id = str2double(getenv('ROBOT_ID'));
                 OOIpacket.t = GetUnixTime()
-		if ~isempty(POSE.data)
-			OOIpacket.POSE = POSE.data;
-		else
-			OOIpacket.POSE = [];
-		end 
+                if ~isempty(POSE.data)
+                    OOIpacket.POSE = POSE.data;
+                else
+                    OOIpacket.POSE = [];
+                end
                 %%%%% send struct r through IPC %%%%%
                 ipcAPIPublish(staticOoiMsgName,serialize(OOIpacket));
+                if LOGIMAGES
+                   imagename = sprintf('%simage%08d.jpg',savedir,counter);
+                   imwrite(yRight,imagename,'JPG');
+                end
             end
         end
     end
@@ -182,8 +191,8 @@ end
     %     rect_name = sprintf('%srect%08d_Exp%03d.jpg',savedir,counter,Exposure);
     %     imwrite(yRight,rect_name,'JPG');
     %%%%%%%%%%%%%%%%%%%%%%%
-    
-    
+
+
     if length(r) >= 1
         curr_max_score = max([r.redbinscore]); % max is better than mean
     else
@@ -203,27 +212,27 @@ end
     score_hist(5) = curr_max_score;
 
     % adjust targetY to get better redbin score
-%     if counter > 5 % make sure score_hist has enough values in buffer
-%         curr_av_score = mean(score_hist);
-%         if curr_max_score > curr_av_score
-%             if targetY > Ymean
-%                 targetY = targetY + 0.002;
-%             else
-%                 targetY = targetY - 0.002;
-%             end
-%         else
-%             if targetY < Ymean
-%                 targetY = targetY + 0.002;
-%             else
-%                 targetY = targetY - 0.002;
-%             end
-%         end
+    %     if counter > 5 % make sure score_hist has enough values in buffer
+    %         curr_av_score = mean(score_hist);
+    %         if curr_max_score > curr_av_score
+    %             if targetY > Ymean
+    %                 targetY = targetY + 0.002;
+    %             else
+    %                 targetY = targetY - 0.002;
+    %             end
+    %         else
+    %             if targetY < Ymean
+    %                 targetY = targetY + 0.002;
+    %             else
+    %                 targetY = targetY - 0.002;
+    %             end
+    %         end
 
-        % if no good red regions then reset targetY
-%        if curr_av_score < 0.1
-%            targetY = 0.5;
-%        end
-%    end
+    % if no good red regions then reset targetY
+    %        if curr_av_score < 0.1
+    %            targetY = 0.5;
+    %        end
+    %    end
 end
 % toc
 
@@ -234,17 +243,17 @@ bumblebeeStopTransmission;
 
 function PoseMsgHander(data,name)
 global POSE
-  POSE.data = [];
-  if isempty(data)
+POSE.data = [];
+if isempty(data)
     return;
-  end
+end
 
-  POSE.data = MagicPoseSerializer('deserialize',data);
+POSE.data = MagicPoseSerializer('deserialize',data);
 
-  function CamParamMsgHander(data,name)
-      global targetY
-  if isempty(data)
+function CamParamMsgHander(data,name)
+global targetY
+if isempty(data)
     return;
-  end
+end
 
-  targetY = deserialize(data);
+targetY = deserialize(data);
