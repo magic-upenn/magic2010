@@ -314,13 +314,14 @@ typedef struct {
 //Types:
 
 
-#define GP_TRAJECTORY_FORM "{int, int, <float: 1, 2>}"
+#define GP_TRAJECTORY_FORM "{int,int, int, <float: 2, 3>}"
 #define GP_TRAJECTORY_MSG "Global_Planner_Trajectory"
 typedef struct {
+  int id;	// robot id
 	int num_traj_pts;	  // number of points in the trajectory (1)
 	int traj_dim;	  // width of trajectory array (x,y,theta, velocity, panr, 				  // panl) (2)
 	float *traj_array;  // 2-D array of trajectory points (num_traj_pts x traj_dim)
-  
+ 
   
   static const char*  getIPCFormat() { return GP_TRAJECTORY_FORM; };
   

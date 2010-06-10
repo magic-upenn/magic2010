@@ -73,8 +73,6 @@ int GP_MAGIC_MAP::WriteToMatlab(mxArray * mxArr, int index)
 
 
 
-
-
 int GP_MAP_DATA::ReadFromMatlab(mxArray * mxArr, int index)
 {
   int numFieldsRead = 0;
@@ -323,6 +321,7 @@ int GP_SHORT_UPDATE::WriteToMatlab(mxArray * mxArr, int index)
 int GP_TRAJECTORY::ReadFromMatlab(mxArray * mxArr, int index)
 {
   int numFieldsRead = 0;
+  MEX_READ_FIELD(mxArr,index,id,numFieldsRead);
 
   MEX_READ_FIELD(mxArr,index,num_traj_pts,numFieldsRead);
   MEX_READ_FIELD(mxArr,index,traj_dim,numFieldsRead);
@@ -333,7 +332,7 @@ int GP_TRAJECTORY::ReadFromMatlab(mxArray * mxArr, int index)
 
 int GP_TRAJECTORY::CreateMatlabStructMatrix(mxArray ** mxArrPP,int m, int n)
 {
-  const char * fields[]= { "num_traj_pts","traj_dim","traj_array"};
+  const char * fields[]= { "id", "num_traj_pts","traj_dim","traj_array"};
   const int nfields = sizeof(fields)/sizeof(*fields);
     
   *mxArrPP = mxCreateStructMatrix(m,n,nfields,fields);
@@ -342,6 +341,8 @@ int GP_TRAJECTORY::CreateMatlabStructMatrix(mxArray ** mxArrPP,int m, int n)
 
 int GP_TRAJECTORY::WriteToMatlab(mxArray * mxArr, int index)
 {
+	  MEX_WRITE_FIELD(mxArr,index,id);
+
   MEX_WRITE_FIELD(mxArr,index,num_traj_pts);
   MEX_WRITE_FIELD(mxArr,index,traj_dim);
   
@@ -353,5 +354,45 @@ int GP_TRAJECTORY::WriteToMatlab(mxArray * mxArr, int index)
 
 
 
+
+
+int GP_ALL_POSE_UPDATE::ReadFromMatlab(mxArray * mxArr, int index)
+{
+  int numFieldsRead = 0;
+
+  MEX_READ_FIELD(mxArr,index,x1,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,y1,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,theta1,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,x2,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,y2,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,theta2,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,x3,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,y3,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,theta3,numFieldsRead);
+  return numFieldsRead;
+}
+
+int GP_ALL_POSE_UPDATE::CreateMatlabStructMatrix(mxArray ** mxArrPP,int m, int n)
+{
+  const char * fields[]= { "x1","y1","theta1","x2","y2","theta2","x3","y3","theta3"};
+  const int nfields = sizeof(fields)/sizeof(*fields);
+    
+  *mxArrPP = mxCreateStructMatrix(m,n,nfields,fields);
+  return 0;
+}
+
+int GP_ALL_POSE_UPDATE::WriteToMatlab(mxArray * mxArr, int index)
+{
+  MEX_WRITE_FIELD(mxArr,index,x1);
+  MEX_WRITE_FIELD(mxArr,index,y1);
+  MEX_WRITE_FIELD(mxArr,index,theta1);
+  MEX_WRITE_FIELD(mxArr,index,x2);
+  MEX_WRITE_FIELD(mxArr,index,y2);
+  MEX_WRITE_FIELD(mxArr,index,theta2);
+  MEX_WRITE_FIELD(mxArr,index,x3);
+  MEX_WRITE_FIELD(mxArr,index,y3);
+  MEX_WRITE_FIELD(mxArr,index,theta3);  
+  return 0;
+}
 
 
