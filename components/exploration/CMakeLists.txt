@@ -8,6 +8,7 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
 
 
 add_executable(gplan global_planner.cpp
+      ../lattice_planner/mapConverter.cpp
       astarpoint.cpp
     raycaster.cpp
     filetransfer.cpp
