@@ -80,6 +80,8 @@ lidar1Init;
 servo1Init;
 motorsInit;
 
+sendServoStart;
+
 %define messages
 DefineSensorMessages;
 DefinePlannerMessages;
