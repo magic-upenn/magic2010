@@ -20,7 +20,7 @@ typedef struct {
 } GP_SET_STATE, *GP_SET_STATE_PTR;
 
 
-#define GP_MAGIC_MAP_FORM "{int, int, float, float, float, <ubyte: 1, 2>}"
+#define GP_MAGIC_MAP_FORM "{int, int, float, float, float, <short: 1, 2>}"
 #define GP_MAGIC_MAP_MSG "Global_Planner_Magic_Map"
 
 typedef struct {
@@ -29,7 +29,7 @@ typedef struct {
   float resolution;
   float UTM_x; //UTM x-coordinate of the lower-left corner [0][0]
   float UTM_y; //UTM y-coordinate of the lower-left corner [0][0]
-  char* map;
+  int16_t* map;
   
   static const char*  getIPCFormat() { return GP_MAGIC_MAP_FORM; };
   

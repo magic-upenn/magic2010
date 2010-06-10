@@ -42,7 +42,7 @@ int GP_MAGIC_MAP::ReadFromMatlab(mxArray * mxArr, int index)
   MEX_READ_FIELD(mxArr,index,UTM_y,numFieldsRead);
   
 
-  MEX_READ_FIELD_RAW_ARRAY2D_CHAR(mxArr,index,map,numFieldsRead);
+  MEX_READ_FIELD_RAW_ARRAY2D_INT16(mxArr,index,map,numFieldsRead);
 
   return numFieldsRead;
 }
@@ -65,7 +65,7 @@ int GP_MAGIC_MAP::WriteToMatlab(mxArray * mxArr, int index)
   MEX_WRITE_FIELD(mxArr,index,UTM_y);
   
 
-  MEX_WRITE_FIELD_RAW_ARRAY2D_CHAR(mxArr,index,map,size_x,size_y);
+  MEX_WRITE_FIELD_RAW_ARRAY2D_INT16(mxArr,index,map,size_x,size_y);
 
   return 0;
 }
