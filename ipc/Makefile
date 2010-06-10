@@ -16,5 +16,7 @@ ipcWrapperAPI.$(MEXEXT): ipcWrapperAPI.cc IpcWrapper.cc
 	cp ipcWrapperAPI.$(MEXEXT) ipcWrapperAPI2.$(MEXEXT)
 	cp ipcWrapperAPI.$(MEXEXT) ipcWrapperAPI3.$(MEXEXT)
 	cp ipcWrapperAPI.$(MEXEXT) ipcWrapperAPI4.$(MEXEXT)
+	cp ipcWrapperAPI.$(MEXEXT) ipcWrapperAPIVision.$(MEXEXT)
+	cp ipcWrapperAPI.$(MEXEXT) ipcWrapperAPIMaster.$(MEXEXT)
 clean:
 	rm -f *.mex* *~
