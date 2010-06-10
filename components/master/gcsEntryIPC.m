@@ -44,6 +44,9 @@ for id = ids,
   msgNamePath = ['Robot',num2str(id),'/Path'];
   ROBOTS(id).ipcAPI('define', msgNamePath);
 
+  msgNamePath = ['Robot',num2str(id),'/Goal_Point'];
+  ROBOTS(id).ipcAPI('define', msgNamePath);
+
   msgNameStateEvent = ['Robot',num2str(id),'/StateEvent'];
   ROBOTS(id).ipcAPI('define', msgNameStateEvent);
 end

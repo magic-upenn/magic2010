@@ -64,7 +64,7 @@ float* traj_path = NULL;
 bool reset_traj_map = false;
 
 //initialization flags
-bool shouldRun = true;
+int shouldRun = 0;
 char initialized = 0;
 #define INIT_RES    1<<0
 #define INIT_PARAMS 1<<1
@@ -253,7 +253,8 @@ static void GPTRAJHandler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clien
 	IPC_unmarshall(IPC_msgInstanceFormatter(msgRef), callData, (void **)&GP_Traj_p);
 	printf("GPTRAJHandler: Receiving %s (size %lu) [%s] \n", IPC_msgInstanceName(msgRef),  sizeof(callData), (char *)clientData);
 
-  if(GP_Traj_p->num_traj_pts > 0){
+  if(GP_Traj_p->num_traj_pts > 0 && 
+      ((GP_Traj_p->id == 0 &&  shouldRun==1) || (GP_Traj_p->id>0 && shouldRun==2))){
     reset_traj_map = true;
 
     //set goal
@@ -369,7 +370,10 @@ int main(int argc, char** argv){
           }
           else{
             if(costmap[x][y] < 252)
-              c = (unsigned char)min(max(costmap[x][y], trajmap[x][y]),251);
+              if(shouldRun==2)
+                c = (unsigned char)min(max(costmap[x][y], trajmap[x][y]),251);
+              else
+                c = (unsigned char)min(costmap[x][y],251);
               //c = (unsigned char)min(costmap[x][y] + trajmap[x][y], 251);
             else
               c= (unsigned char)costmap[x][y];
