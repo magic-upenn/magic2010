@@ -6,8 +6,15 @@ persistent cntr
 
 if isempty(cntr), cntr = 0; end
 
-trackSkipCycles = 0;
+trackSkipCycles = 1;
 obsTracks = [];
+trackPeriod = 5;
+
+plotFig = 0;
+
+
+rmin = 0.5;
+rmax = 15;
 
 %return empty track if we are skipping this cycle
 if mod(cntr,trackSkipCycles) ~= 0
@@ -15,8 +22,8 @@ if mod(cntr,trackSkipCycles) ~= 0
 end
 
 %calculate the clusters
-clusterThreshold = 0.1;
-clusterNMin      = 3;   %minimum number of points
+clusterThreshold = 0.2;
+clusterNMin      = 5;   %minimum number of points
 [cistart ciend] = scanCluster(ranges,clusterThreshold,clusterNMin);
 
 if isempty(cistart)
@@ -32,7 +39,7 @@ obsLen = rmean .*(ciend-cistart)*0.25/180*pi; %s=r*theta
 
 minLen = 0.2; %meters
 maxLen = 0.6;
-isizeMatch = obsLen > minLen & obsLen < maxLen;
+isizeMatch = (obsLen > minLen) & (obsLen < maxLen) & (rmean > rmin) & (rmean < rmax);
 
 
 %compute centers of the clusters
@@ -44,21 +51,20 @@ yts = yTrack(isizeMatch);
 lt = obsLen(isizeMatch);
 nTrack = length(xts);
 
-X = [xts'; yts';zeros(1,nTrack),ones(1,nTrack)];
+X = [xts'; yts';zeros(1,nTrack);ones(1,nTrack)];
 Y = T*X;
 
 %global frame
 xt = Y(1,:)';
 yt = Y(2,:)';
 
-%plot(xs,ys,'.'); hold on;
-%plot(xt,yt,'r*');
-
 if isempty(TRACK)
   TRACK.xs = repmat(xt,[1 trackPeriod]);
   TRACK.ys = repmat(yt,[1 trackPeriod]);
   TRACK.ls = repmat(lt,[1 trackPeriod]);
   TRACK.cs = ones(size(xt,1),1);
+  TRACK.msgName = GetMsgName('VelTracks');
+  ipcAPIDefine(TRACK.msgName);
 else
   dxc = repmat(TRACK.xs(:,1),[1 length(xt)]) - repmat(xt',[size(TRACK.xs,1) 1]);
   dyc = repmat(TRACK.ys(:,1),[1 length(yt)]) - repmat(yt',[size(TRACK.ys,1) 1]);
@@ -70,7 +76,7 @@ else
   vy = -TRACK.ys(:,1)+yt(imin);
 
 
-  goodTracks = sqrt(vx.^2 +vy.^2) < 0.10;
+  goodTracks = sqrt(vx.^2 +vy.^2) < 0.20;
   xx = xt(imin);
   yy = yt(imin);
   ll = lt(imin);
@@ -81,9 +87,38 @@ else
 
 
   itracked = TRACK.cs > 5;
-  %quiver(xx(itracked),yy(itracked),50*vx(itracked),50*vy(itracked),0,'g');
-  quiver(TRACK.xs(itracked,1),TRACK.ys(itracked,1),5*(xx(itracked) - TRACK.xs(itracked,trackPeriod)),5*(yy(itracked) - TRACK.ys(itracked,trackPeriod)),0,'g');
-  axis([-3 5 -7 3]);
+  
+  if plotFig
+      %plot(xs,ys,'.'); hold on;
+      plot(xt,yt,'r*');
+      quiver(TRACK.xs(itracked,1),TRACK.ys(itracked,1),5*(xx(itracked) - TRACK.xs(itracked,trackPeriod)),5*(yy(itracked) - TRACK.ys(itracked,trackPeriod)),0,'g');
+      axis([-3 5 -7 3]);
+      hold off;
+      drawnow;
+  end
+  
+  speedMin = 0.5;
+  speedMax = 3.0;
+  
+  ptxs = xx(itracked);
+  ptys = yy(itracked);
+  vtxs = (ptxs - TRACK.xs(itracked,trackPeriod))/(trackPeriod*0.025);
+  vtys = (ptys - TRACK.ys(itracked,trackPeriod))/(trackPeriod*0.025);
+  speeds = sqrt(vtxs.^2 + vtys.^2);
+  ivelMatch = speeds > speedMin & speeds < speedMax;
+  
+  
+  obsTracks.xs  = ptxs(ivelMatch);
+  obsTracks.ys  = ptys(ivelMatch);
+  obsTracks.vxs = vtxs(ivelMatch);
+  obsTracks.vys = vtys(ivelMatch);
+  
+  %{
+  obsTracks.xs  = TRACK.xs(itracked,1);
+  obsTracks.ys  = TRACK.ys(itracked,1);
+  obsTracks.vxs = (xx(itracked) - TRACK.xs(itracked,trackPeriod))/(trackPeriod*0.025);
+  obsTracks.vys = (yy(itracked) - TRACK.ys(itracked,trackPeriod))/(trackPeriod*0.025);
+  %}
 
   TRACK.xs = [xx(goodTracks) TRACK.xs(goodTracks,1:end-1) ];
   TRACK.ys = [yy(goodTracks) TRACK.ys(goodTracks,1:end-1) ];
@@ -94,13 +129,4 @@ else
   TRACK.ys = [TRACK.ys; repmat(yt(dmin2>0.10),[1 trackPeriod])];
   TRACK.ls = [TRACK.ls; repmat(lt(dmin2>0.10),[1 trackPeriod])];
   TRACK.cs = [TRACK.cs; ones(size(xt(dmin2>0.10),1),1)];
-
-  %{
-  TRACK.xs = [xx(goodTracks); xt(dmin2>0.10) ];
-  TRACK.ys = [yy(goodTracks); yt(dmin2>0.10) ];
-  TRACK.ls = [ll(goodTracks); lt(dmin2>0.10) ];
-  TRACK.cs = [TRACK.cs(goodTracks); ones(size(xt(dmin2>0.10)))];
-  %}
 end
-%hold off;
-%drawnow;
