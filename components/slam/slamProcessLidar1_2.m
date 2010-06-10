@@ -10,6 +10,7 @@ else
   return;
 end
 
+%bin information for running statistics
 xBinLength = 0.1; % meters
 xBinMax = round((25.0)/xBinLength);
 xBin = xBinLength*[1:xBinMax];
@@ -18,13 +19,23 @@ xBin = xBinLength*[1:xBinMax];
 if (CheckImu() ~= 1), return; end
 if (CheckServo1() ~= 1), return; end
 
+
 servoAngle = SERVO1.data.position + SERVO1.offsetYaw;
+
+%from servo frame to robot frame
 Tservo1 = trans([SERVO1.offsetx SERVO1.offsety SERVO1.offsetz])*rotz(servoAngle);
+
+%from lidar frame to servo frame
 Tlidar1 = trans([LIDAR1.offsetx LIDAR1.offsety LIDAR1.offsetz]) * ...
           rotx(pi/2);
+        
+%from robot frame to world frame (roll, pitch)
 Timu = roty(IMU.data.pitch)*rotx(IMU.data.roll);
+
+%from robot frame to world frame (translation)
 Tpos = trans([SLAM.x SLAM.y SLAM.z])*rotz(SLAM.yaw);
 
+%complete transform
 T = (Tpos*Timu*Tservo1*Tlidar1);
 
 nStart = 250; %throw out points that pick up our own body
@@ -43,7 +54,7 @@ zss = zeros(size(xss));
 
 %global frame
 X = [xss; yss; zss; ones(size(xss))];
-pRot = T*X;
+pRot   = T*X;
 rLidar = sqrt((pRot(1,:)-SLAM.x).^2+(pRot(2,:)-SLAM.y).^2);
 zLidar = pRot(3,:);
 
