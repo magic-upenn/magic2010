@@ -16,13 +16,13 @@ for id = ids,
   RPOSE{id}.y = 0;
   RPOSE{id}.yaw = 0;
   RPOSE{id}.heading = 0;
-  RMAP{id} = map2d(800,800,.25,'vlidar','hlidar','cost');
+  RMAP{id} = map2d(800,800,.10,'vlidar','hlidar','cost');
 
   GTRANSFORM{id}.init = 0;
   GPOSE{id} = [];
 end
 
-GMAP = map2d(800, 800, .25, 'hlidar', 'cost');
+GMAP = map2d(800, 800, .10, 'hlidar', 'cost');
 
 masterConnectRobots(ids);
 
@@ -49,4 +49,7 @@ for id = ids,
 
   msgNameStateEvent = ['Robot',num2str(id),'/StateEvent'];
   ROBOTS(id).ipcAPI('define', msgNameStateEvent);
+  
+  msgNamePath = ['Robot',num2str(id),'/Waypoints'];
+  ROBOTS(id).ipcAPI('define', msgNamePath);
 end
