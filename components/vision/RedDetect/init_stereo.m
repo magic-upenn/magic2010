@@ -1,6 +1,6 @@
 function init_stereo(maxdisp)
 % Initialize stereo
-    context_filename = sprintf('context%s.txt',getenv('ROBOT_ID'));
+    context_filename = sprintf('%s/components/vision/RedDetect/context%s.txt',getenv('MAGIC_DIR'),getenv('ROBOT_ID'));
     triclopsAPI('loadContext', context_filename);
     triclopsAPI('setResolution', 192, 256);% 384,512
     triclopsAPI('setDisparity', 0, maxdisp);%40
