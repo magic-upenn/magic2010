@@ -164,7 +164,7 @@ end
 T = (trans([SLAM.x SLAM.y SLAM.z])*rotz(SLAM.yaw)*trans([LIDAR0.offsetx LIDAR0.offsety LIDAR0.offsetz]));
 
 %track obstacles
-obsTracks = trackObstacles(ranges,LIDAR0.angles,T);
+%obsTracks = trackObstacles(ranges,LIDAR0.angles,T);
 
   
 %update the map
@@ -217,6 +217,15 @@ if (mod(SLAM.lidar0Cntr,40) == 0)
   DHMAP.map.data = zeros(size(DHMAP.map.data),'uint8');
   DVMAP.map.data = zeros(size(DVMAP.map.data),'uint8');
 end
+
+%{
+if (GetUnixTime()-SLAM.plannerUpdateTime > SLAM.plannerUpdatePeriod)
+  oldPublishMapsToMotionPlanner;
+  fprintf('sent planner map\n');
+  SLAM.plannerUpdateTime = GetUnixTime();
+end
+%}
+
 
 if (SLAM.updateExplorationMap) 
     % Update the exploration map
