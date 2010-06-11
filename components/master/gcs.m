@@ -12,8 +12,8 @@ gcs_machine.ipcAPI('define','Global_Planner_MAGIC_MAP',  MagicGP_MAGIC_MAPSerial
 
 tUpdate = 0.1;
 %ids = [1 3];
-%ids = [3];
-ids = [1 2 3];
+ids = [2];
+%ids = [1 2 3];
 
 for id = ids,
   Robots(id).traj.handle = -1;

@@ -54,7 +54,10 @@ for id = ids,
 
   msgNameStateEvent = ['Robot',num2str(id),'/StateEvent'];
   ROBOTS(id).ipcAPI('define', msgNameStateEvent);
+
+  msgNameOoiDynamic = ['Robot',num2str(id),'/OoiDynamic'];
+  ROBOTS(id).ipcAPI('define', msgNameOoiDynamic);
   
   msgNamePath = ['Robot',num2str(id),'/Waypoints'];
-  ROBOTS(id).ipcAPI('define', msgNamePath, MagicGP_TRAJECTORY('getFormat'));
+  ROBOTS(id).ipcAPI('define', msgNamePath, MagicGP_TRAJECTORYSerializer('getFormat'));
 end
