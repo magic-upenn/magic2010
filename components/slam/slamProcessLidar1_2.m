@@ -20,7 +20,32 @@ if (CheckImu() ~= 1), return; end
 if (CheckServo1() ~= 1), return; end
 
 
-servoAngle = SERVO1.data.position + SERVO1.offsetYaw;
+
+tLidar = LIDAR1.scan.startTime;
+tServo = SERVO1.data.t;
+
+servoAngle = [];
+
+if (tLidar < tServo) && size(SERVO1.hist,2) > 3
+  %find the closest time
+  for ii=2:length(SERVO1.hist)
+    if (SERVO1.hist(2,ii) > tLidar)
+      da = (SERVO1.hist(1,ii)-SERVO1.hist(1,ii-1))/(SERVO1.hist(2,ii)-SERVO1.hist(2,ii-1));
+      servoAngle = SERVO1.hist(1,ii-1) + da*(tLidar-SERVO1.hist(2,ii-1));
+      break;
+    end
+  end
+elseif (size(SERVO1.hist,2) > 1)
+  da = (SERVO1.hist(1,end)-SERVO1.hist(1,end-1))/(SERVO1.hist(2,end)-SERVO1.hist(2,end-1));
+  servoAngle = SERVO1.hist(1,end) + da*(tLidar-SERVO1.hist(2,end));
+end
+
+angleMult = 0.92;
+if isempty(servoAngle)
+  servoAngle = SERVO1.data.position*angleMult + SERVO1.offsetYaw;
+else
+  servoAngle = servoAngle*angleMult + SERVO1.offsetYaw;
+end
 
 %from servo frame to robot frame
 Tservo1 = trans([SERVO1.offsetx SERVO1.offsety SERVO1.offsetz])*rotz(servoAngle);
@@ -41,7 +66,7 @@ T = (Tpos*Timu*Tservo1*Tlidar1);
 nStart = 250; %throw out points that pick up our own body
 nStop  = 750;
 ranges = double(LIDAR1.scan.ranges); %convert from float to double
-indGood = ranges >0.25 & ranges < 15;
+indGood = ranges >0.25 & ranges < 5;
 indGood(1:nStart-1) = 0;
 indGood(nStop:end) = 0;
 
@@ -81,10 +106,10 @@ counts = [stats.count];
 zMean = [stats.mean];
 zMaxMin = [stats.max] - [stats.min];
 
-iGnd = (counts >= 2) & (zMaxMin < 0.05) & ...
+iGnd = (counts >= 1) & (zMaxMin < 0.05) & ...
 	    (zMean < 0.3*xBin + 0.05) & (zMean > -0.3*xBin -0.05);
 
-iObs = (zMaxMin > 0.06) | (zMean > 0.4*xBin + 0.10);
+iObs = (counts > 1) & (zMaxMin > 0.08) | (zMean > 0.4*xBin + 0.10);
 
 xsg = pRot(1,indClip);
 ysg = pRot(2,indClip);
@@ -109,7 +134,7 @@ if isempty(iFirstCliff), iFirstCliff = 99999; end
 iFirstBad = min([iFirstObs,iFirstCliff,length(iGndPts)]);
 
 countsPts   = counts(bins);
-obsBuffer   = 5; %in number of 
+obsBuffer   = 1; %in number of 
 if iFirstBad == length(iGndPts) % there is actually no obstacle
   obsBuffer = 0;
 end

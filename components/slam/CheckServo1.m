@@ -6,11 +6,9 @@ if isempty(SERVO1), return, end
 if ~isfield(SERVO1,'data'), return, end
 if ~isfield(SERVO1.data,'t'), return, end
 
-%{
-if (SERVO1.data.t - GetUnixTime() > SERVO1.Timeout)
+if (SERVO1.data.t - GetUnixTime() > SERVO1.timeout)
   ret=0;
   return;
 end
-%}
 
 ret=1;

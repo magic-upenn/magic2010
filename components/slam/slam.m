@@ -79,6 +79,7 @@ lidar0Init;
 lidar1Init;
 servo1Init;
 motorsInit;
+gpsInit;
 
 sendServoStart;
 

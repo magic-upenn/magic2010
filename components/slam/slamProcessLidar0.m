@@ -86,19 +86,27 @@ if ~(ENCODERS.counts.fr == 0 && ENCODERS.counts.rr == 0 && ...
     dyaw = 0.5/180.0*pi;
   end
       
-  nxs = 5;
-  nys = 5;
-
-
-  yawRange = floor(nyaw/2);
-  xRange   = floor(nxs/2);
-  yRange   = floor(nys/2);
-
   %resolution of the candidate poses
   %TODO: make this dependent on angular velocity / motion speed
-  
-  dx   = 0.01;
-  dy   = 0.01;
+
+  tEncoders = ENCODERS.counts.t;
+  tLidar0   = LIDAR0.scan.startTime;  
+
+  if abs(tLidar0-tEncoders) < 0.1
+    nxs  = 5;
+    nys  = 5;
+    dx   = 0.02;
+    dy   = 0.02;
+  else
+    nxs  = 11;
+    nys  = 11; 
+    dx   = 0.05;
+    dy   = 0.05;
+  end
+
+  yawRange = floor(nyaw/2);
+  xRange   = floor(nxs/2); 
+  yRange   = floor(nys/2);
 
   %create the candidate locations in each dimension
   aCand = (-yawRange:yawRange)*dyaw+SLAM.yaw + IMU.data.wyaw*0.025;
