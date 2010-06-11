@@ -5,13 +5,13 @@ global MOTORS
 
 [vCmd wCmd] = VelocityVals2VelocityCmd(v,w);
 
-MOTORS.vcmd.t = GetUnixTime();
-MOTORS.vcmd.v = v;
-MOTORS.vcmd.w = w;
-MOTORS.vcmd.vCmd = vCmd;
-MOTORS.vcmd.wCmd = wCmd;
+vcmd.t = GetUnixTime();
+vcmd.v = v;
+vcmd.w = w;
+vcmd.vCmd = vCmd;
+vcmd.wCmd = wCmd;
 
-content = MagicVelocityCmdSerializer('serialize',MOTORS.vcmd);
+content = MagicVelocityCmdSerializer('serialize',vcmd);
 ipcAPIPublishVC(MOTORS.msgName,content);
 
 ret =1;
