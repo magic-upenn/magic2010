@@ -39,6 +39,8 @@ spread:/usr/local/sbin/spread -l y
 hokuyo0:$MAGIC_DIR/drivers/Hokuyo/runHokuyo /dev/ttyACM0
 hokuyo1:$MAGIC_DIR/drivers/Hokuyo/runHokuyo /dev/ttyACM1
 microGateway:nice -n -5 $MAGIC_DIR/drivers/MicroGateway/runMicroGateway
+slam:matlab -nodesktop -r startSlam
+mapfsm: matlab -nodesktop -r startMapfsm
 EOF
 
 exit
