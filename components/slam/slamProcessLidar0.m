@@ -79,11 +79,11 @@ if ~(ENCODERS.counts.fr == 0 && ENCODERS.counts.rr == 0 && ...
     nyaw = 5;
     dyaw = 0.2/180.0*pi;
   elseif (abs(IMU.data.wyaw) < 200/180*pi)
-    nyaw = 7;
-    dyaw = 0.25/180.0*pi;
+    nyaw = 9;
+    dyaw = 0.1/180.0*pi;
   else
-    nyaw = 11;
-    dyaw = 0.5/180.0*pi;
+    nyaw = 15;
+    dyaw = 0.1/180.0*pi;
   end
       
   %resolution of the candidate poses
