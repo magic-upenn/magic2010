@@ -16,8 +16,8 @@ switch event
   DATA.wmax = 1.0;
 
   if ~isempty(OOI_DYNAMIC),
-    DATA.x = OOI_DYNAMIC.x;
-    DATA.y = OOI_DYNAMIC.y;
+    DATA.x = OOI_DYNAMIC(1);
+    DATA.y = OOI_DYNAMIC(2);
   else
     disp('No initial OOI position given, tracking nearest human');
     DATA.x = MPOSE.x;
