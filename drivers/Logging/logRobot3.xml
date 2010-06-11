@@ -1,0 +1,10 @@
+<IpcLoggerConfig>
+  <msgType>Robot2/GPS</msgType>
+  <msgType>Robot2/Encoders</msgType>
+  <msgType>Robot2/ImuFiltered</msgType>
+  <msgType>Robot2/Servo1</msgType>
+  <msgType>Robot2/Lidar0</msgType>
+  <msgType>Robot2/Lidar1</msgType>
+  <flushPeriod>0.5</flushPeriod>
+</IpcLoggerConfig>
+
