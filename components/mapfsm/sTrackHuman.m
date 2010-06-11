@@ -36,7 +36,6 @@ switch event
    if ~isempty(TRACKS) && ~isempty(TRACKS.xs),
      dx = TRACKS.xs - DATA.x;
      dy = TRACKS.ys - DATA.y;
-     [dx dy]
      dist = sqrt(dx.^2 + dy.^2);
      [dmin, imin] = min(dist);
      if (dmin < DATA.distThreshold),
