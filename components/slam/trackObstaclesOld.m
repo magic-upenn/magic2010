@@ -8,7 +8,7 @@ if isempty(cntr), cntr = 0; end
 
 trackSkipCycles = 0;
 obsTracks = [];
-trackPeriod = 5;
+trackPeriod = 10;
 
 
 rmin = 0.5;
@@ -20,8 +20,8 @@ if mod(cntr,trackSkipCycles) ~= 0
 end
 
 %calculate the clusters
-clusterThreshold = 0.5;
-clusterNMin      = 3;   %minimum number of points
+clusterThreshold = 0.15;
+clusterNMin      = 5;   %minimum number of points
 [cistart ciend] = scanCluster(ranges,clusterThreshold,clusterNMin);
 
 if isempty(cistart)
@@ -35,8 +35,8 @@ rmean = ranges(imean);
 %approximate length (width) of the obstacle
 obsLen = rmean .*(ciend-cistart)*0.25/180*pi; %s=r*theta
 
-minLen = 0.1; %meters
-maxLen = 1.5;
+minLen = 0.3; %meters
+maxLen = 0.7;
 isizeMatch = (obsLen > minLen) & (obsLen < maxLen) & (rmean > rmin) & (rmean < rmax);
 
 
@@ -62,13 +62,25 @@ xt = Y(1,:)';
 yt = Y(2,:)';
 
 if isempty(TRACK)
-  TRACK.xs = repmat(xt,[1 trackPeriod]);
-  TRACK.ys = repmat(yt,[1 trackPeriod]);
-  TRACK.ls = repmat(lt,[1 trackPeriod]);
-  TRACK.cs = ones(size(xt,1),1);
+  TRACK.xs = [];
+  TRACK.ys = [];
+  TRACK.ls = [];
+  TRACK.cs = [];  
+
+  %TRACK.xs = repmat(xt,[1 trackPeriod]);
+  %TRACK.ys = repmat(yt,[1 trackPeriod]);
+  %TRACK.ls = repmat(lt,[1 trackPeriod]);
+  %TRACK.cs = ones(size(xt,1),1);
   TRACK.msgName = GetMsgName('VelTracks');
   ipcAPIDefine(TRACK.msgName);
 else
+  if length(TRACK.xs) < 1
+    TRACK.xs = repmat(xt,[1 trackPeriod]);
+    TRACK.ys = repmat(yt,[1 trackPeriod]);
+    TRACK.ls = repmat(lt,[1 trackPeriod]);
+    TRACK.cs = ones(size(xt,1),1);
+  end
+
   dxc = repmat(TRACK.xs(:,1),[1 length(xt)]) - repmat(xt',[size(TRACK.xs,1) 1]);
   dyc = repmat(TRACK.ys(:,1),[1 length(yt)]) - repmat(yt',[size(TRACK.ys,1) 1]);
   dist = dxc.^2+dyc.^2;
@@ -83,31 +95,27 @@ else
   yy = yt(imin);
   ll = lt(imin);
 
-
-
   TRACK.cs(goodTracks) = TRACK.cs(goodTracks) + 1;
-  itracked = TRACK.cs > 5;
+  itracked = TRACK.cs > 2;
   
-  speedMin = 0.5;
+  speedMin = 0.3;
   speedMax = 3.0;
   
   ptxs = xx(itracked);
   ptys = yy(itracked);
-  if isempty(ptxs)
-      return;
+  if ~isempty(ptxs)
+    vtxs = (ptxs - TRACK.xs(itracked,trackPeriod))/(trackPeriod*0.025);
+    vtys = (ptys - TRACK.ys(itracked,trackPeriod))/(trackPeriod*0.025);
+    speeds = sqrt(vtxs.^2 + vtys.^2);
+    ivelMatch = find (speeds > speedMin & speeds < speedMax);
+    if ~(isempty(ivelMatch))
+      obsTracks.xs  = ptxs(ivelMatch);
+      obsTracks.ys  = ptys(ivelMatch);
+      obsTracks.vxs = vtxs(ivelMatch);
+      obsTracks.vys = vtys(ivelMatch);
+    end;
   end
   
-  vtxs = (ptxs - TRACK.xs(itracked,trackPeriod))/(trackPeriod*0.025);
-  vtys = (ptys - TRACK.ys(itracked,trackPeriod))/(trackPeriod*0.025);
-  speeds = sqrt(vtxs.^2 + vtys.^2);
-  ivelMatch = speeds > speedMin & speeds < speedMax;  
-  
-  obsTracks.xs  = ptxs(ivelMatch);
-  obsTracks.ys  = ptys(ivelMatch);
-  obsTracks.vxs = vtxs(ivelMatch);
-  obsTracks.vys = vtys(ivelMatch);
-  
-
   TRACK.xs = [xx(goodTracks) TRACK.xs(goodTracks,1:end-1) ];
   TRACK.ys = [yy(goodTracks) TRACK.ys(goodTracks,1:end-1) ];
   TRACK.ls = [ll(goodTracks) TRACK.ls(goodTracks,1:end-1) ];

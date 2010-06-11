@@ -168,10 +168,11 @@ T = (trans([SLAM.x SLAM.y SLAM.z])*rotz(SLAM.yaw)*trans([LIDAR0.offsetx LIDAR0.o
 if runTrackObs
   %track obstacles
   obsTracks = trackObstacles(ranges,LIDAR0.angles,T);
+  %obsTracks = trackObstaclesOld(ranges,LIDAR0.angles,T);
 
-  %if mod(SLAM.lidar0Cntr,20) == 0
-  %  ipcAPIPublish(TRACK.msgName,serialize(obsTracks));
-  %end
+  if mod(SLAM.lidar0Cntr,10) == 0
+    ipcAPIPublish(TRACK.msgName,serialize(obsTracks));
+  end
 end  
 
 %update the map

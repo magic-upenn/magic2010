@@ -1,18 +1,22 @@
 %input: ranges and angles of lidar, T = transform from lidar frame to world
 function obsTracks = trackObstacles(ranges,angles,T)
-
+global TRACK
 persistent cntr
 
 if isempty(cntr), cntr = 0; end
+if isempty(TRACK)
+  TRACK.msgName = GetMsgName('VelTracks');
+  ipcAPIDefine(TRACK.msgName);
+end
 
 obsTracks = [];
 
-rmin = 0.5;
+rmin = 0.3;
 rmax = 25;
 
 %calculate the clusters
-clusterThreshold = 0.25;
-clusterNMin      = 3;   %minimum number of points
+clusterThreshold = 0.1;
+clusterNMin      = 4;   %minimum number of points
 [cistart ciend] = scanCluster(ranges,clusterThreshold,clusterNMin);
 
 if isempty(cistart)
@@ -27,7 +31,7 @@ rmean = ranges(imean);
 obsLen = rmean .*(ciend-cistart)*0.25/180*pi; %s=r*theta
 
 minLen = 0.2; %meters
-maxLen = 1.0;
+maxLen = 0.7;
 isizeMatch = (obsLen > minLen) & (obsLen < maxLen) & (rmean > rmin) & (rmean < rmax);
 
 
@@ -42,8 +46,15 @@ if (length(xts) < 1)
   return;
 end
 
-obsTracks.xs  = xts;
-obsTracks.ys  = yts;
-obsTracks.vxs = zeros(size(xts));
-obsTracks.vys = zeros(size(yts));
+X=[xts yts zeros(size(xts)) ones(size(xts))];
+Y=X*(T');
+
+xtg = Y(:,1);
+ytg = Y(:,2);
+
+
+obsTracks.xs  = xtg;
+obsTracks.ys  = ytg;
+obsTracks.vxs = zeros(size(xtg));
+obsTracks.vys = zeros(size(ytg));
 obsTracks.t   = GetUnixTime();
