@@ -40,11 +40,10 @@ elseif (size(SERVO1.hist,2) > 1)
   servoAngle = SERVO1.hist(1,end) + da*(tLidar-SERVO1.hist(2,end));
 end
 
-angleMult = 0.92;
 if isempty(servoAngle)
-  servoAngle = SERVO1.data.position*angleMult + SERVO1.offsetYaw;
+  servoAngle = SERVO1.data.position*SERVO1.amult + SERVO1.offsetYaw;
 else
-  servoAngle = servoAngle*angleMult + SERVO1.offsetYaw;
+  servoAngle = servoAngle*SERVO1.amult + SERVO1.offsetYaw;
 end
 
 %from servo frame to robot frame
