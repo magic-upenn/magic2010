@@ -118,12 +118,12 @@ end
         cropImCr = imcrop(imCr_filt,r(i).BoundingBox);
         [MajorLen,MinorLen] = GetMajorLengths(cropImCr); % get dimensions of bin in image which could be rotated
         [expected_xwidth,expected_yheight] = GetRedSizefromDist(r(i).distance); % [xwidth yheight] in pixels. From distance estimate
-        if MinorLen > 0.66*expected_xwidth && MinorLen < 1.33*expected_xwidth
+        if MinorLen > 0.5*expected_xwidth && MinorLen < 1.5*expected_xwidth
             xwidth_score = 1;
         else
             xwidth_score = 0;
         end
-        if MajorLen > 0.66*expected_yheight && MajorLen < 1.33*expected_yheight
+        if MajorLen > 0.5*expected_yheight && MajorLen < 1.5*expected_yheight
             yheight_score = 1;
         else
             yheight_score = 0;
