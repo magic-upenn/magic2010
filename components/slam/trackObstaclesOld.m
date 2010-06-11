@@ -10,11 +10,9 @@ trackSkipCycles = 0;
 obsTracks = [];
 trackPeriod = 5;
 
-plotFig = 0;
-
 
 rmin = 0.5;
-rmax = 15;
+rmax = 25;
 
 %return empty track if we are skipping this cycle
 if mod(cntr,trackSkipCycles) ~= 0
@@ -88,18 +86,7 @@ else
 
 
   TRACK.cs(goodTracks) = TRACK.cs(goodTracks) + 1;
-
-
   itracked = TRACK.cs > 5;
-  
-  if plotFig
-      %plot(xs,ys,'.'); hold on;
-      plot(xt,yt,'r*');
-      quiver(TRACK.xs(itracked,1),TRACK.ys(itracked,1),5*(xx(itracked) - TRACK.xs(itracked,trackPeriod)),5*(yy(itracked) - TRACK.ys(itracked,trackPeriod)),0,'g');
-      axis([-3 5 -7 3]);
-      hold off;
-      drawnow;
-  end
   
   speedMin = 0.5;
   speedMax = 3.0;
@@ -119,37 +106,7 @@ else
   obsTracks.ys  = ptys(ivelMatch);
   obsTracks.vxs = vtxs(ivelMatch);
   obsTracks.vys = vtys(ivelMatch);
-
-  %find closest obstacle
-  %dists = sqrt((obsTracks.xs - POSE.data.x).^2 + (obsTracks.ys - POSE.data.y).^2);
-dists = sqrt((xts).^2 + (yts).^2);  
-[mdist imindist] = min(dists);
   
-  %angle = atan2(obsTracks.ys(imindist) - POSE.data.y,obsTracks.xs(imindist) - POSE.data.x);
-angle = atan2(yts(imindist) - POSE.data.y,xts(imindist)-POSE.data.x);
-  %wDes = modAngle(angle - POSE.data.yaw);
-angle =atan2(yts(imindist),xts(imindist));
-wDes = 3*modAngle(angle);
-[xts(imindist) yts(imindist)]
- 
-  
-  
-  if isempty(wDes)
-      wDes =0;
-  end
-  
-  wDes = min(wDes,1);
-  wDes = max(wDes,-1);
-
-  if mdist < 7
-    SetVelocity(0,wDes);
-  end
-  %{
-  obsTracks.xs  = TRACK.xs(itracked,1);
-  obsTracks.ys  = TRACK.ys(itracked,1);
-  obsTracks.vxs = (xx(itracked) - TRACK.xs(itracked,trackPeriod))/(trackPeriod*0.025);
-  obsTracks.vys = (yy(itracked) - TRACK.ys(itracked,trackPeriod))/(trackPeriod*0.025);
-  %}
 
   TRACK.xs = [xx(goodTracks) TRACK.xs(goodTracks,1:end-1) ];
   TRACK.ys = [yy(goodTracks) TRACK.ys(goodTracks,1:end-1) ];
