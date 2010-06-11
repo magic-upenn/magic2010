@@ -11,7 +11,7 @@ switch event
   disp('sTrackHuman');
 
   DATA.t0 = gettime;
-  DATA.distThreshold = 4.0;
+  DATA.distThreshold = 3.0;
   DATA.kp = 3;
   DATA.wmax = 1.0;
 
@@ -39,8 +39,8 @@ switch event
      dist = sqrt(dx.^2 + dy.^2);
      [dmin, imin] = min(dist);
      if (dmin < DATA.distThreshold),
-       DATA.x = TRACKS.xs(imin);
-       DATA.y = TRACKS.ys(imin);
+       DATA.x = DATA.x+.25*(TRACKS.xs(imin)-DATA.x);
+       DATA.y = DATA.y+.25*(TRACKS.ys(imin)-DATA.y);
      end
    end
 
