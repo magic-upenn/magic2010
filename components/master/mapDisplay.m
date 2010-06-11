@@ -14,7 +14,7 @@ switch event
 
     % Setup individual robot windows
     for id = GCS.ids,
-      figure(id);
+      figure(id+1);
       clf;
       set(gcf,'NumberTitle', 'off', 'Name',sprintf('Map: Robot %d',id));
       
@@ -100,7 +100,7 @@ switch event
 
 
     % Setup global display window
-    GDISPLAY.hFigure = figure(id+1);
+    GDISPLAY.hFigure = figure(10);
     clf;
     set(gcf,'NumberTitle', 'off', 'Name',sprintf('Global Map'));
       
@@ -117,7 +117,7 @@ switch event
     axis xy equal;
     axis([-40 40 -40 40]);
     GDISPLAY.hAxes = gca;
-    set(gca,'Position', [.2 .1 .8 .8], 'XLimMode', 'manual', 'YLimMode', 'manual');
+    set(gca,'Position', [.1 .1 .8 .8], 'XLimMode', 'manual', 'YLimMode', 'manual');
     colormap(jet);
     drawnow
 

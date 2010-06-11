@@ -10,19 +10,24 @@ if nargin < 1,
 end
 
 GCS.ids = ids;
+GCS.tSave = gettime;
 
 for id = ids,
   RPOSE{id}.x = 0;
   RPOSE{id}.y = 0;
   RPOSE{id}.yaw = 0;
   RPOSE{id}.heading = 0;
-  RMAP{id} = map2d(800,800,.10,'vlidar','hlidar','cost');
+  RMAP{id} = map2d(800,800,.20,'vlidar','hlidar','cost');
 
   GTRANSFORM{id}.init = 0;
   GPOSE{id} = [];
 end
 
-GMAP = map2d(800, 800, .10, 'hlidar', 'cost');
+%Exploration planner looks at idmax indices of GPOSE
+idmax = 3;
+GPOSE{idmax} = [];
+
+GMAP = map2d(800, 800, .20, 'hlidar', 'cost');
 
 masterConnectRobots(ids);
 

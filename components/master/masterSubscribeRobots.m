@@ -28,6 +28,8 @@ for ii=1:nRobots
     for jj=1:nMsgs
         %generate the message name
         msgName = sprintf('Robot%d/%s',ROBOTS(ii).id,msgNames{jj});
+        %      disp(sprintf('Subscribing to message %s', msgName));
+
         
         %assign a handle to the message name and optionally set the queue
         %length
