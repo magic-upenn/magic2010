@@ -1,6 +1,8 @@
 function mapfsm(tUpdate)
 
-global MP MAP
+global MP MAP SPEED
+
+SPEED.minTurn = 0.6;
 
 more off;
 if nargin < 1,

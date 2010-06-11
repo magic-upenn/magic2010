@@ -1,6 +1,6 @@
 function ret = sPath(event, varargin);
 
-global MPOSE PATH MAP
+global MPOSE PATH MAP SPEED
 persistent DATA
 
 timeout = 120.0;
@@ -39,9 +39,9 @@ switch event
 
    if abs(dHeading) > 45*pi/180,
      if (dHeading > 0),
-       SetVelocity(0, .4);
+       SetVelocity(0, SPEED.minTurn);
      else
-       SetVelocity(0, -.4);
+       SetVelocity(0, -SPEED.minTurn);
      end
      return;
    end

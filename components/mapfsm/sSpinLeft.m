@@ -12,23 +12,31 @@ switch event
   DATA.t0 = gettime;
   DATA.heading0 = MPOSE.heading;
   DATA.dheading = 0;
+  DATA.w = .4;
 
  case 'exit'
    SetVelocity(0,0);  
   
  case 'update'
-   SetVelocity(0, .4);
-
-   if (gettime - DATA.t0 > timeout)
+   dt = gettime - DATA.t0;
+   if (dt > timeout)
      ret = 'timeout';
    end
    
    heading = MPOSE.heading;
    DATA.dheading = DATA.dheading + (heading - DATA.heading0);
    DATA.heading0 = heading;
-   
+
    if (DATA.dheading > 2*pi)
      ret = 'done';
    end
+
+   if (dt > 2.0 && DATA.dheading/dt < 20*pi/180)
+     DATA.w = DATA.w + .01;
+     DATA.w = min(DATA.w, 1.0);
+   end
+
+   SetVelocity(0, DATA.w);
+
    
 end
