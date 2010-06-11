@@ -51,5 +51,5 @@ for id = ids,
   ROBOTS(id).ipcAPI('define', msgNameStateEvent);
   
   msgNamePath = ['Robot',num2str(id),'/Waypoints'];
-  ROBOTS(id).ipcAPI('define', msgNamePath);
+  ROBOTS(id).ipcAPI('define', msgNamePath, MagicGP_TRAJECTORY('getFormat'));
 end
