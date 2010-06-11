@@ -1,12 +1,10 @@
 %input: ranges and angles of lidar, T = transform from lidar frame to world
 function obsTracks = trackObstacles(ranges,angles,T)
-global TRACK POSE
+global
 
 persistent cntr
 
 if isempty(cntr), cntr = 0; end
-
-plotFig = 0;
 
 obsTracks = [];
 
@@ -40,28 +38,13 @@ isizeMatch = (obsLen > minLen) & (obsLen < maxLen) & (rmean > rmin) & (rmean < r
 %sensor frame
 xts = xTrack(isizeMatch);
 yts = yTrack(isizeMatch);
-lt = obsLen(isizeMatch);
 
 if (length(xts) < 1)
   return;
 end
 
-
-if (1)
-  dists = sqrt((xts).^2 + (yts).^2);  
-  [mdist imindist] = min(dists);
-  angle =atan2(yts(imindist),xts(imindist));
-  wDes = 3*modAngle(angle);
-  [xts(imindist) yts(imindist)];
-   
-  if isempty(wDes)
-      wDes =0;
-  end
-  
-  wDes = min(wDes,0.8);
-  wDes = max(wDes,-0.8);
-
-  if mdist < 20
-    SetVelocity(0,wDes);
-  end
-end
+obsTracks.xs  = xts;
+obsTracks.ys  = yts;
+obsTracks.vxs = zeros(size(xts));
+obsTracks.vys = zeros(size(yts));
+obsTracks.t   = GetUnixTime();
