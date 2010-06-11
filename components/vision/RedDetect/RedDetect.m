@@ -132,7 +132,7 @@ end
 
         if DEBUG
         linecolor = 'g';
-        if r(i).redbinscore > 0.5    % Display candidate red boxes
+        if r(i).redbinscore > 0.1    % Display candidate red boxes
             line([r(i).BoundingBox(1),r(i).BoundingBox(1)+r(i).BoundingBox(3)],[r(i).BoundingBox(2),r(i).BoundingBox(2)],'Color',linecolor);
             line([r(i).BoundingBox(1)+r(i).BoundingBox(3),r(i).BoundingBox(1)+r(i).BoundingBox(3)],[r(i).BoundingBox(2),r(i).BoundingBox(2)+r(i).BoundingBox(4)],'Color',linecolor);
             line([r(i).BoundingBox(1),r(i).BoundingBox(1)],[r(i).BoundingBox(2),r(i).BoundingBox(2)+r(i).BoundingBox(4)],'Color',linecolor);
