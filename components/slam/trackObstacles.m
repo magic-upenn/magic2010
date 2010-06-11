@@ -1,29 +1,21 @@
 %input: ranges and angles of lidar, T = transform from lidar frame to world
 function obsTracks = trackObstacles(ranges,angles,T)
-global TRACK
+global TRACK POSE
 
 persistent cntr
 
 if isempty(cntr), cntr = 0; end
 
-trackSkipCycles = 1;
-obsTracks = [];
-trackPeriod = 5;
-
 plotFig = 0;
 
+obsTracks = [];
 
 rmin = 0.5;
-rmax = 15;
-
-%return empty track if we are skipping this cycle
-if mod(cntr,trackSkipCycles) ~= 0
-  return;
-end
+rmax = 25;
 
 %calculate the clusters
-clusterThreshold = 0.2;
-clusterNMin      = 5;   %minimum number of points
+clusterThreshold = 0.25;
+clusterNMin      = 3;   %minimum number of points
 [cistart ciend] = scanCluster(ranges,clusterThreshold,clusterNMin);
 
 if isempty(cistart)
@@ -38,7 +30,7 @@ rmean = ranges(imean);
 obsLen = rmean .*(ciend-cistart)*0.25/180*pi; %s=r*theta
 
 minLen = 0.2; %meters
-maxLen = 0.6;
+maxLen = 1.0;
 isizeMatch = (obsLen > minLen) & (obsLen < maxLen) & (rmean > rmin) & (rmean < rmax);
 
 
@@ -49,84 +41,27 @@ isizeMatch = (obsLen > minLen) & (obsLen < maxLen) & (rmean > rmin) & (rmean < r
 xts = xTrack(isizeMatch);
 yts = yTrack(isizeMatch);
 lt = obsLen(isizeMatch);
-nTrack = length(xts);
 
-X = [xts'; yts';zeros(1,nTrack);ones(1,nTrack)];
-Y = T*X;
-
-%global frame
-xt = Y(1,:)';
-yt = Y(2,:)';
-
-if isempty(TRACK)
-  TRACK.xs = repmat(xt,[1 trackPeriod]);
-  TRACK.ys = repmat(yt,[1 trackPeriod]);
-  TRACK.ls = repmat(lt,[1 trackPeriod]);
-  TRACK.cs = ones(size(xt,1),1);
-  TRACK.msgName = GetMsgName('VelTracks');
-  ipcAPIDefine(TRACK.msgName);
-else
-  dxc = repmat(TRACK.xs(:,1),[1 length(xt)]) - repmat(xt',[size(TRACK.xs,1) 1]);
-  dyc = repmat(TRACK.ys(:,1),[1 length(yt)]) - repmat(yt',[size(TRACK.ys,1) 1]);
-  dist = dxc.^2+dyc.^2;
-  [dmin, imin]  = min(dist,[],2);
-  [dmin2,imin2] = min(dist,[],1); 
-
-  vx = -TRACK.xs(:,1)+xt(imin);
-  vy = -TRACK.ys(:,1)+yt(imin);
+if (length(xts) < 1)
+  return;
+end
 
 
-  goodTracks = sqrt(vx.^2 +vy.^2) < 0.20;
-  xx = xt(imin);
-  yy = yt(imin);
-  ll = lt(imin);
-
-
-
-  TRACK.cs(goodTracks) = TRACK.cs(goodTracks) + 1;
-
-
-  itracked = TRACK.cs > 5;
-  
-  if plotFig
-      %plot(xs,ys,'.'); hold on;
-      plot(xt,yt,'r*');
-      quiver(TRACK.xs(itracked,1),TRACK.ys(itracked,1),5*(xx(itracked) - TRACK.xs(itracked,trackPeriod)),5*(yy(itracked) - TRACK.ys(itracked,trackPeriod)),0,'g');
-      axis([-3 5 -7 3]);
-      hold off;
-      drawnow;
+if (1)
+  dists = sqrt((xts).^2 + (yts).^2);  
+  [mdist imindist] = min(dists);
+  angle =atan2(yts(imindist),xts(imindist));
+  wDes = 3*modAngle(angle);
+  [xts(imindist) yts(imindist)];
+   
+  if isempty(wDes)
+      wDes =0;
   end
   
-  speedMin = 0.5;
-  speedMax = 3.0;
-  
-  ptxs = xx(itracked);
-  ptys = yy(itracked);
-  vtxs = (ptxs - TRACK.xs(itracked,trackPeriod))/(trackPeriod*0.025);
-  vtys = (ptys - TRACK.ys(itracked,trackPeriod))/(trackPeriod*0.025);
-  speeds = sqrt(vtxs.^2 + vtys.^2);
-  ivelMatch = speeds > speedMin & speeds < speedMax;
-  
-  
-  obsTracks.xs  = ptxs(ivelMatch);
-  obsTracks.ys  = ptys(ivelMatch);
-  obsTracks.vxs = vtxs(ivelMatch);
-  obsTracks.vys = vtys(ivelMatch);
-  
-  %{
-  obsTracks.xs  = TRACK.xs(itracked,1);
-  obsTracks.ys  = TRACK.ys(itracked,1);
-  obsTracks.vxs = (xx(itracked) - TRACK.xs(itracked,trackPeriod))/(trackPeriod*0.025);
-  obsTracks.vys = (yy(itracked) - TRACK.ys(itracked,trackPeriod))/(trackPeriod*0.025);
-  %}
+  wDes = min(wDes,0.8);
+  wDes = max(wDes,-0.8);
 
-  TRACK.xs = [xx(goodTracks) TRACK.xs(goodTracks,1:end-1) ];
-  TRACK.ys = [yy(goodTracks) TRACK.ys(goodTracks,1:end-1) ];
-  TRACK.ls = [ll(goodTracks) TRACK.ls(goodTracks,1:end-1) ];
-  TRACK.cs = TRACK.cs(goodTracks);
-
-  TRACK.xs = [TRACK.xs; repmat(xt(dmin2>0.10),[1 trackPeriod])];
-  TRACK.ys = [TRACK.ys; repmat(yt(dmin2>0.10),[1 trackPeriod])];
-  TRACK.ls = [TRACK.ls; repmat(lt(dmin2>0.10),[1 trackPeriod])];
-  TRACK.cs = [TRACK.cs; ones(size(xt(dmin2>0.10),1),1)];
+  if mdist < 20
+    SetVelocity(0,wDes);
+  end
 end

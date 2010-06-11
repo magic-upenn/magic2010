@@ -5,6 +5,8 @@
 function slamProcessLidar0(data,name)
 global SLAM LIDAR0 OMAP EMAP POSE IMU CMAP DHMAP MAPS DVMAP SPREAD ENCODERS TRACK
 
+runTrackObs = 1;
+
 if ~isempty(data)
   LIDAR0.scan = MagicLidarScanSerializer('deserialize',data);
 else
@@ -163,13 +165,15 @@ end
 
 T = (trans([SLAM.x SLAM.y SLAM.z])*rotz(SLAM.yaw)*trans([LIDAR0.offsetx LIDAR0.offsety LIDAR0.offsetz]));
 
-%track obstacles
-obsTracks = trackObstacles(ranges,LIDAR0.angles,T);
+if runTrackObs
+  %track obstacles
+  obsTracks = trackObstacles(ranges,LIDAR0.angles,T);
 
-if mod(SLAM.lidar0Cntr,20) == 0
-  ipcAPIPublish(TRACK.msgName,serialize(obsTracks));
-end
-  
+  %if mod(SLAM.lidar0Cntr,20) == 0
+  %  ipcAPIPublish(TRACK.msgName,serialize(obsTracks));
+  %end
+end  
+
 %update the map
 T = (trans([SLAM.x SLAM.y SLAM.z])*rotz(SLAM.yaw)*trans([LIDAR0.offsetx LIDAR0.offsety LIDAR0.offsetz]))';
 X = [xsss ysss zsss onez];
