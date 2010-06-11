@@ -137,7 +137,7 @@ if ~(ENCODERS.counts.fr == 0 && ENCODERS.counts.rr == 0 && ...
     SLAM.y   = yGrid(cimin);
   end
 else
-  fprintf(1,'not moving\n');
+  %fprintf(1,'not moving\n');
 end
   
 POSE.data.x     = SLAM.x;
