@@ -1,6 +1,5 @@
 %input: ranges and angles of lidar, T = transform from lidar frame to world
 function obsTracks = trackObstacles(ranges,angles,T)
-global
 
 persistent cntr
 
