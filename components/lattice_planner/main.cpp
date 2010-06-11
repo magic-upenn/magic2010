@@ -23,7 +23,7 @@ using namespace std;
 #define min(a,b) (a<b?a:b)
 #define max(a,b) (a>b?a:b)
 
-#define PLANNING_TIME 0.75
+#define PLANNING_TIME 2.0
 
 float resolution=0.1;
 float max_velocity=1.0; //meters per sec
@@ -328,6 +328,7 @@ int main(int argc, char** argv){
 	IPC_subscribe(poseName.c_str(), GP_POSITION_UPDATE_Handler, (void *)MODULE_NAME);
   IPC_setMsgQueueLength((char*)poseName.c_str(), 1);
 
+  IPC_defineMsg(waypointsName.c_str(), IPC_VARIABLE_LENGTH, GP_TRAJECTORY_FORM);
   IPC_subscribe(waypointsName.c_str(), GPTRAJHandler, (void *)MODULE_NAME);
   IPC_setMsgQueueLength((char*)waypointsName.c_str(), 1);
 
@@ -371,14 +372,14 @@ int main(int argc, char** argv){
             count2++;
           }
           else{
-            if(costmap[x][y] < 252)
+            //if(costmap[x][y] < 252)
               if(shouldRun==2)
                 c = (unsigned char)min(max(costmap[x][y], trajmap[x][y]),251);
               else
                 c = (unsigned char)min(costmap[x][y],251);
               //c = (unsigned char)min(costmap[x][y] + trajmap[x][y], 251);
-            else
-              c= (unsigned char)costmap[x][y];
+            //else
+            //  c= (unsigned char)costmap[x][y];
             env->UpdateCost(x, y, c);
           }
         }

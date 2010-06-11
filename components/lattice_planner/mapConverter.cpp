@@ -1,6 +1,6 @@
 #include "mapConverter.h"
 
-#define OBS_THRESH 50
+#define OBS_THRESH 90
 
 bool OnMap(int x, int y, int size_x, int size_y) {
   // function to determine if a point is on the map
