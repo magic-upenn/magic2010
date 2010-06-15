@@ -8,4 +8,7 @@ endif
 include $(MAGIC_DIR)/Makefile.mk
 include $(VIS_DIR)/plugins/src/plugins.mk
 
+#overwrite the libraries
+LIBS = -lvis -lipc
+
 
