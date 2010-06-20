@@ -24,6 +24,10 @@ using namespace Magic;
 //#define SCAN_NAME "top_urg_range+intensity"
 //#define SCAN_NAME "range+intensity1+AGC1"
 
+enum { HOKUYO_TYPE_UTM,
+       HOKUYO_TYPE_UBG
+     };
+
 HokuyoCircularHardware * dev = NULL;
 
 void ShutdownFn(int code)
@@ -74,46 +78,25 @@ int main(int argc, char * argv[])
 
   string robotName        = string("Robot") + robotIdStr;
   
+  char * lidar0Type = getenv("LIDAR0_TYPE");
+  char * lidar1Type = getenv("LIDAR1_TYPE");
 
-  int nPoints = 1081;
+
+  //default to HOKUYO_UTM
+  if (!lidar0Type)
+    lidar0Type = (char*)"HOKUYO_UTM";
+
+  if (!lidar1Type)
+    lidar1Type = (char*)"HOKUYO_UTM";
+
+
+  int nPoints = 0;
   if (argc >=4)
     nPoints = strtol(argv[3],NULL,10);
   
-  int scanStart=0;      //start of the scan
-  int scanEnd=nPoints -1;//1080;      //end of the scan
-  int scanSkip=1;       //this is so-called "cluster count", however special values
-                        //of this variable also let request Intensity and AGC values
-                        //from URG-04LX. (see the intensity mode manual and Hokuyo.hh)
-
-                        //If the scanner is 04LX and the scan name is not
-                        //"range", then this skip value will be overwritten with the appropriate
-                        //value in order to request the special scan. 
-                        //See call to getScanTypeAndSkipFromName() below
-                        
-                        //Thus, for 04LX the skip (cluster)
-                        //value is only effective if the scan name is "range". For 30LX, both
-                        //"range" and "top_urg_range+intensity" should allow setting skip value
-  
-
-  int encoding=HOKUYO_3DIGITS; //HOKUYO_2DIGITS
-                               //2 or 3 char encoding. 04LX supports both, but 30LX only 3-char
-                               //2-char encoding reduces range to 4meters, but improves data
-                               //transfer rates over standard serial port
-
-  int scanType;                //scan type specifies whether a special scan is required, 
-                               //such as HOKUYO_SCAN_SPECIAL_ME - for URG-30LX intensity mode
-                               //otherwise use HOKUYO_SCAN_REGULAR. This will be automatically
-                               //acquired by the getScanTypeAndSkipFromName() function below
-
-  int baudRate=115200;            //communication baud rate (does not matter for USB connection)
-
-  char scanName[128];        //name of the scan - see#include <iomanip> Hokuyo.hh for allowed types
-  strcpy(scanName,SCAN_NAME); 
-
-
-
   const int numBuffers=50;      //number of buffers to be used in the circular buffer
   const int bufferSize = HOKUYO_MAX_DATA_LENGTH;
+  int baudRate=115200;            //communication baud rate (does not matter for USB connection)
 	dev = new HokuyoCircularHardware(bufferSize,numBuffers); //create an instance of HokuyoCircular
 
 	PRINT_INFO("Connecting to device "<< address <<"\n");
@@ -123,10 +106,12 @@ int main(int argc, char * argv[])
 		return -1;
 	}
 
+  string lidarTypeStr;
+  int lidarType;
   string serial = dev->GetSerial();
   PRINT_INFO("Sensor's serial number is "<<serial<<"\n");
 
-  if (id.empty())
+  if (id.empty() || id.compare("-1") == 0)
   {
     char * lidar0serial = getenv("LIDAR0_SERIAL");
     char * lidar1serial = getenv("LIDAR1_SERIAL");
@@ -138,9 +123,15 @@ int main(int argc, char * argv[])
     }
 
     if (serial.compare(lidar0serial) == 0)
+    {
       id = string("0");
+      lidarTypeStr = string(lidar0Type);
+    }
     else if (serial.compare(lidar1serial) == 0)
+    {
       id = string("1");
+      lidarTypeStr = string(lidar1Type);
+    }
     else
     {
       PRINT_ERROR("lidar id is not defined and current serial (" <<serial<<") does not match neither LIDAR0_SERIAL nor LIDAR1_SERIAL\n");
@@ -148,6 +139,40 @@ int main(int argc, char * argv[])
     }
     PRINT_INFO("Sensor identified as LIDAR"<<id<<"\n");
   }
+
+  if (lidarTypeStr.compare("HOKUYO_UTM") == 0)
+    lidarType = HOKUYO_TYPE_UTM;
+  else if (lidarTypeStr.compare("HOKUYO_UBG") == 0)
+    lidarType = HOKUYO_TYPE_UBG;
+  else
+  {
+    lidarType = HOKUYO_TYPE_UTM;
+  }
+
+  int maxPoints;
+  switch (lidarType)
+  {
+    case HOKUYO_TYPE_UTM:
+      maxPoints = 1081;
+      break; 
+    case HOKUYO_TYPE_UBG:
+      maxPoints = 769;
+      break;
+    default:
+      PRINT_ERROR("unknown sensor type: " << lidarType << "\n");
+      return -1;
+  }
+
+  if (nPoints ==0)
+    nPoints = maxPoints;
+  else if (nPoints > maxPoints)
+  {
+    PRINT_ERROR("nPoints is larger than maxPoints : " << nPoints << " > " << maxPoints << "\n");
+    return -1;
+  }
+
+  PRINT_INFO("Number of points in scan = " << nPoints << "\n");
+
 
   string lidarScanMsgName = robotName + "/Lidar" + id;
   //connect to ipc  
@@ -169,6 +194,14 @@ int main(int argc, char * argv[])
 		return -1;
 	}
 */
+
+  int scanStart=0;      //start of the scan
+  int scanEnd=nPoints -1;//1080;      //end of the scan
+  int scanSkip=1;       
+  int encoding=HOKUYO_3DIGITS; 
+  int scanType;                
+  char scanName[128];        //name of the scan - see Hokuyo.hh for allowed types
+  strcpy(scanName,SCAN_NAME); 
 
   int sensorType= dev->GetSensorType();
   int newSkip;
