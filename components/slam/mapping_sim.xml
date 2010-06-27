@@ -73,7 +73,7 @@
   </plugin>
 
   <plugin>
-    <id>Robot0</id>
+    <id>Robot1</id>
     <filename>MagicPlatform.so</filename>
 
     <xyz>0 0 0.0825</xyz>
@@ -89,8 +89,8 @@
     <plugin>
       <id>sim</id>
       <filename>MagicPlatformSim.so</filename>
-      <truthMsgName>Robot0/PoseTruth</truthMsgName>
-      <robotName>Robot0</robotName>
+      <truthMsgName>Robot1/PoseTruth</truthMsgName>
+      <robotName>Robot1</robotName>
     </plugin>
 
     <plugin>
@@ -117,20 +117,20 @@
       <plugin>
 	      <id>dataPublisher</id>
 	      <filename>MagicLidarScanPublisher.so</filename>
-		    <msgName>Robot0/Lidar0</msgName>
+		    <msgName>Robot1/Lidar0</msgName>
 	    </plugin>
 
 	  </plugin>
-
+<!--
     <plugin>
       <id>servo</id>
       <minAngle>-40</minAngle>
       <maxAngle>40</maxAngle>
-      <speed>40</speed>
+      <speed>20</speed>
       <publishState>true</publishState>
       <filename>Servo.so</filename>
       <xyz>0.165 0 0.40</xyz>
-      <ipcMsgName>Robot0/Servo1</ipcMsgName>
+      <ipcMsgName>Robot1/Servo1</ipcMsgName>
 
       <plugin>
         <id>axes</id>
@@ -163,12 +163,14 @@
         <plugin>
 	        <id>dataPublisher</id>
 	        <filename>MagicLidarScanPublisher.so</filename>
-		      <msgName>Robot0/Lidar1</msgName>
+		      <msgName>Robot1/Lidar1</msgName>
 	      </plugin>
 
 	    </plugin>
 
     </plugin>
+
+/-->
 
   </plugin>
 

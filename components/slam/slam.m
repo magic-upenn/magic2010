@@ -59,6 +59,7 @@ ipcAPIDefine(SLAM.IncMapUpdateVMsgName);
 SLAM.xOdom        = SLAM.x;
 SLAM.yOdom        = SLAM.y;
 SLAM.yawOdom      = SLAM.yaw;
+SLAM.odomChanged  = 1;
 
 SLAM.cMapIncFree = -5;
 SLAM.cMapIncObs  = 10;

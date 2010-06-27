@@ -121,7 +121,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     double * pyss  = &(yss[0]);
     
     //divide the candidate pose xy by resolution, to save computations later
-    //don't subtract the min values, since it will be done later
+    //subtract the min values too
     for (int ii=0; ii<npxs; ii++)
       pxss[ii] = (pxs[ii]-xmin)*invRes; 
 
@@ -136,7 +136,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
 
     tpths = pths;
-    for (int pthi =0; pthi<npths; pthi++)
+    for (int pthi =0; pthi<npths; pthi++)   //iterate over all yaw values
     {
       double costh = cos(*tpths);
       double sinth = sin(*tpths);
@@ -162,6 +162,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         tpys = pyss;
         for (int pyi=0; pyi<npys; pyi++)    //iterate over all pose ys
         {
+          //use unsigned int - don't have to check < 0
           unsigned int yi  = yd + *tpys++;// + 0.0;
 
           if (yi >= sizey)
@@ -176,6 +177,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
           tpxs = pxss;
           for (int pxi=0; pxi<npxs; pxi++)  //iterate over all pose xs
           {
+            //use unsigned int - don't have to check < 0
             unsigned int xi = xd + *tpxs++;
             if (xi >= sizex)
             {

@@ -26,6 +26,11 @@ if isempty(ENCODERS.counts)
 end
 
 SLAM.lidar0Cntr = SLAM.lidar0Cntr+1;
+if isempty(LIDAR0.lastTime)
+  LIDAR0.lastTime = LIDAR0.scan.startTime;
+end
+
+dt = LIDAR0.scan.startTime - LIDAR0.lastTime;
 
 %fprintf(1,'got lidar scan\n');
 if (mod(SLAM.lidar0Cntr,40) == 0)
@@ -66,8 +71,9 @@ LIDAR0.ys = ysss;
 %number of poses in each dimension to try
 
 %if encoders are zero, don't move
-if ~(ENCODERS.counts.fr == 0 && ENCODERS.counts.rr == 0 && ...
-    ENCODERS.counts.fl == 0 && ENCODERS.counts.rl == 0)
+%if(SLAM.odomChanged > 0)
+if (1)
+  SLAM.odomChanged = 0;
   
   %figure out how much to search over the yaw space based on the 
   %instantaneous angular velocity from imu
@@ -109,7 +115,7 @@ if ~(ENCODERS.counts.fr == 0 && ENCODERS.counts.rr == 0 && ...
   yRange   = floor(nys/2);
 
   %create the candidate locations in each dimension
-  aCand = (-yawRange:yawRange)*dyaw+SLAM.yaw + IMU.data.wyaw*0.025;
+  aCand = (-yawRange:yawRange)*dyaw+SLAM.yaw + IMU.data.wyaw*dt;
   xCand = (-xRange:xRange)*dx+SLAM.xOdom;
   yCand = (-yRange:yRange)*dy+SLAM.yOdom;
 
@@ -155,6 +161,9 @@ POSE.data.roll  = IMU.data.roll;
 POSE.data.pitch = IMU.data.pitch;
 POSE.data.yaw   = SLAM.yaw;
 POSE.t          = GetUnixTime();
+SLAM.xOdom      = SLAM.x;
+SLAM.yOdom      = SLAM.y;
+SLAM.yawOdom    = SLAM.yaw;
 
 %send out pose message
 if mod(SLAM.lidar0Cntr,4) == 0
@@ -327,3 +336,5 @@ if (xShift ~= 0 || yShift ~= 0)
     DVMAP = mapResize(DVMAP,xShift,yShift);
     ScanMatch2D('setBoundaries',OMAP.xmin,OMAP.ymin,OMAP.xmax,OMAP.ymax);
 end
+
+LIDAR0.lastTime = LIDAR0.scan.startTime;

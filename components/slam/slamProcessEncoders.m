@@ -66,9 +66,9 @@ if ~isempty(data)
   wdt = (rc - lc)/(2*ENCODERS.robotRadius*ENCODERS.robotRadiusFudge);
   %dt = counts.t - ENCODERS.tLast;
   
-  xPrev   = SLAM.x;
-  yPrev   = SLAM.y;
-  yawPrev = SLAM.yaw;
+  xPrev   = SLAM.xOdom;
+  yPrev   = SLAM.yOdom;
+  yawPrev = SLAM.yawOdom;
   
   %calculate the change in position
   if (abs(wdt) > 0.001)
@@ -81,7 +81,6 @@ if ~isempty(data)
     dyaw =  wdt;
   end
   
-  
   %this does not seem to do anything...
   %the idea is to project the displacement onto the 2D plane, given pitch
   %and roll
@@ -90,5 +89,11 @@ if ~isempty(data)
   SLAM.xOdom   = xPrev   + dTrans(1);
   SLAM.yOdom   = yPrev   + dTrans(2);
   SLAM.yawOdom = yawPrev + dyaw;
+
+  %{
+  if (abs(SLAM.xOdom-SLAM.x) > 0.00001 || abs(SLAM.yOdom-SLAM.y) > 0.00001 || abs(SLAM.yawOdom-SLAM.yaw) > 0.00001)
+    SLAM.odomChanged = 1;
+  end
+  %}
   
 end
