@@ -14,6 +14,7 @@ if isempty(LIDAR0) || ~isfield(LIDAR0,'initialized') || (LIDAR0.initialized ~= 1
   LIDAR0.offsety = 0;
   LIDAR0.offsetz = 0.54;  %from the body origin (not floor)
   LIDAR0.timeout = 0.1;
+  LIDAR0.lastTime = []; 
   
   ipcInit;
   ipcAPIDefine(LIDAR0.msgName,MagicLidarScanSerializer('getFormat'));
