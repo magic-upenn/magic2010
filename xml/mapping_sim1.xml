@@ -105,7 +105,7 @@
       <maxAngle>35</maxAngle>
       <speed>80</speed>
       <publishState>true</publishState>
-      <filename>Servo.so</filename>
+      <filename>MagicServoSim.so</filename>
       <xyz>0.165 0 0.40</xyz>
       <ipcMsgName>Robot1/Servo1</ipcMsgName>
 
