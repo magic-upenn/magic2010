@@ -156,6 +156,7 @@ void VIS_PLUGIN::UpdatePlugin()
   //check the cmd mailbox
   if (this->cmdMailbox->IsFresh())
   {
+    printf("got cmd\n");
     ServoControllerCmd * cmd = (ServoControllerCmd*)this->cmdMailbox->GetData();
     switch (cmd->mode)
     {
@@ -169,6 +170,7 @@ void VIS_PLUGIN::UpdatePlugin()
         this->mode            = cmd->mode;
         this->servoSim->SetMaxSpeed(this->maxSpeed);
         this->servoSim->SetMaxAccel(this->maxAccel);
+        this->state           = SERVO_STATE_STOPPED;
         
         break;
       default:
@@ -213,8 +215,6 @@ void VIS_PLUGIN::UpdatePlugin()
 
         this->state = SERVO_STATE_MOVE_CMD_SENT;
         break;
-    
-    
     }
   }
   
