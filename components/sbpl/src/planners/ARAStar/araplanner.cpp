@@ -602,6 +602,7 @@ int ARAPlanner::ResetSearchStateSpace(ARASearchStateSpace_t* pSearchStateSpace)
 //initialization before each search
 void ARAPlanner::ReInitializeSearchStateSpace(ARASearchStateSpace_t* pSearchStateSpace)
 {
+  printf("\n\nRE-INIT PLANNER!!!\n\n");
 	CKey key;
 
 	//increase callnumber

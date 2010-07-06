@@ -1,4 +1,4 @@
-function mapfsmRecvPathFcn(data, name)
+function mapfsmRecvPlannerPathFcn(data, name)
 
 global MP PATH
 

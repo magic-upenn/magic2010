@@ -23,6 +23,7 @@ using namespace std;
 #define min(a,b) (a<b?a:b)
 #define max(a,b) (a>b?a:b)
 
+#define PUBLISH_MAP 0
 #define PLANNING_TIME 2.0
 
 float resolution=0.1;
@@ -43,7 +44,7 @@ EnvironmentMAGICLAT* env = NULL;
 ARAPlanner* planner = NULL;
 vector<sbpl_2Dpt_t> perimeterptsV;
 float inner_radius = 0;
-float padding = 0.8;
+float padding = 1.0;
 int exploration_obst_thresh = 250;
 int obst_thresh = 254;
 int inner_obst_thresh = obst_thresh-1;
@@ -96,13 +97,14 @@ static void GP_FULL_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, vo
              &temp_map, NULL, NULL,
              &new_size_x, &new_size_y);
 
-  if(true || size_x != new_size_x || size_y != new_size_y || env == NULL){
+  global_x_offset = gp_full_update_p->UTM_x;
+  global_y_offset = gp_full_update_p->UTM_y;
+
+  if(size_x != new_size_x || size_y != new_size_y || env == NULL){
     //update size variables
     int old_size_x = size_x;
     size_x = new_size_x;
     size_y = new_size_y;
-    global_x_offset = gp_full_update_p->UTM_x;
-    global_y_offset = gp_full_update_p->UTM_y;
     
     if(env != NULL){
       /*
@@ -317,6 +319,7 @@ int main(int argc, char** argv){
   string waypointsName = robotName + "/Waypoints"; 
   string trajName = robotName + "/Planner_Path"; 
   string stateName = robotName + "/Planner_State"; 
+  string outMapName = robotName + "/Planner_Map"; 
 
   printf("\nIPC_connect(%s)\n", MODULE_NAME);
   IPC_connect(MODULE_NAME);
@@ -338,6 +341,12 @@ int main(int argc, char** argv){
 
   Magic::MotionTraj path_msg;
   IPC_defineMsg(trajName.c_str(), IPC_VARIABLE_LENGTH, path_msg.getIPCFormat());
+
+#if PUBLISH_MAP
+	GP_MAGIC_MAP map_msg;
+  IPC_defineMsg(outMapName.c_str(), IPC_VARIABLE_LENGTH, map_msg.getIPCFormat());
+  map_msg.map = NULL;
+#endif
 
 
   printf("IPC init done!\n");
@@ -386,6 +395,7 @@ int main(int argc, char** argv){
       }
       printf("footprint count = %d\n",count2);
       planner->costs_changed();
+      //planner->force_planning_from_scratch();
       planner->set_start(env->SetStart(global_start_x-global_x_offset, 
                                        global_start_y-global_y_offset, 
                                        global_start_theta));
@@ -427,7 +437,22 @@ int main(int argc, char** argv){
         path_msg.waypoints[i].v = 0.5;
       }
       IPC_publishData(trajName.c_str(), &path_msg);
-      
+
+#if PUBLISH_MAP
+      if(map_msg.map)
+        delete [] map_msg.map;
+      map_msg.UTM_x = global_x_offset;
+      map_msg.UTM_y = global_y_offset;
+      map_msg.size_x = size_x;
+      map_msg.size_y = size_y;
+      map_msg.resolution = resolution;
+      map_msg.map = new int16_t[size_x*size_y];
+      for(int x=0; x<size_x; x++)
+        for(int y=0; y<size_y; y++)
+          map_msg.map[y+size_y*x] = costmap[x][y];
+      IPC_publishData(outMapName.c_str(), &map_msg);
+#endif
+
       initialized = NEED_UPDATE;
     }
   }
