@@ -1,13 +1,5 @@
-#ifndef __APPLE__
 #include "VisPlugin.hh"
-#include "VisError.hh"
 #include "IPCMailboxes.hh"
-#else
-#include <Vis/VisPlugin.hh>
-#include <Vis/VisError.hh>
-#include <Vis/IPCMailboxes.hh>
-#endif
-
 #include "MagicPose.hh"
 
 #define VIS_PLUGIN MagicPose2VisPose3D

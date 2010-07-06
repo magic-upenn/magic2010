@@ -1,14 +1,5 @@
-#ifndef  __APPLE__
 #include "VisPlugin.hh"
-#include "VisError.hh"
-#include "IPCMailboxes.hh"
 #include "VisInterfaces.hh"
-#else
-#include <Vis/VisPlugin.hh>
-#include <Vis/VisError.hh>
-#include <Vis/IPCMailboxes.hh>
-#include <Vis/VisInterfaces.hh>
-#endif
 
 #include "MagicSensorDataTypes.hh"
 #include "Lidar2D.hh"
