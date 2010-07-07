@@ -34,7 +34,7 @@ double global_y_offset;
 
 // number of robots
 const int NUMROBOTS = 3;
-bool ROBOTAVAIL[NUMROBOTS] = {0,0,1};
+bool ROBOTAVAIL[NUMROBOTS] = {1,0,0};
 float POSEX[NUMROBOTS];
 float POSEY[NUMROBOTS];
 float POSETHETA[NUMROBOTS];
