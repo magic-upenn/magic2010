@@ -61,7 +61,7 @@ int robot_x=1, robot_y=1; // x and y cell coordinates of robot
 float theta = 0;
 
 //robot variables
-float sensor_radius= 5.0; // distance sensors can see in m
+float sensor_radius= 3.0; // distance sensors can see in m
 int16_t sensor_height=120; // sensor height in cm
 float inflation_size=0.25*0.25/0.2;  //size in cells to inflate obstacles
 const float SENSORWIDTH = 70*M_PI/180;  // sensor width in radians used to determine start and finish vectors for ray tracing
@@ -71,7 +71,7 @@ float GP_PLAN_TIME=5.0; // seconds to allow for planning
 int HIGH_IG_THRES = 50000; // set by initialization and full map updates
 float IG_RATIO = 0.01; // ratio of total possible unknown to remaining unknown before switching to pure greedy search
 float LR_MARGIN = 10; // amount one side must be greater to influence pan angles
-float DIST_GAIN = 0.1; // factor to switch between greedy and IG
+float DIST_GAIN = 100; // factor to switch between greedy and IG
 int CELLS_PER_SEC = 10*10*M_PI*20*KNOWN/360; // number of cells that can be swept out per second
 float VIEW_PROB_FACTOR = 0.3; // retards calculated speed based on likelihood of observation
 bool WRITE_FILES = true; // flag to write files out
