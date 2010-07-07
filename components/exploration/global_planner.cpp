@@ -71,7 +71,7 @@ float GP_PLAN_TIME=5.0; // seconds to allow for planning
 int HIGH_IG_THRES = 50000; // set by initialization and full map updates
 float IG_RATIO = 0.01; // ratio of total possible unknown to remaining unknown before switching to pure greedy search
 float LR_MARGIN = 10; // amount one side must be greater to influence pan angles
-float DIST_GAIN = 100; // factor to switch between greedy and IG
+float DIST_GAIN = 0.3; // factor to switch between greedy and IG
 int CELLS_PER_SEC = 10*10*M_PI*20*KNOWN/360; // number of cells that can be swept out per second
 float VIEW_PROB_FACTOR = 0.3; // retards calculated speed based on likelihood of observation
 bool WRITE_FILES = true; // flag to write files out
@@ -398,7 +398,7 @@ void find_frontier(unsigned int IG_map[], int dijkstra[]) {
 							(real_cover_map[(i-1) + coverage_size_x*(j)] != KNOWN) ||
 							(real_cover_map[(i) + coverage_size_x*(j+1)] != KNOWN) ||
 							(real_cover_map[(i) + coverage_size_x*(j-1)] != KNOWN) ) )  {
-					frontier_pts temp(i, j, IG_map[i+coverage_size_x*j], dijkstra[i+coverage_size_x*j], 1.0);
+					frontier_pts temp(i, j, IG_map[i+coverage_size_x*j], dijkstra[i+coverage_size_x*j], DIST_GAIN);
 					frontier.push(temp);
 					//cout << i << "," << j << " is on the frontier " << endl;
 				}
@@ -613,7 +613,7 @@ cout << "start while " << endl;
 					dist = return_path(x_target, y_target, dijkstra, test_traj);
 
 					// scale distance 
-					dist = (dist*DIST_GAIN +1);
+					//dist = (dist*DIST_GAIN +1);
 					// determine gain from each possible goal point
 					double temp_score=0;
 					for (int current_loc = 1; current_loc < test_traj.size(); current_loc++)  {  
@@ -630,10 +630,10 @@ cout << "start while " << endl;
 					} //for current_loc
 
 					// store as traj if best score per distance traveled
-					if ((temp_score/dist)>best_score) {
+					if ((((temp_score*DIST_GAIN)+1)/(dist*(1-DIST_GAIN)+1))>best_score) {
 						traj.swap(test_traj);
 						//traj = test_traj;
-						best_score = temp_score/dist;
+						best_score = (((temp_score*DIST_GAIN)+1)/(dist*(1-DIST_GAIN)+1));
 						cout << "New best score " << best_score <<  ":" << x_target << "," << y_target << " size " << traj.size() <<  endl;
 					}
 					//cout << "current best score " << best_score <<  ":" << traj.back().x << "," << traj.back().y << " size " << traj.size() <<  endl;

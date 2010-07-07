@@ -24,7 +24,7 @@ class frontier_pts {
 			IG = c;
 			cost =  d;
 			weight = e;
-			total = double(c*e) / (double)(d);
+			total = ((c*e)+1.0)/ (d*(1.0-e)+1.0);
 		}
 };
 
