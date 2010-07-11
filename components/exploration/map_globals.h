@@ -20,6 +20,7 @@ extern int NUMVECTORS;
 
 const int MINFLAG = 251; // value of lowest FLAG
 const int OBSTACLE = 250; // value of OBSTACLES on cost map
+const int16_t OBS16 = 30000;
 const int UNKOBSTACLE = 251; // value for UNKNOWN cells on obstacle map
 const int UNKNOWN = 0; // value for unknown on coverage map
 const int KNOWN = 249; // value for known on coverage map

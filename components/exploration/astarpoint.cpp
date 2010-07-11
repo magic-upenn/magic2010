@@ -60,8 +60,8 @@ void Astarnearest(const int startx,const int starty,int & goalx,int & goaly, con
 	//  5 6 7
 	
 	float stepcost[8];
-	stepcost[0] = stepcost[2] = stepcost[4] = stepcost[6] = 1*cost_cell_size;
-	stepcost[1] = stepcost[3] = stepcost[5] = stepcost[7] = sqrt(2.0)*cost_cell_size;
+	stepcost[0] = stepcost[2] = stepcost[4] = stepcost[6] = (float)1*cost_cell_size;
+	stepcost[1] = stepcost[3] = stepcost[5] = stepcost[7] = (float)(sqrt(2.0)*cost_cell_size);
 
 	const int dX[8] = {1, 1, 0, -1, -1, -1,  0,  1};
 	const int dY[8] = {0, 1, 1,  1,  0, -1, -1, -1};
@@ -160,7 +160,7 @@ printf("astar open\n");
 	// init current cell to start
 	current.x = startx;
 	current.y = starty;
-	current.h = sqrt(pow(goalx-current.x,2.0)+pow(goaly-current.y,2.0));
+	current.h = (float)sqrt(pow(goalx-current.x,2.0)+pow(goaly-current.y,2.0));
 	current.f = current.h;
 
 	OpenCells.push(current);

@@ -32,12 +32,12 @@ void getfiles(unsigned char **cover_map, unsigned char **cost_map, int16_t **ele
 	{ cerr << " unable to read input file"; }
 }
 
-void writefiles(const unsigned char cover_map[], const unsigned char cost_map[], const int16_t elev_map[], const int mapx, const int mapy) {
+void writefiles(const unsigned char cover_map[], const unsigned char cost_map[], const int16_t elev_map[], const char * filename, const int mapx, const int mapy) {
 	// writes the main map variables to disk
 
 	ofstream fout;
 
-	fout.open("Map_out.txt", ios_base::out | ios_base::binary | ios_base::trunc);
+	fout.open(filename, ios_base::out | ios_base::binary | ios_base::trunc);
 	if (fout.is_open()) {
 
 		fout.write( (char *) &mapx, sizeof(int));
@@ -54,11 +54,11 @@ void writefiles(const unsigned char cover_map[], const unsigned char cost_map[],
 	{ cerr << " unable to write output file"; }
 }
 
-void writefileextra(const int map[], int x, int y) {
+void writefileextra(const int map[], const char * filename, int x, int y) {
 	// writes the cost to accessable points map to disk
 	ofstream fout;
 	
-	fout.open("Map_extra.txt", ios_base::out | ios_base::binary | ios_base::trunc);
+	fout.open(filename, ios_base::out | ios_base::binary | ios_base::trunc);
 
 	if (fout.is_open()) {
 
@@ -74,13 +74,13 @@ void writefileextra(const int map[], int x, int y) {
 }
 
 
-void writefiletraj( const double score, const std::vector<Traj_pt_s> & traj) {
+void writefiletraj( const double score, const std::vector<Traj_pt_s> & traj,  const char * filename) {
 	// writes the trajectory to disk
 	ofstream fout;
 	
 	int t_leng = traj.size();
 
-	fout.open("Map_traj.txt", ios_base::out | ios_base::binary | ios_base::trunc);
+	fout.open(filename, ios_base::out | ios_base::binary | ios_base::trunc);
 
 	if (fout.is_open()) {
 

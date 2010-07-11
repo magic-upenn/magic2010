@@ -86,7 +86,9 @@ void setPixel(int x, int y) {
 	unsigned int locptr = 0;
 	//cout << " ray pt " << x << "," << y << endl;
 	float tempangle = atan2((float)y, (float)x);
-	if (tempangle <0) { tempangle += 2*M_PI; }
+	if (tempangle < 0) {
+		tempangle += (float)(2.0 * M_PI);
+	}
 
 	if (rayendpts.size() == 0) { 
 		rayendpts.push_back(RAY_TEMPLATE_PT(x, y, tempangle));
@@ -150,15 +152,28 @@ void rasterCircle(int radius) {
 	cout << "Number of rays in template: " << NUMVECTORS << endl;
 }
 
+int ValidVec(int vec) {
+	// verifies that the vector is within limits
+	if (vec < 0) {
+		vec = NUMVECTORS + vec;
+	} else if (vec >= NUMVECTORS) {
+		vec = vec - NUMVECTORS;
+	}
+	return vec;
+}
+
 bool OnMap(int x, int y) {
 	// function to determine if a point is on the map
-	if ((x<cost_size_x) && (x>=0) && (y<cost_size_y) && (y >=0)) {return true; }
-	else { return false;}
+	if ((x < cost_size_x) && (x >= 0) && (y < cost_size_y) && (y >= 0)) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 double return_path(int x_target, int y_target, const int dijkstra[], vector<Traj_pt_s> & traj) {
 	// function to return the optimal path to a target location given a dijkstra map
-	cout << "start return path " << endl;
+	//cout << "start return path " << endl;
 	Traj_pt_s current;
 	vector<Traj_pt_s> inv_traj;
 	int x_val, y_val, best_x_val, best_y_val;
@@ -195,7 +210,7 @@ double return_path(int x_target, int y_target, const int dijkstra[], vector<Traj
 			current.y = y_val = best_y_val;
 			inv_traj.push_back(current);
 		}
-cout << " invert " << endl;
+		//cout << " invert " << endl;
 		// invert the trajectory to send back
 		traj.clear();
 		while(inv_traj.size() !=0) {
@@ -206,9 +221,11 @@ cout << " invert " << endl;
 			//printf("path %d, %d\n", current.x, current.y);
 		}
 		return (cost*cost_cell_size);
+	} else {
+		printf("WARNING: Invalid goal location - %i %i\n", x_target, y_target);
+		return (-1);
 	}
-	else { printf("WARNING: Invalid goal location - %i %i\n", x_target, y_target); return(-1); }
-	cout << "done return path " << endl;
+	//cout << "done return path " << endl;
 }
 
 void map_alloc(void) {
@@ -254,11 +271,12 @@ void sample_point(int &x_target, int &y_target, const int dijkstra[], const unsi
 	// combine maps to get benefit from each point + cost
 	//cout << "      start sample_point" << endl;	
 	static int prev_x=0, prev_y=0;
-cout << "  start sample point " << endl;
+//	cout << "  start sample point ";
 	x_target = -1;
 	y_target = -1;
 	//cout << "       Frontier is empty " << endl;
-	while(!frontier.empty()) {
+	//while (!frontier.empty()) {
+	if(!frontier.empty()) {	
 		x_target = frontier.top().x;
 		y_target = frontier.top().y;
 		//cout << x_target << "," << y_target << " I:" << frontier.top().IG << " C:" << frontier.top().cost << " T:" << frontier.top().total << endl;
@@ -268,11 +286,15 @@ cout << "  start sample point " << endl;
 		//    cover_map[(x_target-1) + coverage_size_x*(y_target)],
 		//    cover_map[(x_target) + coverage_size_x*(y_target-1)]);
 		frontier.pop();
-		//if ((pow((float)(prev_x-x_target), 2) + pow((float)(prev_y-y_target),2))>10) {
-			//prev_x = x_target; prev_y = y_target; break; }
+		//if ((pow((float) (prev_x - x_target), 2) + pow((float) (prev_y
+		//		- y_target), 2)) > 10) {
+		//	prev_x = x_target;
+		//	prev_y = y_target;
+		//	break;
+		//}
 
 	}
-	cout << "end sample point" << endl;
+	//cout << "end" << endl;
 }
 
 void goto_nearest(int &x_target, int &y_target, const int dijkstra[], const unsigned char temp_cover_map[]) {
@@ -280,30 +302,65 @@ void goto_nearest(int &x_target, int &y_target, const int dijkstra[], const unsi
 	static int prev_x=-2, prev_y=-2;
 
 	//find nearest point that is unexplored
-	if (prev_x !=-1) {	Astarnearest(robot_x, robot_y, x_target, y_target, inflated_cost_map, temp_cover_map) ; }
+	if (prev_x != -1) {
+		Astarnearest(robot_x, robot_y, x_target, y_target, inflated_cost_map,
+				temp_cover_map);
+	}
 	int i=0, j=0, count =0, sign =1, dir=0, total=1;
-	printf(" prelim target is %i %i\n", x_target, y_target);
-	if ((x_target ==-1) && (y_target==-1)) { printf("No valid target cells from Astarnearest\n"); prev_x = -1; prev_y = -1; return; }
+	if (DISPLAY_OUTPUT) {printf(" prelim target is %i %i\n", x_target, y_target);}
+	if ((x_target == -1) && (y_target == -1)) {
+		if (DISPLAY_OUTPUT) {printf("No valid target cells from Astarnearest\n");}
+		prev_x = -1;
+		prev_y = -1;
+		return;
+	}
 	// find nearest accessable point to desired location
 	while((prev_x!=x_target)||(prev_y!=y_target)) {
 		if (OnMap(i+x_target, j+y_target)) {
-			if (dijkstra[(i+x_target)+cost_size_x*(j+y_target)]<DIJKSTRA_LIMIT) {
-				prev_x = x_target; prev_y = y_target; x_target += i; y_target += j; printf("nearest target is %i %i\n", x_target, y_target); return; }
+			if (dijkstra[(i + x_target) + cost_size_x * (j + y_target)]
+					< DIJKSTRA_LIMIT) {
+				prev_x = x_target;
+				prev_y = y_target;
+				x_target += i;
+				y_target += j;
+				if (DISPLAY_OUTPUT) {printf("nearest target is %i %i\n", x_target, y_target);}
+				return;
+			}
 		}
-		if (count == total) { 
-			count = 0; 
-			if (dir==0) {dir = 1;} 
-			else {dir = 0; total++; sign *= -1; }
+		if (count == total) {
+			count = 0;
+			if (dir == 0) {
+				dir = 1;
+			} else {
+				dir = 0;
+				total++;
+				sign *= -1;
+			}
 		}
-		if (dir==0) { i += sign; count++; }
-		else { j += sign; count++; }
-		if(i> cost_size_x) { printf("     No more unexplored area"); x_target = -1; y_target = -1; return;}
+		if (dir == 0) {
+			i += sign;
+			count++;
+		} else {
+			j += sign;
+			count++;
+		}
+		if (i > cost_size_x) {
+			printf("     No more unexplored area");
+			x_target = -1;
+			y_target = -1;
+			return;
+		}
 	}
 	// if the target is the same,  function exits
 	// add small random offset to target
-	x_target += rand()%5 + rand()%5 - 4;
-	y_target += rand()%5 + rand()%5 - 4;
-	cout << "going for " << x_target << " " << y_target << endl;
+	x_target += rand() % 5 + rand() % 5 - 4;
+	y_target += rand() % 5 + rand() % 5 - 4;
+	while(!OnMap(x_target, y_target)) {
+		x_target += rand() % 5 + rand() % 5 - 4;
+		y_target += rand() % 5 + rand() % 5 - 4;
+	}
+
+	if (DISPLAY_OUTPUT) {cout << "going for " << x_target << " " << y_target << endl;}
 	return;
 }
 /*
@@ -337,39 +394,44 @@ bool calc_all_IG(unsigned int IG_map[]) {
 		IG_map[coverage_size_x*j] = 0;
 	}
 
-	int lowest_IG=1, highest_IG = 0, highx, highy, lowx, lowy;
-	cout << "starting IG calc " << endl;
-
-	if (cost_size_x) { cout << ".";}
-	if (cost_map[100]) {cout << ",";}
+	int lowest_IG = (int)1e7, highest_IG = 0, highx = 0, highy = 0, lowx = 0, lowy =
+			0;
 
 	//calc remaining values
-	for(int j=1; j< coverage_size_y; j++) {
-		for(int i=1; i< coverage_size_x; i++) {
-			if (cost_map[i+cost_size_x*j] == OBSTACLE) {			
-				IG_map[i+coverage_size_x*j] = IG_map[(i-1) + coverage_size_x*j] + IG_map[i + coverage_size_x*(j-1)] - IG_map[(i-1) + coverage_size_x*(j-1)];
-			}
-			else {
-				IG_map[i+coverage_size_x*j] = IG_map[(i-1) + coverage_size_x*j] + IG_map[i + coverage_size_x*(j-1)] - IG_map[(i-1) + coverage_size_x*(j-1)] - (int)real_cover_map[i+coverage_size_x*j] + KNOWN;
+	for (int j = 1; j < coverage_size_y; j++) {
+		for (int i = 1; i < coverage_size_x; i++) {
+			if (cost_map[i + cost_size_x * j] == OBSTACLE) {
+				IG_map[i + coverage_size_x * j] = IG_map[(i - 1)
+						+ coverage_size_x * j] + IG_map[i + coverage_size_x
+						* (j - 1)]
+						- IG_map[(i - 1) + coverage_size_x * (j - 1)];
+			} else {
+				IG_map[i + coverage_size_x * j] = IG_map[(i - 1)
+						+ coverage_size_x * j] + IG_map[i + coverage_size_x
+						* (j - 1)]
+						- IG_map[(i - 1) + coverage_size_x * (j - 1)]
+						- (int) cover_map[i + coverage_size_x * j] + KNOWN;
 			}
 			//cout << IG_map[i+coverage_size_x*j] << "::" << i << "," << j << endl;
-			//cout << "IG comp " << endl;
-			//cout << "IG - " << i+coverage_size_x*j << "  " << IG_map[i+coverage_size_x*j] << endl;
-			//if (IG_map[i+coverage_size_x*j] < lowest_IG) { 
-				//lowest_IG = IG_map[i+coverage_size_x*j]; 
-				//lowx = i; lowy = j;}
-			//if (IG_map[i+coverage_size_x*j] > highest_IG) { 
-				//highest_IG = IG_map[i+coverage_size_x*j]; 
-				//highx = i; highy=j;}
+			if (IG_map[i + coverage_size_x * j] < lowest_IG) {
+				lowest_IG = IG_map[i + coverage_size_x * j];
+				lowx = i;
+				lowy = j;
+			}
+			if (IG_map[i + coverage_size_x * j] > highest_IG) {
+				highest_IG = IG_map[i + coverage_size_x * j];
+				highx = i;
+				highy = j;
+//				printf("hig %d %d %d\n", highest_IG, highx, highy);
+			}
 		}
 	}
-	//cout << " highest IG is " << highest_IG << " at " ;
-	//cout << highx << "," << highy << " of " ;
-	//cout << HIGH_IG_THRES<< endl;
+	if (DISPLAY_OUTPUT) {cout << " highest IG is " << highest_IG << " at " << highx << "," << highy
+		<< " of " << HIGH_IG_THRES << endl;}
 
-	cout << "done with IG calc" << endl;
-	//if (highest_IG < HIGH_IG_THRES) { return false;}
-	//else
+//	if (highest_IG < HIGH_IG_THRES) {
+//		return false;
+//	} else
 		return true;
 
 }
@@ -380,25 +442,31 @@ unsigned int get_IG(unsigned int IG_map[], int x, int y, int dim) {
 	int t, r, l, b; // top right left and bottom dimensions
 	t = min((coverage_size_y-1), y+dim);
 	b = max(0, y-dim);
-	r = min((coverage_size_x-1), x+dim);
-	l = max(0, x-dim);
+	l = max(0, x - dim);
+	r = min((coverage_size_x - 1), x + dim);
 
-	return (IG_map[r + coverage_size_x*t] - IG_map[r + coverage_size_x*b] + IG_map[l + coverage_size_x*b] - IG_map[l + coverage_size_x*t] );
+	return (IG_map[r + coverage_size_x * t] - IG_map[r + coverage_size_x * b]
+			+ IG_map[l + coverage_size_x * b] - IG_map[l + coverage_size_x * t]);
 }
 
 
 void find_frontier(unsigned int IG_map[], int dijkstra[]) {
 	// function scans coverage map and populates the frontier queue with frontier points
-	while (!frontier.empty()) {	frontier.pop();}
-	for(int j=1;j< coverage_size_y-1; j++) { 
-		for(int i=1; i< coverage_size_x-1; i++) {
-			if ( dijkstra[i+coverage_size_x*j] < DIJKSTRA_LIMIT) {
-				if (	(real_cover_map[i + coverage_size_x*j] == KNOWN) && (
-							(real_cover_map[(i+1) + coverage_size_x*(j)] != KNOWN) ||
-							(real_cover_map[(i-1) + coverage_size_x*(j)] != KNOWN) ||
-							(real_cover_map[(i) + coverage_size_x*(j+1)] != KNOWN) ||
-							(real_cover_map[(i) + coverage_size_x*(j-1)] != KNOWN) ) )  {
-					frontier_pts temp(i, j, IG_map[i+coverage_size_x*j], dijkstra[i+coverage_size_x*j], DIST_GAIN);
+	while (!frontier.empty()) {
+		frontier.pop();
+	}
+	for (int j = 1; j < coverage_size_y - 1; j++) {
+		for (int i = 1; i < coverage_size_x - 1; i++) {
+			if (dijkstra[i + coverage_size_x * j] < DIJKSTRA_LIMIT) {
+				if ((cover_map[i + coverage_size_x * j] == KNOWN)
+						&& ((cover_map[(i + 1) + coverage_size_x * (j)]
+								!= KNOWN) || (cover_map[(i - 1)
+								+ coverage_size_x * (j)] != KNOWN)
+								|| (cover_map[(i) + coverage_size_x * (j + 1)]
+										!= KNOWN) || (cover_map[(i)
+								+ coverage_size_x * (j - 1)] != KNOWN))) {
+					frontier_pts temp(i, j, IG_map[i + coverage_size_x * j],
+							dijkstra[i + coverage_size_x * j], DIST_GAIN);
 					frontier.push(temp);
 					//cout << i << "," << j << " is on the frontier " << endl;
 				}
@@ -406,6 +474,58 @@ void find_frontier(unsigned int IG_map[], int dijkstra[]) {
 		}
 	}
 }
+//
+//void denoise(unsigned char src[], int strel, int mapm, int mapn) {
+//	// performs morphological open
+//	int xx = strel / 2;
+//	int yy = strel / 2;
+//
+//	unsigned char *temp = new unsigned char[mapm * mapn];
+//	unsigned char *dest = new unsigned char[mapm * mapn];
+//
+//	for (int j = 0; j < mapn; j++) {
+//		for (int i = 0; i < mapm; i++) {
+//			temp[i + j * mapm] = UNKNOWN;
+//			dest[i + j * mapm] = KNOWN;
+//		}
+//	}
+//
+//	//perform dilation of known areas
+//	for (int j = 0; j < mapn; j++) {
+//		for (int i = 0; i < mapm; i++) {
+//			if (src[i + mapm * j] != UNKNOWN) {
+//				for (int x = 0; x < strel; x++) {
+//					for (int y = 0; y < strel; y++) {
+//						if (OnMap(x + i - xx, y + j - yy)) {
+//							temp[x + i - xx + (y + j - yy) * mapm] = KNOWN;
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}
+//
+//	// perform erosion on temp map to return known areas to size
+//	for (int j = 0; j < mapn; j++) {
+//		for (int i = 0; i < mapm; i++) {
+//			if (temp[i + mapm * j] == UNKNOWN) {
+//				for (int x = 0; x <= strel; x++) {
+//					for (int y = 0; y <= strel; y++) {
+//						if (OnMap(x + i - xx, y + j - yy)) {
+//							dest[x + i - xx + (y + j - yy) * mapm] = UNKNOWN;
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}
+//
+//	// copy the dest array back onto the original src array
+//	memcpy((void *)src,(void *) dest, sizeof(unsigned char)*mapm*mapn);
+//	delete[] dest;
+//	delete[] temp;
+//
+//}
 
 //void print_local(int x, int y, int window) {
 //    // function to print small local map of given location
@@ -465,7 +585,7 @@ void global_planner(float goal_x, float goal_y, float goal_theta) {
 	// function provides a traj to best found goal point to (nearest or most valuable)
 	printf("Started global planner\n"); fflush(stdout);
 
-printf("cover size %d %d cost size %d %d elev size %d %d cell size %f %f %f\n", coverage_size_x, coverage_size_y, cost_size_x, cost_size_y, elev_size_x, elev_size_y, cost_cell_size, coverage_cell_size, elev_cell_size);
+	printf("cover size %d %d cost size %d %d elev size %d %d cell size %f %f %f\n", coverage_size_x, coverage_size_y, cost_size_x, cost_size_y, elev_size_x, elev_size_y, cost_cell_size, coverage_cell_size, elev_cell_size);
 
 	float *obs_array = new float[cost_size_x * cost_size_y];
 	float **obs_ptr_array = new float*[cost_size_y];
@@ -484,9 +604,19 @@ printf("cover size %d %d cost size %d %d elev size %d %d cell size %f %f %f\n", 
 		nonfree_ptr_array[j] = &nonfree_array[j*cost_size_x];
 	}
 
+	// remove obstacles from unknown areas
+	for (int j = 0; j < cost_size_y; j++) {
+		for (int i = 0; i < cost_size_x; i++) {
+			if (cover_map[i + coverage_size_x * j] == UNKNOWN) {
+				elev_map[i + coverage_size_x * j] = -OBS16;
+				cost_map[i + coverage_size_x * j] = 0;
+			}
+		}
+	}
+
 	// inflate map
 	computeDistancestoNonfreeAreas(cost_map_pa, cost_size_y, cost_size_x, OBSTACLE, obs_ptr_array, nonfree_ptr_array);
-	int dim = sensor_radius/(2*cost_cell_size);
+	int dim = (int) (sensor_radius/(2.0*cost_cell_size));
 
 	for (int RID = 0; RID < NUMROBOTS; RID++) {
 		if (ROBOTAVAIL[RID]) {
@@ -496,40 +626,83 @@ printf("cover size %d %d cost size %d %d elev size %d %d cell size %f %f %f\n", 
 			//update inflated map based on robot size and make unknown areas obstacles w/o inflation
 			for (int j = 0; j< cost_size_y; j++) {
 				for (int i=0; i< cost_size_x; i++) {
-					if (((!UNKNOWN_ARE_PASSABLE) && 
-								(cover_map[i+cost_size_x*j]==UNKNOWN))
-							||(obs_ptr_array[j][i]<=inflation_size)) {
-						if ((!UNKNOWN_ARE_PASSABLE) && (cover_map[i+cost_size_x*j]==UNKNOWN)) { inflated_cost_map[i+cost_size_x*j] = UNKOBSTACLE; }
-						if (obs_ptr_array[j][i]<=inflation_size) {
-							inflated_cost_map[i+cost_size_x*j] = OBSTACLE; }
+					if (((!UNKNOWN_ARE_PASSABLE) && (cover_map[i + cost_size_x * j]
+									== UNKNOWN)) || (obs_ptr_array[j][i] <= inflation_size)) {
+						if ((!UNKNOWN_ARE_PASSABLE) && (cover_map[i + cost_size_x * j]
+									== UNKNOWN)) {
+							inflated_cost_map[i + cost_size_x * j] = UNKOBSTACLE;
+						}
+						if (obs_ptr_array[j][i] <= inflation_size) {
+							inflated_cost_map[i + cost_size_x * j] = OBSTACLE;
+						}
 					}
 					//if(obs_ptr_array[j][i]<=inflation_size) { inflated_cost_map[i+cost_size_x*j] = OBSTACLE; 	}
-				else { inflated_cost_map[i+cost_size_x*j] =(unsigned char)max((double)0, (double)(cost_map[i+cost_size_x*j] - (get_IG(IG_map, i, j, dim)/(4*dim*dim)))); }
+					else {
+						int pad_dist = (int)(3.0/cost_cell_size); 
+						int buffer = (pad_dist - (int)inflation_size);
+						//printf("%i %i %f\n", pad_dist, buffer, inflation_size);
+						inflated_cost_map[i + cost_size_x * j] = (unsigned char) max(0.0, (double)((pad_dist - obs_ptr_array[j][i])*200/buffer));
+						//printf("(%4.2f", (double)((pad_dist - obs_ptr_array[j][i])*200/buffer));
+						inflated_cost_map[i + cost_size_x * j] = (unsigned char) max(
+								(double) inflated_cost_map[i + cost_size_x*j],
+								(double) (cost_map[i + cost_size_x * j]) 
+								- (double)(get_IG(IG_map, i, j, dim)) / (4.0 * dim * dim)
+								);
+						//printf("+%4.2f-%4.2f)=%i\n",
+						//			(double) (cost_map[i + cost_size_x * j]), 
+						//			 (double)(get_IG(IG_map, i, j, dim)) / (4.0 * dim * dim),
+						//			 inflated_cost_map[i + cost_size_x * j] );
+						}
 				}
 			}
-cout << "inflate " << endl;
-			// ensure that the robot cell is not an obstacle and clear a little box if there is
-			int rad = ceil(inflation_size+1);
-			float rad_2 = pow(inflation_size+1,2);
-			cover_map[robot_x+coverage_size_x*robot_y] = KNOWN;
-			if (cost_map[robot_x+cost_size_x*robot_y] >= OBSTACLE) {
-				for(int xxx=-rad;xxx<rad; xxx++){
-					for(int yyy=-rad; yyy<rad;yyy++) {
-						if (OnMap(robot_x+xxx,robot_y+yyy)&&((xxx*xxx+yyy*yyy)< rad_2)){
-							cost_map[robot_x+xxx+cost_size_x*(robot_y+yyy)] = min((int)cost_map[robot_x+xxx+cost_size_x*(robot_y+yyy)], OBSTACLE -((rad*rad)/(1+xxx*xxx+yyy*yyy)));
-							cover_map[robot_x+xxx+cost_size_x*(robot_y+yyy)] = KNOWN;
-						}
-					}
-				}		
+
+			// ensure map boundaries are solid
+			for (int i = 0; i < cost_size_x; i++) {
+				elev_map[i] = OBS16;
+				elev_map[i + cost_size_x * (cost_size_y - 1)] = OBS16;
+				cost_map[i] = OBSTACLE;
+				cost_map[i + cost_size_x * (cost_size_y -1)] = OBSTACLE;
 			}
-			if (inflated_cost_map[robot_x+cost_size_x*robot_y] >= OBSTACLE) {
-				for(int xxx=-rad;xxx<rad; xxx++){
-					for(int yyy=-rad; yyy<rad;yyy++) {
-						if (OnMap(robot_x+xxx,robot_y+yyy) && ((xxx*xxx+yyy*yyy)<rad_2)) {
-							inflated_cost_map[robot_x+xxx+cost_size_x*(robot_y+yyy)] = min((int)inflated_cost_map[robot_x+xxx+cost_size_x*(robot_y+yyy)], OBSTACLE -((3*rad*rad)/(1+xxx*xxx+yyy*yyy)));
+
+			for (int j = 0; j < cost_size_y; j++) {
+				elev_map[j * cost_size_x] = OBS16;
+				elev_map[(cost_size_x - 1) + j * cost_size_x] = OBS16;
+				cost_map[j * cost_size_x] = OBSTACLE;
+				cost_map[(cost_size_x - 1) + j * cost_size_x] = OBSTACLE;
+			}
+
+			//	cout << "inflate " << endl;
+			// ensure that the robot cell is not an obstacle and clear a little box if there is
+			int rad = (int)ceil(inflation_size + 1);
+			float rad_2 = pow(inflation_size + 1, 2);
+			cover_map[robot_x + coverage_size_x * robot_y] = KNOWN;
+			if (cost_map[robot_x + cost_size_x * robot_y] >= OBSTACLE) {
+				for (int xxx = -rad; xxx < rad; xxx++) {
+					for (int yyy = -rad; yyy < rad; yyy++) {
+						if (OnMap(robot_x + xxx, robot_y + yyy) && ((xxx * xxx + yyy
+										* yyy) < rad_2)) {
+							cost_map[robot_x + xxx + cost_size_x * (robot_y + yyy)]
+								= min((int) cost_map[robot_x + xxx + cost_size_x
+										* (robot_y + yyy)], OBSTACLE - ((rad * rad)
+											/ (1 + xxx * xxx + yyy * yyy)));
+							cover_map[robot_x + xxx + cost_size_x * (robot_y + yyy)]
+								= KNOWN;
 						}
 					}
-				}		
+				}
+			}
+			if (inflated_cost_map[robot_x + cost_size_x * robot_y] >= OBSTACLE) {
+				for (int xxx = -rad; xxx < rad; xxx++) {
+					for (int yyy = -rad; yyy < rad; yyy++) {
+						if (OnMap(robot_x + xxx, robot_y + yyy) && ((xxx * xxx + yyy
+										* yyy) < rad_2)) {
+							inflated_cost_map[robot_x + xxx + cost_size_x * (robot_y
+									+ yyy)] = min((int) inflated_cost_map[robot_x + xxx
+										+ cost_size_x * (robot_y + yyy)], OBSTACLE - ((3
+												* rad * rad) / (1 + xxx * xxx + yyy * yyy)));
+						}
+					}
+				}
 			}
 
 			// setup search environment
@@ -540,30 +713,27 @@ cout << "inflate " << endl;
 			search.search(inf_cost_map_pa, OBSTACLE, robot_y, robot_x, robot_y+1, robot_x+1,  SBPL_2DGRIDSEARCH_TERM_CONDITION_ALLCELLS );
 
 			// get distance to each accessable point on inflated map
-			int * dijkstra = new int[cost_size_x*cost_size_y];
-			for (int j = 0; j< cost_size_y; j++) {
-				for (int i=0; i< cost_size_x; i++) {
+			int * dijkstra = new int[cost_size_x * cost_size_y];
+			for (int j = 0; j < cost_size_y; j++) {
+				for (int i = 0; i < cost_size_x; i++) {
 					dijkstra[i+cost_size_x*j] = (int)(search.getlowerboundoncostfromstart_inmm(j,i));
 				}
 			}
-cout << "find frontier " << endl;
+			//	cout << "find frontier " << endl;
 			find_frontier(IG_map, dijkstra);
 
+			if (DISPLAY_OUTPUT) {printf("Robot pose x=%d xx=%f y=%d yy=%f\n", robot_x, robot_xx, robot_y,
+					robot_yy);}
 
-			printf("Robot pose x=%d xx=%f y=%d yy=%f\n", robot_x, robot_xx, robot_y, robot_yy);
-
-			for (int qq= -5; qq<=5;qq++) {
-				for (int ww= -5; ww<=5; ww++) { 
-					printf("%3d/%3d/%3d ", (int) cost_map[robot_x+qq+cost_size_x*(robot_y+ww)], (int)cover_map[robot_x+qq+cost_size_x*(robot_y+ww)], (int)elev_map[robot_x+qq+cost_size_x*(robot_y+ww)]);
-				}
-				printf("\n");
-			}
-
-
-
-
-
-
+			//	for (int qq = -5; qq <= 5; qq++) {
+			//		for (int ww = -5; ww <= 5; ww++) {
+			//			printf("%3d/%3d/%3d ", (int) cost_map[robot_x + qq + cost_size_x
+			//					* (robot_y + ww)], (int) cover_map[robot_x + qq
+			//					+ cost_size_x * (robot_y + ww)], (int) elev_map[robot_x
+			//					+ qq + cost_size_x * (robot_y + ww)]);
+			//		}
+			//		printf("\n");
+			//	}
 
 			double best_score=0; // tracks best score this run
 			int x_target, y_target;//, best_x, best_y;
@@ -577,50 +747,55 @@ cout << "find frontier " << endl;
 			time(&start);
 			time(&finish);
 
-			if (goal_x != -1) { 
+			if (goal_x != -1) {
 				// set goal
 				double dist;
-				cout << "determining path to assigned goal" << endl;
-				dist = return_path((int)(goal_x/cost_cell_size), (int)(goal_y/cost_cell_size), dijkstra, traj);
+				if (DISPLAY_OUTPUT) {cout << "determining path to assigned goal" << endl;}
+				dist = return_path((int) (goal_x / cost_cell_size), (int) (goal_y
+							/ cost_cell_size), dijkstra, traj);
 
-			}
-			else {
+			} else {
 				//find good point
 				//clear old traj
 				traj.clear();
 
-cout << "start while " << endl;
+				//		cout << "start while " << endl;
 				while (difftime(finish, start) < GP_PLAN_TIME) { // while less than plan time  (XP should not have 0.5)
 					//cout << difftime(finish, start) << " time diff" << endl;
 					cout << ".";// << IG_above_thres;
-					cout.flush();
 					// temp map for tracking changes during runs
 					memcpy((void *)temp_cover_map, (void *)cover_map, coverage_size_x*coverage_size_y * (sizeof(unsigned char)));
 
 					// find a good candidate goal point if no goal is sent
 					//if (!IG_above_thres) { goto_nearest(x_target, y_target, dijkstra, temp_cover_map); }
 					//else {
-						sample_point(x_target, y_target, dijkstra, temp_cover_map, IG_map); 
+					sample_point(x_target, y_target, dijkstra, temp_cover_map, IG_map); 
 					//}
 
+					if (DISPLAY_OUTPUT) {printf("%d %d is potential goal", x_target, y_target);}
 
 					// if return is -1, -1 then no more points found return null trajectory
-					if ((x_target==-1)&&(y_target==-1)) { cout << " Break from while loop " <<endl; break; }
+					if ((x_target == -1) && (y_target == -1)) {
+						cout << " Break from while loop " << endl;
+						break;
+					}
 
 					//	print_local(x_target, y_target, 5);
 					// determine path to each goal point
 					double dist;
 					dist = return_path(x_target, y_target, dijkstra, test_traj);
 
-					// scale distance 
-					//dist = (dist*DIST_GAIN +1);
+					if (DISPLAY_OUTPUT) {printf(" and the distance is %f", dist);}
+
 					// determine gain from each possible goal point
-					double temp_score=0;
-					for (int current_loc = 1; current_loc < test_traj.size(); current_loc++)  {  
+					double temp_score = 0;
+					for (int current_loc = 1; current_loc < test_traj.size(); current_loc++) {
 						//cout << "test loc " <<  test_traj[current_loc].x << "," << test_traj[current_loc].y << endl;
 						// determine the direction of travel in each axis
-						int x_dir = test_traj[current_loc].x - test_traj[current_loc-1].x + 1;
-						int y_dir = test_traj[current_loc].y - test_traj[current_loc-1].y + 1;
+						int x_dir = test_traj[current_loc].x - test_traj[current_loc
+							- 1].x + 1;
+						int y_dir = test_traj[current_loc].y - test_traj[current_loc
+							- 1].y + 1;
 						int direction = dir[x_dir][y_dir];
 						if (direction != NOMOVE) {
 							// pass current location and inflated map to raycaster returns score
@@ -628,20 +803,21 @@ cout << "start while " << endl;
 							temp_score += cast_all_rays(test_traj[current_loc].x, test_traj[current_loc].y, temp_cover_map, elev_map, SVL[direction], FVL[direction]);
 						} // if !NOMOVE
 					} //for current_loc
-
+					if (DISPLAY_OUTPUT) {printf(" with a score %f and idx of %f\n", temp_score, (((temp_score*DIST_GAIN)+1.0)/ (dist*(1.0-DIST_GAIN)+0.1)));}
 					// store as traj if best score per distance traveled
-					if ((((temp_score*DIST_GAIN)+1)/(dist*(1-DIST_GAIN)+1))>best_score) {
+					if ((((temp_score*DIST_GAIN)+1.0)/ (dist*(1.0-DIST_GAIN)+0.1)) > best_score) {
 						traj.swap(test_traj);
 						//traj = test_traj;
-						best_score = (((temp_score*DIST_GAIN)+1)/(dist*(1-DIST_GAIN)+1));
-						cout << "New best score " << best_score <<  ":" << x_target << "," << y_target << " size " << traj.size() <<  endl;
+						best_score =(((temp_score*DIST_GAIN)+1.0)/ (dist*(1.0-DIST_GAIN)+0.1));
+						if (DISPLAY_OUTPUT) {cout << "New best score " << best_score << ":" << x_target
+							<< "," << y_target << " size " << traj.size() << " dist " << dist << " score " << temp_score << endl;}
 					}
 					//cout << "current best score " << best_score <<  ":" << traj.back().x << "," << traj.back().y << " size " << traj.size() <<  endl;
 
 					//finish time
 					time(&finish);
 				} // while time remaining
-				cout << "GP done looking at points" << endl;
+				if (DISPLAY_OUTPUT) {cout << "GP done looking at points" << endl;}
 			} // else find good point
 			// select highest scoring trajectory after XX seconds
 			best_score = 0;
@@ -654,14 +830,17 @@ cout << "start while " << endl;
 			// copy original coverage map back...
 			memcpy((void *)temp_cover_map, (void *)cover_map, coverage_size_x*coverage_size_y * (sizeof(unsigned char)));
 
-			const float ANGLE_45 = M_PI/4.0;
-			const float ANGLE_120 = M_PI*2.0/3.0;
+			const float ANGLE_45 = (float)(M_PI / 4.0);
+			const float ANGLE_120 = (float)(M_PI * 2.0 / 3.0);
 
-			for (int current_loc = 1; current_loc < traj.size(); current_loc++)  {  
+			//	traj[0].xx = traj[0].x * cost_cell_size;
+			//	traj[0].yy = traj[0].y * cost_cell_size;
+
+			for (int current_loc = 1; current_loc < traj.size(); current_loc++) {
 				//cout << "loc " <<  traj[current_loc].x << "," << traj[current_loc].y << endl;
 				// determine the direction of travel in each axis
-				int x_dir = traj[current_loc].x - traj[current_loc-1].x + 1;
-				int y_dir = traj[current_loc].y - traj[current_loc-1].y + 1;
+				int x_dir = traj[current_loc].x - traj[current_loc - 1].x + 1;
+				int y_dir = traj[current_loc].y - traj[current_loc - 1].y + 1;
 				int direction = dir[x_dir][y_dir];
 
 				//cout << direction << ": dir 0 is along x-axis" << SVR[direction] << " " << FVR[direction] << " " << FVL[direction] << endl;
@@ -671,10 +850,13 @@ cout << "start while " << endl;
 					traj_score_l[current_loc] = cast_all_rays(traj[current_loc].x, traj[current_loc].y, &robot_cover_map[RID*coverage_size_x*coverage_size_y], elev_map, SVL[direction], FVL[direction]);
 					best_score += traj_score_l[current_loc] + traj_score_r[current_loc];
 					// set theta = to angle of travel
-					traj[current_loc].theta = direction*ANGLE_45;
+					traj[current_loc].theta = direction * ANGLE_45;
+					//		traj[current_loc].xx = traj[current_loc].x * cost_cell_size;
+					//		traj[current_loc].yy = traj[current_loc].y * cost_cell_size;
+
 					// if r is greater than margin*l then keep the head pointed to the right otherwise check for left, otherwise sweep fully
-					float angle_swept = 0;  // how far does sensor need to sweep
-					int cells_to_see=0; // how many cells should be detected at this location
+					float angle_swept = 0; // how far does sensor need to sweep
+					int cells_to_see = 0; // how many cells should be detected at this location
 					int flag;
 					if (traj_score_r[current_loc] > LR_MARGIN*traj_score_l[current_loc]) { 
 						traj[current_loc].right_pan = traj[current_loc].theta - ANGLE_120; 
@@ -686,16 +868,16 @@ cout << "start while " << endl;
 					else if (traj_score_l[current_loc] > LR_MARGIN*traj_score_r[current_loc]) { 
 						traj[current_loc].right_pan = traj[current_loc].theta - ANGLE_45; 
 						traj[current_loc].left_pan = traj[current_loc].theta + ANGLE_120; 
-						angle_swept = ANGLE_120+ANGLE_45;
+						angle_swept = ANGLE_120 + ANGLE_45;
 						cells_to_see = traj_score_l[current_loc];
 						flag = 3;
 					}
 					else {
 						traj[current_loc].right_pan = traj[current_loc].theta - ANGLE_120; 
 						traj[current_loc].left_pan = traj[current_loc].theta + ANGLE_120; 
-						angle_swept = ANGLE_120+ANGLE_120;
+						angle_swept = ANGLE_120 + ANGLE_120;
 						cells_to_see = traj_score_l[current_loc] + traj_score_r[current_loc];
-						flag =2;
+						flag = 2;
 					}
 
 					// ensure angle values are within range
@@ -717,22 +899,25 @@ cout << "start while " << endl;
 					//printf("= %f\n", traj[current_loc].velocity);  fflush(stdout);
 
 
-
 				} // if !NOMOVE
 			} //for current_loc
 
-			if(!traj.empty())
-				cout << "goal point " << traj.back().x << "," << traj.back().y << " cost val = " << (int)cost_map[traj.back().x + cost_size_x*traj.back().y];
+			if (!traj.empty()) 
+				if (DISPLAY_OUTPUT) {cout << "goal point " << traj.back().x << "," << traj.back().y
+					<< " cost val = " << (int) cost_map[traj.back().x + cost_size_x * traj.back().y];
+					}
 
-			// post process traj to smooth 
+			// post process traj to smooth
 			// determine best direction to point sensor head
 			// determine best velocity
 
 			// write results to disk - cover map shows what was presumed to have been seen during traversal
 			if (WRITE_FILES) {
-				writefiles(temp_cover_map, inflated_cost_map, elev_map, cost_size_x, cost_size_y);
-				writefileextra(dijkstra, cost_size_x, cost_size_y);
-				writefiletraj(best_score, traj);
+				if (DISPLAY_OUTPUT) {printf(" writing map files to disk\n");}
+				writefiles(temp_cover_map, inflated_cost_map, elev_map, "Map_out.txt",
+						cost_size_x, cost_size_y);
+				writefileextra(dijkstra, "Map_extra.txt", cost_size_x, cost_size_y);
+				writefiletraj(best_score, traj, "Map_traj.txt");
 			}
 
 			// set variables and allocate new storage for trajectory array of floats
@@ -740,17 +925,17 @@ cout << "start while " << endl;
 			gp_traj.num_traj_pts = traj.size();
 			gp_traj.traj_dim = GP_TRAJ_DIM;
 			gp_traj.id = RID+1;
-			delete [] gp_traj.traj_array;
-			gp_traj.traj_array = new float[gp_traj.num_traj_pts*GP_TRAJ_DIM];
+			delete[] gp_traj.traj_array;
+			gp_traj.traj_array = new float[gp_traj.num_traj_pts * GP_TRAJ_DIM];
 
 			//set traj data into array of floats
-			for (int q=0; q<gp_traj.num_traj_pts; q++) {
+			for (int q = 0; q < gp_traj.num_traj_pts; q++) {
 				gp_traj.traj_array[q*GP_TRAJ_DIM] = ((float)traj[q].x)*cost_cell_size + global_x_offset;
 				gp_traj.traj_array[q*GP_TRAJ_DIM+1] = ((float)traj[q].y)*cost_cell_size + global_y_offset;
-				gp_traj.traj_array[q*GP_TRAJ_DIM+2] = traj[q].theta;
-				gp_traj.traj_array[q*GP_TRAJ_DIM+3] = traj[q].velocity;
-				gp_traj.traj_array[q*GP_TRAJ_DIM+4] = traj[q].right_pan;
-				gp_traj.traj_array[q*GP_TRAJ_DIM+5] = traj[q].left_pan;
+				gp_traj.traj_array[q * GP_TRAJ_DIM + 2] = traj[q].theta;
+				gp_traj.traj_array[q * GP_TRAJ_DIM + 3] = traj[q].velocity;
+				gp_traj.traj_array[q * GP_TRAJ_DIM + 4] = traj[q].right_pan;
+				gp_traj.traj_array[q * GP_TRAJ_DIM + 5] = traj[q].left_pan;
 			}
 
 
@@ -762,7 +947,7 @@ cout << "start while " << endl;
 						if (OnMap( traj.back().x + qq,  traj.back().y + ww)) {
 							printf("%3d ", (int)cost_map[ traj.back().x + qq + cost_size_x*( traj.back().y + ww)]);
 						}
-						
+
 					}
 					cout << endl;
 				}
@@ -809,9 +994,9 @@ static void GP_MAP_DATA_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, void 
 	GP_MAP_DATA_PTR gp_map_data_p;
 	IPC_unmarshall(IPC_msgInstanceFormatter(msgRef), callData, (void **)&gp_map_data_p);
 	printf("Handler: Receiving %s (size %lu) [%s] \n", IPC_msgInstanceName(msgRef),  sizeof(callData), (char *)clientData);
-static int count=0;
-count++;
-printf("map count is %d\n", count);
+	static int count=0;
+	count++;
+	printf("map count is %d\n", count);
 	//function to print message to screen
 	//IPC_printData(IPC_msgInstanceFormatter(msgRef), stdout, gp_map_data_p);
 
@@ -840,12 +1025,6 @@ printf("map count is %d\n", count);
 	IPC_freeByteArray(callData);
 }
 
-int ValidVec(int vec) {
-	// verifies that the vector is within limits
-	if (vec < 0) { 	vec = NUMVECTORS + vec; }
-	else if (vec >=NUMVECTORS) { vec = vec - NUMVECTORS; }
-	return vec;
-}
 
 static void GP_ROBOT_PARAMETER_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData) {
 	// function handles robot parameter update messages
