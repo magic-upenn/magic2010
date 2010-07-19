@@ -5,5 +5,5 @@ include $(MAGIC_DIR)/Makefile.mk
 LIBS += -lsbpl
 
 lattice_planner: main.cpp $(OBJECTS)
-	g++ $(INCLUDES) $(LIB_DIRS) $(CPPFLAGS) -o $@ $^ $(LIBS)
+	g++ $(INCLUDES) $(LIB_DIRS) $(CPP_FLAGS) -o $@ $^ $(LIBS)
 

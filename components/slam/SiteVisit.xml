@@ -8,14 +8,14 @@
     <frame>
       <name>mapping</name>
       <frameRate>30</frameRate>
-      <FSAA>6</FSAA>
+      <FSAA>0</FSAA>
       <camera>
         <name>cam2</name>
         <position>-100 150 30</position>
         <lookAt>-110 140 0</lookAt>
         <clipDist>1</clipDist>
       </camera>
-    <size>1200 800</size><position>0 0</position><FSAA>0</FSAA><OgreWindowName>mapping</OgreWindowName><OgreWindowHandleParams><parentWindowHandle>7517216:0:71303172</parentWindowHandle><FSAA>6</FSAA></OgreWindowHandleParams></frame>
+    </frame>
   <position>0 0</position></gui>
 
   <plugin>

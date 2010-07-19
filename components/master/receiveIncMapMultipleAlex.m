@@ -21,9 +21,9 @@ POSE.cntr =1;
 USER_INPUT.freshClick =0;
 %id of the robot that maps should be received from
 
-ids=[3];
+ids=[2];
 
-masterConnectRobots(ids,'localhost');
+masterConnectRobots(ids);
 
 messages = {'PoseExternal', ...
             'IncMapUpdateH', ...

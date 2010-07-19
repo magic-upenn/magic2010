@@ -13,22 +13,23 @@ INCLUDES += $(shell xml2-config --cflags) -I$(MAGIC_INCLUDE_DIR)
 LIB_DIRS += -L$(MAGIC_LIB_DIR)
 LIBS     += -ldb_cxx -lpthread -lSerialDevice -lgz -lipc
 
+CPP_FLAGS += -O2 -Wall -fPIC
+
 ifdef MAGIC_OSX
   ARCH = -arch i386
+  CPP_FLAGS += $(ARCH)
 endif
-
-CPPFLAGS += -O2 -Wall -fPIC $(ARCH)
 
 all: $(TARGETS)
 
 %.o: %.cpp
-	g++ $(INCLUDES) $(CPPFLAGS) -c -o $@ $^
+	g++ $(INCLUDES) $(CPP_FLAGS) -c -o $@ $^
 
 %.o: %.c
-	g++ $(INCLUDES) $(CPPFLAGS) -c -o $@ $^
+	g++ $(INCLUDES) $(CPP_FLAGS) -c -o $@ $^
 
 %.o: %.cc 
-	g++ $(INCLUDES) $(CPPFLAGS) -c -o $@ $^
+	g++ $(INCLUDES) $(CPP_FLAGS) -c -o $@ $^
 
 clean:
 	rm -rf *.o *~ $(TARGETS)

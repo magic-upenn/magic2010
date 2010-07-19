@@ -13,8 +13,8 @@ libSerialDevice.a: $(OBJECTS)
 	cp *.hh $(MAGIC_INCLUDE_DIR)
 
 ErrorMessage.o: ../../common/ErrorMessage.cc
-	g++ $(INCLUDES) $(CPPFLAGS) -c -o $@ $^
+	g++ $(INCLUDES) $(CPP_FLAGS) -c -o $@ $^
 
 DynamixelPacket.o: ../../common/dataTypes/DynamixelPacket.c
-	g++ $(INCLUDES) $(CPPFLAGS) -c -o $@ $^
+	g++ $(INCLUDES) $(CPP_FLAGS) -c -o $@ $^
 
