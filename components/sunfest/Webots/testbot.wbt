@@ -1,0 +1,325 @@
+#VRML_SIM V6.0 utf8
+WorldInfo {
+  info [
+    "Description"
+    "Author: first name last name <e-mail>"
+    "Date: DD MMM YYYY"
+  ]
+  runRealTime TRUE
+}
+Viewpoint {
+  orientation -0.440615 0.873193 0.208308 1.20343
+  position -0.0615027 0.199348 0.389806
+}
+Background {
+  skyColor [
+    0.101961 0.101961 0.101961
+  ]
+}
+PointLight {
+  ambientIntensity 0.6
+  intensity 0.4
+  location 0.75 0.5 0.5
+}
+PointLight {
+  ambientIntensity 0.6
+  intensity 0.4
+  location -0.5 0.5 0.35
+}
+PointLight {
+  ambientIntensity 0.6
+  intensity 0.4
+  location 0.45 0.5 -0.5
+}
+PointLight {
+  ambientIntensity 0.6
+  intensity 0.4
+  location -0.5 0.5 -0.35
+}
+DEF GROUND Solid {
+  translation -0.5 0 -0.5
+  children [
+    Shape {
+      geometry ElevationGrid {
+        color Color {
+          color [
+            0.635294 0.635294 0.74902
+            1 1 1
+          ]
+        }
+        colorPerVertex FALSE
+        xDimension 11
+        xSpacing 0.1
+        zDimension 11
+        zSpacing 0.1
+      }
+    }
+  ]
+  boundingObject Transform {
+    translation 0.5 -0.01 0.5
+    children [
+      Box {
+        size 1 0.02 1
+      }
+    ]
+  }
+}
+DEF WALLS Solid {
+  children [
+    Shape {
+      appearance Appearance {
+        material Material {
+          diffuseColor 0.537255 0.403922 0.0705882
+          specularColor 0.784314 0.635294 0.258824
+        }
+      }
+      geometry Extrusion {
+        convex FALSE
+        crossSection [
+          0.5 0.5
+          0.5 -0.5
+          -0.5 -0.5
+          -0.5 0.5
+          -0.49 0.5
+          -0.49 -0.49
+          0.49 -0.49
+          0.49 0.49
+          -0.4899 0.49
+          -0.4899 0.5
+          0.5 0.5
+        ]
+        spine [
+          0 0 0
+          0 0.1 0
+        ]
+      }
+    }
+  ]
+  name "wall"
+  boundingObject Group {
+    children [
+      Transform {
+        translation 0.495 0.05 0
+        children [
+          DEF WALL_SHAPE Shape {
+            appearance Appearance {
+              material Material {
+                diffuseColor 1 1 1
+                specularColor 1 1 1
+              }
+            }
+            geometry Box {
+              size 0.01 0.1 1
+            }
+          }
+        ]
+      }
+      Transform {
+        translation -0.495 0.05 0
+        children [
+          USE WALL_SHAPE
+        ]
+      }
+      Transform {
+        translation 0 0.05 -0.495
+        rotation 0 1 0 1.57
+        children [
+          USE WALL_SHAPE
+        ]
+      }
+      Transform {
+        translation 0 0.05 0.495
+        rotation 0 1 0 1.57
+        children [
+          USE WALL_SHAPE
+        ]
+      }
+    ]
+  }
+}
+DEF RAMP Solid {
+  rotation 1 0 0 0
+  children [
+    DEF RAMP Transform {
+      rotation 1 0 0 0.2
+      children [
+        Shape {
+          geometry Box {
+            size 0.5 0.03 2.6
+          }
+        }
+      ]
+    }
+  ]
+  boundingObject USE RAMP
+}
+Robot {
+  translation -0.25 0 0.25
+  rotation 0 0 1 0
+  children [
+    Solid {
+      children [
+        DEF BODY Transform {
+          translation 0 0.03 0
+          children [
+            Shape {
+              appearance Appearance {
+                material Material {
+                  diffuseColor 0.172549 0.227451 0.47451
+                  specularColor 0 0 1
+                }
+              }
+              geometry Box {
+                size 0.06 0.04 0.06
+              }
+            }
+          ]
+        }
+      ]
+    }
+    DEF RightFrontServ Servo {
+      translation 0.025 0.015 0.035
+      rotation 0 0 1 0
+      children [
+        DEF WHEEL Transform {
+          rotation 1 0 0 -1.57
+          children [
+            DEF WHEEL_SHAPE Shape {
+              appearance Appearance {
+                material Material {
+                  diffuseColor 0.796078 0.796078 0.0901961
+                  specularColor 1 1 0
+                }
+              }
+              geometry Cylinder {
+                height 0.01
+                radius 0.015
+                subdivision 25
+              }
+            }
+          ]
+        }
+      ]
+      name "front right wheel"
+      boundingObject USE WHEEL
+      physics DEF WHEEL_PHYS Physics {
+        density -1
+        mass 0.1
+        bounce 0.001
+        coulombFriction -1
+        forceDependentSlip 0.001
+      }
+    }
+    DEF LeftFrontServ Servo {
+      translation 0.025 0.015 -0.035
+      rotation 0 0 1 0
+      children [
+        USE WHEEL
+      ]
+      name "front left wheel"
+      boundingObject USE WHEEL
+    }
+    DEF BackRightServ Servo {
+      translation -0.025 0.015 0.035
+      rotation 0 0 1 0
+      children [
+        USE WHEEL
+      ]
+      name "back right wheel"
+      boundingObject USE WHEEL
+      physics USE WHEEL_PHYS
+    }
+    DEF BackLeftServ Servo {
+      translation -0.025 0.015 -0.035
+      rotation 0 0 1 0
+      children [
+        USE WHEEL
+      ]
+      name "back left wheel"
+      boundingObject USE WHEEL
+      physics USE WHEEL_PHYS
+    }
+    Servo {
+      translation 0 0.07 0
+      children [
+        Servo {
+          translation 0 0.01 0
+          rotation 0 0 1 0
+          children [
+            Transform {
+              rotation 1 0 0 1.57
+              children [
+                Shape {
+                  geometry Cylinder {
+                    height 0.001
+                    radius 0.005
+                  }
+                }
+              ]
+            }
+            DistanceSensor {
+            }
+          ]
+          name "servoV"
+        }
+        Shape {
+          geometry Cylinder {
+            height 0.001
+            radius 0.005
+          }
+        }
+      ]
+      name "servoH"
+    }
+  ]
+  boundingObject Group {
+    children [
+      Transform {
+        translation 0.025 0.015 0.035
+        rotation 1 0 0 1.57
+        children [
+          DEF WHEEL_SHAPE Cylinder {
+            height 0.01
+            radius 0.015
+          }
+        ]
+      }
+      Transform {
+        translation -0.025 0.015 0.035
+        rotation 1 0 0 1.57
+        children [
+          USE WHEEL_SHAPE
+        ]
+      }
+      Transform {
+        translation 0.025 0.015 -0.035
+        rotation 1 0 0 1.57
+        children [
+          USE WHEEL_SHAPE
+        ]
+      }
+      Transform {
+        translation -0.025 0.015 -0.035
+        rotation 1 0 0 1.57
+        children [
+          USE WHEEL_SHAPE
+        ]
+      }
+      DEF BODY Transform {
+        translation 0 0.03 0
+        children [
+          Shape {
+            geometry Box {
+              size 0.05 0.03 0.05
+            }
+          }
+        ]
+      }
+    ]
+  }
+  physics Physics {
+    density -1
+    mass 1
+  }
+  controller "my_controllerC"
+}
