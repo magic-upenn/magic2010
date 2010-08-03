@@ -1,17 +1,18 @@
-function laserLock(target,robotAddress)
+function laserLock(robotAddress)
 	
 %%%%%%%%%%%%%
 % Constants %
 %%%%%%%%%%%%%
 
 	robotID						= 3;
-	poseMessageSuffix			= 'Pose';
+	robotPoseMessageSuffix		= 'Pose';
+    targetPoseMessageSuffix     = 'Target';
 	laserOffset					= [0.15 0 0.43 0 0 0];		% [x y z roll pitch yaw] of center of yaw servo wrt center of robot
 	pitchServoOffset			= [.048 0.033 0];			% [x y z] of center of pitch servo wrt center of yaw servo
-	bufferLength                = 30;
-    kP                          = 4;
-    kI                          = 4;
-    kD                          = 0;
+	bufferTime                  = 2;
+    kP                          = 6;
+    kI                          = 2;
+    kD                          = .5;
     
 %%%%%%%%%%%%%
 	
@@ -19,46 +20,97 @@ function laserLock(target,robotAddress)
 	setenv('ROBOT_ID',num2str(robotID));
 	
 	if (nargin < 2), robotAddress = ['192.168.10.10' getenv('ROBOT_ID')]; end
-	poseMessage = GetMsgName(poseMessageSuffix);
-	ipcAPIConnect(robotAddress);
-    ipcAPISubscribe(poseMessage); 
+    ipcAPIConnect(robotAddress);
+    
+	robotPoseMessage = GetMsgName(robotPoseMessageSuffix);
+    targetPoseMessage = GetMsgName(targetPoseMessageSuffix);
+	
+    ipcAPISubscribe(robotPoseMessage);
+    ipcAPISubscribe(targetPoseMessage);
 	
 	initializeServos;	
 	
+    dt = getDT;
+    bufferLength = round(bufferTime/dt);
     yawBuffer   = zeros(3,bufferLength);
     pitchBuffer = zeros(3,bufferLength);
     
     tic
     
+    robotPose = zeros(1,6);
+    targetPose = zeros(1,3);
+    
 	while(true)
-		robotPose = getRobotPose;
-		if ~isempty(robotPose)
-			targetRobCoords = glob2laser(target, robotPose, laserOffset);
-			[yawAngle pitchAngle] = calculateServoAngles(targetRobCoords, pitchServoOffset);
-            [yawBuffer pitchBuffer] = updateBuffers(yawBuffer,pitchBuffer,yawAngle,pitchAngle);
-            [yawVel pitchVel] = PIDcontrol(yawBuffer,pitchBuffer,kP,kI,kD);           
-			setServoVels(yawVel, pitchVel);
-		end
+        [robotPose targetPose] = updatePoses(robotPose,targetPose,robotPoseMessage,targetPoseMessage);
+        targetRobCoords = glob2laser(targetPose, robotPose, laserOffset);
+        [yawAngle pitchAngle] = calculateServoAngles(targetRobCoords, pitchServoOffset);
+        [yawBuffer pitchBuffer] = updateBuffers(yawBuffer,pitchBuffer,yawAngle,pitchAngle);
+        [yawVel pitchVel] = PIDcontrol(yawBuffer,pitchBuffer,kP,kI,kD);           
+        setServoVels(yawVel, pitchVel);
 	end
 		
 end
 
-function robotPose = getRobotPose
+function initializeServos
 
-    robotPose = [];
+	dev = '/dev/ttyUSB1';
+	baud = 1000000;
+	pitchID = 1;
+	yawID = 4;
+
+	dynamixelAPI_1('connect',dev,baud,yawID);
+	dynamixelAPI_2('connect',dev,baud,pitchID);
+
+	disp('Servos Initialized')
+
+end
+
+function dt = getDT
+
+    n = 10;
+    i = 0;
+    t = zeros(1,n);
+    
+    while i<=n
+        messages = ipcAPIReceive;
+        if ~isempty(messages)
+            try
+                t(i) = toc;
+            catch
+            end
+            i = i + 1;
+            tic       
+        end
+    end
+    
+    t(t>2*mean(t))=[];
+    dt = mean(t);
+
+end
+
+function [robotPose targetPose] = updatePoses(robotPose,targetPose,robotPoseMessage,targetPoseMessage)
+    
     messages = ipcAPIReceive;
-    if ~isempty(messages)
-        robotPose = MagicPoseSerializer('deserialize',messages(end).data);
+    for i=1:length(messages)
+        if strcmp(messages(i).name,robotPoseMessage)
+            r = MagicPoseSerializer('deserialize',messages(i).data);
+            %robotPose = [r.x r.y r.z r.roll r.pitch r.yaw];
+            robotPose = [r.x r.y r.z 0 0 r.yaw];
+        elseif strcmp(messages(i).name,targetPoseMessage)
+            t = MagicPoseSerializer('deserialize',messages(i).data);
+            targetPose = [t.x t.y t.z];
+            %fprintf('Got target! [x y z] = [%.3f %.3f %.3f] \n',t.x,t.y,t.z);
+        end
     end
 
 end
 
 function targetRobCoords = glob2laser(target,robotPose,laserOffset)
 
-    transR  = [robotPose.x robotPose.y robotPose.z];
-    yawR	= robotPose.yaw;
-    rollR	= robotPose.roll;
-    pitchR	= robotPose.pitch;
+    transR  = robotPose(1:3);
+    rollR	= robotPose(4);
+    pitchR	= robotPose(5);
+    yawR	= robotPose(6);
 
     transL	= laserOffset(1:3);
     yawL	= laserOffset(4);
@@ -73,7 +125,6 @@ function targetRobCoords = glob2laser(target,robotPose,laserOffset)
     targetRobCoords = targetRobCoords(1:3)';
 
 end
-
 
 function [yawServoAngle pitchServoAngle] = calculateServoAngles(targetRobCoords, pitchServoOffset)
 
@@ -174,7 +225,7 @@ function [yawVel pitchVel] = PIDcontrol(yawBuffer,pitchBuffer,kP,kI,kD)
 
 
     yawProportional     = kP * (yawBuffer(1,1)-yawBuffer(2,1));
-    yawIntegral         = kI * sum((yawBuffer(1,:)-yawBuffer(2,:)).*yawBuffer(3,:))
+    yawIntegral         = kI * sum((yawBuffer(1,:)-yawBuffer(2,:)).*yawBuffer(3,:));
     yawDifferential     = kD * ((yawBuffer(1,1)-yawBuffer(2,1)) - (yawBuffer(1,2)-yawBuffer(2,2)))/yawBuffer(3,1);
 
     pitchProportional     = kP * (pitchBuffer(1,1)-pitchBuffer(2,1));
