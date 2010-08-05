@@ -11,14 +11,20 @@ global BUMBLEBEE;
   libdc1394('videoSetIsoSpeed',400);
 
   mode = 78;
-  libdc1394('videoSetMode', mode);
+  BUMBLEBEE.bayer = 'bggr'
+  if strfind(libdc1394('getModel'),'Bumblebee2')
+      mode = 91; %Format 7 Mode 3 for bumblebee2
+      BUMBLEBEE.bayer = 'grbg'
+  end 
+  libdc1394('videoSetMode',mode);
+  
   BUMBLEBEE.mode = libdc1394('videoGetMode');
 
   framerate = 7.5; % switch to 7.5 if frames not ready in time
   libdc1394('videoSetFramerate', framerate);
   BUMBLEBEE.framerate = libdc1394('videoGetFramerate');
   
-  nbuffer = 1;
+  nbuffer = 2;
   libdc1394('captureSetup', nbuffer);
 
 %  libdc1394('featureSetValue','Brightness', 0); % manual 0-255 (0)
@@ -33,4 +39,4 @@ global BUMBLEBEE;
   libdc1394('featureSetModeAuto','Gain'); % auto 264-1023
 %  libdc1394('featureSetModeManual','Gain'); % Gain washes out above 700
 %  libdc1394('featureSetValue','Gain', 1023); % 
-%end
+%e
