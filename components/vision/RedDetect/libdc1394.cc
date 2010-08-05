@@ -5,10 +5,17 @@
    to interface to libdc1394 (RC5) library.
 
    Compile with:
-   mex -O libdc1394.cc -I/usr/local/include -ldc1394
+   mex -O libdc1394_20.cc -I/usr/local/include -ldc1394
 
    Daniel D. Lee, 1/07
    <ddlee@seas.upenn.edu>
+
+   Modified to handle multiple cameras
+   Prefix each command with "#_", where # is the camera number. 
+   Ex: libdc1394('1_printCameraInfo') will print info for the second camera (0-based indexing). 
+   Defaults to the first camera if prefix omitted
+   Cody J. Phillips 8/10
+   <codyp@seas.upenn.edu>
 */
 
 #include <stdlib.h>
@@ -58,7 +65,8 @@ dc1394feature_t parseFeatureName(char *buf) {
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
   const int BUFLEN = 256;
-  char buf[BUFLEN];
+  char bufAll[BUFLEN];
+  char buf[BUFLEN]; 
   dc1394error_t err;
 
   // Get input arguments
@@ -67,7 +75,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     return;
   }
 
-  if (mxGetString(prhs[0], buf, BUFLEN) != 0) {
+  if (mxGetString(prhs[0], bufAll, BUFLEN) != 0) {
     mexErrMsgTxt("Could not read string.");
   }
 
@@ -78,10 +86,23 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       mexErrMsgTxt("Error in dc1394_find_cameras");
     }
 
-    iCamera = 0;
     camera = cameras[iCamera];
     mexAtExit(mexExit);
   }
+    
+    if(strlen(bufAll) > 2)
+    {
+	if(!sscanf(bufAll,"%u_%s",&iCamera,buf))
+	{
+		strcpy(buf,bufAll);
+		iCamera = 0;  
+	}
+        if(iCamera < nCameras)
+        camera = cameras[iCamera];
+        else 
+        mexErrMsgTxt("Invalid Camera Index");
+    }
+    else mexErrMsgTxt("String too small");
 
   
   if (strcmp(buf, "capture") == 0) {
