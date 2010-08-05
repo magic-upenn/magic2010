@@ -1,17 +1,22 @@
-function [x,info,Exposure] = bumblebeeCapture;
+function [x,info,Exposure] = bumblebeeCapture(cam_index);
 
-global BUMBLEBEE;
+global CAMERAS;
 
-if isempty(BUMBLEBEE),
-  bumblebeeInit;
+cam_name = sprintf('cam_%d',cam_index); 
+cam('set_cam',cam_index); 
+
+if isempty(CAMERAS) | ~isfield(CAMERAS,cam_name),
+  bumblebeeInit(cam_index);
 end
 
-if libdc1394('videoGetTransmission') == 0,
-  bumblebeeStartTransmission;
+CAMERA = CAMERAS.(cam_name); 
+
+if libdc1394(cam('videoGetTransmission')) == 0,
+  bumblebeeStartTransmission(cam_index);
 end
 
-[Brightness,Exposure,Shutter,Gain] = bumblebeeGetFeatures;
+[Brightness,Exposure,Shutter,Gain] = bumblebeeGetFeatures(cam_index);
 %fprintf(1,'Br %d, Ex %d, Sh %d, G %d\n',Brightness,Exposure,Shutter,Gain);
 
-[x, info] = libdc1394('capture');
+[x, info] = libdc1394(cam('capture'));
 

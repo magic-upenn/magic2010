@@ -1,6 +1,6 @@
 figure('Position',[1,1,1000,500])
 for i = 1:1000000
-	[x,info,ex] = bumblebeeCapture;
+	[x,info,ex] = bumblebeeCapture(0);
 	 [l,r] = bumblebeeRawToLeftRight(x);
 	l = permute(l,[2,1,3]); 
 	r = permute(r,[2,1,3]); 

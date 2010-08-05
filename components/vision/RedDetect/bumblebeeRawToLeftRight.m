@@ -1,6 +1,8 @@
 function [xLeft, xRight] = bumblebeeRawToLeftRight(x)
 
-global BUMBLEBEE; 
+global CAMERAS; 
+BUMBLEBEE = CAMERAS.cam_0;
+ 
 xRaw = reshape(memcpy(x,'uint8'),[2048 768]);
 
 xLeft = zeros(512,384,3,'uint8');

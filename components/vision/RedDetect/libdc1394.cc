@@ -95,7 +95,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	if(!sscanf(bufAll,"%u_%s",&iCamera,buf))
 	{
 		strcpy(buf,bufAll);
-		iCamera = 0;  
+		iCamera = 0; 
+		mexPrintf("\n\n");  
+		mexPrintf("**********************************\n");  
+		mexPrintf("WARNING: No camera index specified\n");  
+		mexPrintf("**********************************\n");  
+		mexPrintf("\n\n");  
 	}
         if(iCamera < nCameras)
         camera = cameras[iCamera];
