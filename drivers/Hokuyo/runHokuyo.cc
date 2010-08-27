@@ -233,7 +233,7 @@ int main(int argc, char * argv[])
   }
 
 
-	double timeout_sec = 0.2;
+	double timeout_sec = 0.05;
   double time_stamp;
 
   vector< vector<unsigned int> > values;

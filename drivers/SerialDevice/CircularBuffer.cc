@@ -1,6 +1,7 @@
 
 #include "CircularBuffer.hh"
 #include "ErrorMessage.hh"
+#include "Timer.hh"
 
 using namespace std;
 using namespace Upenn;
@@ -237,6 +238,7 @@ int CircularBuffer::DataCondWait(double timeoutSec)
 //unless you read too slow, then some data will be lost
 int CircularBuffer::GetReadPtr(const char ** dataPtrPtr, int & dataLength, double & timeStamp, double timeoutSec)
 {
+  Timer timer0;
 	this->LockDataMutex();
 
   if (this->reading)
@@ -250,8 +252,11 @@ int CircularBuffer::GetReadPtr(const char ** dataPtrPtr, int & dataLength, doubl
 
 	if (this->readCntr == this->writeCntr)
   {
+    timer0.Tic();
     //no data available now - wait for new data or time out
     int ret=this->DataCondWait(timeoutSec);
+    double dt = timer0.Toc();
+    printf("waited %f seconds\n",dt);
 
     //check the return value
     if (ret)
