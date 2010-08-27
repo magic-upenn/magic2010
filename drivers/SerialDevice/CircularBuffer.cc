@@ -252,11 +252,11 @@ int CircularBuffer::GetReadPtr(const char ** dataPtrPtr, int & dataLength, doubl
 
 	if (this->readCntr == this->writeCntr)
   {
-    timer0.Tic();
+    //timer0.Tic();
     //no data available now - wait for new data or time out
     int ret=this->DataCondWait(timeoutSec);
     double dt = timer0.Toc();
-    printf("waited %f seconds\n",dt);
+    //printf("waited %f seconds\n",dt);
 
     //check the return value
     if (ret)
