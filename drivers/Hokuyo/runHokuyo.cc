@@ -36,16 +36,16 @@ void ShutdownFn(int code)
   if (dev)
   { 
     PRINT_INFO("Stopping thread\n");
-	  if (dev->StopThread())
+    if (dev->StopThread())
     {
-		  PRINT_ERROR("could not stop thread\n");
-	  }
+      PRINT_ERROR("could not stop thread\n");
+    }
 
-	  PRINT_INFO("Stopping device\n");
-	  if (dev->StopDevice())
+    PRINT_INFO("Stopping device\n");
+    if (dev->StopDevice())
     {
-		  PRINT_ERROR("could not stop device\n");
-	  }
+      PRINT_ERROR("could not stop device\n");
+    }
 
     dev->Disconnect();
     delete dev;
@@ -97,14 +97,14 @@ int main(int argc, char * argv[])
   const int numBuffers=50;      //number of buffers to be used in the circular buffer
   const int bufferSize = HOKUYO_MAX_DATA_LENGTH;
   int baudRate=115200;            //communication baud rate (does not matter for USB connection)
-	dev = new HokuyoCircularHardware(bufferSize,numBuffers); //create an instance of HokuyoCircular
+  dev = new HokuyoCircularHardware(bufferSize,numBuffers); //create an instance of HokuyoCircular
 
-	PRINT_INFO("Connecting to device "<< address <<"\n");
+  PRINT_INFO("Connecting to device "<< address <<"\n");
   if (dev->Connect(address,baudRate))   //args: device name, baud rate
   {
-		PRINT_ERROR("could not connect\n");
-		return -1;
-	}
+    PRINT_ERROR("could not connect\n");
+    return -1;
+  }
 
   string lidarTypeStr;
   int lidarType;
@@ -184,15 +184,15 @@ int main(int argc, char * argv[])
 /*
   if (dev->InitializeLogging(logName))   //initialize logging
   {
-		PRINT_INFO("could not initialize logging\n");
-		return -1;
-	}
+    PRINT_INFO("could not initialize logging\n");
+    return -1;
+  }
 
   if (dev->EnableLogging())   //enable logging
   {
-		PRINT_INFO("could not enable logging\n");
-		return -1;
-	}
+    PRINT_INFO("could not enable logging\n");
+    return -1;
+  }
 */
 
   int scanStart=0;      //start of the scan
@@ -218,12 +218,12 @@ int main(int argc, char * argv[])
 
 
   //start the thread, so that the UpdateFunction will be called continously
-	PRINT_INFO("Starting thread\n");
-	if (dev->StartThread())
+  PRINT_INFO("Starting thread\n");
+  if (dev->StartThread())
   {
-		PRINT_ERROR("could not start thread\n");
-		return -1;
-	}
+    PRINT_ERROR("could not start thread\n");
+    return -1;
+  }
 
 
   //set the scan parameters
@@ -233,7 +233,7 @@ int main(int argc, char * argv[])
   }
 
 
-	double timeout_sec = 0.05;
+  double timeout_sec = 0.05;
   double time_stamp;
 
   vector< vector<unsigned int> > values;
@@ -259,6 +259,9 @@ int main(int argc, char * argv[])
 
   //capture CTRL-C for proper shutdown
   signal(SIGINT,ShutdownFn);
+
+  Timer scanTimer;
+  scanTimer.Tic();
 
   while(1)
   {
@@ -296,6 +299,8 @@ int main(int argc, char * argv[])
         }
 
         printf(".");fflush(stdout);
+        double dt = scanTimer.Toc(); scanTimer.Tic();
+        printf("elapsed time = %f\n",dt);
       }
     }
 
