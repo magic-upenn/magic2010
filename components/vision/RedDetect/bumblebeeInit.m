@@ -20,10 +20,12 @@ cam('setcam',cam_index);
   if strfind(CAMERA.model,'Bumblebee2')
       mode = 91; %Format 7 Mode 3 for bumblebee2
       CAMERA.bayer = 'grbg'
-  else if strfind(CAMERA.model,'Dragonfly')
-      mode = 69;
+  elseif strfind(CAMERA.model,'Dragonfly2')
+      mode = 72; %70
       CAMERA.bayer = 'bggr'
-      end
+  elseif strfind(CAMERA.model,'Dragonfly')
+      mode = 69; %70
+      CAMERA.bayer = 'bggr'
   end 
   libdc1394(cam('videoSetMode'),mode);
   

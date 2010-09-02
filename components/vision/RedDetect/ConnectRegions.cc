@@ -2,7 +2,7 @@
 	#include <vector>
 	#include <algorithm>
 	#include <math.h>
-	
+ 	#include <mex.h>	
 	EquivalenceTable::EquivalenceTable() {}
 	
 	void EquivalenceTable::addEquivalence(int label1, int label2) {
@@ -55,13 +55,13 @@
 	int ConnectRegions(std::vector <RegionProps> &props,
 	                    uint8* image, int m, int n, uint8 mask) {
 	
-	  const int NMAX = 256;
+	  const int NMAX = 320;
 	  static int label_array[NMAX][NMAX];
 	  static EquivalenceTable equiv_table;
-	
 	  if ((m > NMAX) || (n > NMAX))
-	    return -1;
-	
+	  {
+	        return -1;
+	  }
 	  int nlabel = 1;
 	  equiv_table.clear();
 	  equiv_table.ensureAllocated(nlabel);

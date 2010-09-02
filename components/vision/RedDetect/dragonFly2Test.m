@@ -1,17 +1,18 @@
 figure('Position',[1,1,1000,500])
 global CAMERAS
+b = [400;300;120]; 
 for i = 1:1000000
 	if isfield(CAMERAS,'cam_0')
 		[x,info,ex] = bumblebeeCapture(0);
-		l = x; 
-		%if ~exist('DEBAYER')
-			l = debayer(x);
-			l = permute(l,[2,1,3]); 
-		%end
-		subplot(1,2,1); 
-		imagesc(l);
-		daspect([1 1 1]); 
-		FindRed(l);  
+		r = cat(3,x(1:3:end,:)',x(2:3:end,:)',x(3:3:end,:)'); 
+		subplot(1,2,1)
+		imagesc(r);
+		daspect([1 1 1]);
+		%set(gca,'position',[0 0 1 1],'units','normalized')
+		axis off
+		b = estimate_circle_fast(sum(r,3),b)
+		
+%		FindRed(l);  
 	end
 	if isfield(CAMERAS,'cam_1')
 		[x,info,ex] = bumblebeeCapture(1);
