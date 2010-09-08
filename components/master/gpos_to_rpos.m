@@ -12,6 +12,6 @@ sa = sin(GTRANSFORM{id}.dyaw);
 dx = ca*xg - sa*yg;
 dy = sa*xg + ca*yg;
 
-xr = dx + GTRANFORM{id}.dx;
-yr = dy + GTRANFORM{id}.dy;
+xr = dx + GTRANSFORM{id}.dx;
+yr = dy + GTRANSFORM{id}.dy;
 ar = ag + GTRANSFORM{id}.dyaw;

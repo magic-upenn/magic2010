@@ -1,5 +1,5 @@
 function sendMapToExploration
-global GPOSE GMAP gcs_machine
+global GPOSE GMAP gcs_machine GTRANSFORM
 
 modpose.x1 = 0;
 modpose.x2 = 0;
@@ -17,6 +17,12 @@ if ~isempty(GPOSE{1})
         modpose.x1 = GPOSE{1}.x;
 modpose.y1 = GPOSE{1}.y;
 modpose.theta1 = GPOSE{1}.yaw;
+
+    if (~isempty(GTRANSFORM) && GTRANSFORM{1}.init)
+      GTRANSFORM{1}.dx
+      GTRANSFORM{1}.dy
+      GTRANSFORM{1}.dyaw
+    end
 end
 
 if ~isempty(GPOSE{2})
@@ -30,6 +36,7 @@ if ~isempty(GPOSE{3})
 modpose.y3 = GPOSE{3}.y
 modpose.theta3 = GPOSE{3}.yaw
 end
+
 
 [planMap.size_x, planMap.size_y] = size(GMAP);
   planMap.resolution = resolution(GMAP);

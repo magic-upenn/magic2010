@@ -11,12 +11,13 @@ if ~isempty(data)
         %set traj to the appropriate robot based on name
         id = traj.id;
         Robots(id).traj.data = traj_array;
-        figure(id); hold on;
+        figure(id+1); hold on;
         if Robots(id).traj.handle ~= -1
             delete(Robots(id).traj.handle);
         end
-        plot(traj_array(1,1), traj_array(1,2), 'gv');
-        Robots(id).traj.handle = plot(traj_array(:,1), traj_array(:,2), 'r-');
+        %plot(traj_array(1,1), traj_array(1,2), 'gv');
+        Robots(id).traj.handle = plot(traj_array(:,1), traj_array(:,2), 'y-');
+        hold off;
 %         ROBOTS(id).ipcAPI('publishVC', sprintf('Robot%d/Waypoints',id),MagicGP_TRAJECTORYSerializer('serialize', traj));
         
         %end

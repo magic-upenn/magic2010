@@ -2,7 +2,8 @@ function gcs
 more off;
 
 %%%  gcs stuff
-global gcs_machine Robots
+global gcs_machine Robots PLAN_DEBUG
+PLAN_DEBUG = 0;
 gcs_machine.ipcAPI = str2func('ipcAPI');
 gcs_machine.ipcAPI('connect');
 ipcReceiveSetFcn('Global_Planner_Trajectory',@GPTRAJHandler,gcs_machine.ipcAPI,15);
@@ -12,7 +13,7 @@ gcs_machine.ipcAPI('define','Global_Planner_MAGIC_MAP',  MagicGP_MAGIC_MAPSerial
 
 tUpdate = 0.1;
 %ids = [1 3];
-ids = [2];
+ids = [1];
 %ids = [1 2 3];
 
 for id = ids,
@@ -28,7 +29,7 @@ while 1,
   pause(tUpdate);
   gcsUpdateIPC;
   mapDisplay('update');
-  if (mod(count, 50)==0)
+  if (mod(count, 30)==0)
       sendMapToExploration;
   end
 % UpdateGoals;

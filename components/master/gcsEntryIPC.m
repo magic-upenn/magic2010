@@ -2,8 +2,9 @@ function gcsEntryIPC(ids)
 
 global GCS
 global ROBOTS
-global RPOSE RMAP
-global GTRANSFORM GPOSE GMAP
+global RPOSE RMAP RPATH
+global GTRANSFORM GPOSE GMAP GPATH
+global PLANMAP PLAN_DEBUG
 
 if nargin < 1,
   ids = [1:3];
@@ -21,6 +22,9 @@ for id = ids,
 
   GTRANSFORM{id}.init = 0;
   GPOSE{id} = [];
+
+  RPATH{id} = [];
+  GPATH{id} = [];
 end
 
 %Exploration planner looks at idmax indices of GPOSE
@@ -33,13 +37,30 @@ masterConnectRobots(ids);
 
 messages = {'PoseExternal', ...
             'IncMapUpdateH', ...
-            'IncMapUpdateV'};
+            'IncMapUpdateV', ...
+            'Planner_GoToPoint', ...
+            'Planner_Explore'};
 
 handles  = {@gcsRecvPoseExternal, ...
             @gcsRecvIncMapUpdateH, ...
-            @gcsRecvIncMapUpdateV};
+            @gcsRecvIncMapUpdateV, ...
+            @gcsRecvPlannerPathFcn, ...
+            @gcsRecvPlannerPathFcn};
           
-queueLengths = [5 5 5];
+queueLengths = [5 5 5 1 1];
+
+if PLAN_DEBUG
+  messages = [messages, 'Planner_Map'];
+  handles
+  handles{end+1} = @gcsRecvPlannerMapFcn;
+  queueLengths = [queueLengths, 1];
+
+  PLANMAP.map = zeros(800,800);
+  PLANMAP.res = 0.1;
+  PLANMAP.minX = -40;
+  PLANMAP.minY = -40;
+  PLANMAP.new = 0;
+end
 
 %subscribe to messages
 masterSubscribeRobots(messages, handles, queueLengths);

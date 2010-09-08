@@ -1,9 +1,10 @@
 function mapDisplay(event, varargin)
 
 global GCS
-global RPOSE RMAP
-global GPOSE GMAP
+global RPOSE RMAP RPATH
+global GPOSE GMAP GPATH
 global RDISPLAY GDISPLAY
+global PLANDISPLAY PLANMAP PLAN_DEBUG
 
 axlim = 10;
 
@@ -25,6 +26,11 @@ switch event
 
       % Robot pose
       RDISPLAY.hRobot{id} = plotRobot(0, 0, 0, id);
+
+      % Robot path
+      hold on;
+      RDISPLAY.path{id} = plot(0, 0, '-r');
+      hold off;
 
       axis xy equal;
       axis([-axlim axlim -axlim axlim]);
@@ -128,6 +134,18 @@ switch event
     colormap(jet);
     drawnow
 
+    if PLAN_DEBUG
+      PLANDISPLAY.fig = figure(11);
+      clf;
+      set(gcf,'NumberTitle', 'off', 'Name',sprintf('Plan Map'));
+      PLANDISPLAY.map = imagesc(PLANMAP.map);
+      axis xy equal;
+      GDISPLAY.hAxes = gca;
+      set(gca,'Position', [.1 .1 .8 .8], 'XLimMode', 'manual', 'YLimMode', 'manual');
+      colormap(jet);
+      drawnow
+    end
+
   case 'update'
     RDISPLAY.iframe = RDISPLAY.iframe + 1;
 
@@ -143,6 +161,12 @@ switch event
         plotRobot(xp, yp, ap, id, RDISPLAY.hRobot{id});
         shiftAxes(RDISPLAY.hAxes{id}, xp, yp);
       end
+
+      if ~isempty(RPATH{id})
+        hold on;
+        set(RDISPLAY.path{id},'x',RPATH{id}.x,'y',RPATH{id}.y);
+        hold off;
+      end
         
       if ~isempty(GPOSE{id}),
         plotRobot(GPOSE{id}.x, GPOSE{id}.y, GPOSE{id}.yaw, id, GDISPLAY.hRobot{id});
@@ -152,6 +176,17 @@ switch event
 
     cost = getdata(GMAP, 'cost');
     set(GDISPLAY.hMap, 'CData', cost');
+
+    if PLAN_DEBUG
+      %set(PLANDISPLAY.map, 'CData', PLANMAP.map);
+      if(PLANMAP.new == 1)
+        figure(11);
+        PLANDISPLAY.map = imagesc(PLANMAP.map);
+        axis xy;
+        PLANMAP.new = 0;
+      end
+    end
+    
 
     drawnow;
 
