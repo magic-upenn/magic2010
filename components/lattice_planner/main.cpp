@@ -23,7 +23,7 @@ using namespace std;
 #define min(a,b) (a<b?a:b)
 #define max(a,b) (a>b?a:b)
 
-#define PUBLISH_MAP 0
+#define PUBLISH_MAP 1
 #define PLANNING_TIME 2.0
 
 float resolution=0.1;
@@ -45,6 +45,7 @@ ARAPlanner* planner = NULL;
 vector<sbpl_2Dpt_t> perimeterptsV;
 float inner_radius = 0;
 float padding = 1.0;
+float padding_cost = 2;
 int exploration_obst_thresh = 250;
 int obst_thresh = 254;
 int inner_obst_thresh = obst_thresh-1;
@@ -67,13 +68,13 @@ bool reset_traj_map = false;
 //initialization flags
 int shouldRun = 0;
 char initialized = 0;
-#define INIT_RES    1<<0
-#define INIT_PARAMS 1<<1
-#define INIT_MAP    1<<2
-#define INIT_POSE   1<<3
-#define INIT_TRAJ   1<<4
-#define UPDATED_MAP 1<<5
-#define UPDATED_POS 1<<6
+#define INIT_RES    (1<<0)
+#define INIT_PARAMS (1<<1)
+#define INIT_MAP    (1<<2)
+#define INIT_POSE   (1<<3)
+#define INIT_TRAJ   (1<<4)
+#define UPDATED_MAP (1<<5)
+#define UPDATED_POS (1<<6)
 #define INIT_DONE (INIT_MAP | INIT_POSE | INIT_TRAJ | UPDATED_MAP | UPDATED_POS)
 #define NEED_UPDATE (INIT_MAP | INIT_POSE | INIT_TRAJ)
 
@@ -190,7 +191,7 @@ static void GP_FULL_UPDATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, vo
       if(costmap[x][y] <= outer_radius)
         costmap[x][y] = 254;
       else if(costmap[x][y] <= cell_padding)
-        costmap[x][y] = max((cell_padding-costmap[x][y])*200/(cell_padding-outer_radius), rawcostmap[x][y]);
+        costmap[x][y] = max((cell_padding-costmap[x][y])*padding_cost/(cell_padding-outer_radius), rawcostmap[x][y]);
       else
         costmap[x][y] = rawcostmap[x][y];
     }
@@ -243,6 +244,9 @@ static void GP_STATE_Handler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *cl
 	printf("Handler: Receiving %s (size %lu) [%s] \n", IPC_msgInstanceName(msgRef),  sizeof(callData), (char *)clientData);
 
   shouldRun = state_msg->shouldRun;
+  printf("init before=0x%x\n",initialized);
+  initialized &= ~INIT_TRAJ;
+  printf("init after=0x%x\n",initialized);
 
 	//frees memory used by message
 	IPC_freeDataElements(IPC_msgInstanceFormatter(msgRef), (void *)state_msg);
@@ -257,14 +261,52 @@ static void GPTRAJHandler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clien
 	IPC_unmarshall(IPC_msgInstanceFormatter(msgRef), callData, (void **)&GP_Traj_p);
 	printf("GPTRAJHandler: Receiving %s (size %lu) [%s] \n", IPC_msgInstanceName(msgRef),  sizeof(callData), (char *)clientData);
 
+  printf("shouldRun=%d id=%d\n",shouldRun,GP_Traj_p->id);
+
   if(GP_Traj_p->num_traj_pts > 0 && 
       ((GP_Traj_p->id == 0 &&  shouldRun==1) || (GP_Traj_p->id>0 && shouldRun==2))){
     reset_traj_map = true;
 
     //set goal
-    global_goal_x = GP_Traj_p->traj_array[(GP_Traj_p->num_traj_pts-1)*GP_Traj_p->traj_dim];
-    global_goal_y = GP_Traj_p->traj_array[(GP_Traj_p->num_traj_pts-1)*GP_Traj_p->traj_dim+1];
-    global_goal_theta = GP_Traj_p->traj_array[(GP_Traj_p->num_traj_pts-1)*GP_Traj_p->traj_dim+2];
+    if(env){
+      int i;
+      for(i=1; i<GP_Traj_p->num_traj_pts; i++){
+
+        //let it slide if the point in within our footprint
+        float dx = GP_Traj_p->traj_array[i*GP_Traj_p->traj_dim] - global_start_x;
+        float dy = GP_Traj_p->traj_array[i*GP_Traj_p->traj_dim+1] - global_start_y;
+        float dist = sqrt(dx*dx+dy*dy)/resolution;
+        if(dist <= outer_radius)
+          continue;
+
+        int cell_x = (GP_Traj_p->traj_array[i*GP_Traj_p->traj_dim]-global_x_offset)/resolution;
+        int cell_y = (GP_Traj_p->traj_array[i*GP_Traj_p->traj_dim+1]-global_y_offset)/resolution;
+        if(!OnMap(cell_x, cell_y) || costmap[cell_x][cell_y] >= obst_thresh)
+          break;
+      }
+      if(i==GP_Traj_p->num_traj_pts)
+        i--;
+      /*
+      for(i=GP_Traj_p->num_traj_pts-1; i>=0; i--){
+        int cell_x = (GP_Traj_p->traj_array[i*GP_Traj_p->traj_dim]-global_x_offset)/resolution;
+        int cell_y = (GP_Traj_p->traj_array[i*GP_Traj_p->traj_dim+1]-global_y_offset)/resolution;
+        if(OnMap(cell_x, cell_y) && costmap[cell_x][cell_y] < obst_thresh)
+          break;
+      }
+      if(i<0)
+        i=0;
+        */
+
+      printf("\npruned %d points\n\n",GP_Traj_p->num_traj_pts-(i+1));
+      global_goal_x = GP_Traj_p->traj_array[i*GP_Traj_p->traj_dim];
+      global_goal_y = GP_Traj_p->traj_array[i*GP_Traj_p->traj_dim+1];
+      global_goal_theta = GP_Traj_p->traj_array[i*GP_Traj_p->traj_dim+2];
+    }
+    else{
+      global_goal_x = GP_Traj_p->traj_array[(GP_Traj_p->num_traj_pts-1)*GP_Traj_p->traj_dim];
+      global_goal_y = GP_Traj_p->traj_array[(GP_Traj_p->num_traj_pts-1)*GP_Traj_p->traj_dim+1];
+      global_goal_theta = GP_Traj_p->traj_array[(GP_Traj_p->num_traj_pts-1)*GP_Traj_p->traj_dim+2];
+    }
 
     //store trajectory
     traj_length = GP_Traj_p->num_traj_pts;
@@ -276,6 +318,7 @@ static void GPTRAJHandler (MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clien
 
     initialized |= INIT_TRAJ;
   }
+  printf("init=0x%x\n",initialized);
   
 	// free variable length elements and message body
 	IPC_freeDataElements(IPC_msgInstanceFormatter(msgRef), (void *) GP_Traj_p);
@@ -317,7 +360,8 @@ int main(int argc, char** argv){
   string mapName = robotName + "/Cost_Map_Full"; 
   string poseName = robotName + "/Pose"; 
   string waypointsName = robotName + "/Waypoints"; 
-  string trajName = robotName + "/Planner_Path"; 
+  string goToPointName = robotName + "/Planner_GoToPoint"; 
+  string exploreName = robotName + "/Planner_Explore"; 
   string stateName = robotName + "/Planner_State"; 
   string outMapName = robotName + "/Planner_Map"; 
 
@@ -340,7 +384,8 @@ int main(int argc, char** argv){
 
 
   Magic::MotionTraj path_msg;
-  IPC_defineMsg(trajName.c_str(), IPC_VARIABLE_LENGTH, path_msg.getIPCFormat());
+  IPC_defineMsg(goToPointName.c_str(), IPC_VARIABLE_LENGTH, path_msg.getIPCFormat());
+  IPC_defineMsg(exploreName.c_str(), IPC_VARIABLE_LENGTH, path_msg.getIPCFormat());
 
 #if PUBLISH_MAP
 	GP_MAGIC_MAP map_msg;
@@ -382,10 +427,12 @@ int main(int argc, char** argv){
           }
           else{
             //if(costmap[x][y] < 252)
+            /*
               if(shouldRun==2)
                 c = (unsigned char)min(max(costmap[x][y], trajmap[x][y]),251);
               else
-                c = (unsigned char)min(costmap[x][y],251);
+              */
+                c = (unsigned char)min(ceil(costmap[x][y]),251);
               //c = (unsigned char)min(costmap[x][y] + trajmap[x][y], 251);
             //else
             //  c= (unsigned char)costmap[x][y];
@@ -436,7 +483,10 @@ int main(int argc, char** argv){
         path_msg.waypoints[i].yaw = sbpl_path[i].theta;
         path_msg.waypoints[i].v = 0.5;
       }
-      IPC_publishData(trajName.c_str(), &path_msg);
+      if(shouldRun==1)
+        IPC_publishData(goToPointName.c_str(), &path_msg);
+      else
+        IPC_publishData(exploreName.c_str(), &path_msg);
 
 #if PUBLISH_MAP
       if(map_msg.map)
@@ -449,11 +499,12 @@ int main(int argc, char** argv){
       map_msg.map = new int16_t[size_x*size_y];
       for(int x=0; x<size_x; x++)
         for(int y=0; y<size_y; y++)
-          map_msg.map[y+size_y*x] = costmap[x][y];
+          map_msg.map[y+size_y*x] = ceil(costmap[x][y]);
       IPC_publishData(outMapName.c_str(), &map_msg);
 #endif
 
       initialized = NEED_UPDATE;
+      initialized &= ~INIT_TRAJ;
     }
   }
 
