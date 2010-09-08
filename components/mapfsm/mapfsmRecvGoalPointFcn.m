@@ -1,8 +1,8 @@
 function mapfsmRecvGoalPointFcn(data, name)
 
-global MP PATH
+global MP PATH_DATA
 
 if ~isempty(data)
-  PATH = deserialize(data);
+  PATH_DATA.goToPointGoal = deserialize(data);
   MP.sm = setEvent(MP.sm, 'goToPoint');
 end

@@ -1,6 +1,6 @@
 function ret = sPath(event, varargin);
 
-global MPOSE PATH MAP SPEED
+global MPOSE PATH MAP SPEED PATH_DATA
 persistent DATA
 
 timeout = 120.0;
@@ -13,16 +13,25 @@ switch event
   DATA.tPredict = 0.1;
   DATA.speed = 0.3;
 
+   PATH = PATH_DATA.explorePath(:,1:2);
+   [dud1,idx,dud2] = unique(PATH,'rows','first');
+   PATH = PATH(sort(idx),:);
  case 'exit'
   
  case 'update'
+   PATH = PATH_DATA.explorePath(:,1:2);
+   [dud1,idx,dud2] = unique(PATH,'rows','first');
+   PATH = PATH(sort(idx),:);
+
    if isempty(PATH),
+     disp('empty?');
      SetVelocity(0, 0);
      ret = 'stop';
      return;
    end
 
    if (gettime - DATA.t0 > timeout)
+     disp('timeout?');
      ret = 'timeout';
    end
 
@@ -34,6 +43,7 @@ switch event
    dHeading = modAngle(aNear-MPOSE.heading);
    if (dEnd < 0.5) && abs(dHeading) < 30*pi/180,
      ret = 'done';
+     disp('done?');
      return;
    end
 
@@ -54,7 +64,17 @@ switch event
    dObstacle = pathObstacleDistance(xp, yp, MAP)
 
    if (dObstacle < .3),
-     ret = 'obstacle';
+     dxStart = PATH(1,1)-MPOSE.x;
+     dyStart = PATH(1,2)-MPOSE.y;
+     dStart = sqrt(dxStart.^2+dyStart.^2);
+     if(dStart < 0.3)
+       disp('recovery');
+       SetVelocity(-0.4, 0);
+       return;
+     else
+       disp('obstacle?');
+       ret = 'obstacle';
+     end
    end
 
    maxSpeed = min(.5*distToMaxSpeed(dObstacle), 1);
