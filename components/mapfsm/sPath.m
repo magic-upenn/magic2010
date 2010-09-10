@@ -67,8 +67,17 @@ switch event
    dObstacle = pathObstacleDistance(xp, yp, MAP)
 
    if (dObstacle < .3),
-     disp('obstacle?');
-     ret = 'obstacle';
+     dxStart = PATH(1,1)-MPOSE.x;
+     dyStart = PATH(1,2)-MPOSE.y;
+     dStart = sqrt(dxStart.^2+dyStart.^2);
+     if(dStart < 0.3)
+       disp('recovery');
+       SetVelocity(-0.4, 0);
+       return;
+     else
+       disp('obstacle?');
+       ret = 'obstacle';
+     end
    end
 
    maxSpeed = min(.5*distToMaxSpeed(dObstacle), 1);
