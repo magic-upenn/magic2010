@@ -138,7 +138,7 @@ mapfsmExit;
 %==========
 function mapfsmEntry
 
-global MP
+global MP PATH_DATA
 
 MP.sm = entry(MP.sm);
 
@@ -151,7 +151,8 @@ ipcReceiveSetFcn(GetMsgName('IncMapUpdateV'), @mapfsmRecvIncMapUpdateVFcn);
 ipcReceiveSetFcn(GetMsgName('Path'), @mapfsmRecvPathFcn);
 ipcReceiveSetFcn(GetMsgName('Goal_Point'), @mapfsmRecvGoalPointFcn);
 ipcReceiveSetFcn(GetMsgName('Planner_GoToPoint'), @mapfsmRecvPlannerPathFcn);
-ipcReceiveSetFcn(GetMsgName('Planner_Explore'), @mapfsmRecvExplorePathFcn);
+%ipcReceiveSetFcn(GetMsgName('Planner_Explore'), @mapfsmRecvExplorePathFcn);
+ipcReceiveSetFcn(GetMsgName('Global_Planner_Trajectory'),@mapfsmRecvExplorePathFcn);
 
 % Tracks from slam:
 ipcReceiveSetFcn(GetMsgName('VelTracks'), @mapfsmRecvVelTracksFcn);
@@ -160,6 +161,8 @@ ipcReceiveSetFcn(GetMsgName('OoiDynamic'), @mapfsmRecvOoiDynamicFcn);
 
 ipcAPIDefine(GetMsgName('Cost_Map_Full'),MagicGP_MAGIC_MAPSerializer('getFormat'));
 ipcAPIDefine(GetMsgName('Planner_State'),MagicGP_SET_STATESerializer('getFormat'));
+
+PATH_DATA.newExplorePath = false;
 
 
 %==========

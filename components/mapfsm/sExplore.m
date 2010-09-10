@@ -7,6 +7,7 @@ ret = [];
 switch event
  case 'entry'
   disp('sExplore');
+  DATA.waitForGoal = 3;
 
   %{
   PATH_DATA.type = 2;
@@ -29,6 +30,7 @@ switch event
       PATH_DATA.goToPointGoal(1) = PATH_DATA.explorePath(end,1);
       PATH_DATA.goToPointGoal(2) = PATH_DATA.explorePath(end,2);
       sGoToPoint('entry');
+      DATA.waitForGoal = 0;
    end
    
    switch DATA.waitForGoal
