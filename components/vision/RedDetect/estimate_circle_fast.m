@@ -2,10 +2,16 @@ function b = estimate_circle_fast(img,b)
 	%b = [400;300;120]; 
 	S = sum(img,3); 
 	d = 1;
-	Cb = circle(b(1),b(2),b(3),size(img));
-	Mb = mean(S(Cb));
+	l = 2;		
+	%Cb = fspecial('gaussian',S(1:2),10);
+	%Cb = Cb / Cb(100,100); 
+	%Cb = min(Cb,ones(size(Cb)));
+	Cb = sparse(circle(b(1),b(2),b(3),size(img)));
+	Cb = (Cb == 1);
+	%Cb = sparse(conv2(full(double(Cb)),ones(20)./20^2,'same'));
+	Mb = mean(S(Cb > 0));
 	bd = [0;0;0];  
-	for iter = 1:40
+	for iter = 1:50
 		Cb = circshift(Cb,-[bd(2),bd(1)]);
 		%Cb = circle(b(1),b(2),b(3),size(img));
 		Nb = numel(find(Cb)); 
@@ -35,9 +41,12 @@ function b = estimate_circle_fast(img,b)
 				B = [B,[x;y;r]]; 
 			end
 		end
+		Mbo = Mb; 
 		[Mb,i] = min(M);
-		bd = b - B(:,i);
-		b = B(:,i);
+		bd = floor((Mbo-Mb)*l) * (b - B(:,i));
+		b = b - bd;
+		(Mbo-Mb)*l
+		bd
 		if all(bd == 0)
 			break; 
 		end
