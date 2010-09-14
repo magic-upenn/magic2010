@@ -80,7 +80,7 @@ uint8_t * DynamixelPacketRawGetData(uint8_t * packet)
 //feed in a character and see if we got a complete packet
 int16_t   DynamixelPacketProcessChar(uint8_t c, DynamixelPacket * packet)
 {
-  int16_t ret = -1;
+  int16_t ret = 0;
   uint8_t checksum;
     
   switch (packet->lenReceived)
@@ -107,9 +107,11 @@ int16_t   DynamixelPacketProcessChar(uint8_t c, DynamixelPacket * packet)
       packet->lenExpected = packet->buffer[3] + 4;  //add 4 to get the full length
       
       //verify the expected length
-      if (packet->lenExpected < DYNAMIXEL_PACKET_MIN_SIZE)
+      if ( (packet->lenExpected < DYNAMIXEL_PACKET_MIN_SIZE)
+        || (packet->lenExpected > DYNAMIXEL_PACKET_MAX_SIZE) )
       {
         packet->lenReceived = 0;
+        packet->lenExpected = 0;
         break;
       }
       
@@ -128,6 +130,8 @@ int16_t   DynamixelPacketProcessChar(uint8_t c, DynamixelPacket * packet)
       
       if (checksum == c)
         ret  = packet->lenReceived;
+      else
+        ret = -1;
       
       //reset the counter
       packet->lenReceived = 0;
