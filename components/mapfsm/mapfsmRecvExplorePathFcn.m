@@ -1,9 +1,9 @@
 function mapfsmRecvExplorePathFcn(data, name)
+disp('got exploration goal');
 
 global MP PATH_DATA
 
 if ~isempty(data)
-  disp('got exploration goal');
   traj = MagicGP_TRAJECTORYSerializer('deserialize',data);
   if(traj.num_traj_pts > 0)
     traj_array = reshape(traj.traj_array, 6, [])';

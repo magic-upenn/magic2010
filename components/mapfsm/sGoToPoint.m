@@ -64,12 +64,21 @@ planMap.map = getdata(MAP, 'cost');
 disp('sending map...');
 lattice_planner_mex('map',[planMap.size_x planMap.size_y planMap.resolution planMap.UTM_x planMap.UTM_y], planMap.map);
 disp('map sent!');
+
 disp('sending pose...');
 lattice_planner_mex('pose',[MPOSE.x MPOSE.y MPOSE.heading]);
 disp('pose sent!');
-disp('sending goal...');
-lattice_planner_mex('goal',[PATH_DATA.goToPointGoal(1) PATH_DATA.goToPointGoal(2) atan2(PATH_DATA.goToPointGoal(2)-MPOSE.y,PATH_DATA.goToPointGoal(1)-MPOSE.x)]);
-disp('goal sent!');
+
+if(size(PATH_DATA.goToPointGoal,1) == 1)
+  disp('sending goal...');
+  lattice_planner_mex('goal',PATH_DATA.goToPointGoal);
+  disp('goal sent!');
+else
+  disp('sending explore path...');
+  lattice_planner_mex('explore_path',PATH_DATA.goToPointGoal);
+  disp('explore path sent!');
+end
+
 disp('planning...');
 [path_x path_y path_yaw] = lattice_planner_mex('plan');
 PATH_DATA.goToPointPath = [path_x path_y path_yaw];

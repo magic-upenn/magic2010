@@ -27,8 +27,7 @@ switch event
 
    if PATH_DATA.newExplorePath
       PATH_DATA.newExplorePath = false;
-      PATH_DATA.goToPointGoal(1) = PATH_DATA.explorePath(end,1);
-      PATH_DATA.goToPointGoal(2) = PATH_DATA.explorePath(end,2);
+      PATH_DATA.goToPointGoal = PATH_DATA.explorePath;
       sGoToPoint('entry');
       DATA.waitForGoal = 0;
    end
@@ -36,7 +35,7 @@ switch event
    switch DATA.waitForGoal
      case 0
        ret = sGoToPoint('update');
-       if ret=='done'
+       if strcmp(ret,'done')
          DATA.waitForGoal = 1;
        end
      case 1
@@ -44,7 +43,7 @@ switch event
        DATA.waitForGoal = 2;
      case 2
        ret = sSpinLeft('update');
-       if ret=='done' || ret=='timeout'
+       if strcmp(ret,'done') || strcmp(ret,'timeout')
          DATA.waitForGoal = 3;
        end
      case 3

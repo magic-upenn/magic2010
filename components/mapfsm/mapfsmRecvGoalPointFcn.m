@@ -1,8 +1,9 @@
 function mapfsmRecvGoalPointFcn(data, name)
 
-global MP PATH_DATA
+global MP PATH_DATA MPOSE
 
 if ~isempty(data)
-  PATH_DATA.goToPointGoal = deserialize(data);
+  goal = deserialize(data);
+  PATH_DATA.goToPointGoal = [goal(1) goal(2) atan2(goal(2)-MPOSE.y,goal(1)-MPOSE.x)];
   MP.sm = setEvent(MP.sm, 'goToPoint');
 end

@@ -152,7 +152,7 @@ ipcReceiveSetFcn(GetMsgName('Path'), @mapfsmRecvPathFcn);
 ipcReceiveSetFcn(GetMsgName('Goal_Point'), @mapfsmRecvGoalPointFcn);
 ipcReceiveSetFcn(GetMsgName('Planner_GoToPoint'), @mapfsmRecvPlannerPathFcn);
 %ipcReceiveSetFcn(GetMsgName('Planner_Explore'), @mapfsmRecvExplorePathFcn);
-ipcReceiveSetFcn(GetMsgName('Global_Planner_Trajectory'),@mapfsmRecvExplorePathFcn);
+ipcReceiveSetFcn(GetMsgName('Waypoints'),@mapfsmRecvExplorePathFcn);
 
 % Tracks from slam:
 ipcReceiveSetFcn(GetMsgName('VelTracks'), @mapfsmRecvVelTracksFcn);
