@@ -32,6 +32,7 @@ ARAPlanner* planner = NULL;
 vector<sbpl_2Dpt_t> perimeterptsV;
 float inner_radius = 0;
 float padding = 1.0;
+float padding_cost = 2;
 int exploration_obst_thresh = 250;
 int obst_thresh = 254;
 int inner_obst_thresh = obst_thresh-1;
@@ -47,20 +48,20 @@ double global_goal_y;
 double global_goal_theta;
 int traj_length;
 int traj_dim;
-float* traj_path = NULL;
+double* traj_path = NULL;
 
 bool reset_traj_map = false;
 
 //initialization flags
 int shouldRun = 0;
 char initialized = 0;
-#define INIT_RES    1<<0
-#define INIT_PARAMS 1<<1
-#define INIT_MAP    1<<2
-#define INIT_POSE   1<<3
-#define INIT_TRAJ   1<<4
-#define UPDATED_MAP 1<<5
-#define UPDATED_POS 1<<6
+#define INIT_RES    (1<<0)
+#define INIT_PARAMS (1<<1)
+#define INIT_MAP    (1<<2)
+#define INIT_POSE   (1<<3)
+#define INIT_TRAJ   (1<<4)
+#define UPDATED_MAP (1<<5)
+#define UPDATED_POS (1<<6)
 #define INIT_DONE (INIT_MAP | INIT_POSE | INIT_TRAJ | UPDATED_MAP | UPDATED_POS)
 #define NEED_UPDATE (INIT_MAP | INIT_POSE | INIT_TRAJ)
 
@@ -216,7 +217,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray*prhs[] ){
         if(costmap[x][y] <= outer_radius)
           costmap[x][y] = 254;
         else if(costmap[x][y] <= cell_padding)
-          costmap[x][y] = max((cell_padding-costmap[x][y])*200/(cell_padding-outer_radius), rawcostmap[x][y]);
+          costmap[x][y] = max((cell_padding-costmap[x][y])*padding_cost/(cell_padding-outer_radius), rawcostmap[x][y]);
         else
           costmap[x][y] = rawcostmap[x][y];
       }
@@ -263,9 +264,61 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray*prhs[] ){
     global_goal_x = goal_pose[0];
     global_goal_y = goal_pose[1];
     global_goal_theta = goal_pose[2];
+    reset_traj_map = false;
 
     initialized |= INIT_TRAJ;
   }
+  
+  else if (strcasecmp(command, "explore_path") == 0){
+    if((mxGetNumberOfElements(prhs[1]) % 3) != 0 || mxGetNumberOfElements(prhs[1]) == 0){
+      mexErrMsgTxt("the exploration path (2nd argument) should be divisible by 3 (x,y,yaw)");
+      return;
+    }
+    double* explore_path = (double*)mxGetPr(prhs[1]);
+    int num_pts = mxGetNumberOfElements(prhs[1])/3;
+
+    reset_traj_map = true;
+
+    if(env){
+      int i;
+      for(i=1; i<num_pts; i++){
+
+        //let it slide if the point in within our footprint
+        float dx = explore_path[i] - global_start_x;
+        float dy = explore_path[i + num_pts] - global_start_y;
+        float dist = sqrt(dx*dx+dy*dy)/resolution;
+        if(dist <= outer_radius)
+          continue;
+
+        int cell_x = (explore_path[i]-global_x_offset)/resolution;
+        int cell_y = (explore_path[i + num_pts]-global_y_offset)/resolution;
+        if(!OnMap(cell_x, cell_y) || costmap[cell_x][cell_y] >= obst_thresh)
+          break;
+      }
+      //if(i==GP_Traj_p->num_traj_pts)
+        i--;
+
+      printf("\npruned %d points\n\n",num_pts-(i+1));
+      global_goal_x = explore_path[i];
+      global_goal_y = explore_path[i + num_pts];
+      global_goal_theta = explore_path[i + 2*num_pts];
+    }
+    else{
+      global_goal_x = explore_path[(num_pts-1)];
+      global_goal_y = explore_path[(num_pts-1) + num_pts];
+      global_goal_theta = explore_path[(num_pts-1) + 2*num_pts];
+    }
+
+    //store trajectory
+    traj_length = num_pts;
+    if(traj_path != NULL)
+      delete [] traj_path;
+    traj_path = new double[3*traj_length];
+    memcpy(traj_path, explore_path, sizeof(double)*traj_length*3);
+
+    initialized |= INIT_TRAJ;
+  }
+  
 
   else if (strcasecmp(command, "plan") == 0){
     vector<int> solution_stateIDs;
