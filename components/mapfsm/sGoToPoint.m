@@ -75,7 +75,7 @@ if(size(PATH_DATA.goToPointGoal,1) == 1)
   disp('goal sent!');
 else
   disp('sending explore path...');
-  lattice_planner_mex('explore_path',PATH_DATA.goToPointGoal);
+  lattice_planner_mex('explore_path',double(PATH_DATA.goToPointGoal));
   disp('explore path sent!');
 end
 
@@ -83,6 +83,9 @@ disp('planning...');
 [path_x path_y path_yaw] = lattice_planner_mex('plan');
 PATH_DATA.goToPointPath = [path_x path_y path_yaw];
 disp('got plan!');
-size(PATH_DATA.goToPointPath)
+%size(PATH_DATA.goToPointPath)
+
+ipcAPIPublish(GetMsgName('Planner_Path'), serialize(PATH_DATA.goToPointPath));
+
 PATH_DATA.type = 1;
 

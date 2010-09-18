@@ -274,7 +274,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray*prhs[] ){
       mexErrMsgTxt("the exploration path (2nd argument) should be divisible by 3 (x,y,yaw)");
       return;
     }
-    double* explore_path = (double*)mxGetPr(prhs[1]);
+    double* explore_path = mxGetPr(prhs[1]);
     int num_pts = mxGetNumberOfElements(prhs[1])/3;
 
     reset_traj_map = true;
@@ -298,10 +298,11 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray*prhs[] ){
       //if(i==GP_Traj_p->num_traj_pts)
         i--;
 
-      printf("\npruned %d points\n\n",num_pts-(i+1));
+      printf("\npruned %d points out of %d points\n\n",num_pts-(i+1),num_pts);
       global_goal_x = explore_path[i];
       global_goal_y = explore_path[i + num_pts];
       global_goal_theta = explore_path[i + 2*num_pts];
+      //printf("exploration goal (%f, %f, %f)\n",global_goal_x,global_goal_y,global_goal_theta);
     }
     else{
       global_goal_x = explore_path[(num_pts-1)];

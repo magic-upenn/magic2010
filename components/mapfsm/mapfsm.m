@@ -152,7 +152,8 @@ ipcReceiveSetFcn(GetMsgName('Path'), @mapfsmRecvPathFcn);
 ipcReceiveSetFcn(GetMsgName('Goal_Point'), @mapfsmRecvGoalPointFcn);
 ipcReceiveSetFcn(GetMsgName('Planner_GoToPoint'), @mapfsmRecvPlannerPathFcn);
 %ipcReceiveSetFcn(GetMsgName('Planner_Explore'), @mapfsmRecvExplorePathFcn);
-ipcReceiveSetFcn(GetMsgName('Waypoints'),@mapfsmRecvExplorePathFcn);
+%ipcReceiveSetFcn(GetMsgName('Waypoints'),@mapfsmRecvExplorePathFcn);
+ipcReceiveSetFcn(GetMsgName('Explore_Path'),@mapfsmRecvExplorePathFcn);
 
 % Tracks from slam:
 ipcReceiveSetFcn(GetMsgName('VelTracks'), @mapfsmRecvVelTracksFcn);
@@ -161,6 +162,7 @@ ipcReceiveSetFcn(GetMsgName('OoiDynamic'), @mapfsmRecvOoiDynamicFcn);
 
 ipcAPIDefine(GetMsgName('Cost_Map_Full'),MagicGP_MAGIC_MAPSerializer('getFormat'));
 ipcAPIDefine(GetMsgName('Planner_State'),MagicGP_SET_STATESerializer('getFormat'));
+ipcAPIDefine(GetMsgName('Planner_Path'));
 
 PATH_DATA.newExplorePath = false;
 
