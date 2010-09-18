@@ -1,7 +1,7 @@
 function mapDisplay(event, varargin)
 
 global GCS
-global RPOSE RMAP RPATH
+global RPOSE RMAP RPATH EXPLORE_PATH
 global GPOSE GMAP GPATH
 global RDISPLAY GDISPLAY
 global PLANDISPLAY PLANMAP PLAN_DEBUG
@@ -30,6 +30,7 @@ switch event
       % Robot path
       hold on;
       RDISPLAY.path{id} = plot(0, 0, '-r');
+      RDISPLAY.explore{id} = plot(0, 0, '-y');
       hold off;
 
       axis xy equal;
@@ -165,6 +166,12 @@ switch event
       if ~isempty(RPATH{id})
         hold on;
         set(RDISPLAY.path{id},'x',RPATH{id}.x,'y',RPATH{id}.y);
+        hold off;
+      end
+
+      if ~isempty(EXPLORE_PATH{id})
+        hold on;
+        set(RDISPLAY.explore{id},'x',EXPLORE_PATH{id}.x,'y',EXPLORE_PATH{id}.y);
         hold off;
       end
         

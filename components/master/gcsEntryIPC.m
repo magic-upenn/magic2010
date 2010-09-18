@@ -2,7 +2,7 @@ function gcsEntryIPC(ids)
 
 global GCS
 global ROBOTS
-global RPOSE RMAP RPATH
+global RPOSE RMAP RPATH EXPLORE_PATH
 global GTRANSFORM GPOSE GMAP GPATH
 global PLANMAP PLAN_DEBUG
 
@@ -25,6 +25,7 @@ for id = ids,
 
   RPATH{id} = [];
   GPATH{id} = [];
+  EXPLORE_PATH{id} = [];
 end
 
 %Exploration planner looks at idmax indices of GPOSE
@@ -38,16 +39,14 @@ masterConnectRobots(ids);
 messages = {'PoseExternal', ...
             'IncMapUpdateH', ...
             'IncMapUpdateV', ...
-            'Planner_GoToPoint', ...
-            'Planner_Explore'};
+            'Planner_Path'};
 
 handles  = {@gcsRecvPoseExternal, ...
             @gcsRecvIncMapUpdateH, ...
             @gcsRecvIncMapUpdateV, ...
-            @gcsRecvPlannerPathFcn, ...
             @gcsRecvPlannerPathFcn};
           
-queueLengths = [5 5 5 1 1];
+queueLengths = [5 5 5 1];
 
 if PLAN_DEBUG
   messages = [messages, 'Planner_Map'];
@@ -71,6 +70,9 @@ for id = ids,
   ROBOTS(id).ipcAPI('define', msgNamePath);
 
   msgNamePath = ['Robot',num2str(id),'/Goal_Point'];
+  ROBOTS(id).ipcAPI('define', msgNamePath);
+
+  msgNamePath = ['Robot',num2str(id),'/Explore_Path'];
   ROBOTS(id).ipcAPI('define', msgNamePath);
 
   msgNameStateEvent = ['Robot',num2str(id),'/StateEvent'];

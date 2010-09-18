@@ -10,9 +10,12 @@ id = GetIdFromName(name);
 
 fprintf('got path from robot %d\n',id);
 
-traj = MagicMotionTrajSerializer('deserialize',data);
-RPATH{id}.x = cell2mat({traj.waypoints(:).x})';
-RPATH{id}.y = cell2mat({traj.waypoints(:).y})';
+%traj = MagicMotionTrajSerializer('deserialize',data);
+%RPATH{id}.x = cell2mat({traj.waypoints(:).x})';
+%RPATH{id}.y = cell2mat({traj.waypoints(:).y})';
+traj = deserialize(data);
+RPATH{id}.x = traj(:,1);
+RPATH{id}.y = traj(:,2);
 
 %{
 GPATH{id} = RPATH{id};
