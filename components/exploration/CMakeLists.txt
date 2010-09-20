@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.4.6)
 set(CMAKE_BUILD_TYPE debug)
-include_directories(${PROJECT_SOURCE_DIR}/code /opt/ros/boxturtle/stacks/motion_planners/sbpl/src/sbpl)
+include_directories(${PROJECT_SOURCE_DIR}/code $ENV{MAGIC_DIR}/components/sbpl/src/sbpl)
 
 
 # Build executables in the bin directory
@@ -17,13 +17,12 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
 
 #building just a library. 
 add_library(gplan SHARED global_planner.cpp raycaster.cpp filetransfer.cpp )
-target_link_libraries(gplan /opt/ros/boxturtle/stacks/motion_planners/sbpl/lib/libsbpl.so boost_thread)
+target_link_libraries(gplan $ENV{MAGIC_DIR}/components/sbpl/cmake_build/libsbpl.a boost_thread)
 
 add_executable(magicwrapper magicwrapper.cpp
-     /home/jon/svn_tree/research/ipc-3.8.5/lib/Linux-2.6/libipc.a
-     /home/jon/svn_tree/research/magic_video/exploration/IPC_version/libgplan.so
-     )
-target_link_libraries(magicwrapper gplan /home/jon/svn_tree/research/ipc-3.8.5/lib/Linux-2.6/libipc.a )
+               $ENV{MAGIC_DIR}/ipc/libipc.a.linux64
+               )
+target_link_libraries(magicwrapper gplan $ENV{MAGIC_DIR}/ipc/libipc.a.linux64 )
 
 
 #add_executable(stest stest.cpp

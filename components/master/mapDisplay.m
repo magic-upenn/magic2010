@@ -134,7 +134,7 @@ switch event
     axis xy equal;
     axis([-40 40 -40 40]);
     GDISPLAY.hAxes = gca;
-    set(gca,'Position', [.01 .01 .99 .99], 'XLimMode', 'manual', 'YLimMode', 'manual');
+    set(gca,'Position', [.01 .01 .95 .95], 'XLimMode', 'manual', 'YLimMode', 'manual');
     colormap(jet);
     drawnow
 

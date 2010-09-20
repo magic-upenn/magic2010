@@ -2,7 +2,7 @@
 using namespace std;
 
 #include "filetransfer.h"
-#include "/opt/ros/boxturtle/stacks/motion_planners/sbpl/src/sbpl/headers.h" // SBPL
+#include "../sbpl/src/sbpl/headers.h"
 
 //#define MODULE_NAME "Global Planner Linux"
 #define DEFAULTMAP 1

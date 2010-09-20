@@ -32,6 +32,7 @@ GPLAN gplan;
 static void DATAhandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData) {
 	GP_DATA_PTR data;
 	IPC_unmarshall(IPC_msgInstanceFormatter(msgRef), callData, (void **) &data);
+  IPC_printData(IPC_msgFormatter(GP_DATA_MSG), stdout, data);
 
 	if ((planner.NR != data->NR) || (planner.GP_PLAN_TIME != data->GP_PLAN_TIME) || (planner.DIST_GAIN != data->DIST_GAIN) || (planner.MIN_RANGE != data->MIN_RANGE)
 			|| (planner.MAX_RANGE != data->MAX_RANGE) || (planner.DIST_PENALTY != data->DIST_PENALTY) || (planner.REGION_PENALTY != data->REGION_PENALTY)
@@ -53,6 +54,7 @@ static void DATAhandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientDa
 
 //	maps.UTM_x = data->UTM_x;		// UTM x offset in meters
 //	maps.UTM_y = data->UTM_y;		// UTM y offset in meters
+
 
 	// robot poses and availability
 	delete [] position.avail;
@@ -106,7 +108,7 @@ static void DATAhandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientDa
 				maps.cost_map[i+planner.map_size_x*j] = 0;
 			}
 
-			maps.elev_map[i+planner.map_size_x*j] = (int16_t)(maps.cost_map[i*planner.map_size_x*j]*100);
+			maps.elev_map[i+planner.map_size_x*j] = (int16_t)(maps.cost_map[i+planner.map_size_x*j]*100);
 		}
 	}
 
@@ -160,10 +162,10 @@ int main () {
 	position.y = new double[1];
 	position.theta = new double[1];
 
-	GPtraj.traj_size = new uint16_t[1];
-	GPtraj.POSEX = new double[1];
-	GPtraj.POSEY = new double[1];
-	GPtraj.POSETHETA = new double[1];
+	maps.coverage_map = new unsigned char[1];
+	maps.cost_map = new unsigned char[1];
+	maps.elev_map = new int16_t[1];
+	maps.region_map = new unsigned char[1];
 
 
 	//IPC stuff
