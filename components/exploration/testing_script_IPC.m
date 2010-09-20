@@ -1,63 +1,50 @@
-  traj_c = [];
-% filepath = '../Release/';
-filepath = '';
- [cover_map cost_map elev_map] = inputM([filepath 'Map.txt']);
-figure(2);
-image(double(cost_map));
+ traj_c = [];
+
+ [cover_map cost_map elev_map] = inputM('ModCombinedMap3.txt');
+figure(32);
+image(cost_map);
 title('original cost map');
 axis equal
-axis xy
 
-
-figure(3);
-image(double(elev_map));
+figure(33);
+image(elev_map);
 title('original elev map');
 axis equal
-axis xy
 
-for rep=1:400
+for rep=1:1
     
     
-    
-    [cover_map2 inf_cost_map2 elev_map2] = inputM([filepath 'Map_out.txt']);
-    
+    [cover_map2 inf_cost_map2 elev_map2] = inputM('Map_out.txt');
+    5
     figure(1);
-    image(cover_map2);
-    title('post coverage');
-    axis equal;
-    axis xy;
-    
-    
-    figure(4);
     image(inf_cost_map2);
-    title('cost out');
+    title('post cost');
     axis equal
-    axis xy;
     
-    [djikstra] = input_djikstra([filepath 'Map_extra.txt']);
-    figure(5);
+%     figure(4);
+%     image(cover_map2);
+%     title('coverage out');
+%     axis equal
+    
+    [djikstra] = input_djikstra('Map_extra.txt');
+    figure(35);
     djikstra(djikstra==100000000) = 10000;
     image(70*double(djikstra)/double(max(max(djikstra))));
     title('djikstra');
-    axis equal;
-    axis xy;
+    axis equal
     
-    [score, traj] = input_mapMST([filepath 'Map_traj.txt']);
-    traj = (reshape(traj,6, []))';
+    [score, traj] = input_mapMST('Map_traj.txt');
+    traj = (reshape(traj,8, []))';
+    traj = traj(:,1:2);
     traj_c = vertcat(traj_c, traj);
-    figure(5);
-    hold on;
-    plot(traj_c(:,2), traj_c(:,1), 'g.');
-    hold off;
-    
     figure(1);
     hold on;
     plot(traj_c(:,2), traj_c(:,1), 'g.');
-%     axis([traj_c(end,2)-20 traj_c(end,2)+20 traj_c(end,1)-20 traj_c(end,1)+20]);
-    axis xy;
     hold off;
+%     axis([traj_c(end, 2)-30 traj_c(end,2)+30 traj_c(end,1)-30 traj_c(end,1)+30]);
     
-    pause(1.5);
+    traj_c = unique(traj_c, 'rows')
+    pause(.75);
 end
     
     % sum(sum(cost_map-cost_map2))

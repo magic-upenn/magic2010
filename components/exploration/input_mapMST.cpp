@@ -14,6 +14,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
     char *filename;
     ifstream fin;
     
+    const int trajdim = 8;
     /*  check for proper number of arguments */
     if(nrhs!=1)
         mexErrMsgTxt("filename expected");
@@ -30,19 +31,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
     fin.open(filename, ios_base::in | ios_base::binary)  ;
     fin.read( (char *) score, sizeof(double));
     fin.read( (char *) &traj_leng, sizeof(int));
-    mexPrintf("ST:  %f  %i\n",  score, traj_leng);
-    while(abs(traj_leng)>10000) {
-        // as long as dimensions are too big, keep trying to load
-        mexPrintf("traj too large\n");
-        fin.close();
-        fin.open(filename, ios_base::in | ios_base::binary)  ;
-        fin.read( (char *) score, sizeof(double));
-        fin.read( (char *) &traj_leng, sizeof(int));
-        mexPrintf("ST:  %f  %i\n",  score, traj_leng);
-    }
     
-
-     traj_leng *= 6;
+     traj_leng *= trajdim;
     mwSize dimtraj[2] = {1, traj_leng};
     
     plhs[1] = mxCreateNumericArray(ndim, dimtraj, mxSINGLE_CLASS,  mxREAL );
@@ -50,21 +40,23 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
     
    
     
-    for (int q=0; q<traj_leng/6;q++) {
+    for (int q=0; q<traj_leng/trajdim;q++) {
         int intptr;
         fin.read( (char *) &intptr, sizeof(int));
-        cout << intptr << " ";
-        traj[q*6] = (float) intptr;
+     //   cout << intptr << endl;
+        traj[q*trajdim] = (float) intptr;
         fin.read( (char *) &intptr, sizeof(int));
-        cout << intptr << endl;
-        traj[q*6+1] = (float)intptr;
-        fin.read( (char *) &traj[q*6+2], sizeof(float));
-        fin.read( (char *) &traj[q*6+3], sizeof(float));
-        fin.read( (char *) &traj[q*6+4], sizeof(float));
-        fin.read( (char *) &traj[q*6+5], sizeof(float));
+       // cout << intptr << endl;
+        traj[q*trajdim+1] = (float)intptr;
+        fin.read( (char *) &traj[q*trajdim+2], sizeof(float));
+        fin.read( (char *) &traj[q*trajdim+3], sizeof(float));
+        fin.read( (char *) &traj[q*trajdim+4], sizeof(float));
+        fin.read( (char *) &traj[q*trajdim+5], sizeof(float));
+        fin.read( (char *) &traj[q*trajdim+6], sizeof(float));
+        fin.read( (char *) &traj[q*trajdim+7], sizeof(float));
     }
     
-
+    mexPrintf("ST:  %f  %i\n",  score, traj_leng);
     
     fin.close();
     mexPrintf("load done\n");
