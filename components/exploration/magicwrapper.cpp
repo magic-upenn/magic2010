@@ -17,7 +17,7 @@ using namespace std;
 #include "messages_IPC.h"
 #include "global_planner.h"
 
-#include "MagicPlanDataTypes.h"
+#include "../../common/dataTypes/MagicPlanDataTypes.h"
 #include "../../ipc/ipc.h"
 
 
