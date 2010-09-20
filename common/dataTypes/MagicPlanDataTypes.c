@@ -1,3 +1,7 @@
+#include "MexIpcSerialization.hh"
+#include "MagicPlanDataTypes.h"
+
+
 int GP_DATA::ReadFromMatlab(mxArray * mxArr, int index)
 {
   int numFieldsRead = 0;
@@ -15,7 +19,7 @@ int GP_DATA::ReadFromMatlab(mxArray * mxArr, int index)
   MEX_READ_FIELD(mxArr,index,UTM_x,numFieldsRead);
   MEX_READ_FIELD(mxArr,index,UTM_y,numFieldsRead);
 
-  MEX_READ_FIELD_RAW_ARRAY2D_INT(mxArr,index,avail,numFieldsRead);
+  MEX_READ_FIELD_RAW_ARRAY2D_INT16(mxArr,index,avail,numFieldsRead);
   MEX_READ_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,x,numFieldsRead);
   MEX_READ_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,y,numFieldsRead);
   MEX_READ_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,theta,numFieldsRead);
@@ -51,12 +55,12 @@ int GP_DATA::WriteToMatlab(mxArray * mxArr, int index)
   MEX_WRITE_FIELD(mxArr,index,UTM_x);
   MEX_WRITE_FIELD(mxArr,index,UTM_y);
 
-  MEX_WRITE_FIELD_RAW_ARRAY2D_INT(mxArr,index,avail,NR, 1);
+  MEX_WRITE_FIELD_RAW_ARRAY2D_INT16(mxArr,index,avail,NR, 1);
   MEX_WRITE_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,x,NR, 1);
   MEX_WRITE_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,y,NR, 1);
   MEX_WRITE_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,theta,NR, 1);
-  MEX_WRITE_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,map,numFieldsRead, map_size_x, map_size_y);
-  MEX_WRITE_FIELD_RAW_ARRAY2D_UINT8(mxArr,index,region_map,numFieldsRead, map_size_x, map_size_y);
+  MEX_WRITE_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,map, map_size_x, map_size_y);
+  MEX_WRITE_FIELD_RAW_ARRAY2D_UINT8(mxArr,index,region_map, map_size_x, map_size_y);
   
   return 0;
 }
@@ -69,7 +73,7 @@ int GP_TRAJ::ReadFromMatlab(mxArray * mxArr, int index)
   int numFieldsRead = 0;
 
   MEX_READ_FIELD(mxArr,index,NR,numFieldsRead);
-  MEX_READ_FIELD_RAW_ARRAY2D_INT(mxArr,index, traj_size, numFieldsRead);
+  MEX_READ_FIELD_RAW_ARRAY2D_UINT16(mxArr,index, traj_size, numFieldsRead);
   MEX_READ_FIELD(mxArr,index,total_size,numFieldsRead);
   MEX_READ_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,POSEX,numFieldsRead);
   MEX_READ_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,POSEY,numFieldsRead);
@@ -92,7 +96,7 @@ int GP_TRAJ::WriteToMatlab(mxArray * mxArr, int index)
 {
  
   MEX_WRITE_FIELD(mxArr,index,NR);
-  MEX_WRITE_FIELD_RAW_ARRAY2D_INT(mxArr,index,traj_size,NR, 1);
+  MEX_WRITE_FIELD_RAW_ARRAY2D_UINT16(mxArr,index,traj_size,NR, 1);
   MEX_WRITE_FIELD(mxArr,index,total_size);
   MEX_WRITE_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,POSEX,total_size,1);
   MEX_WRITE_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,POSEY,total_size,1);

@@ -1,4 +1,8 @@
-#define GP_DATA_FORM "{int, double, double, double, double, double, double, double, int, int, double, double, <int:1>, <double:1>, <double:1>, <double:1>, <double:9,10>, <ubyte:9,10>}"	
+#include <stdint.h>
+#ifndef GP_HEADER
+#define GP_HEADER
+
+#define GP_DATA_FORM "{int, double, double, double, double, double, double, double, int, int, double, double, <short:1>, <double:1>, <double:1>, <double:1>, <double:9,10>, <ubyte:9,10>}"	
 #define GP_DATA_MSG "Global_Planner_DATA"
 
 typedef struct {
@@ -17,7 +21,7 @@ typedef struct {
 	double UTM_x;		// UTM x offset in meters
 	double UTM_y;		// UTM y offset in meters
 	// robot poses and availability
-	int *avail;			// flag for availability of each robot
+	int16_t *avail;			// flag for availability of each robot
 	double *x;			// x position of robot reference point in meters
 	double *y;			// y position of robot reference point in meters
 	double *theta; 		// robot heading referenced to 0 = positive x-axis
@@ -35,13 +39,13 @@ typedef struct {
 
 
 
-#define GP_TRAJ_FORM "{int, <int:1>, int, <double:3>, <double:3>, <double:3>}"	
+#define GP_TRAJ_FORM "{int, <short:1>, int, <double:3>, <double:3>, <double:3>}"	
 #define GP_TRAJ_MSG "Global_Planner_TRAJ"
 
 typedef struct {
 //parameters
   	int NR;             // number of robots
-	int *traj_size;		// size of trajectories for each robot
+	uint16_t *traj_size;		// start of trajectories for each robot
 	int total_size;		//total number of trajectory points
 	double *POSEX;		// x coordinates in UTM meters
 	double *POSEY;		// y coordinates in UTM meters
@@ -54,4 +58,5 @@ typedef struct {
 #endif
   
 } GP_TRAJ, *GP_TRAJ_PTR;
+#endif
 
