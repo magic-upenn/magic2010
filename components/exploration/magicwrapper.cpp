@@ -65,7 +65,7 @@ static void DATAhandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientDa
 	position.y = new double[planner.NR];
 	position.theta = new double[planner.NR];
 
-	memcpy((void *)position.avail, (void *)data->avail, planner.NR*sizeof(int));
+	//memcpy((void *)position.avail, (void *)data->avail, planner.NR*sizeof(int));
 	memcpy((void *)position.x, (void *)data->x, planner.NR*sizeof(double));
 	memcpy((void *)position.y, (void *)data->y, planner.NR*sizeof(double));
 	memcpy((void *)position.theta, (void *)data->theta, planner.NR*sizeof(double));
@@ -74,6 +74,7 @@ static void DATAhandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientDa
 	for (int ridx = 0; ridx < planner.NR; ridx++) {
 		position.x[ridx] -= data->UTM_x;
 		position.y[ridx] -= data->UTM_y;
+		position.avail[ridx] = (int)data->avail[ridx];
 	}
 
 
@@ -119,19 +120,21 @@ static void DATAhandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientDa
 		GPtraj.total_size += traj[ridx].size();
 	}
 
-	GPtraj.traj_size = new int[GPtraj.NR];
+	GPtraj.traj_size = new uint16_t[GPtraj.NR];
 	GPtraj.POSEX = new double[GPtraj.total_size];
 	GPtraj.POSEY = new double[GPtraj.total_size];
 	GPtraj.POSETHETA = new double[GPtraj.total_size];
 
-	int ptr=0;
+	uint16_t ptr=0;
 	for (int ridx = 0; ridx < traj.size(); ridx++) {
+		GPtraj.traj_size[ridx] = ptr;
 		for (int tidx = 0; tidx < traj[ridx].size(); tidx++) {
 			GPtraj.POSEX[ptr] = traj[ridx][tidx].xx + data->UTM_x;
 			GPtraj.POSEY[ptr] = traj[ridx][tidx].yy + data->UTM_y;
 			GPtraj.POSETHETA[ptr] = traj[ridx][tidx].theta;
 			ptr++;
 		}
+
 	}
 
 	//publish trajectory
