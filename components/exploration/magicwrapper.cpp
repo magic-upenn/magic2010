@@ -18,7 +18,7 @@ using namespace std;
 #include "global_planner.h"
 
 #include "MagicPlanDataTypes.h"
-#include "/home/jon/svn_tree/research/ipc-3.8.5/include/ipc.h"
+#include "../../ipc/ipc.h"
 
 
 #define MODULE_NAME "Exploration"
