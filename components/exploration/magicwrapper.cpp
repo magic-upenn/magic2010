@@ -147,11 +147,23 @@ static void DATAhandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientDa
 int main () {
 	planner.WRITE_FILES = 0; // flag to write files out
 	planner.DISPLAY_OUTPUT =0; // flag to display any output
-	planner.SENSORWIDTH = 2*M_PI;
+	planner.SENSORWIDTH = M_PI;
 	planner.THETA_BIAS = 0; // 0 to 1 bias on rough direction to goal location default is 1
 	planner.sensor_radius = 7.0;		// sensing radius of robot in m
 	planner.sensor_height = 120;		// sensing height of robot in cm
 	planner.perimeter_radius = .39;	// radius of bounding circle
+
+
+
+	position.avail = new int[1];
+	position.x = new double[1];
+	position.y = new double[1];
+	position.theta = new double[1];
+
+	GPtraj.traj_size = new uint16_t[1];
+	GPtraj.POSEX = new double[1];
+	GPtraj.POSEY = new double[1];
+	GPtraj.POSETHETA = new double[1];
 
 
 	//IPC stuff
