@@ -1,4 +1,4 @@
-SUBDIRS = slam sbpl lattice_planner
+SUBDIRS = slam sbpl 
 
 all:
 	for i in $(SUBDIRS) ; do if (cd $$i && make); then :; else exit; fi ; done
