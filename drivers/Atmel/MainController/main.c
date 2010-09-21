@@ -14,6 +14,7 @@
 #include "TWI_Master.h"
 #include "uart3.h"
 #include "timer1.h"
+#include "timer3.h"
 #include "timer4.h"
 #include "attitudeFilter.h"
 
@@ -56,7 +57,6 @@ void SendEstopStatus(void)
 {
   HostSendPacket(MMC_ESTOP_DEVICE_ID,MMC_ESTOP_STATE,
                  (uint8_t*)&estop,1);
-  return 0;
 }
 
 void RCTimingReset(void)

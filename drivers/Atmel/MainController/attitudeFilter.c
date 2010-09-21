@@ -45,6 +45,8 @@ float wxs = ADC_VOLTAGE_MV/1023.0 * SENS_GYRO_X;
 float wys = ADC_VOLTAGE_MV/1023.0 * SENS_GYRO_Y;
 float wzs = ADC_VOLTAGE_MV/1023.0 * SENS_GYRO_Z;
 
+float RR21,RR22,RR20,RR10,RR00;
+
 const float dt=64.0*ADC_TIMER_PERIOD_TICS/F_CPU; //IMU_SAMPLE_RATE;
 
 //factors for combining rate gyro and accelerometer info (malfa=1-alpha)
@@ -91,31 +93,6 @@ void ResetImu()
 }
 
 
-
-//calculate the required components of the new rotation matrix
-//so that rpy (roll,pitch,yaw) can be extracted
-//dR is the delta rotation, assuming small angle rotations are done
-//one after the other instead of exponentiation
-//The matrix multiplication is R*dR
-int CalcGyroRPY()
-{
-  float RR21 = R[2]*dR[3] + R[5]       + R[8]*dR[5];
-  float RR22 = R[2]*dR[6] + R[5]*dR[7] + R[8]      ;
-  float RR20 = R[2]       + R[5]*dR[1] + R[8]*dR[2];
-  float RR10 = R[1]       + R[4]*dR[1] + R[7]*dR[2]; 
-  float RR00 = R[0]       + R[3]*dR[1] + R[6]*dR[2];
-
-  //extract the values after rate gyro update
-  groll  = atan2(RR21,RR22);
-  gpitch = atan2(-RR20,sqrt(RR21*RR21 + RR22*RR22));
-  gyaw   = atan2(RR10,RR00);
-  
-  //zero out the delta matrix, since the values in dR can be accumulated
-  //over several data collections
-  ResetdR();
-  
-  return 0;
-}
 
 int ProcessImuReadings(uint16_t * adcVals, float * rpy, float * wrpy)
 {
@@ -212,7 +189,26 @@ int ProcessImuReadings(uint16_t * adcVals, float * rpy, float * wrpy)
     return 1;
   
   //calculate the gyro update
-  CalcGyroRPY();
+  //calculate the required components of the new rotation matrix
+  //so that rpy (roll,pitch,yaw) can be extracted
+  //dR is the delta rotation, assuming small angle rotations are done
+  //one after the other instead of exponentiation
+  //The matrix multiplication is R*dR
+
+  RR21 = R[2]*dR[3] + R[5]       + R[8]*dR[5];
+  RR22 = R[2]*dR[6] + R[5]*dR[7] + R[8]      ;
+  RR20 = R[2]       + R[5]*dR[1] + R[8]*dR[2];
+  RR10 = R[1]       + R[4]*dR[1] + R[7]*dR[2]; 
+  RR00 = R[0]       + R[3]*dR[1] + R[6]*dR[2];
+
+  //extract the values after rate gyro update
+  groll  = atan2(RR21,RR22);
+  gpitch = atan2(-RR20,sqrt(RR21*RR21 + RR22*RR22));
+  gyaw   = atan2(RR10,RR00);
+  
+  //zero out the delta matrix, since the values in dR can be accumulated
+  //over several data collections
+  ResetdR();
   
   
   //calculate the roll and pitch based on the current accelerometer values
