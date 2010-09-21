@@ -1,0 +1,503 @@
+<?xml version="1.0"?>
+
+<vis>
+
+  <gui>
+    <size>2005 450</size>
+    <name>Main</name>
+    <menuOn>0</menuOn>
+    <frame>
+      <name>frame0</name>
+      <frameRate>20</frameRate>
+      <camera>
+        <name>cam0</name>
+        <position>-0.8 0 2</position>
+        <lookAt>0 0 0</lookAt>
+        <clipDist>0.01</clipDist>
+      </camera>
+      <position>0 0</position>
+    </frame>
+  </gui>
+
+
+  <gui>
+    <size>2005 602</size>
+    <name>Robots</name>
+    <menuOn>0</menuOn>
+    <frame>
+      <name>frame1</name>
+      <frameRate>20</frameRate>
+      <camera>
+        <name>cam1</name>
+        <position>-0.8 0 2</position>
+        <lookAt>0 0 0</lookAt>
+        <clipDist>0.01</clipDist>
+      </camera>
+      <size>400 300</size>
+      <position>0 0</position>
+    </frame>
+
+
+    <frame>
+      <name>frame2</name>
+      <frameRate>20</frameRate>
+      <camera>
+        <name>cam2</name>
+        <position>-0.8 0 2</position>
+        <lookAt>0 0 0</lookAt>
+        <clipDist>0.01</clipDist>
+      </camera>
+      <size>400 300</size>
+      <position>401 0</position>
+    </frame>
+
+    <frame>
+      <name>frame3</name>
+      <frameRate>20</frameRate>
+      <camera>
+        <name>cam3</name>
+        <position>-0.8 0 2</position>
+        <lookAt>0 0 0</lookAt>
+        <clipDist>0.01</clipDist>
+      </camera>
+      <size>400 300</size>
+      <position>802 0</position>
+    </frame>
+
+    <frame>
+      <name>frame4</name>
+      <frameRate>20</frameRate>
+      <camera>
+        <name>cam4</name>
+        <position>-0.8 0 2</position>
+        <lookAt>0 0 0</lookAt>
+        <clipDist>0.01</clipDist>
+      </camera>
+      <size>400 300</size>
+      <position>1203 0</position>
+    </frame>
+
+    <frame>
+      <name>frame5</name>
+      <frameRate>20</frameRate>
+      <camera>
+        <name>cam5</name>
+        <position>-0.8 0 2</position>
+        <lookAt>0 0 0</lookAt>
+        <clipDist>0.01</clipDist>
+      </camera>
+      <size>400 300</size>
+      <position>1604 0</position>
+    </frame>
+
+
+    <frame>
+      <name>frame6</name>
+      <frameRate>20</frameRate>
+      <camera>
+        <name>cam6</name>
+        <position>-0.8 0 2</position>
+        <lookAt>0 0 0</lookAt>
+        <clipDist>0.01</clipDist>
+      </camera>
+      <size>400 300</size>
+      <position>0 301</position>
+    </frame>
+
+
+    <frame>
+      <name>frame7</name>
+      <frameRate>20</frameRate>
+      <camera>
+        <name>cam7</name>
+        <position>-0.8 0 2</position>
+        <lookAt>0 0 0</lookAt>
+        <clipDist>0.01</clipDist>
+      </camera>
+      <size>400 300</size>
+      <position>401 301</position>
+    </frame>
+
+    <frame>
+      <name>frame8</name>
+      <frameRate>20</frameRate>
+      <camera>
+        <name>cam8</name>
+        <position>-0.8 0 2</position>
+        <lookAt>0 0 0</lookAt>
+        <clipDist>0.01</clipDist>
+      </camera>
+      <size>400 300</size>
+      <position>802 301</position>
+    </frame>
+
+    <frame>
+      <name>frame9</name>
+      <frameRate>20</frameRate>
+      <camera>
+        <name>cam9</name>
+        <position>-0.8 0 2</position>
+        <lookAt>0 0 0</lookAt>
+        <clipDist>0.01</clipDist>
+      </camera>
+      <size>400 300</size>
+      <position>1203 301</position>
+    </frame>
+
+
+    <frame>
+      <name>frame10</name>
+      <frameRate>20</frameRate>
+      <camera>
+        <name>cam10</name>
+        <position>-0.8 0 2</position>
+        <lookAt>0 0 0</lookAt>
+        <clipDist>0.01</clipDist>
+      </camera>
+      <size>400 300</size>
+      <position>1604 301</position>
+    </frame>
+
+    
+
+  </gui>
+
+  <plugin>
+    <id>light1</id>
+    <filename>Light.so</filename>
+    <position>30 0 100</position>
+    <diffuse>1 1 1</diffuse>
+    <specular>1 1 1</specular>
+  </plugin>
+
+<!--
+<ipcHost>192.168.10.101</ipcHost>
+
+  
+
+
+  <plugin>
+    <id>grid</id>
+    <filename>Grid.so</filename>
+    <segments>10</segments>
+    <range>50 50</range>
+    <res>1 1</res>
+  </plugin>
+
+
+  <plugin>
+    <id>sky</id>
+    <filename>Sky.so</filename>
+  </plugin>
+
+  <plugin>
+    <id>floor1</id>
+    <filename>Plane.so</filename>
+    <segments>10</segments>
+    <range>50 50</range>
+    <material>carpet</material>
+  </plugin>
+
+ 
+
+/-->
+
+
+   <plugin>
+    <id>axes</id>
+    <filename>Axes.so</filename>
+    <length>20 20 20</length>
+  </plugin>
+
+  <plugin>
+    <id>ambient</id>
+    <filename>Ambient.so</filename>
+    <color>1 1 1</color>
+  </plugin>
+
+
+  
+<!--  
+  <plugin>
+    <id>Robot1Odom</id>
+    <filename>Hummingbird.so</filename>
+    
+    <plugin>
+      <id>mark</id>
+      <filename>Box.so</filename>
+      <xyz>0.11 0 0</xyz>
+      <dims>0.07 0.019 0.007</dims>
+      <material>Colors/Blue</material>
+    </plugin>
+  </plugin>
+/-->
+  <plugin>
+    <id>Robot1</id>
+    <filename>MagicPlatform.so</filename>
+    <xyz>0 0 0.0825</xyz>
+    <lockXYZ>0 0 1</lockXYZ>
+
+    <plugin>
+      <id>label</id>
+      <text>Robot1</text>
+      <charHeight>0.5</charHeight>
+      <alignment>center</alignment>
+      <filename>MovableText.so</filename>
+      <lockXYZ>0 0 1</lockXYZ>
+      <xyz>0 0 1</xyz>
+      <rpy>0 0 0</rpy>
+    </plugin>
+
+   <plugin>
+      <id>axes</id>
+      <filename>Axes.so</filename>
+      <length>1 1 1</length>
+    </plugin>
+
+    <plugin>
+      <id>poseUpdater</id>
+      <filename>MagicPose2VisPose3D.so</filename>
+      <msgName>Robot1/Pose</msgName>
+    </plugin>
+  </plugin>
+
+
+  <plugin>
+    <id>Robot2</id>
+    <filename>MagicPlatform.so</filename>
+    <xyz>1 0 0.0825</xyz>
+    <lockXYZ>0 0 1</lockXYZ>
+
+    <plugin>
+      <id>label</id>
+      <text>Robot2</text>
+      <charHeight>0.5</charHeight>
+      <alignment>center</alignment>
+      <filename>MovableText.so</filename>
+      <lockXYZ>0 0 1</lockXYZ>
+      <xyz>0 0 1</xyz>
+      <rpy>0 0 0</rpy>
+    </plugin>
+
+   <plugin>
+      <id>axes</id>
+      <filename>Axes.so</filename>
+      <length>1 1 1</length>
+    </plugin>
+
+    <plugin>
+      <id>poseUpdater</id>
+      <filename>MagicPose2VisPose3D.so</filename>
+      <msgName>Robot2/Pose</msgName>
+    </plugin>
+  </plugin>
+
+
+  <plugin>
+    <id>Robot3</id>
+    <filename>MagicPlatform.so</filename>
+    <xyz>2 0 0.0825</xyz>
+    <lockXYZ>0 0 1</lockXYZ>
+
+    <plugin>
+      <id>label</id>
+      <text>Robot3</text>
+      <charHeight>0.5</charHeight>
+      <alignment>center</alignment>
+      <filename>MovableText.so</filename>
+      <lockXYZ>0 0 1</lockXYZ>
+      <xyz>0 0 1</xyz>
+      <rpy>0 0 0</rpy>
+    </plugin>
+
+   <plugin>
+      <id>axes</id>
+      <filename>Axes.so</filename>
+      <length>1 1 1</length>
+    </plugin>
+
+    <plugin>
+      <id>poseUpdater</id>
+      <filename>MagicPose2VisPose3D.so</filename>
+      <msgName>Robot3/Pose</msgName>
+    </plugin>
+  </plugin>
+
+
+  <plugin>
+    <id>Robot4</id>
+    <filename>MagicPlatform.so</filename>
+    <xyz>3 0 0.0825</xyz>
+    <lockXYZ>0 0 1</lockXYZ>
+
+    <plugin>
+      <id>label</id>
+      <text>Robot4</text>
+      <charHeight>0.5</charHeight>
+      <alignment>center</alignment>
+      <filename>MovableText.so</filename>
+      <lockXYZ>0 0 1</lockXYZ>
+      <xyz>0 0 1</xyz>
+      <rpy>0 0 0</rpy>
+    </plugin>
+
+   <plugin>
+      <id>axes</id>
+      <filename>Axes.so</filename>
+      <length>1 1 1</length>
+    </plugin>
+
+    <plugin>
+      <id>poseUpdater</id>
+      <filename>MagicPose2VisPose3D.so</filename>
+      <msgName>Robot4/Pose</msgName>
+    </plugin>
+  </plugin>
+
+
+  <plugin>
+    <id>Robot5</id>
+    <filename>MagicPlatform.so</filename>
+    <xyz>4 0 0.0825</xyz>
+    <lockXYZ>0 0 1</lockXYZ>
+
+    <plugin>
+      <id>label</id>
+      <text>Robot5</text>
+      <charHeight>0.5</charHeight>
+      <alignment>center</alignment>
+      <filename>MovableText.so</filename>
+      <lockXYZ>0 0 1</lockXYZ>
+      <xyz>0 0 1</xyz>
+      <rpy>0 0 0</rpy>
+    </plugin>
+
+   <plugin>
+      <id>axes</id>
+      <filename>Axes.so</filename>
+      <length>1 1 1</length>
+    </plugin>
+
+    <plugin>
+      <id>poseUpdater</id>
+      <filename>MagicPose2VisPose3D.so</filename>
+      <msgName>Robot5/Pose</msgName>
+    </plugin>
+  </plugin>
+
+    
+
+   <plugin>
+    <id>matchedPoints</id>
+    <filename>PointCloud.so</filename>
+    <pointSize>0.05 0.05 1.0</pointSize>
+  </plugin>
+
+
+   <plugin>
+      <id>lidar0Points</id>
+      <filename>PointCloud.so</filename>
+      <pointSize>0.05 0.05 0.05</pointSize>
+    </plugin>
+
+   <plugin>
+      <id>pointCloud</id>
+      <filename>PointCloud.so</filename>
+      <pointSize>0.05 0.05 0.05</pointSize>
+    </plugin>
+
+    <plugin>
+      <id>lidar1Points</id>
+      <filename>PointCloud.so</filename>
+      <pointSize>0.05 0.05 0.05</pointSize>
+    </plugin>
+
+
+  <plugin>
+    <id>map2d</id>
+    <filename>PointCloud.so</filename>
+    <pointSize>0.05 0.05 0.05</pointSize>
+  </plugin>
+
+  <plugin>
+    <id>map3d</id>
+    <filename>PointCloud.so</filename>
+    <pointSize>0.05 0.05 0.05</pointSize>
+  </plugin>
+
+  <plugin>
+		<id>Robot0/ObstacleMap2D</id>
+		<filename>Map2D.so</filename>
+    <xyz>0 0 0</xyz>
+    
+    <plugin>
+      <id>colormap</id>
+      <filename>CmGray.so</filename>
+      <min_val>0</min_val>
+      <max_val>200</max_val>
+    </plugin>
+
+	</plugin>
+
+  <plugin>
+		<id>Robot1/ExplorationMap2D</id>
+		<filename>Map2D.so</filename>
+    <xyz>0 0 0</xyz>
+    
+    <plugin>
+      <id>colormap</id>
+      <filename>CmGray.so</filename>
+      <min_val>0</min_val>
+      <max_val>255</max_val>
+    </plugin>
+
+	</plugin>
+
+
+  <plugin>
+		<id>Robot1/CostMap2D</id>
+		<filename>Map2D.so</filename>
+    <xyz>0 0 0</xyz>
+    
+    <plugin>
+      <id>colormap</id>
+      <filename>CmJet.so</filename>
+      <min_val>0</min_val>
+      <max_val>200</max_val>
+    </plugin>
+
+	</plugin>
+
+
+  <plugin>
+    <id>overhead</id>
+    <filename>Image.so</filename>
+    <resolution>0.1145</resolution>
+    <rpy>0 0 0 </rpy>
+    <xyz>0 0 0</xyz>
+  </plugin>
+
+  <plugin>
+    <id>Robot1Traj</id>
+    <filename>TrajPos3DColorRGBA.so</filename>
+  </plugin>
+
+  <plugin>
+    <id>lidar1map</id>
+    <filename>PointCloud.so</filename>
+    <pointSize>0.05 0.05 0.05</pointSize>
+  </plugin>
+  
+
+  <plugin>
+    <id>levine</id>
+    <filename>Poly.so</filename>
+    <poly_file>levine.poly</poly_file>
+    <wall_height>3</wall_height>
+    <wall_color>Wall1</wall_color>
+    <xyz>5 0 -0.1</xyz>
+    <is_visible>true</is_visible>
+  </plugin>
+   
+
+</vis>
