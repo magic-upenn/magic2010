@@ -295,6 +295,13 @@ int main(void)
 
   init();
 
+  //hack to initialize the h-bridges properly
+  SetVelocity(5,0);
+  _delay_ms(100);
+  SetVelocity(-5,0);
+  _delay_ms(100);
+  SetVelocity(0,0);
+
   while (1) 
   {
     count++;
