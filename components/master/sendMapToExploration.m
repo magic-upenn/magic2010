@@ -1,5 +1,5 @@
 function sendMapToExploration
-global GPOSE GMAP gcs_machine GTRANSFORM GCS
+global GPOSE GMAP gcs_machine GTRANSFORM GCS GDISPLAY
 
 data.NR = max(GCS.ids);
 data.GP_PLAN_TIME = 0.5;
@@ -14,8 +14,16 @@ xmap = x(GMAP);
 data.UTM_x = xmap(1);
 ymap = y(GMAP);
 data.UTM_y = ymap(1);
+
 data.map = double(getdata(GMAP, 'cost'));
+for i = 1:length(GDISPLAY.avoidRegions)
+  data.map(GDISPLAY.avoidRegions(i).x,GDISPLAY.avoidRegions(i).y) = 100;
+end
+
 data.region_map = uint8(zeros(size(GMAP)));
+for i = 1:length(GDISPLAY.exploreRegions)
+  data.region_map(GDISPLAY.exploreRegions(i).x,GDISPLAY.exploreRegions(i).y) = GDISPLAY.exploreRegions(i).id;
+end
 
 data.avail = int16(zeros(data.NR,1));
 data.x =     zeros(data.NR,1);
