@@ -20,7 +20,7 @@ ifndef OSTYPE
 endif
 
 ifeq ($(OSTYPE),linux)
-  USBDEVICE = /dev/ttyUSB1
+  USBDEVICE = /dev/ttyUSB0
 endif
 ifeq ($(OSTYPE),darwin)
   USBDEVICE = /dev/cu.usbserial-A700dBil
