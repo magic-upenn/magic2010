@@ -8,9 +8,11 @@ switch event
  disp('sWait');
  DRIVE = [];
 
+ %{
  plannerState.shouldRun = 0;
  ipcAPIPublishVC(GetMsgName('Planner_State'), ...
                  MagicGP_SET_STATESerializer('serialize', plannerState));
+ %}
 
  case 'exit'
     
