@@ -1,11 +1,10 @@
+%{
 SetMagicPaths;
 
 global OMAP EMAP
 
 ipcAPIDefine('Global_Planner_Map_Initialization',MagicGP_MAP_DATASerializer('getFormat'));
 ipcAPIDefine('Global_Planner_Robot_Parameters',  MagicGP_ROBOT_PARAMETERSerializer('getFormat'));
-%ipcAPIDefine('Global_Planner_Full_Update',       MagicGP_FULL_UPDATESerializer('getFormat'));
-%ipcAPIDefine('Global_Planner_Position_Update',   MagicGP_POSITION_UPDATESerializer('getFormat'));
 ipcAPIDefine('Lattice_Planner_Full_Update',      MagicGP_FULL_UPDATESerializer('getFormat'));
 ipcAPIDefine('Lattice_Planner_Position_Update',  MagicGP_POSITION_UPDATESerializer('getFormat'));
 
@@ -31,4 +30,4 @@ robot_params.sensor_radius = 30;
 robot_params.sensor_height = 62.8;
 robot_params.PerimeterArray = [1;1;1;-1;-1;-1;-1;1]*0.25;
 ipcAPIPublishVC('Global_Planner_Robot_Parameters',MagicGP_ROBOT_PARAMETERSerializer('serialize',robot_params));
-
+%}
