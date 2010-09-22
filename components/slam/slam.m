@@ -86,7 +86,6 @@ sendServoStart;
 
 %define messages
 DefineSensorMessages;
-DefinePlannerMessages;
 
 if checkVis
   DefineVisMsgs;
