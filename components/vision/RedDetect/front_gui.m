@@ -22,7 +22,7 @@ function varargout = front_gui(varargin)
 
 % Edit the above text to modify the response to help front_gui
 
-% Last Modified by GUIDE v2.5 14-Sep-2010 17:46:02
+% Last Modified by GUIDE v2.5 22-Sep-2010 10:10:09
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;

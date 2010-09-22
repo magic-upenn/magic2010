@@ -22,7 +22,7 @@ function varargout = omni_gui(varargin)
 
 % Edit the above text to modify the response to help omni_gui
 
-% Last Modified by GUIDE v2.5 14-Sep-2010 18:29:33
+% Last Modified by GUIDE v2.5 22-Sep-2010 09:25:16
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -71,3 +71,12 @@ function varargout = omni_gui_OutputFcn(hObject, eventdata, handles)
 
 % Get default command line output from handles structure
 varargout{1} = handles.output;
+
+
+% --- Executes on button press in calibrate_all.
+function calibrate_all_Callback(hObject, eventdata, handles)
+% hObject    handle to calibrate_all (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
