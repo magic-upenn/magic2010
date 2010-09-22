@@ -1,13 +1,12 @@
-function [red,Ymean,stats] = find_red_candidates(image)
-	[Y,Cr] = Get_YCr_only(image);
-	notwhite = sum(image,3)<765; % mask out completely white pixels 
-	Ymod = Y;
-	Ymod = Ymod(notwhite(:));
-	Ymean = mean(Ymod(:))/256*2;
+function [red,stats] = find_red_candidates(image)
+	[Y,red] = Get_YCr_only(image);
+%	notwhite = sum(image,3)<765; % mask out completely white pixels 
+%	Ymod = Y;
+%	Ymod = Ymod(notwhite(:));
+%	Ymean = mean(Ymod(:))/256*2;
 	
 	%Cr_threshold = max(190,max(Cr(:)) - 20);
 	%imCr_filt = Cr > Cr_threshold;
-	red = Cr;
 	redr = round(red/10)+1;
 	h = histc(redr(:),1:26);
 	[v,i] = max(h);
@@ -20,7 +19,8 @@ function [red,Ymean,stats] = find_red_candidates(image)
 		
 	
 %	size(imCr_filt)i
-	redcr = bwareaopen(redw>0,25);
+%	redcr = bwareaopen(redw>0,25);
+	redcr = (redw>0);
     	[redcr,num] = bwlabel(redcr);
 	redcr = sparse(redcr); 
 	map = zeros(size(redcr)); 
@@ -32,6 +32,8 @@ function [red,Ymean,stats] = find_red_candidates(image)
 		stats = [[i,m,min(I),max(I),min(J),max(J)];stats]; 
 		map(blob) = m;
 	end
+	stats = flipud(sortrows(stats,2));  
+	return
 	subplot(3,1,1); 
 	imagesc(image); daspect([1 1 1])
 %	red = red([red.area] > 20);

@@ -56,10 +56,27 @@ function omni_gui_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.output = hObject;
 
 % Update handles structure
+global OMNI; 
 guidata(hObject, handles);
 
+all_stats = []; 
+for i = 1:9
+	oname = sprintf('omni%d',i)
+	all_stats = [all_stats; [ones(size(OMNI(i).stats,1),1),OMNI(i).stats]];
+	OMNI(i).stats = flipud(sortrows(OMNI(i).stats,2));  
+	draw_cands_on_image(handles.(oname),OMNI(i).stats,OMNI(i).img); 
+	cname = sprintf('cand%d',i)
+	draw_cand_on_axes(handles.(cname),OMNI(i).stats,i,OMNI(i).img); 
+end
+
+%all_stats = flipud(sortrows(all_stats,3));  
+%for i = 1:8
+%	cname = sprintf('cand%d',i)
+%	draw_cand_on_axes(handles.(cname),all_stats(i,2:end),i,OMNI(all_stats(i,1)).img); 
+%end
+
 % UIWAIT makes omni_gui wait for user response (see UIRESUME)
-% uiwait(handles.figure1);
+% uiwait(handles.figure1);a 
 
 
 % --- Outputs from this function are returned to the command line.
