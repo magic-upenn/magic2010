@@ -138,6 +138,11 @@ switch event
     GDISPLAY.hAxes = gca;
     set(gca,'Position', [.01 .025 .95 .95], 'XLimMode', 'manual', 'YLimMode', 'manual');
     colormap(jet);
+    GDISPLAY.visualExploreOverlay = [];%patch([0],[0],[0 0 1],'Visible','off');
+    GDISPLAY.visualExploreText = [];
+    GDISPLAY.visualAvoidOverlay = [];%patch([0],[0],[1 0 0],'Visible','off');
+    GDISPLAY.visualAvoidText = [];
+    GDISPLAY.lastRegionSelection = -1;
     drawnow
 
     hfig = gcf;

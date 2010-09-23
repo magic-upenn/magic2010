@@ -1,9 +1,18 @@
 function globalMapAvoid()
 
-[x,y,mask,x_corner,y_corner] = roipoly;
-if(numel(x_corner) > 1)
+global GDISPLAY GMAP
+
+[mask,x_corner,y_corner] = roipoly;
+if(numel(x_corner) > 2)
   disp('avoid region...');
-  %TODO: these x and y values will need to be converted from pixel coordinates to UTM so they are robust to changing map size
-  GDISPLAY.avoidRegions(end+1).x = x;
-  GDISPLAY.avoidRegions(end+1).y = y;
+  GDISPLAY.avoidRegions(end+1).corner_x = x_corner;
+  GDISPLAY.avoidRegions(end).corner_y = y_corner;
+  [GDISPLAY.avoidRegions(end).y GDISPLAY.avoidRegions(end).x] = find(mask);
+  ymap = y(GMAP);
+  GDISPLAY.avoidRegions(end).y = GDISPLAY.avoidRegions(end).y*resolution(GMAP) + ymap(1);
+  xmap = x(GMAP);
+  GDISPLAY.avoidRegions(end).x = GDISPLAY.avoidRegions(end).x*resolution(GMAP) + xmap(1);
+
+  set(GDISPLAY.avoidRegionList,'String',1:length(GDISPLAY.avoidRegions));
+  avoidRegionOverlay();
 end

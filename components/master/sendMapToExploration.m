@@ -17,12 +17,14 @@ data.UTM_y = ymap(1);
 
 data.map = double(getdata(GMAP, 'cost'));
 for i = 1:length(GDISPLAY.avoidRegions)
-  data.map(GDISPLAY.avoidRegions(i).x,GDISPLAY.avoidRegions(i).y) = 100;
+  data.map(round((GDISPLAY.avoidRegions(i).x-data.UTM_x)/data.map_cell_size), ...
+           round((GDISPLAY.avoidRegions(i).y-data.UTM_y)/data.map_cell_size)) = 100;
 end
 
 data.region_map = uint8(zeros(size(GMAP)));
 for i = 1:length(GDISPLAY.exploreRegions)
-  data.region_map(GDISPLAY.exploreRegions(i).x,GDISPLAY.exploreRegions(i).y) = GDISPLAY.exploreRegions(i).id;
+  data.region_map(round((GDISPLAY.exploreRegions(i).x-data.UTM_x)/data.map_cell_size), ...
+                  round((GDISPLAY.exploreRegions(i).y-data.UTM_y)/data.map_cell_size)) = GDISPLAY.exploreRegions(i).id;
 end
 
 data.avail = int16(zeros(data.NR,1));
