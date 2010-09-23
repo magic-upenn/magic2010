@@ -11,9 +11,9 @@ if ~isempty(data)
       t_start = msg.traj_size(i);
       t_end = msg.traj_size(i+1);
       if t_start ~= t_end
-        EXPLORE_PATH{i}.x = msg.POSEX(t_start+1:t_end);
-        EXPLORE_PATH{i}.y = msg.POSEY(t_start+1:t_end);
-        [xr, yr, ar] = gpos_to_rpos(i, EXPLORE_PATH{i}.x, EXPLORE_PATH{i}.y, msg.POSETHETA(t_start+1:t_end));
+        [xr, yr, ar] = gpos_to_rpos(i, msg.POSEX(t_start+1:t_end), msg.POSEY(t_start+1:t_end), msg.POSETHETA(t_start+1:t_end));
+        EXPLORE_PATH{i}.x = xr;
+        EXPLORE_PATH{i}.y = yr;
         msgName = ['Robot',num2str(i),'/Explore_Path'];
         path = [xr yr ar];
         ROBOTS(i).ipcAPI('publish', msgName, serialize(path));
@@ -25,9 +25,9 @@ if ~isempty(data)
     t_start = msg.traj_size(i);
     t_end = msg.total_size;
     if t_start ~= t_end
-      EXPLORE_PATH{i}.x = msg.POSEX(t_start+1:t_end);
-      EXPLORE_PATH{i}.y = msg.POSEY(t_start+1:t_end);
-      [xr, yr, ar] = gpos_to_rpos(i, EXPLORE_PATH{i}.x, EXPLORE_PATH{i}.y, msg.POSETHETA(t_start+1:t_end));
+      [xr, yr, ar] = gpos_to_rpos(i, msg.POSEX(t_start+1:t_end), msg.POSEY(t_start+1:t_end), msg.POSETHETA(t_start+1:t_end));
+      EXPLORE_PATH{i}.x = xr;
+      EXPLORE_PATH{i}.y = yr;
       msgName = ['Robot',num2str(i),'/Explore_Path'];
       path = [xr yr ar];
       ROBOTS(i).ipcAPI('publish', msgName, serialize(path));
