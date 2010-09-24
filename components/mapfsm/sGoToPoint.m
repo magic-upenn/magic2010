@@ -52,7 +52,7 @@ end
 
 function getPath()
 
-global MPOSE PATH_DATA MAP
+global MPOSE PATH_DATA MAP AVOID_REGIONS
 
 [planMap.size_x, planMap.size_y] = size(MAP);
 planMap.resolution = resolution(MAP);
@@ -61,6 +61,15 @@ planMap.UTM_x = xmap(1);
 ymap = y(MAP);
 planMap.UTM_y = ymap(1);
 planMap.map = getdata(MAP, 'cost');
+
+%add avoid regions
+if ~isempty(AVOID_REGIONS.x)
+  adjusted_regions.x = round((AVOID_REGIONS.x-planMap.UTM_x)/planMap.resolution);
+  adjusted_regions.y = round((AVOID_REGIONS.y-planMap.UTM_y)/planMap.resolution);
+  onMap = (adjusted_regions.x>=0)&(adjusted_regions.x<planMap.size_x)&(adjusted_regions.y>=0)&(adjusted_regions.y<planMap.size_y);
+  planMap.map(adjusted_regions.x(onMap),adjusted_regions.y(onMap)) = 100;
+end
+
 disp('sending map...');
 lattice_planner_mex('map',[planMap.size_x planMap.size_y planMap.resolution planMap.UTM_x planMap.UTM_y], planMap.map);
 disp('map sent!');

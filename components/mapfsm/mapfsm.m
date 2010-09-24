@@ -138,7 +138,7 @@ mapfsmExit;
 %==========
 function mapfsmEntry
 
-global MP PATH_DATA
+global MP PATH_DATA AVOID_REGIONS
 
 MP.sm = entry(MP.sm);
 
@@ -154,6 +154,7 @@ ipcReceiveSetFcn(GetMsgName('Planner_GoToPoint'), @mapfsmRecvPlannerPathFcn);
 %ipcReceiveSetFcn(GetMsgName('Planner_Explore'), @mapfsmRecvExplorePathFcn);
 %ipcReceiveSetFcn(GetMsgName('Waypoints'),@mapfsmRecvExplorePathFcn);
 ipcReceiveSetFcn(GetMsgName('Explore_Path'),@mapfsmRecvExplorePathFcn);
+ipcReceiveSetFcn(GetMsgName('Avoid_Regions'),@mapfsmRecvAvoidRegionsFcn);
 
 % Tracks from slam:
 ipcReceiveSetFcn(GetMsgName('VelTracks'), @mapfsmRecvVelTracksFcn);
@@ -165,6 +166,8 @@ ipcReceiveSetFcn(GetMsgName('OoiDynamic'), @mapfsmRecvOoiDynamicFcn);
 ipcAPIDefine(GetMsgName('Planner_Path'));
 
 PATH_DATA.newExplorePath = false;
+AVOID_REGIONS.x = [];
+AVOID_REGIONS.y = [];
 
 
 %==========
