@@ -15,4 +15,5 @@ if(numel(x_corner) > 2)
 
   set(GDISPLAY.avoidRegionList,'String',1:length(GDISPLAY.avoidRegions));
   avoidRegionOverlay();
+  sendAvoidRegions();
 end

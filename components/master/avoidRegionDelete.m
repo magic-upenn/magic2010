@@ -21,3 +21,4 @@ end
 set(GDISPLAY.avoidRegionList,'String',1:length(GDISPLAY.avoidRegions));
 
 avoidRegionOverlay();
+sendAvoidRegions();

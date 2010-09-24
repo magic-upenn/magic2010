@@ -75,6 +75,9 @@ for id = ids,
   msgNamePath = ['Robot',num2str(id),'/Explore_Path'];
   ROBOTS(id).ipcAPI('define', msgNamePath);
 
+  msgNamePath = ['Robot',num2str(id),'/Avoid_Regions'];
+  ROBOTS(id).ipcAPI('define', msgNamePath);
+
   msgNameStateEvent = ['Robot',num2str(id),'/StateEvent'];
   ROBOTS(id).ipcAPI('define', msgNameStateEvent);
 
