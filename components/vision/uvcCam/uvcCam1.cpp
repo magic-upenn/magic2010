@@ -80,8 +80,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     return;
   }
   else if (cmd == "init") {
-    char *cam = mxArrayToString(prhs[1]);
-    v4l2_open(cam);
+    //char *cam = mxArrayToString(prhs[1]);
+    v4l2_open("/dev/video1");
     bufArray = mxCreateNumericMatrix(WIDTH/2, HEIGHT, mxUINT32_CLASS, mxREAL);
     mexMakeArrayPersistent(bufArray);
     mxFree(mxGetData(bufArray));

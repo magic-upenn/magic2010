@@ -18,9 +18,18 @@ endif
 MEX = mex
 CXXFLAGS = -O
 
-all: uvcCam
+all: uvcCam uvcCam0 uvcCam1 uvcCam2 
 
 uvcCam: uvcCam.cpp v4l2.cpp
+	$(MEX) $(CXXFLAGS) $^
+
+uvcCam0: uvcCam0.cpp v4l2.cpp
+	$(MEX) $(CXXFLAGS) $^
+
+uvcCam1: uvcCam1.cpp v4l2.cpp
+	$(MEX) $(CXXFLAGS) $^
+
+uvcCam2: uvcCam2.cpp v4l2.cpp
 	$(MEX) $(CXXFLAGS) $^
 
 clean:

@@ -65,10 +65,15 @@ for i = 1:9
 	all_stats = [all_stats; [ones(size(OMNI(i).stats,1),1),OMNI(i).stats]];
 	OMNI(i).stats = flipud(sortrows(OMNI(i).stats,2));  
 	draw_cands_on_image(handles.(oname),OMNI(i).stats,OMNI(i).img); 
+	if i == 9 
+		break
+	end	
 	cname = sprintf('cand%d',i)
 	draw_cand_on_axes(handles.(cname),OMNI(i).stats,i,OMNI(i).img); 
 end
 
+global OMNI_HANDLES; 
+OMNI_HANDLES = handles; 
 %all_stats = flipud(sortrows(all_stats,3));  
 %for i = 1:8
 %	cname = sprintf('cand%d',i)

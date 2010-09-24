@@ -56,8 +56,37 @@ function front_gui_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.output = hObject;
 
 % Update handles structure
+
+global FRONT, global OMNI
 guidata(hObject, handles);
 
+global FRONT_HANDLES;
+FRONT_HANDLES = handles; 
+all_stats = [];
+if ~isempty(FRONT) 
+for i = 1:9
+	fname = sprintf('front%d',i)
+	all_stats = [all_stats; [ones(size(FRONT(i).stats,1),1),FRONT(i).stats]];
+	FRONT(i).stats = flipud(sortrows(FRONT(i).stats,2));  
+	draw_cands_on_image(FRONT_HANDLES.(fname),FRONT(i).stats,FRONT(i).img); 
+	if i == 9
+		break
+	end
+	cname = sprintf('cand%d',i)
+	draw_cand_on_axes(FRONT_HANDLES.(cname),FRONT(i).stats,i,FRONT(i).img); 
+end
+end
+%vision_guis
+for i =1:100000
+	im = get_image(2);
+	axes(handles.front_focus); 
+	imagesc(im); 
+	[red, stats] = find_red_candidates(im);
+	size(stats);
+	draw_cands_on_image(handles.front1,stats,im); 
+	draw_cand_on_axes(handles.cand1,stats,1,im);  	 
+	pause(1); 
+end
 % UIWAIT makes front_gui wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
