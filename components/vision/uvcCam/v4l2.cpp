@@ -123,6 +123,7 @@ int V4l2::v4l2_get_ctrl(const char *name, int *value) {
 }
 
 int V4l2::v4l2_open(const char *device) {
+  if(init) return v4l2_error("v4l2 is already initialized"); 
   if (device == NULL) {
     // Default video device name
     device = "/dev/video0";
@@ -217,6 +218,7 @@ int V4l2::v4l2_set_framerate()
 }
 
 int V4l2::v4l2_init(int width, int height) {
+  if(init) return v4l2_error("v4l2 is already initialized"); 
   this->width = width; 
   this->height = height; 
   struct v4l2_capability video_cap;

@@ -28,14 +28,14 @@ function [red,stats] = find_red_candidates(image)
 		blob = sparse(redcr == i);
 		[I,J,V] = find(blob); 
 		m = mean(redw(blob)); 
-		stats = [[i,m,min(I),max(I),min(J),max(J)];stats]; 
+		stats = [[m,min(I),max(I),min(J),max(J)];stats]; 
 		map(blob) = m;
 	end
-	stats = [stats;[0 0 1 1 1 1]];   
-	stats = [stats;[0 0 1 1 1 1]];   
-	stats = [stats;[0 0 1 1 1 1]];   
+	stats = [stats;[0 1 1 1 1]];   
+	stats = [stats;[0 1 1 1 1]];   
+	stats = [stats;[0 1 1 1 1]];   
 	if size(stats,1) > 1
-		stats = flipud(sortrows(stats,2));  
+		stats = flipud(sortrows(stats,1));  
 	end
 %	subplot(3,1,1); 
 %	imagesc(image); daspect([1 1 1])
