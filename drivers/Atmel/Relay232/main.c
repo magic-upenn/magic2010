@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 #include "uart0.h"
-#include "uart1.h"
+#include "uart3.h"
 
 
 void init(void)
@@ -13,10 +13,10 @@ void init(void)
 
 
   uart0_init();
-  uart0_setbaud(9600);
+  uart0_setbaud(115200);
 
-  uart1_init();
-  uart1_setbaud(9600);
+  uart3_init();
+  uart3_setbaud(115200);
 
   sei();
 }
@@ -37,10 +37,10 @@ int main(void)
 
     c = uart0_getchar();
     if (c != EOF) {
-      uart1_putchar(c);
+      uart3_putchar(c);
     }
 
-    c = uart1_getchar();
+    c = uart3_getchar();
     if (c != EOF) {
       uart0_putchar(c);
     }

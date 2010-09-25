@@ -17,9 +17,9 @@
 DEVICE     = atmega1280
 CLOCK      = 16000000
 #PROGRAMMER = -c stk500v1 -P /dev/tty.usbserial-A7004IPN -b 57600 -D
-PROGRAMMER = -c stk500v1 -P /dev/cu.usbserial-A700dBfL -b 57600 -D
+PROGRAMMER = -c stk500v1 -P /dev/ttyUSB0 -b 57600 -D
 #PROGRAMMER = -c stk500v1 -P /dev/cu.usbserial-A7004IPw -b 57600 -D
-OBJECTS    = uart0.o uart1.o main.o
+OBJECTS    = uart0.o uart3.o main.o
 FUSES      = -U hfuse:w:0xdf:m -U lfuse:w:0x62:m
 
 # ATMega8 fuse bits (fuse bits for other devices are different!):
