@@ -67,11 +67,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     return;
   }
   else if (cmd == "init") {
-    //char *cam = mxArrayToString(prhs[1]);
-    v4l2.v4l2_open("/dev/video1");
+    char *cam = mxArrayToString(prhs[1]);
+    v4l2.v4l2_open(cam);
     mexPrintf("%d %d",v4l2.get_width(),v4l2.get_height()); 
-    int width = mxGetScalar(prhs[1]);
-    int height = mxGetScalar(prhs[2]);
+    int width = mxGetScalar(prhs[2]);
+    int height = mxGetScalar(prhs[3]);
     v4l2.v4l2_init(width,height);
     bufArray = mxCreateNumericMatrix(v4l2.get_width()/2, v4l2.get_height(), mxUINT32_CLASS, mxREAL);
     mexMakeArrayPersistent(bufArray);
