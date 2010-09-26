@@ -16,16 +16,17 @@ vel = 1;
 xlist = [];
 ylist = [];
 
-xtarl = [10 -10 -10  10  5 -5 10 -10];
-ytarl = [10  10 -10 -10  5 -5  0   0];
+xtarl = [0 10 -10 -10  10  5 -5 10 -10];
+ytarl = [0  9   9  -9  -9  4 -4  0   0];
 
-for (j=1:size(xtarl,2))
+for (j=2:size(xtarl,2))
     x_tar = xtarl(j);
     y_tar = ytarl(j);
     for(i=1:200)
         start_time = tic;
         theta_des = atan2(y_tar - y, x_tar-x);
-        w = w_PID(theta, theta_des);
+        path_pts = [xtarl(j-1) ytarl(j-1); xtarl(j) ytarl(j)]; 
+        w = w_PID(theta, theta_des, x, y, path_pts);
         
         %randomly don't turn at all
 %         if (rand < .2)
@@ -41,7 +42,13 @@ for (j=1:size(xtarl,2))
 %         end
       velnoisemax =0;
       wnoisemax =0;
-        
+      
+      if (w > 3)
+          w = 3;
+      elseif (w < -3)
+          w = -3;
+      end
+           
         [t X] = ode45(@planarrobotmotion, [0 timestep], [ x y theta],[],normrnd(vel, velnoisemax), normrnd(w, wnoisemax));
         %[t X] = ode45(@planarrobotmotion, [0 timestep], [ x y theta],[],vel, w);
         theta = normrnd(X(end,3), wnoisemax);
@@ -50,7 +57,7 @@ for (j=1:size(xtarl,2))
         
         % add errors
         theta = theta + .1;
-        SavePIDdata(x,y, theta, vel, w, x_tar, y_tar, theta_des, 6);
+        SavePIDdata(x,y, theta, vel, w, xtarl(j-1), ytarl(j-1),xtarl(j), ytarl(j), theta_des, 6);
         elap_time = toc(start_time);
         pause(.1 - elap_time);
     end
