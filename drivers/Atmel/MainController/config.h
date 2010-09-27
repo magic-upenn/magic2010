@@ -58,6 +58,7 @@
 #define XBEE_COM_PORT_GETCHAR uart3_getchar
 #define XBEE_COM_PORT_PUTCHAR uart3_putchar 
 #define XBEE_COM_PORT_PUTSTR  uart3_putstr
+#define XBEE_COM_PORT_PRINTF  uart3_printf
 
 
 //Estop input

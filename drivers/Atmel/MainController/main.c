@@ -48,6 +48,35 @@ void SendEstopStatus(void)
 }
 
 
+int XbeeSendPacket(uint8_t id, uint8_t type, uint8_t * buf, uint8_t size)
+{
+  if (size > 254)
+    return -1;
+
+  uint8_t size2 = size+2;
+  uint8_t ii;
+  uint8_t checksum=0;
+
+  XBEE_COM_PORT_PUTCHAR(0xFF);   //two header bytes
+  XBEE_COM_PORT_PUTCHAR(0xFF);
+  XBEE_COM_PORT_PUTCHAR(id);
+  XBEE_COM_PORT_PUTCHAR(size2);  //length
+  XBEE_COM_PORT_PUTCHAR(type);
+  
+  checksum += id + size2 + type;
+  
+  //payload
+  for (ii=0; ii<size; ii++)
+  {
+    XBEE_COM_PORT_PUTCHAR(*buf);
+    checksum += *buf++;
+  }
+  
+  XBEE_COM_PORT_PUTCHAR(~checksum);
+  
+  return 0;
+}
+
 
 void Rs485ResponseTimeout(void)
 {
@@ -167,6 +196,8 @@ int GpsPacketHandler(uint8_t * buf, uint8_t len)
 {
   LED_GPS_TOGGLE;
   HostSendPacket(MMC_GPS_DEVICE_ID,MMC_GPS_ASCII, buf,len);
+  //XbeeSendPacket(MMC_GPS_DEVICE_ID,MMC_GPS_ASCII, buf,len);
+  XBEE_COM_PORT_PRINTF("got gps on robot 2 %d\r\n",TCNT3);
 
   return 0;
 }
