@@ -1,4 +1,4 @@
-function [xc,yc,ac] = pathClosestPoint(path, pos);
+function [xc,yc,ac, imin] = pathClosestPoint(path, pos);
 % [xc,yc,ac] = pathClosestPoint(path, pos);
 
 xPos = pos(1);
