@@ -20,6 +20,7 @@
 
 DynamixelPacket hostPacketIn;
 DynamixelPacket busPacketIn;
+DynamixelPacket motorCmdPacketOut;
 
 uint16_t adcVals[NUM_ADC_CHANNELS];
 float rpy[3];
@@ -31,8 +32,10 @@ uint16_t imuPacket[NUM_ADC_CHANNELS+1];
 
 volatile uint8_t rs485Blocked = 0;
 volatile uint8_t rcCmdPending = 0;
+volatile uint8_t needToSendMotorCmd = 0;
 
 uint8_t estop = 0;
+volatile uint8_t freshMotorCmd = 0;
 
 inline void PutUInt16(uint16_t val)
 {
@@ -43,8 +46,8 @@ inline void PutUInt16(uint16_t val)
 
 void SendEstopStatus(void)
 {
-  HostSendPacket(MMC_ESTOP_DEVICE_ID,MMC_ESTOP_STATE,
-                 (uint8_t*)&estop,1);
+  //HostSendPacket(MMC_ESTOP_DEVICE_ID,MMC_ESTOP_STATE,
+  //               (uint8_t*)&estop,1);
 }
 
 
@@ -165,18 +168,17 @@ int HostPacketHandler(DynamixelPacket * dpacket)
 
   if ((estop == 1) && (id == MMC_MOTOR_CONTROLLER_DEVICE_ID) && 
   (type == MMC_MOTOR_CONTROLLER_VELOCITY_SETTING) )
-    forward = 0;
+  {
+    if (rs485Blocked)
+    {
+      DynamixelPacketCopy(&motorCmdPacketOut,dpacket);
+      needToSendMotorCmd = 1;
+    }
+    else
+      BusSendRawPacket(dpacket);  //does not require a response, so bust won't be blocked
+  }
 
   LED_PC_ACT_TOGGLE;
-
-  if (forward)
-  {
-    BusSendRawPacket(dpacket);
-    rs485Blocked = 1;
-  }
-  
-  //enable the timeout for RS485 bus
-  //timer4_enable_compa_callback();
    
   return 0;
 }
@@ -240,14 +242,21 @@ int main(void)
     
     //receive packet from RS485 bus
     len=BusReceivePacket(&busPacketIn);
-    if (len>0)
-      BusPacketHandler(&busPacketIn);
+    //if (len>0)
+    //  BusPacketHandler(&busPacketIn);
       
       
     //receive a line from gps
     len=GpsReceiveLine(&buf);
     if (len>0)
       GpsPacketHandler(buf,len);
+
+    c = XBEE_COM_PORT_GETCHAR();
+    while (c != EOF)
+    {
+      HOST_COM_PORT_PUTCHAR(c);
+      c = XBEE_COM_PORT_GETCHAR();
+    }
 
     
     cli();   //disable interrupts to prevent race conditions while copying
@@ -269,12 +278,21 @@ int main(void)
         HostSendPacket(MMC_IMU_DEVICE_ID,MMC_IMU_ROT, 
                   (uint8_t*)imuOutVals,6*sizeof(float));
       }
-
-      imuPacket[0] = adcCntr++;
-      memcpy(&(imuPacket[1]),adcVals,NUM_ADC_CHANNELS*sizeof(uint16_t));
-      HostSendPacket(MMC_IMU_DEVICE_ID,MMC_IMU_RAW,
-		     (uint8_t*)imuPacket,(NUM_ADC_CHANNELS+1)*sizeof(uint16_t));
+      else    //send out raw values if calibration is not finished
+      {
+        imuPacket[0] = adcCntr++;
+        memcpy(&(imuPacket[1]),adcVals,NUM_ADC_CHANNELS*sizeof(uint16_t));
+        HostSendPacket(MMC_IMU_DEVICE_ID,MMC_IMU_RAW,
+		       (uint8_t*)imuPacket,(NUM_ADC_CHANNELS+1)*sizeof(uint16_t));
+      }
     }
+
+    if ( (needToSendMotorCmd == 1) && (rs485Blocked == 0))
+    {
+      BusSendRawPacket(&motorCmdPacketOut);
+      needToSendMotorCmd = 0;
+    }
+
   }
 
   
