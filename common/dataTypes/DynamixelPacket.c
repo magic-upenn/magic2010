@@ -184,3 +184,13 @@ int16_t DynamixelPacketVerifyRaw(uint8_t * buf, uint8_t size)
   return -1;
 }
 
+int16_t DynamixelPacketCopy(DynamixelPacket * out, DynamixelPacket * in)
+{
+  out->lenReceived = in->lenReceived;
+  out->lenExpected = in->lenExpected;
+  memcpy(out->buffer,in->buffer,out->lenExpected);
+
+  return 0;
+}
+
+

@@ -74,6 +74,7 @@ int16_t DynamixelPacketWrapData(uint8_t id, uint8_t type,
 
                                 
 int16_t DynamixelPacketVerifyRaw(uint8_t * buf, uint8_t size);
+int16_t DynamixelPacketCopy(DynamixelPacket * out, DynamixelPacket * in);
 
 #endif //DYNAMIXEL_PACKET_H
 
