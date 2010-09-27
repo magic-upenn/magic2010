@@ -1,4 +1,5 @@
 #include "DynamixelPacket.h"
+#include <string.h>
 
 //calculate checksum using Dynamixel's formula:
 //checksum = ~ (sum(byte0...byteN))

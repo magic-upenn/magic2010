@@ -18,6 +18,20 @@ enum { MMC_MAIN_CONTROLLER_DEVICE_ID,
        MMC_ESTOP_DEVICE_ID
      };
 
+
+//main conroller packet
+enum { MMC_MC_RESET,
+       MMC_MC_MODE_SWITCH,
+       MMC_MC_EEPROM_READ,
+       MMC_MC_EEPROM_WRITE
+     };
+
+
+enum { MMC_MC_MODE_IDLE,
+       MMC_MC_MODE_RUN,
+       MMC_MC_MODE_CONFIG
+     };
+
 //gps packet types
 enum { MMC_GPS_ASCII };
 
@@ -43,6 +57,11 @@ enum { MMC_RC_RAW,
 
 //estop packet types
 enum { MMC_ESTOP_STATE
+     };
+
+enum { MMC_ESTOP_STATE_RUN,
+       MMC_ESTOP_STATE_PAUSE,
+       MMC_ESTOP_STATE_DISABLE
      };
 
 

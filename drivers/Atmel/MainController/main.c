@@ -17,6 +17,8 @@
 #include "timer3.h"
 #include "timer4.h"
 #include "attitudeFilter.h"
+#include "ParamTable.h"
+#include <avr/eeprom.h>
 
 DynamixelPacket hostPacketIn;
 DynamixelPacket busPacketIn;
@@ -36,6 +38,26 @@ volatile uint8_t needToSendMotorCmd = 0;
 
 uint8_t estop = 0;
 volatile uint8_t freshMotorCmd = 0;
+volatile uint8_t mode = MMC_MC_MODE_RUN;
+
+ParamTable EEMEM ptable;
+uint8_t eepromTempData[sizeof(ParamTable)+4];
+
+int WriteParamTableBlock(uint16_t offset, uint8_t * data, uint16_t size)
+{
+  eeprom_write_block(data,((uint8_t*)&(ptable))+offset,size);
+  //eeprom_write_block((uint8_t*)0,data,1);
+  //eeprom_write_byte((uint8_t*)offset,*data);
+  return size;
+}
+
+int ReadParamTableBlock(uint16_t offset, uint8_t * data, uint16_t size)
+{
+  eeprom_read_block(data,((uint8_t*)&(ptable))+offset,size);
+  //eeprom_read_block(data,0,1);
+  //*data = eeprom_read_byte((uint8_t*)offset);
+  return size;
+}
 
 inline void PutUInt16(uint16_t val)
 {
@@ -147,35 +169,169 @@ int ImuPacketHandler(uint8_t len)
 }
 
 
-int HostPacketHandler(DynamixelPacket * dpacket)
+int ReplyHostConfigReadDenied(uint8_t flag)
 {
-  //TODO: not all messages should be forwarded onto the bus
-  uint8_t forward=1;
-  uint8_t id = DynamixelPacketGetId(dpacket);
+  return 0;
+}
+
+int ReplyHostConfigWriteDenied(uint8_t flag)
+{
+  return 0;
+}
+
+int HandleConfigReadRequest(DynamixelPacket * dpacket)
+{
+  uint8_t id   = DynamixelPacketGetId(dpacket);
   uint8_t type = DynamixelPacketGetType(dpacket);
+  uint8_t * data = DynamixelPacketGetData(dpacket); 
+  uint16_t offset;
+  uint16_t size;
 
-  if (id == MMC_IMU_DEVICE_ID)
+  if ((id != MMC_MAIN_CONTROLLER_DEVICE_ID) || (type != MMC_MC_EEPROM_READ) )
+    return -1;
+
+  if (mode != MMC_MC_MODE_CONFIG)
+    return -1;
+
+  offset = *((uint16_t*)data);
+  size   = *((uint16_t*)(data+2));
+  
+  if (offset + size > sizeof(ParamTable))
+    return -1;
+  
+
+  //put the data into temporary packet
+  memcpy(eepromTempData,&offset,sizeof(uint16_t));
+  memcpy(eepromTempData+2,&size,sizeof(uint16_t));
+  ReadParamTableBlock(offset,eepromTempData+4,size);
+  
+  //send the reply to host
+  HostSendPacket(MMC_MAIN_CONTROLLER_DEVICE_ID,MMC_MC_EEPROM_READ, 
+                  (uint8_t*)eepromTempData,size+4);
+  
+  return 0;
+}
+
+int HandleConfigWriteRequest(DynamixelPacket * dpacket)
+{
+  uint8_t id     = DynamixelPacketGetId(dpacket);
+  uint8_t type   = DynamixelPacketGetType(dpacket);
+  uint8_t * data = DynamixelPacketGetData(dpacket); 
+  uint16_t offset;
+  uint16_t size;
+
+  if ((id != MMC_MAIN_CONTROLLER_DEVICE_ID) || (type != MMC_MC_EEPROM_WRITE) )
+    return -1;
+  
+  if (mode != MMC_MC_MODE_CONFIG)
+    return -1;
+
+  offset = *((uint16_t*)data);
+  size   = *((uint16_t*)(data+2));
+  
+  if (offset + size > sizeof(ParamTable))
+    return -1;
+  
+  WriteParamTableBlock(offset,data+4,size);
+
+  memcpy(eepromTempData,&offset,sizeof(uint16_t));
+  memcpy(eepromTempData+2,&size,sizeof(uint16_t));
+  HostSendPacket(MMC_MAIN_CONTROLLER_DEVICE_ID,MMC_MC_EEPROM_WRITE,
+                 (uint8_t*)eepromTempData,4);
+
+  return 0;
+}
+
+int HandleModeSwitchRequest(DynamixelPacket * dpacket)
+{
+  uint8_t id     = DynamixelPacketGetId(dpacket);
+  uint8_t type   = DynamixelPacketGetType(dpacket);
+  uint8_t * data = DynamixelPacketGetData(dpacket);
+
+  if ((id != MMC_MAIN_CONTROLLER_DEVICE_ID) || (type != MMC_MC_MODE_SWITCH) )
+    return -1;
+
+  switch (*data)
   {
-    forward =0;
-    switch(type)
-    {
-      case MMC_IMU_RESET:
-        ResetImu();
-        break;
+    case MMC_MC_MODE_IDLE:
+    case MMC_MC_MODE_RUN:
+    case MMC_MC_MODE_CONFIG:
+      mode = *data;
+      break;
 
-    }
+    default:
+      break;
   }
 
-  if ((estop == 1) && (id == MMC_MOTOR_CONTROLLER_DEVICE_ID) && 
-  (type == MMC_MOTOR_CONTROLLER_VELOCITY_SETTING) )
+  //reply to the host
+  HostSendPacket(MMC_MAIN_CONTROLLER_DEVICE_ID,MMC_MC_MODE_SWITCH,&mode,1);
+
+  return 0;
+}
+
+int HostPacketHandler(DynamixelPacket * dpacket)
+{
+  uint8_t id   = DynamixelPacketGetId(dpacket);
+  uint8_t type = DynamixelPacketGetType(dpacket);
+
+  switch (id)
   {
-    if (rs485Blocked)
-    {
-      DynamixelPacketCopy(&motorCmdPacketOut,dpacket);
-      needToSendMotorCmd = 1;
-    }
-    else
-      BusSendRawPacket(dpacket);  //does not require a response, so bust won't be blocked
+    case MMC_MAIN_CONTROLLER_DEVICE_ID:
+      switch(type)
+      {
+        case MMC_MC_RESET:
+          //is software reset possible??
+          break;
+
+        case MMC_MC_MODE_SWITCH:
+          HandleModeSwitchRequest(dpacket);
+          break;
+
+        case MMC_MC_EEPROM_READ:
+          if (mode != MMC_MC_MODE_CONFIG)
+            ReplyHostConfigReadDenied(0);
+          else
+            HandleConfigReadRequest(dpacket);
+          break;
+
+        case MMC_MC_EEPROM_WRITE:
+          if (mode != MMC_MC_MODE_CONFIG)
+            ReplyHostConfigWriteDenied(0);
+          else
+            HandleConfigWriteRequest(dpacket);
+          break;
+
+        default:
+          break;
+      }
+      break;
+
+    case MMC_IMU_DEVICE_ID:
+      switch(type)
+      {
+        case MMC_IMU_RESET:
+          ResetImu();
+          break;
+
+      }
+      break;
+
+
+    case MMC_MOTOR_CONTROLLER_DEVICE_ID:
+      if ( (type == MMC_MOTOR_CONTROLLER_VELOCITY_SETTING) && (estop == MMC_ESTOP_STATE_RUN) )
+      {
+        if (rs485Blocked)
+        {
+          DynamixelPacketCopy(&motorCmdPacketOut,dpacket);
+          needToSendMotorCmd = 1;
+        }
+        else
+          BusSendRawPacket(dpacket);  //does not require a response, so bust won't be blocked
+      }
+      break;
+
+    default:
+      break;
   }
 
   LED_PC_ACT_TOGGLE;
@@ -211,10 +367,6 @@ int main(void)
   uint8_t * buf;
   int c;
   
-  int8_t rcChannel=0;
-  
-  uint8_t compassReqCntr = 0;
-  
   DynamixelPacketInit(&hostPacketIn);
   DynamixelPacketInit(&busPacketIn);
   
@@ -223,22 +375,32 @@ int main(void)
   
   while(1)
   {
-    //check the state of the estop input
-    if (ESTOP_PORT & _BV(ESTOP_PIN))
-    {
-      estop = 1;
-      LED_ESTOP_ON;
-    }
+    if (mode == MMC_MC_MODE_CONFIG)
+      LED_ERROR_ON;
     else
-    {
-      estop = 0;
-      LED_ESTOP_OFF;
-    }
+      LED_ERROR_OFF;
 
     //receive packet from host
     len=HostReceivePacket(&hostPacketIn);
     if (len>0)
       HostPacketHandler(&hostPacketIn);
+
+    if (mode == MMC_MC_MODE_CONFIG)
+      continue;
+
+    //check the state of the estop input
+    if (ESTOP_PORT & _BV(ESTOP_PIN))
+    {
+      estop = MMC_ESTOP_STATE_RUN;
+      LED_ESTOP_ON;
+    }
+    else
+    {
+      estop = MMC_ESTOP_STATE_PAUSE;
+      LED_ESTOP_OFF;
+    }
+
+    
     
     //receive packet from RS485 bus
     len=BusReceivePacket(&busPacketIn);
