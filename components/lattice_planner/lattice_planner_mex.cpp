@@ -281,7 +281,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray*prhs[] ){
 
     if(env){
       int i;
-      for(i=1; i<num_pts; i++){
+      for(i=min(6,num_pts); i<num_pts; i++){
 
         //let it slide if the point in within our footprint
         float dx = explore_path[i] - global_start_x;
