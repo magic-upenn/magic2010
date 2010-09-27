@@ -42,7 +42,7 @@ switch event
    dyEnd = PATH(end,2)-MPOSE.y;
    dEnd = sqrt(dxEnd.^2+dyEnd.^2);
 
-   [xNear, yNear, aNear] = pathClosestPoint(PATH, [MPOSE.x MPOSE.y]);
+   [xNear, yNear, aNear, idx] = pathClosestPoint(PATH, [MPOSE.x MPOSE.y]);
    dHeading = modAngle(aNear-MPOSE.heading);
    if (dEnd < 0.5) && abs(dHeading) < 30*pi/180,
      disp('done?');
@@ -80,6 +80,7 @@ switch event
      end
    end
 
+   %asympototically accelerate to maxSpeed
    maxSpeed = min(.5*distToMaxSpeed(dObstacle), 1);
    if maxSpeed < DATA.speed,
      DATA.speed = maxSpeed;
@@ -87,8 +88,14 @@ switch event
      DATA.speed = DATA.speed + .2*(maxSpeed-DATA.speed);
    end
 
+   % set output variables
    v = DATA.speed;
    w = turnPath*max(v, 0.1);
+   
+   theta_des = atan2(PATH(idx+10, 2) - MPOSE.y, PATH(idx+10)-MPOSE.x);
+        path_pts = [xNear yNear; PATH(idx,1) PATH(idx,2)]; 
+        w = w_PID(MPOSE.heading, theta_des, MPOSE.x, MPOSE.y, path_pts);
+        
    disp(sprintf('drive: %.4f %.4f',v,w));
    SetVelocity(v, .4*w);
 
