@@ -6,12 +6,14 @@ timestep = .1;
 y_tar = 100;
 x_tar = 30;
 theta= 0;
+velnoisemax = 0;
+wnoisemax = 0;
 
 x = 0;
 y=0;
 w = 0;
 %vel = 0;
-vel = 1;
+vel = 1.9;
 
 xlist = [];
 ylist = [];
@@ -20,8 +22,22 @@ ylist = [];
 xtarl = [0:.1:9.9 10:-.1:-9.9 -10*ones(1,201)  ];
 ytarl = [0:.1:9.9 10*ones(1,200) 10:-.1:-10 ];
 
+traj_map = imread('test_traj.bmp');
+traj_map = traj_map(:,:,1);
+[xtarl ytarl] = find(traj_map == 0);
+
+xtarl = xtarl/10;
+ytarl = ytarl/10;
+
+xtarl = reshape(xtarl,2,[]);
+ytarl = reshape(ytarl,2,[]);
+
+xtarl = xtarl(1,:);
+ytarl = ytarl(1,:);
 
 
+x = xtarl(1) + .5;
+y = ytarl(1) - .5;
 % xtarl = [0 1 2 3 4 5 6 7 8 9 10 9 8 7 6 5 4 3 2 1 0 -1 -2 -3 -4 -5 -6 -7 -8 -9 -10 -9 -9 -9 -9 -9 -9 -9 -9 -9 -9 -9 -9 -9 -9 -9 -9 -9 -9 -8 -7 -6 -5 -4 -3 -2 -1  0  1  2  3  4  5  6  7  8  9 10  9  9  9  8  8  8  7  7  7  6  6  6  5  4  3  2  1  0 -1 -2 -3 -4 -5 -4 -3 -2 -1  0  1  2  3  4  5  6  7  8  9 10 ];
 % ytarl = [0 1 2 3 4 5 6 7 8 9 9  9 9 9 9 9 9 9 9 9 9  9  9  9  9  9  9  9  9  9   9  8  7  6  5  4  3  2  1  0 -1 -2 -3 -4 -5 -6 -7 -8 -9 -9 -9 -9 -9 -9 -9 -9 -9 -9 -9 -9 -9 -9 -9 -9 -9 -9 -9 -9 -8 -7 -6 -5 -4 -3 -2 -1  0  1  2  3  4  3  3  2  1  0 -1 -2 -2 -3 -4 -4 -4 -3 -3 -3 -2 -2 -2 -1 -1 -1  0  0  0  0 ];
 
@@ -51,8 +67,8 @@ for (j=2:size(xtarl,2))
 %             wnoisemax = .3;
 %             velnoisemax = .1;  % variance of vel
 %         end
-      velnoisemax =0.1;
-      wnoisemax =0.1;
+  %    velnoisemax =0.1;
+  %    wnoisemax =0.1;
       
       if (w > 3)
           w = 3;
@@ -69,11 +85,13 @@ for (j=2:size(xtarl,2))
         % add errors
     %    theta = theta + .1;
         SavePIDdata(x,y, theta, vel, w, xtarl(j-1), ytarl(j-1),xtarl(j), ytarl(j), theta_des, 6);
+        figure(6); hold on; plot(xtarl, ytarl, 'y-');
         elap_time = toc(start_time);
         pause(.1 - elap_time);
   %  end
     
 %     y_tar = rand*20.0 - 10.0;
 %     x_tar = rand*20.0 - 10.0;
+
     
 end

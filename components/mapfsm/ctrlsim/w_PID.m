@@ -7,10 +7,10 @@ persistent time_prev error_prev error_sum offset_prev offset_sum;
 % gains
 Khp = 5*(1/pi);  
 Khi = 1;
-Khd = 0.1;
+Khd = 0;%0.1;
 Kop = 0.5;
 Koi = 1;
-Kod = 0.5;
+Kod = 0;%0.5;
 
 % constants
 anti_wind_up_head = pi; % max integral term
@@ -48,9 +48,9 @@ if (heading_error > pi)
     heading_error = heading_error - 2*pi;
 end
 
-% if (sign(error_prev) ~= sign(heading_error))
-%     error_sum = 0;
-% end
+ if (sign(error_prev) ~= sign(heading_error))
+     error_sum = 0;
+ end
 %error_sum = decay*error_sum;
 
 % check anti-windup
@@ -88,30 +88,35 @@ phi = atan2(ynext2-ynext1, xnext2-xnext1);
 dir = sign(sin(phi-theta));
 
 % proportional term
-offset = sqrt((x-Pb(1))^2 + (y-Pb(2))^2)*dir;
+offset_error = sqrt((x-Pb(1))^2 + (y-Pb(2))^2)*dir;
 
 % check anti-windup
 if (abs(offset_sum) <= anti_wind_up_offset)
-    offset_sum = offset_sum + (offset*dt);
+    offset_sum = offset_sum + (offset_error*dt);
 end
 % and clip
 if (abs(offset_sum) > anti_wind_up_offset)
     offset_sum = anti_wind_up_offset * sign(offset_sum);
 end
 
+ if (sign(offset_prev) ~= sign(offset_error))
+     offset_sum = 0;
+ end
+
+
 % derivative term
-offset_rate = (offset - offset_prev)/dt;
+offset_rate = (offset_error - offset_prev)/dt;
 
 % the actual PID formula  original gets 70% weight, PID gets 30%
-w_out =  (heading_error * Khp) + (error_sum * Khi) + (heading_rate * Khd) + offset*Kop + (offset_sum * Koi) + (offset_rate * Kod);
+w_out =  (heading_error * Khp) + (error_sum * Khi) + (heading_rate * Khd) + offset_error*Kop + (offset_sum * Koi) + (offset_rate * Kod);
 
 % display for testing
-fprintf('he: % 2.2f es: % 2.2f hr: % 2.2f p: % 2.2f i: % 2.2f d: % 2.2f oe: % 2.2f os: % 2.2f or: % 2.2f p: % 2.2f i: % 2.2f d: % 2.2f w: % 2.3f dt: % 1.3f\n', heading_error, error_sum,heading_rate,(heading_error * Khp), (error_sum * Khi), (heading_rate * Khd), offset, offset_sum, offset_rate, offset*Kop,offset_sum * Koi,offset_rate * Kod, w_out, dt);
+fprintf('he: % 2.2f es: % 2.2f hr: % 2.2f p: % 2.2f i: % 2.2f d: % 2.2f oe: % 2.2f os: % 2.2f or: % 2.2f p: % 2.2f i: % 2.2f d: % 2.2f w: % 2.3f dt: % 1.3f\n', heading_error, error_sum,heading_rate,(heading_error * Khp), (error_sum * Khi), (heading_rate * Khd), offset_error, offset_sum, offset_rate, offset_error*Kop,offset_sum * Koi,offset_rate * Kod, w_out, dt);
 
 % close out for next iteration
 error_prev = heading_error;
 time_prev = time_curr;
-offset_prev = offset;
+offset_prev = offset_error;
 
 
 end
