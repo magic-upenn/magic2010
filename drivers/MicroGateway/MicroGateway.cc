@@ -23,60 +23,6 @@ using namespace Magic;
 #define MICRO_GATEWAY_MAX_NUM_TYPES_PER_ID 256
 #define MICRO_GATEWAY_MAX_NUM_MSGS MICRO_GATEWAY_MAX_NUM_IDS*MICRO_GATEWAY_MAX_NUM_TYPES_PER_ID
 
-struct Rs485ToIpcMsg
-{
-  int id;
-  int type;
-  const char * name;
-};
-
-struct Rs485Msg
-{
-  int id;
-};
-
-struct Rs485WaitResponseMsg
-{
-  int id;
-  int type;
-};
-
-struct IpcToRs485Msg
-{
-  const char * name;
-};
-
-Rs485ToIpcMsg rs485ToIpcMsgs[] =
-{ 
-  { MMC_MOTOR_CONTROLLER_DEVICE_ID,MMC_MOTOR_CONTROLLER_ENCODERS_RESPONSE, "Encoders_in"},
-  { MMC_IMU_DEVICE_ID,        MMC_IMU_ROT,   "IMU_in"            },
-  { MMC_IMU_DEVICE_ID,        MMC_IMU_RAW,   "IMU_RAW_in"        },
-  { MMC_IMU_DEVICE_ID,        MMC_MAG_RAW,   "IMU_MAG_RAW_in"    },
-  { MMC_GPS_DEVICE_ID,        MMC_GPS_ASCII, "GPS_RAW_in"        },
-  { MMC_DYNAMIXEL0_DEVICE_ID, -1,            "Dynamixel0_in"     },
-  { MMC_DYNAMIXEL1_DEVICE_ID, -1,            "Dynamixel1_in"     }
-};
-
-
-Rs485Msg rs485Msgs[] =
-{ 
-  { MMC_MOTOR_CONTROLLER_DEVICE_ID },
-  { MMC_DYNAMIXEL0_DEVICE_ID       },
-  { MMC_DYNAMIXEL1_DEVICE_ID       }
-};
-
-Rs485WaitResponseMsg rs485WaitResponseMsgs[] =
-{
-  { MMC_MOTOR_CONTROLLER_DEVICE_ID, MMC_MOTOR_CONTROLLER_ENCODERS_REQUEST }
-};
-
-IpcToRs485Msg ipcToRs485Msgs[] =
-{
-  { "Dynamixel0_out"      },
-  { "Dynamixel1_out"      },
-  { "MotorController_out" }
-};
-
 
 /////////////////////////////////////////////////////////////////////////
 // Constructor
@@ -1205,8 +1151,10 @@ int MicroGateway::Main()
       if ( this->idsOn485Bus[deviceId] == 1)
         this->waitingRS485Resp = false;
     }
+    else if (ret < 0)
+      printf("serial error\n");
 
-
+/*
     //request the encoder data if needed
     if (this->encoderTimer.Toc() >= this->encoderUpdateTime)
     //if (0)    
@@ -1225,7 +1173,7 @@ int MicroGateway::Main()
     }
 
     this->DynamixelControllerUpdate(MMC_DYNAMIXEL0_DEVICE_ID,NULL);
-
+*/
     //receive ipc messages
     IPC_listen(0);
 
