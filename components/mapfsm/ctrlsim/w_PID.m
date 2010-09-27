@@ -4,13 +4,15 @@ function [w_out] = w_PID(heading_curr, heading_des, x, y, path_pts)
 % (negative offset is to the left, positive is to the right)
 persistent time_prev error_prev error_sum offset_prev offset_sum;
 
+%path_pts
+
 % gains
-Khp = 5*(1/pi);  
-Khi = 1;
-Khd = 0;%0.1;
-Kop = 0.5;
-Koi = 1;
-Kod = 0;%0.5;
+Khp = 2.5/pi; 
+Khi = 0.1;
+Khd = 0.5;
+Kop = 0;%0.5;
+Koi = 0;%1;
+Kod = 0;%0.05;
 
 % constants
 anti_wind_up_head = pi; % max integral term
@@ -108,7 +110,7 @@ end
 offset_rate = (offset_error - offset_prev)/dt;
 
 % the actual PID formula  original gets 70% weight, PID gets 30%
-w_out =  (heading_error * Khp) + (error_sum * Khi) + (heading_rate * Khd) + offset_error*Kop + (offset_sum * Koi) + (offset_rate * Kod);
+w_out =  (heading_error * Khp) + (error_sum * Khi) + (heading_rate * Khd);% + offset_error*Kop + (offset_sum * Koi) + (offset_rate * Kod);
 
 % display for testing
 fprintf('he: % 2.2f es: % 2.2f hr: % 2.2f p: % 2.2f i: % 2.2f d: % 2.2f oe: % 2.2f os: % 2.2f or: % 2.2f p: % 2.2f i: % 2.2f d: % 2.2f w: % 2.3f dt: % 1.3f\n', heading_error, error_sum,heading_rate,(heading_error * Khp), (error_sum * Khi), (heading_rate * Khd), offset_error, offset_sum, offset_rate, offset_error*Kop,offset_sum * Koi,offset_rate * Kod, w_out, dt);

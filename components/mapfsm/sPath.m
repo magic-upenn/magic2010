@@ -24,7 +24,7 @@ switch event
  case 'exit'
   
  case 'update'
-   disp('update...');
+   %disp('update...');
 
    if isempty(PATH),
      SetVelocity(0, 0);
@@ -50,21 +50,32 @@ switch event
      return;
    end
 
-   if abs(dHeading) > 45*pi/180,
+   if abs(dHeading) > 90*pi/180,
+%MPOSE.heading
+%aNear
+%{
      if (dHeading > 0),
+       disp('turn left');
        SetVelocity(0, SPEED.minTurn);
      else
+       disp('turn right');
        SetVelocity(0, -SPEED.minTurn);
      end
+%}
+     temp_ang = sign(dHeading)*min(abs(dHeading), 45*pi) + MPOSE.heading;
+     w = w_PID(MPOSE.heading, temp_ang, MPOSE.x, MPOSE.y, [MPOSE.x,MPOSE.y;cos(temp_ang),sin(temp_ang)])
+     w = sign(w)*min(abs(w), 3.0);
+     SetVelocity(0,w);
      return;
    end
 
-   [turnPath, cost] = turnControl(PATH, MPOSE);
+
+   [turnPath, cost, look_ahead_idx] = turnControl(PATH, MPOSE);
 
    % Check for obstacles ahead:
    xp = MPOSE.x + [.4:.1:5]*cos(MPOSE.heading);
    yp = MPOSE.y + [.4:.1:5]*sin(MPOSE.heading);
-   dObstacle = pathObstacleDistance(xp, yp, MAP)
+   dObstacle = pathObstacleDistance(xp, yp, MAP);
 
    if (dObstacle < .3),
      dxStart = PATH(1,1)-MPOSE.x;
@@ -92,11 +103,16 @@ switch event
    v = DATA.speed;
    w = turnPath*max(v, 0.1);
    
-   theta_des = atan2(PATH(idx+10, 2) - MPOSE.y, PATH(idx+10)-MPOSE.x);
-        path_pts = [xNear yNear; PATH(idx,1) PATH(idx,2)]; 
-        w = w_PID(MPOSE.heading, theta_des, MPOSE.x, MPOSE.y, path_pts);
+   if size(PATH,1) ~= idx
+     %look_ahead_pts = min(100,size(PATH,1)-idx);
+     %look_ahead_idx = look_ahead_idx;
+     theta_des = atan2(PATH(look_ahead_idx, 2) - MPOSE.y, PATH(look_ahead_idx)-MPOSE.x);
+     path_pts = [xNear yNear; PATH(look_ahead_idx,1) PATH(look_ahead_idx,2)]; 
+     w = w_PID(MPOSE.heading, theta_des, MPOSE.x, MPOSE.y, path_pts);
+   end
         
+   w = sign(w)*min(abs(w), 3.0);
    disp(sprintf('drive: %.4f %.4f',v,w));
-   SetVelocity(v, .4*w);
+   SetVelocity(v, w);
 
 end

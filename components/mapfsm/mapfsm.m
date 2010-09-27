@@ -6,7 +6,7 @@ SPEED.minTurn = 0.6;
 
 more off;
 if nargin < 1,
-  tUpdate = 0.1;
+  tUpdate = 0.05;
 end
 
 % Construct map:

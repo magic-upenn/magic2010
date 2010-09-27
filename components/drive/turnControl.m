@@ -1,4 +1,4 @@
-function [cSteer, costMin] = turnControl(path, pose, direction)
+function [cSteer, costMin, idx] = turnControl(path, pose, direction)
 % cSteer = turnControl(path, pose, direction)
 % Value based controller to track path trajectory in pos/neg direction
 % Returns optimal turn curvature
@@ -22,7 +22,7 @@ xs = posX + sLookAhead*cos(heading);
 ys = posY + sLookAhead*sin(heading);
 
 % Compute closest point on path
-[xpath, ypath, apath] = pathClosestPoint(path, [xs ys]);
+[xpath, ypath, apath, idx] = pathClosestPoint(path, [xs ys]);
 
 % Optimize turn command over following curvatures:
 cSteerArray = cSteerMax*[-1:.025:1]';
