@@ -1,7 +1,7 @@
 function draw_cand_on_axes(axeh,stats,rank,img)
 	axes(axeh);
 	smallest = min(size(img)); 
-	bb = stats(1,3:end) + round([-1,1,-1,1] * smallest * .1);
+	bb = stats(1,2:end) + round([-1,1,-1,1] * smallest * .1);
 	bb = max(bb,1);   
 	bb(2) = min(bb(2),size(img,1)); 
 	bb(4) = min(bb(4),size(img,2));

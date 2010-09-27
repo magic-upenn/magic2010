@@ -22,7 +22,7 @@ function varargout = omni_gui(varargin)
 
 % Edit the above text to modify the response to help omni_gui
 
-% Last Modified by GUIDE v2.5 22-Sep-2010 09:25:16
+% Last Modified by GUIDE v2.5 27-Sep-2010 12:50:58
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -56,24 +56,27 @@ function omni_gui_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.output = hObject;
 
 % Update handles structure
-global OMNI; 
 guidata(hObject, handles);
 
-all_stats = []; 
+global PACKET
+all_stats = [];
+cand = 1; 
 for i = 1:9
-	oname = sprintf('omni%d',i)
-	all_stats = [all_stats; [ones(size(OMNI(i).stats,1),1),OMNI(i).stats]];
-	OMNI(i).stats = flipud(sortrows(OMNI(i).stats,2));  
-	draw_cands_on_image(handles.(oname),OMNI(i).stats,OMNI(i).img); 
-	if i == 9 
-		break
-	end	
-	cname = sprintf('cand%d',i)
-	draw_cand_on_axes(handles.(cname),OMNI(i).stats,i,OMNI(i).img); 
+	packet = PACKET{i};
+	oname = sprintf('omni%d',i);
+	cname = sprintf('cand%d',i);
+	all_stats = [all_stats; [ones(size(packet.omni_stats,1),1),packet.omni_stats]];
+	packet.stats = flipud(sortrows(packet.omni_stats,1));  
+	draw_cands_on_image(handles.(oname),packet.omni_stats,packet.omni); 
+	axes(handles.(cname)); imagesc(packet.omni_cands{cand}); daspect([1 1 1]);  
 end
 
 global OMNI_HANDLES; 
-OMNI_HANDLES = handles; 
+OMNI_HANDLES = handles;
+
+while true
+	'hi'
+end 
 %all_stats = flipud(sortrows(all_stats,3));  
 %for i = 1:8
 %	cname = sprintf('cand%d',i)
@@ -95,10 +98,21 @@ function varargout = omni_gui_OutputFcn(hObject, eventdata, handles)
 varargout{1} = handles.output;
 
 
-% --- Executes on button press in calibrate_all.
-function calibrate_all_Callback(hObject, eventdata, handles)
-% hObject    handle to calibrate_all (see GCBO)
+% --- Executes on button press in switch_cand.
+function switch_cand_Callback(hObject, eventdata, handles)
+% hObject    handle to switch_cand (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+global PACKET;
+global CAND;
+ 
+CAND = mod(CAND+1,3) + 1; 
+for i = 1:9
+	packet = PACKET{i};
+	cname = sprintf('cand%d',i);
+	axes(handles.(cname)); imagesc(packet.omni_cands{CAND}); daspect([1 1 1]);  
+end
+
+
 
 

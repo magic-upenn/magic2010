@@ -6,8 +6,8 @@ function RedDetect
 	ipcInit;
 	imageMsgName = GetMsgName('Image');
 	staticOoiMsgName = GetMsgName('StaticOOI');
-i%	ipcAPIDefine(imageMsgName);
-%	ipcAPIDefine(staticOoiMsgName);
+	ipcAPIDefine(imageMsgName);
+	ipcAPIDefine(staticOoiMsgName);
 
 %	ipcReceiveSetFcn(GetMsgName('Pose'), @PoseMsgHander);
 %	ipcReceiveSetFcn(GetMsgName('CamParam'), @CamParamMsgHander);
@@ -23,13 +23,15 @@ i%	ipcAPIDefine(imageMsgName);
 
 	    %%%% send images and OOI to vision GUI console through IPC %%%%%
 		ipcReceiveMessages;
-		[omni_sm, front_sm, omni_stats, front_stats] = red_detect_cams();  
+		[omni_cand,front_cand,omni, front, omni_stats, front_stats] = red_detect_cams();  
 
 		%%%%% send compressed jpg image through IPC %%%%%
 		imPacket.id = str2double(getenv('ROBOT_ID'));
 		imPacket.t  = GetUnixTime();
-		imPacket.omni = cjpeg(omni_sm);
-		imPacket.front = cjpeg(front_sm);
+		imPacket.omni = cjpeg(omni);
+		imPacket.front = cjpeg(front);
+		imPacket.omni_cand = cjpeg(omni_cand);
+		imPacket.front_cand = cjpeg(front_cand);
 		imPacket.omni_stats = omni_stats;
 		imPacket.front_stats = front_stats;
 		ipcAPIPublish(imageMsgName,serialize(imPacket));

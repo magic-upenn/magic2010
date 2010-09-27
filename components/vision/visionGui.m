@@ -15,14 +15,21 @@ function visionGuiInit
 	global IMAGES STATIC_OOI ROBOTS
 
 	nRobots = 10;
-	ids = [3]; % list of ID's of available robots
+	ids = [1]; % list of ID's of available robots
 
 	for ii=1:nRobots
 	    IMAGES(ii).id = [];
 	    IMAGES(ii).t = [];
-	    IMAGES(ii).jpg = [];
-	    IMAGES(ii).Ymean = [];
-	    IMAGES(ii).POSE = [];
+	    IMAGES(ii).omni = [];
+	    IMAGES(ii).front = [];
+	    IMAGES(ii).omni_cand = [];
+	    IMAGES(ii).front_cand = [];
+	    IMAGES(ii).omni_stats = [];
+	    IMAGES(ii).front_stats = [];
+		
+	   % IMAGES(ii).jpg = [];
+	   % IMAGES(ii).Ymean = [];
+	   % IMAGES(ii).POSE = [];
 	    STATIC_OOI(ii).OOI = [];
 	    STATIC_OOI(ii).id = [];
 	    STATIC_OOI(ii).t = [];
@@ -31,8 +38,8 @@ function visionGuiInit
 
 	ipcInit;
 
-	%masterConnectRobots(ids,'127.0.0.1');
-	masterConnectRobots(ids);
+	masterConnectRobots(ids,'127.0.0.1');
+	%masterConnectRobots(ids);
 
 	for ii=1:length(ROBOTS)
 	  if (ROBOTS(ii).connected == 1)
@@ -61,20 +68,30 @@ function ipcRecvImageFcn(msg,name)
 	%fprintf(1,'got image name %s\n',name);
 	imPacket = deserialize(msg);
 	IMAGES(imPacket.id) = imPacket;
-	IMAGES(imPacket.id).jpg = djpeg(imPacket.jpg);
-	imagesc(linear_unroll(IMAGES(3).jpg,403,263,300)); daspect([1 1 1])
+	IMAGES(imPacket.id).omni = djpeg(imPacket.omni);
+	IMAGES(imPacket.id).front = djpeg(imPacket.front);
+	IMAGES(imPacket.id).omni_cand = djpeg(imPacket.omni_cand);
+	IMAGES(imPacket.id).front_cand = djpeg(imPacket.front_cand);
+	omni = IMAGES(imPacket.id).omni; 
+	front = IMAGES(imPacket.id).front; 
+	subplot(1,2,1);
+	imagesc(draw_cands(imPacket.omni_stats,omni));  	 
+	daspect([1 1 1]); 
+	subplot(1,2,2); 
+	imagesc(draw_cands(imPacket.front_stats,front));  	 
+	daspect([1 1 1]); 
 
 	%set(PLOTHANDLES(imPacket.id),'CData',IMAGES(imPacket.id).jpg);
 	%set(GUI.hYcurr(imPacket.id),'String',num2str(imPacket.Ymean));
-	if isempty(imPacket.POSE)
-	    fprintf(1,'No POSE.data from Robot %d\n',imPacket.id);
-	    return
-	end
+%	if isempty(imPacket.POSE)
+%	    fprintf(1,'No POSE.data from Robot %d\n',imPacket.id);
+%	    return
+%	end
 	%set(GUI.hRobotXY(imPacket.id),'String',sprintf('X:%s, Y:%s, yaw:%s',num2str(imPacket.POSE.x),num2str(imPacket.POSE.y),num2str(imPacket.POSE.yaw)));
 
-	%drawnow;
+	drawnow;
 
-	function ipcRecvStaticOoiFcn(msg,name)
+function ipcRecvStaticOoiFcn(msg,name)
 	global  IMAGES STATIC_OOI GUI
 	%fprintf(1,'got static ooi\n');
 	OOIpacket = deserialize(msg);
