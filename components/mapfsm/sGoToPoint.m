@@ -34,6 +34,8 @@ switch event
   if ~DATA.havePath
     getPath();
     DATA.havePath = true;
+    DATA.recovery_attempts = 0;
+    DATA.recovering = false;
     sPath('entry');
   end
   ret = sPath('update');
@@ -43,6 +45,17 @@ switch event
     ret = [];
   elseif strcmp(ret,'recovery')
     ret = [];
+    if ~DATA.recovering
+      DATA.recovering = true;
+      DATA.recovery_attempts = DATA.recovery_attempts + 1;
+    end
+  else
+    if DATA.recovering
+      DATA.recovering = false;
+      if DATA.recovery_attempts >= 3
+        DATA.havePath = false;
+      end
+    end
   end
   
   %ret = 'gotGoToPointPath';

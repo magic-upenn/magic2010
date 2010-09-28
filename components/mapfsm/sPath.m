@@ -84,6 +84,7 @@ switch event
      if(dStart < 0.3)
        disp('recovery');
        SetVelocity(-0.4, 0);
+       ret = 'recovery';
        return;
      else
        disp('obstacle?');
