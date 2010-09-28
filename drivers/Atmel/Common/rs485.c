@@ -40,13 +40,11 @@ ISR(USART1_UDRE_vect)
     // Enable RS485 transmitter:
     RS485_TX_ENABLE_PORT |= _BV(RS485_TX_ENABLE_PIN);
     UDR1 = CBUF_Pop(uart1_putbuf);
-    PORTE |= _BV(PE4);
   }
   else 
   {
     // Disable interrupt
     UCSR1B &= ~(_BV(UDRIE1));
-    PORTE &= ~(_BV(PE4));
   }
 }
 
@@ -65,9 +63,6 @@ void rs485_init(void)
   // Enable output:
   RS485_TX_ENABLE_DDR |= _BV(RS485_TX_ENABLE_PIN);
   RS485_TX_ENABLE_PORT &= ~(_BV(RS485_TX_ENABLE_PIN));
-
-  DDRE |= _BV(PE4);
-  PORTE &= ~(_BV(PE4));
 
   CBUF_Init(uart1_getbuf);
   CBUF_Init(uart1_putbuf);

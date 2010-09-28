@@ -11,7 +11,6 @@
 #include "HostInterface.h"
 #include "BusInterface.h"
 #include "adc.h"
-#include "TWI_Master.h"
 #include "uart3.h"
 #include "timer1.h"
 #include "timer3.h"
@@ -114,7 +113,7 @@ void Rs485ResponseTimeout(void)
   rs485Blocked = 0;
   
   //disable the timeout, since we consider the packet lost
-  timer4_disable_compa_callback();
+  //timer4_disable_compa_callback();
 }
 
 void InitLeds()
@@ -133,8 +132,8 @@ void EncodersRequestFcn(void)
   rs485Blocked = 1;
 
   TCNT1 = 0;
-  TCNT4 = 0;
-  timer4_enable_compa_callback();
+//  TCNT4 = 0;
+//  timer4_enable_compa_callback();
 }
 
 void init(void)
@@ -167,10 +166,10 @@ void init(void)
   timer3_init();
   timer3_set_overflow_callback(SendEstopStatus);
   
-  timer4_init();
+//  timer4_init();
   
-  timer4_set_compa_callback(Rs485ResponseTimeout);
-  timer4_disable_compa_callback();
+//  timer4_set_compa_callback(Rs485ResponseTimeout);
+//  timer4_disable_compa_callback();
 
   timer1_init();
   timer1_set_compa_callback(EncodersRequestFcn);
@@ -412,7 +411,7 @@ int main(void)
   {
     while(1)
     {
-      //send the error packet
+      //TODO: send the error packet
       _delay_ms(100);
     }
   }
@@ -421,11 +420,6 @@ int main(void)
   
   while(1)
   {
-    if (mode == MMC_MC_MODE_CONFIG)
-      LED_ERROR_ON;
-    else
-      LED_ERROR_OFF;
-
     //receive packet from host
     len=HostReceivePacket(&hostPacketIn);
     if (len>0)
@@ -467,15 +461,10 @@ int main(void)
         XbeeSendPacket(0,0,NULL,0);
         LED_RC_TOGGLE;
       }
-      //HOST_COM_PORT_PUTCHAR(c);
       c = XBEE_COM_PORT_GETCHAR();
     }
 
-    
-    //cli();   //disable interrupts to prevent race conditions while copying
-    
     len = adc_get_data(adcVals);
-    //sei();   //re-enable interrupts
     
     if (len > 0)
     {

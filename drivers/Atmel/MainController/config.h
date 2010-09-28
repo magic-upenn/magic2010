@@ -28,7 +28,7 @@
 
 //for seeeduino mega
 #define RS485_TX_ENABLE_PORT PORTH
-#define RS485_TX_ENABLE_PIN PORTH5
+#define RS485_TX_ENABLE_PIN PH5
 #define RS485_TX_ENABLE_DDR DDRH
 
 //for arduino mega
@@ -104,7 +104,7 @@
 #define LED_ERROR_OFF      LED_ERROR_PORT  &= ~(_BV(LED_ERROR_PIN))
 #define LED_ESTOP_ON       LED_ESTOP_PORT  |= _BV(LED_ESTOP_PIN)
 #define LED_ESTOP_OFF      LED_ESTOP_PORT  &= ~(_BV(LED_ESTOP_PIN))
-
+  
 
 //index of each control in the array of RC channels
 #define RC_V_IND 2
