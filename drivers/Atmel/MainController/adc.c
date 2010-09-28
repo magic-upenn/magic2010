@@ -75,6 +75,7 @@ int16_t adc_get_data(uint16_t * dataOut)
   int16_t ret = -1;
   uint8_t ch;
   
+  ADCSRA &= ~(_BV(ADIE));
   if(adcReady)
   {
     for (ch=0; ch<NUM_ADC_CHANNELS; ch++)
@@ -82,6 +83,7 @@ int16_t adc_get_data(uint16_t * dataOut)
     adcReady = 0;
     ret = NUM_ADC_CHANNELS;
   }
+  ADCSRA    |= _BV(ADIE);
   
   return ret;
 }

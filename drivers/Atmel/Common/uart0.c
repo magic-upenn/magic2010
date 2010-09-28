@@ -8,8 +8,8 @@
 
 #define DEFAULT_BAUDRATE 57600
 
-#define uart0_getbuf_SIZE 128
-#define uart0_putbuf_SIZE 128
+#define uart0_getbuf_SIZE 256
+#define uart0_putbuf_SIZE 256
 volatile struct {
   uint8_t m_getIdx;
   uint8_t m_putIdx;

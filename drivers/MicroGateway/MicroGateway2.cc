@@ -22,9 +22,10 @@ using namespace Magic;
 #define MICRO_GATEWAY_MAX_NUM_TYPES_PER_ID 256
 #define MICRO_GATEWAY_MAX_NUM_MSGS MICRO_GATEWAY_MAX_NUM_IDS*MICRO_GATEWAY_MAX_NUM_TYPES_PER_ID
 
-#define PRINT_IMU_FILTERED
-#define PRINT_IMU_RAW
-#define PRINT_GPS
+//#define PRINT_IMU_FILTERED
+//#define PRINT_IMU_RAW
+//#define PRINT_GPS
+#define PRINT_ENCODERS
 
 
 /////////////////////////////////////////////////////////////////////////
@@ -454,9 +455,9 @@ int MicroGateway::GpsPacketHandler(DynamixelPacket * dpacket)
       c++;
     }
     printf("\n");
-
-  }
 #endif
+  }
+
 
   GpsASCII gpsPacket(Timer::GetAbsoluteTime(), 0,
                      DynamixelPacketGetPayloadSize(dpacket),
@@ -474,13 +475,19 @@ int MicroGateway::MotorControllerPacketHandler(DynamixelPacket * dpacket)
 {
   int packetType = DynamixelPacketGetType(dpacket);
   //double motorDt = this->rs485timer.Toc();
+  static Timer t0;
 
   if (packetType == MMC_MOTOR_CONTROLLER_ENCODERS_RESPONSE)
   {
     int16_t * encData = (int16_t*)DynamixelPacketGetData(dpacket);
     //printf("got encoder packet (%f) : ",this->encoderTimer.Toc());
-    //printf("%d %d %d %d %d\n",(uint16_t)encData[0],encData[1],encData[2],encData[3], encData[4]);
-
+#ifdef PRINT_ENCODERS
+    //PRINT_INFO("GOT encoders");
+    double dt = t0.Toc(true); t0.Tic();
+    printf("encoders: %d %d %d %d %d\n",(uint16_t)encData[0],encData[1],encData[2],encData[3], encData[4]);
+    if (dt > 0.07)
+      printf("!!!!!!!!!!!!!!!!!\n");
+#endif
     EncoderCounts encPacket(Upenn::Timer::GetAbsoluteTime(),
                            (uint16_t)encData[0],encData[1],encData[2],encData[3], encData[4]);
     
@@ -580,6 +587,7 @@ int MicroGateway::ResetImu()
   uint8_t type = MMC_IMU_RESET;
 
   this->SendSerialPacket(id,type,NULL,0);
+  delete [] tempBuf;
 
   return 0;
 }

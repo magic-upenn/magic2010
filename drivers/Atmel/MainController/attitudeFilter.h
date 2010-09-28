@@ -4,9 +4,9 @@
 #define ADC_VOLTAGE_MV 2560.0
 
 //accelerometer biases
-#define BIAS_ACC_X 665
-#define BIAS_ACC_Y 671
-#define BIAS_ACC_Z 670
+//#define BIAS_ACC_X 665
+//#define BIAS_ACC_Y 671
+//#define BIAS_ACC_Z 670
 
 #define NOMINAL_GYRO_BIAS 485
 #define GYRO_BIAS_MARGIN 30
@@ -25,7 +25,7 @@
 
 
 //number of calibration samples for rate gyros
-#define NUM_GYRO_CALIB_SAMPLES 100
+#define NUM_GYRO_CALIB_SAMPLES 300
 
 //mapping of the ADC measurements to appropriate values
 #define ADC_AX_IND 0
@@ -37,6 +37,7 @@
 
 
 int ProcessImuReadings(uint16_t * adcVals, float * rpy, float *wrpy);
+int SetImuAccBiases(uint16_t biasx, uint16_t biasy, uint16_t biasz);
 
 void ResetImu();
 

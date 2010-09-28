@@ -22,6 +22,8 @@ ISR(TIMER1_COMPA_vect)
 void timer1_init(void)
 {
   
+  TCCR1B = _BV(CS10) | _BV(CS11); // CS10 | CS11: prescaler = 1/64, 262.1 ms cycle
+
   /*
   TCCR1B = _BV(CS10);
   
@@ -33,9 +35,9 @@ void timer1_init(void)
   ICR1  = 1000;
   */
   
-  TCCR1B = _BV(CS11); // CS11: prescaler = 8, 32.8 ms cycle
-  TIMSK1 = _BV(OCIE1A);
-  OCR1A = 30000;      //15ms
+  //TCCR1B = _BV(CS11); // CS11: prescaler = 8, 32.8 ms cycle
+  //TIMSK1 = _BV(OCIE1A);
+  OCR1A = 12500;      //50 ms
 }
 
 void timer1_set_overflow_callback(void (*callback)(void))

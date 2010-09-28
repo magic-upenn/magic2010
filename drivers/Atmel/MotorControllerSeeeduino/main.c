@@ -306,12 +306,11 @@ int main(void)
   {
     count++;
     
-    c = rs485_getchar();
-    if (c != EOF)
+    while ((c = rs485_getchar()) != EOF)
     {
       //uart0_putchar(c);
       ret = DynamixelPacketProcessChar(c,&dpacket);
-      if (ret < 0)
+      if (ret < 1)
         continue;
         
       packetId = DynamixelPacketGetId(&dpacket);

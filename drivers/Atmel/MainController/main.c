@@ -23,6 +23,11 @@
 DynamixelPacket hostPacketIn;
 DynamixelPacket busPacketIn;
 DynamixelPacket motorCmdPacketOut;
+DynamixelPacket xbeePacketIn;
+
+#define encoderRequestRawPacketMaxSize 32
+volatile uint8_t encoderRequestRawPacket[encoderRequestRawPacketMaxSize];
+volatile uint8_t encoderRequestRawPacketSize = 0;
 
 uint16_t adcVals[NUM_ADC_CHANNELS];
 float rpy[3];
@@ -40,12 +45,13 @@ uint8_t estop = 0;
 volatile uint8_t freshMotorCmd = 0;
 volatile uint8_t mode = MMC_MC_MODE_RUN;
 
-ParamTable EEMEM ptable;
+ParamTable EEMEM ptableE;
+ParamTable ptableR;
 uint8_t eepromTempData[sizeof(ParamTable)+4];
 
 int WriteParamTableBlock(uint16_t offset, uint8_t * data, uint16_t size)
 {
-  eeprom_write_block(data,((uint8_t*)&(ptable))+offset,size);
+  eeprom_write_block(data,((uint8_t*)&(ptableE))+offset,size);
   //eeprom_write_block((uint8_t*)0,data,1);
   //eeprom_write_byte((uint8_t*)offset,*data);
   return size;
@@ -53,7 +59,7 @@ int WriteParamTableBlock(uint16_t offset, uint8_t * data, uint16_t size)
 
 int ReadParamTableBlock(uint16_t offset, uint8_t * data, uint16_t size)
 {
-  eeprom_read_block(data,((uint8_t*)&(ptable))+offset,size);
+  eeprom_read_block(data,((uint8_t*)&(ptableE))+offset,size);
   //eeprom_read_block(data,0,1);
   //*data = eeprom_read_byte((uint8_t*)offset);
   return size;
@@ -121,8 +127,20 @@ void InitLeds()
   
 }
 
+void EncodersRequestFcn(void)
+{
+  BusSendRawData(encoderRequestRawPacket,encoderRequestRawPacketSize);
+  rs485Blocked = 1;
+
+  TCNT1 = 0;
+  TCNT4 = 0;
+  timer4_enable_compa_callback();
+}
+
 void init(void)
 {
+  uint16_t dummy = 0;
+  int16_t ret;
 
   LED_ERROR_ON;
 
@@ -152,6 +170,18 @@ void init(void)
   timer4_init();
   
   timer4_set_compa_callback(Rs485ResponseTimeout);
+  timer4_disable_compa_callback();
+
+  timer1_init();
+  timer1_set_compa_callback(EncodersRequestFcn);
+  //timer1_set_overflow_callback(EncodersRequestFcn);
+
+  //generate the request packets:
+  encoderRequestRawPacketSize = DynamixelPacketWrapData(MMC_MOTOR_CONTROLLER_DEVICE_ID,
+                          MMC_MOTOR_CONTROLLER_ENCODERS_REQUEST,
+                          &dummy,sizeof(dummy),
+                          encoderRequestRawPacket,
+                          encoderRequestRawPacketMaxSize);
 
   //enable global interrupts 
   sei();
@@ -346,7 +376,6 @@ int BusPacketHandler(DynamixelPacket * packet)
   HostSendRawPacket(packet);
   
   //disable the timeout for RS485 bus, since the response came back
-  
   return 0;
 }
 
@@ -355,21 +384,38 @@ int GpsPacketHandler(uint8_t * buf, uint8_t len)
   LED_GPS_TOGGLE;
   HostSendPacket(MMC_GPS_DEVICE_ID,MMC_GPS_ASCII, buf,len);
   //XbeeSendPacket(MMC_GPS_DEVICE_ID,MMC_GPS_ASCII, buf,len);
-  XBEE_COM_PORT_PRINTF("got gps on robot 2 %d\r\n",TCNT3);
+  //XBEE_COM_PORT_PRINTF("got gps on robot 2 %d\r\n",TCNT3);
 
   return 0;
 }
 
+int LoadAndSetEepromParams()
+{
+  ReadParamTableBlock(0,&ptableR,sizeof(ParamTable));
+  SetImuAccBiases(ptableR.accBiasX,ptableR.accBiasY,ptableR.accBiasZ);
+  return 0;
+}
 
 int main(void)
 {
   int16_t len;
   uint8_t * buf;
   int c;
+  int imuRet;
+  int ret;
   
   DynamixelPacketInit(&hostPacketIn);
   DynamixelPacketInit(&busPacketIn);
-  
+  DynamixelPacketInit(&xbeePacketIn);
+
+  if (LoadAndSetEepromParams() != 0)
+  {
+    while(1)
+    {
+      //send the error packet
+      _delay_ms(100);
+    }
+  }
 
   init();
   
@@ -400,12 +446,11 @@ int main(void)
       LED_ESTOP_OFF;
     }
 
-    
-    
+     
     //receive packet from RS485 bus
     len=BusReceivePacket(&busPacketIn);
-    //if (len>0)
-    //  BusPacketHandler(&busPacketIn);
+    if (len>0)
+      BusPacketHandler(&busPacketIn);
       
       
     //receive a line from gps
@@ -416,18 +461,26 @@ int main(void)
     c = XBEE_COM_PORT_GETCHAR();
     while (c != EOF)
     {
-      HOST_COM_PORT_PUTCHAR(c);
+      ret = DynamixelPacketProcessChar(c,&xbeePacketIn);
+      if (ret > 0)
+      {
+        XbeeSendPacket(0,0,NULL,0);
+        LED_RC_TOGGLE;
+      }
+      //HOST_COM_PORT_PUTCHAR(c);
       c = XBEE_COM_PORT_GETCHAR();
     }
 
     
-    cli();   //disable interrupts to prevent race conditions while copying
+    //cli();   //disable interrupts to prevent race conditions while copying
+    
     len = adc_get_data(adcVals);
-    sei();   //re-enable interrupts
+    //sei();   //re-enable interrupts
     
     if (len > 0)
     {
-      if (ProcessImuReadings(adcVals,rpy,wrpy) == 0) //will return 0 if updated, 1 if not yet updated
+      imuRet = ProcessImuReadings(adcVals,rpy,wrpy);
+      if (imuRet == 0) //will return 0 if updated, 1 if not yet updated
       {
         //send stuff out
         memcpy(imuOutVals,  &rpy[0], sizeof(float));
@@ -440,7 +493,7 @@ int main(void)
         HostSendPacket(MMC_IMU_DEVICE_ID,MMC_IMU_ROT, 
                   (uint8_t*)imuOutVals,6*sizeof(float));
       }
-      else    //send out raw values if calibration is not finished
+      else if (imuRet == 1)    //send out raw values if calibration is not finished
       {
         imuPacket[0] = adcCntr++;
         memcpy(&(imuPacket[1]),adcVals,NUM_ADC_CHANNELS*sizeof(uint16_t));

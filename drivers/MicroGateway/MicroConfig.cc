@@ -4,6 +4,7 @@
 #include "DynamixelPacket.h"
 #include <stdint.h>
 #include "Timer.hh"
+#include "../Atmel/MainController/ParamTable.h"
 
 using namespace Upenn;
 
@@ -251,18 +252,36 @@ int main()
     PRINT_ERROR("could not switch into config mode\n");
   }
 
-  uint8_t id;
-  uint8_t id2;
+  ParamTable ptable;
+  ptable.id = 2;
+  ptable.mode = 1;
+  ptable.accBiasX = 670;
+  ptable.accBiasY = 670;
+  ptable.accBiasZ = 670;
+  ptable.gyroNomBias = 512;
 
-  id = 13;
+  ptable.servo1Mode = 0;
+  ptable.servo1MinAngle = -30;
+  ptable.servo1MaxAngle = 30;
+  ptable.servo1MaxSpeed = 50;
 
-  if (WriteConfig(0,&id,1))
+  ptable.servo2Mode = 0;
+  ptable.servo2MinAngle = -30;
+  ptable.servo2MaxAngle = 30;
+  ptable.servo2MaxSpeed = 50;
+  ptable.checksum       = 0;
+
+  printf("sizeof param table = %d\n",sizeof(ParamTable));
+
+  if (WriteConfig(0,(uint8_t*)&ptable,sizeof(ParamTable)))
   {
     PRINT_ERROR("could not write config\n");
     return -1;
   }
   PRINT_INFO("set configuration\n");
 
+
+  uint8_t id2;
 
   if (ReadConfig(0,&id2,1)!=1)
   {

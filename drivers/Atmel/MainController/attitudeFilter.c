@@ -13,11 +13,12 @@ volatile float ax,ay,az,wx,wy,wz;
 
 uint16_t imuUpdateCntr = 0;
 uint8_t gyrosCalibrated = 0;
+volatile uint8_t biasesSet = 0;
 
 //acceleration biases
-float axb = BIAS_ACC_X;
-float ayb = BIAS_ACC_Y;
-float azb = BIAS_ACC_Z;
+float axb; //= BIAS_ACC_X;
+float ayb; //= BIAS_ACC_Y;
+float azb; //= BIAS_ACC_Z;
 
 //rate gyro biases (to be calibrated at start up)
 float wxb = 0;
@@ -93,10 +94,23 @@ void ResetImu()
 }
 
 
+int SetImuAccBiases(uint16_t biasx, uint16_t biasy, uint16_t biasz)
+{
+  axb       = biasx;
+  ayb       = biasy;
+  azb       = biasz;
+  biasesSet = 1;
+  return 0;
+}
+
 
 int ProcessImuReadings(uint16_t * adcVals, float * rpy, float * wrpy)
 {
   imuUpdateCntr++;
+
+
+  if (biasesSet == 0)
+    return -1;
   
   //initialization of rate gyros
   if (!gyrosCalibrated)
@@ -186,7 +200,7 @@ int ProcessImuReadings(uint16_t * adcVals, float * rpy, float * wrpy)
   
   //skip processing every other time
   if (imuUpdateCntr % 2)
-    return 1;
+    return 2;
   
   //calculate the gyro update
   //calculate the required components of the new rotation matrix

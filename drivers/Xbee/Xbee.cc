@@ -1,6 +1,7 @@
 #include "Xbee.hh"
 #include "XbeeFrame.h"
 #include "ErrorMessage.hh"
+#include "Timer.hh"
 
 using namespace std;
 using namespace Upenn;
@@ -93,11 +94,14 @@ int Xbee::ReceivePacket(XbeeFrame * frame, double timeout)
   int nchars;
   int ret;
 
+  Timer t0; t0.Tic();
+
   while(1)
   {
     nchars = this->sd.ReadChars(&c,1);
     if (nchars>0)
     {
+      t0.Toc(true); t0.Tic();
       printf("%X ",(uint8_t)c); fflush(stdout);
       ret = XbeeFrameProcessChar(c,frame);
       if (ret > 0)

@@ -75,3 +75,13 @@ int BusSendRawPacket(DynamixelPacket * packet)
   return 0;
 }
 
+int BusSendRawData(uint8_t * data, uint8_t size)
+{
+  uint8_t ii;
+
+  for (ii=0; ii<size; ii++)
+    BUS_COM_PORT_PUTCHAR(*data++);
+
+  return 0;
+}
+

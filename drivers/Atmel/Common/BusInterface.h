@@ -18,4 +18,6 @@ int BusSendPacket(uint8_t id, uint8_t type, uint8_t * buf, uint8_t size);
 //assumes the data is already in the packet format
 int BusSendRawPacket(DynamixelPacket * packet);
 
+int BusSendRawData(uint8_t * data, uint8_t size);
+
 #endif //BUS_INTERFACE_H
