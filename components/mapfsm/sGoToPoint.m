@@ -40,7 +40,7 @@ switch event
   end
   ret = sPath('update');
   
-  if strcmp(ret,'obstacle') || strcmp(ret,'timeout') || strcmp(ret,'stop')
+  if strcmp(ret,'obstacle') || strcmp(ret,'timeout') || strcmp(ret,'stop') || strcmp(ret,'off path')
     DATA.havePath = false;
     ret = [];
   elseif strcmp(ret,'recovery')

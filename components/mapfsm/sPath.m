@@ -12,6 +12,7 @@ switch event
   DATA.t0 = gettime;
   DATA.tPredict = 0.1;
   DATA.speed = 0.3;
+  DATA.far_from_path = 1.0;
 
   if PATH_DATA.type == 0
       PATH = PATH_DATA.waypoints;
@@ -50,6 +51,12 @@ switch event
      return;
    end
 
+   %if the robot is too far from the path (so go to point can replan)
+   if sqrt((xNear-MPOSE.x)^2 + (yNear-MPOSE.y)^2) > DATA.far_from_path
+     disp('off path');
+     ret = 'off path';
+   end
+
    if abs(dHeading) > 90*pi/180,
 %MPOSE.heading
 %aNear
@@ -62,7 +69,7 @@ switch event
        SetVelocity(0, -SPEED.minTurn);
      end
 %}
-     temp_ang = sign(dHeading)*min(abs(dHeading), 45*pi) + MPOSE.heading;
+     temp_ang = sign(dHeading)*min(abs(dHeading), 45*pi/180) + MPOSE.heading;
      w = w_PID(MPOSE.heading, temp_ang, MPOSE.x, MPOSE.y, [MPOSE.x,MPOSE.y;cos(temp_ang),sin(temp_ang)])
      w = sign(w)*min(abs(w), 3.0);
      SetVelocity(0,w);
@@ -115,5 +122,8 @@ switch event
    w = sign(w)*min(abs(w), 3.0);
    disp(sprintf('drive: %.4f %.4f',v,w));
    SetVelocity(v, w);
+
+   %prune path to start at the point the robot is closest to
+   PATH = PATH(idx:end,:);
 
 end

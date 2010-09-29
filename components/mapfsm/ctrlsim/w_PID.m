@@ -15,7 +15,7 @@ Koi = 0;%1;
 Kod = 0;%0.05;
 
 % constants
-anti_wind_up_head = pi; % max integral term
+anti_wind_up_head = 3*pi; % max integral term
 anti_wind_up_offset = 2;
 %decay = .3; % diminishes old integral terms
 %turn_rate = 3; % turn rate in radians per second

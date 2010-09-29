@@ -31,12 +31,18 @@ switch event
      ret = 'done';
    end
 
+   %{
    if (dt > 2.0 && DATA.dheading/dt < 20*pi/180)
      DATA.w = DATA.w + .01;
      DATA.w = min(DATA.w, 1.0);
    end
 
    SetVelocity(0, DATA.w);
+   %}
 
+   temp_ang = 45*pi/180 + heading;
+   w = w_PID(heading, temp_ang, MPOSE.x, MPOSE.y, [MPOSE.x,MPOSE.y;cos(temp_ang),sin(temp_ang)]);
+   w = sign(w)*min(abs(w), 3.0);
+   SetVelocity(0,w);
    
 end
