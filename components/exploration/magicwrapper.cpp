@@ -128,6 +128,9 @@ static void DATAhandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientDa
 	//publish trajectory
 	IPC_publishData(GP_TRAJ_MSG, &GPtraj); 
 
+	//free memory used by message
+	IPC_freeDataElements(IPC_msgInstanceFormatter(msgRef), (void *) data);
+	IPC_freeByteArray(callData);
 }
 
 
