@@ -80,7 +80,7 @@ typedef struct {
 	unsigned char *coverage_map;		// map of uncertainty in measurements
 	unsigned char *cost_map;		// map of traversibility costs
 	int16_t *elev_map;				// map of elevations
-	unsigned char *region_map;     // map of labeled regions with 0 being outdoors
+	uint16_t *region_map;     // map of labeled regions with 0 being outdoors
 }  GP_FULL_UPDATE, *GP_FULL_UPDATE_PTR;
 
 //#define GP_FULL_UPDATE_FORM "{int, int, int, int, int, int, <ubyte: 1, 2>, <ubyte: 3, 4>, <short: 5, 6>}"

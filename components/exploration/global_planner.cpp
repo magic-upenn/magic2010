@@ -1,15 +1,16 @@
 #include "common_headers.h"
+#include "filetransfer.h"
+
 using namespace std;
 
-#include "filetransfer.h"
-#include "../sbpl/src/sbpl/headers.h"
-
-//#define MODULE_NAME "Global Planner Linux"
 #define DEFAULTMAP 1
 
 // Module written by Jonathan Michael Butzke
-//  serves as the main subroutine to determine a path.
-// number of robots
+// Fxns are from the exploration planner class to support autonomous exploration of an area by a team of robots.  Functions include support
+// for regions of interest, min and max prefered distances to nearest robot and configurable cost maps.  The robots seek to maximize a cost
+// function including elements of information gain, distance, preferences, etc.
+// University of Pennsylvania - See website for legal restrictions and copyright information concerning this or derivative works.
+// (c) 2010 ALL RIGHTS RESERVED
 
 timeval tv_start, tv_stop, tv_prev;
 double time_ms, elap_time_ms;
@@ -28,14 +29,9 @@ GPLAN::GPLAN() {
     robot_goals = new int[NUMROBOTS*2];
 
     // robot variables
-    POSEX = new double[NUMROBOTS];
-    POSEY = new double[NUMROBOTS];
+    POSEX = new int[NUMROBOTS];
+    POSEY = new int[NUMROBOTS];
     POSETHETA = new double[NUMROBOTS];
-    robot_xx = 1;
-    robot_yy = 1; // float posit of robot
-    robot_x = 1;
-    robot_y = 1; // x and y cell coordinates of robot
-    theta = 0;
     sensor_radius = 10.0; // distance sensors can see in m
     sensor_height = 120; // sensor height in cm
     SENSORWIDTH = (double)(240 * M_PI / 180); // sensor width in radians used to determine start and finish vectors for ray tracing
@@ -46,9 +42,8 @@ GPLAN::GPLAN() {
     cover_map = new unsigned char[DEFAULTMAP];
     cost_map = new unsigned char[DEFAULTMAP];
     elev_map = new int16_t[DEFAULTMAP]; 
-    region_map = new unsigned char[DEFAULTMAP];
+    region_map = new uint16_t[DEFAULTMAP];
     real_cover_map = new unsigned char[DEFAULTMAP];
-//  real_cost_map = new unsigned char[DEFAULTMAP];
     inflated_cost_map = new unsigned char[DEFAULTMAP];
     cost_map_pa = new unsigned char*[DEFAULTMAP]; // ptr to first element of each row
     inf_cost_map_pa = new unsigned char*[DEFAULTMAP]; //ptr to first element of each row for inflated map
@@ -63,6 +58,12 @@ GPLAN::GPLAN() {
     MAX_RANGE = 10000000;
     DIST_PENALTY = 0;
     REGION_PENALTY = 0;
+    FRONTIER_HEAP_SIZE = 100;
+
+    // zone setup
+    BN = new uint16_t[16];
+    for(int i = 0; i<16; i++) { BN[i] = (unsigned int16_t)(1 << (15-i)); }
+    GENERIC_REGION_MASK = 63;
 
     // sensor variables
     NUMVECTORS = 0;
@@ -81,9 +82,19 @@ GPLAN::~GPLAN() {
     delete [] inflated_cost_map;
     delete [] inf_cost_map_pa;
     delete [] cost_map_pa;
+    delete [] BN;
 }
 
-void GPLAN::setPixel(int x, int y) {
+inline void GPLAN::timer_fxn(const char txt[]) {
+    // fxn outputs standardized timing notices with the text string
+    gettimeofday(&tv_stop, NULL);
+    time_ms=(tv_stop.tv_sec-tv_start.tv_sec)*1000+(tv_stop.tv_usec-tv_start.tv_usec)/1000;
+    elap_time_ms=(tv_stop.tv_sec-tv_prev.tv_sec)*1000+(tv_stop.tv_usec-tv_prev.tv_usec)/1000;
+    printf("\t\t\t\t\t %5.0f : %.0f - %s\n", time_ms, elap_time_ms, txt);
+    tv_prev = tv_stop;   
+}
+
+void GPLAN::setPixel(const int x, const int y) {
     unsigned int locptr = 0;
     double tempangle = atan2((double) y, (double) x);
 
@@ -109,7 +120,7 @@ void GPLAN::setPixel(int x, int y) {
     }
 }
 
-void GPLAN::rasterCircle(int radius) {
+void GPLAN::rasterCircle(const int radius) {
     // "Midpoint circle algorithm." Wikipedia, The Free Encyclopedia. 6 Jul 2009, 03:19 UTC. 6 Jul 2009 <http://en.wikipedia.org/w/index.php?title=Midpoint_circle_algorithm&oldid=300524864>.
 
     // centerpoint and radius are inputs
@@ -153,7 +164,7 @@ void GPLAN::rasterCircle(int radius) {
     cout << "Number of rays in template: " << NUMVECTORS << endl;
 }
 
-int GPLAN::ValidVec(int vec) {
+inline int GPLAN::ValidVec(int vec) {
     // verifies that the vector is within limits
     if (vec < 0) {
         vec = NUMVECTORS + vec;
@@ -163,66 +174,12 @@ int GPLAN::ValidVec(int vec) {
     return vec;
 }
 
-bool GPLAN::OnMap(int x, int y) {
+inline bool GPLAN::OnMap(const int x, const int y) {
     // function to determine if a point is on the map
     if ((x < map_size_x) && (x >= 0) && (y < map_size_y) && (y >= 0)) {
         return true;
     } else {
         return false;
-    }
-}
-
-double GPLAN::return_path(int x_target, int y_target, const int dijkstra[],
-        vector<Traj_pt_s> & trajectory, int RID) {
-    // function to return the optimal path to a target location given a dijkstra map
-
-    Traj_pt_s current;
-    vector<Traj_pt_s> inv_traj;
-    int x_val, y_val, best_x_val, best_y_val;
-    double cost = 0;
-    x_val = current.x = x_target;
-    y_val = current.y = y_target;
-
-    inv_traj.clear();
-    inv_traj.push_back(current);
-    int min_val;
-    double temp_cost;
-	if (dijkstra[x_val + map_size_x * y_val + map_size_x*map_size_y*RID] < UNKOBSTACLE) {
-        while ((x_val != robot_x) || (y_val != robot_y)) {
-			min_val = DIJKSTRA_LIMIT ;// 90000000;
-            temp_cost = 0;
-            for (int x = -1; x < 2; x++) {
-                for (int y = -1; y < 2; y++) {
-                    if (OnMap(x + x_val, y + y_val) && !((x == 0) && (y == 0))) {
-                        int val = dijkstra[(x + x_val) + (map_size_x * (y
-                                    + y_val))+ map_size_x*map_size_y*RID];
-                        if (val < min_val) {
-                            min_val = val;
-                            best_y_val = y_val + y;
-                            best_x_val = x_val + x;
-                            temp_cost = (stepcost[x + 1][y + 1])*(double)(inflated_cost_map[best_x_val+map_size_x*best_y_val]+1);
-                        } // if val
-                    } // if onmap
-                } // y
-            } //x
-
-            cost += temp_cost;
-            current.x = x_val = best_x_val;
-            current.y = y_val = best_y_val;
-            inv_traj.push_back(current);
-        }
-        // invert the trajectory to send back
-        trajectory.clear();
-		while ((inv_traj.size() != 0) && (inflated_cost_map[inv_traj.back().x + map_size_x*inv_traj.back().y] < OBSTACLE)) {
-            current.x = inv_traj.back().x;
-            current.y = inv_traj.back().y;
-            trajectory.push_back(current);
-            inv_traj.pop_back();
-        }
-        return (cost * map_cell_size);
-    } else {
-		printf("WARNING: Invalid goal location (its on an obstacle) - %d,%d", x_target, y_target);
-        return (-1);
     }
 }
 
@@ -237,15 +194,13 @@ bool GPLAN::map_alloc(void) {
     delete[] cost_map_pa;
     delete[] inf_cost_map_pa;
     delete [] real_cover_map;
-//  delete [] real_cost_map;
 
     //allocate new storage
     cost_map = new unsigned char[map_size_x * map_size_y];
     elev_map = new int16_t[map_size_x * map_size_y];
     cover_map = new unsigned char[map_size_x * map_size_y];
-    region_map = new unsigned char[map_size_x*map_size_y];
+    region_map = new uint16_t[map_size_x*map_size_y];
     real_cover_map = new unsigned char[map_size_x*map_size_y];
-//  real_cost_map = new unsigned char[map_size_x*map_size_y];
     inflated_cost_map = new unsigned char[map_size_x * map_size_y];
 
     // set up pointer to array of pointers for [][] indexing of cost map
@@ -262,20 +217,6 @@ bool GPLAN::map_alloc(void) {
         return true;
     } else {
         return false;
-    }
-}
-
-void GPLAN::sample_point(int &x_target, int &y_target) {
-    // fxn to pick possible target points
-
-    static int prev_x = 0, prev_y = 0;
-    x_target = -1;
-    y_target = -1;
-
-    if(!frontier.empty()) { 
-        x_target = frontier.top().x;
-        y_target = frontier.top().y;
-        frontier.pop();
     }
 }
 
@@ -313,7 +254,7 @@ void GPLAN::calc_all_IG(unsigned int IG_map[]) {
     }
 }
 
-unsigned int GPLAN::get_IG(unsigned int IG_map[], int x, int y, int dim) {
+unsigned int GPLAN::get_IG(const unsigned int IG_map[],const  int x, const int y, const int dim) {
     // function returns the IG in a box +/- dim from point (x,y)
 
     int t, r, l, b; // top right left and bottom dimensions
@@ -326,26 +267,25 @@ unsigned int GPLAN::get_IG(unsigned int IG_map[], int x, int y, int dim) {
             + IG_map[l + map_size_x * b] - IG_map[l + map_size_x * t]);
 }
 
-double GPLAN::IG_dist_ratio(int IG, double dist) {
+double GPLAN::IG_dist_ratio(const int IG, const double dist) {
     // fxn to calc  weighted distance to IG ratio
     return ((IG*DIST_GAIN) / (dist*(1.0-DIST_GAIN)));
 }
 
-
-double GPLAN::bias(int RID, int x, int y) {
+double GPLAN::bias(const int RID, const int x, const int y) {
     // fxn takes robot number and potential endpoint and returns a double bias amount 
     // based on distance outside range in cells * DIST_PENALTY
     // no penalty applies if the points are in different regions
     // fxn to calc a heading bias to prefer points closer to "straight ahead"
 
-//  double theta_pt = atan2((double)(y-POSEY[RID]), (double)(x-POSEX[RID]));
-//  double theta_diff = theta_pt - theta;
+    //  double theta_pt = atan2((double)(y-POSEYY[RID]), (double)(x-POSEXX[RID]));
+    //  double theta_diff = theta_pt - theta;
 
     //normalize between -pi and pi
-//  if (theta_diff > M_PI) { theta_diff -= 2*M_PI;}
-//  if (theta_diff < -M_PI) { theta_diff += 2*M_PI;}
+    //  if (theta_diff > M_PI) { theta_diff -= 2*M_PI;}
+    //  if (theta_diff < -M_PI) { theta_diff += 2*M_PI;}
 
-//  double heading_bias =  ((1.0+cos(THETA_BIAS*theta_diff))/2.0);
+    //  double heading_bias =  ((1.0+cos(THETA_BIAS*theta_diff))/2.0);
 
     int min_dist2 = (map_size_x+map_size_y) * (map_size_x+map_size_y) ;
     double dist_bias = 1;
@@ -355,74 +295,173 @@ double GPLAN::bias(int RID, int x, int y) {
     double delta = 0;
     double same_bonus = 1.0;
 
-    for (int ridx = 0; ridx < NUMROBOTS; ridx++) {
-        int xx = robot_goals[ridx*2];
-        int yy = robot_goals[ridx*2+1];
-        if (ridx != RID) {
-            if (region_map[xx + map_size_x*yy] == region_map[x + map_size_x*y]) { 
-                robot_in_region = true;
-                int dist2 = ((x-xx)*(x-xx) + (y-yy)*(y-yy));
-            //  cout << "dist2  from " << ridx << " is " << dist2;
-                if (dist2 < min_dist2) { min_dist2 = dist2; }
+    // benefit for going to the same point
+    if ((x == robot_goals[RID*2]) && (y == robot_goals[RID*2+1])) { same_bonus = 2; }
+
+    // if in my own or someone elses region apply value
+    if (region_map[x+map_size_x*y] & BN[RID]) { region_bias = 1000; }
+    else if (region_map[x+map_size_x*y] & ~(BN[RID]|GENERIC_REGION_MASK)) { region_bias = .0001; }
+    // if in a generic region see if I am alone then apply appropriate value
+    else  {
+        region_bias = 100;
+        for (int ridx = 0; ridx < NUMROBOTS; ridx++) {
+            int xx = robot_goals[ridx*2];
+            int yy = robot_goals[ridx*2+1];
+            if (ridx != RID) {
+                if ((region_map[xx + map_size_x*yy] & GENERIC_REGION_MASK) == (region_map[x + map_size_x*y] & GENERIC_REGION_MASK)) { 
+                    robot_in_region = true;
+                    int dist2 = ((x-xx)*(x-xx) + (y-yy)*(y-yy));
+                    if (dist2 < min_dist2) { min_dist2 = dist2; }
+                }
             }
         }
-        else {
-            if ((xx == x) && (yy = y)) { same_bonus = 2.0; }
+
+        // if robot is in same region calc bias
+        if (robot_in_region) {
+            double dist;
+
+            // determine if in region zero and if not (since we are in this block) apply the penalty for sharing regions
+            if ((region_map[x + map_size_x*y] & GENERIC_REGION_MASK) == 0) {region_bias = 1;} else { region_bias = .01;}
+
+            // determine distance and delta from desired range
+            dist = sqrt((double)(min_dist2)) * map_cell_size;
+            if (dist < MIN_RANGE) { delta = dist/MIN_RANGE; }
+            else if (dist > MAX_RANGE) {delta = MAX_RANGE/dist; }
+
+            // calculate bias
+            dist_bias = (delta) * DIST_PENALTY;
         }
     }
-
-    // if robot is in same region calc bias
-    if (robot_in_region) {
-        double dist;
-    
-        // determine if in region zero and if not (since we are in this block) apply the penalty for sharing regions
-        if (region_map[x + map_size_x*y] != 0) {region_bias =  REGION_PENALTY;} else { region_bias = REGION_PENALTY*10;}
-
-        // determine distance and delta from desired range
-        dist = sqrt((double)(min_dist2)) * map_cell_size;
-//      cout << " dist " << dist;
-        if (dist < MIN_RANGE) { delta = dist/MIN_RANGE; }
-        else if (dist > MAX_RANGE) {delta = MAX_RANGE/dist; }
-
-        // calculate bias
-        dist_bias = (delta) * DIST_PENALTY;
-    //  if (dist_bias < 0.1) {dist_bias = 0.1; }
-//      region_bias =  (double)(!region_zero) * REGION_PENALTY;
-    }
     double bias = dist_bias * region_bias * same_bonus;// *  heading_bias ;
-//  cout << " penalties for " << x << "," << y << " d: " << delta << " "<<  dist_bias << " r0: " << region_bias << " h: " << heading_bias << " t: " << bias << endl;
+    //  cout << " penalties for " << x << "," << y << " d: " << delta << " "<<  dist_bias << " r0: " << region_bias << " h: " << heading_bias << " t: " << bias << endl;
     return bias;
 }
 
-//double GPLAN::calc_score(int x, int y, int RID, int IG, double dist) {
+inline void GPLAN::sample_point(int &x_target, int &y_target, int &RID) {
+    // fxn to pick possible target points
+    x_target = -1;
+    y_target = -1;
+    RID = -1;
 
-
-void GPLAN::find_frontier(unsigned int IG_map[], int dijkstra[], int RID) {
-    // function scans coverage map and populates the frontier queue with frontier points
-    
-int dim = (int)(sqrt((sensor_radius* SENSORWIDTH)/(2*M_PI*map_cell_size)));
-
-    while (!frontier.empty()) {
+    if(!frontier.empty()) { 
+        x_target = frontier.top().x;
+        y_target = frontier.top().y;
+        RID = frontier.top().RID;
         frontier.pop();
     }
+}
+
+double GPLAN::return_path(int x_target, int y_target, const int dijkstra[],
+        vector<Traj_pt_s> & trajectory, const int RID) {
+    // function to return the optimal path to a target location given a dijkstra map
+
+    Traj_pt_s current;
+    vector<Traj_pt_s> inv_traj;
+    int x_val, y_val, best_x_val, best_y_val;
+    double cost = 0;
+    x_val = current.x = x_target;
+    y_val = current.y = y_target;
+
+    inv_traj.clear();
+    inv_traj.push_back(current);
+    int min_val;
+    double temp_cost;
+    if (dijkstra[x_val + map_size_x * y_val + map_size_x*map_size_y*RID] < DIJKSTRA_LIMIT) {
+        while ((x_val != POSEX[RID]) || (y_val != POSEY[RID])) {
+            min_val = DIJKSTRA_LIMIT ;
+            temp_cost = 0;
+            for (int x = -1; x < 2; x++) {
+                for (int y = -1; y < 2; y++) {
+                    if (OnMap(x + x_val, y + y_val) && !((x == 0) && (y == 0))) {
+                        int val = dijkstra[(x + x_val) + (map_size_x * (y
+                                    + y_val))+ map_size_x*map_size_y*RID];
+                        if (val < min_val) {
+                            min_val = val;
+                            best_y_val = y_val + y;
+                            best_x_val = x_val + x;
+                            temp_cost = (stepcost[x + 1][y + 1])*(double)(inflated_cost_map[best_x_val+map_size_x*best_y_val]+1);
+                        } // if val
+                    } // if onmap
+                } // y
+            } //x
+
+            cost += temp_cost;
+            current.x = x_val = best_x_val;
+            current.y = y_val = best_y_val;
+            inv_traj.push_back(current);
+        }
+        // invert the trajectory to send back
+        trajectory.clear();
+        while ((inv_traj.size() != 0) && (inflated_cost_map[inv_traj.back().x + map_size_x*inv_traj.back().y] < OBSTACLE)) {
+            current.x = inv_traj.back().x;
+            current.y = inv_traj.back().y;
+            trajectory.push_back(current);
+            inv_traj.pop_back();
+        }
+        return (cost * map_cell_size);
+    } else {
+        printf("WARNING: Invalid goal location (its on an obstacle) - %d,%d", x_target, y_target);
+        return (-1);
+    }
+}
+
+double GPLAN::trace_path(const int x_target, const int y_target, vector<Traj_pt_s> & traversal_traj, const int robot_id, const int dijkstra[], unsigned char trav_cover_map[]) {
+    // determine path to each goal point
+    double dist = return_path(x_target, y_target, dijkstra, traversal_traj, robot_id);
+
+ //   if (DISPLAY_OUTPUT) {printf(" and the distance is %f ", dist);}
+
+    double temp_score = 0;
+    for (int current_loc = 1; current_loc < traversal_traj.size(); current_loc++) {
+        // determine the direction of travel in each axis
+        int x_dir = traversal_traj[current_loc].x - traversal_traj[current_loc - 1].x + 1;
+        int y_dir = traversal_traj[current_loc].y - traversal_traj[current_loc - 1].y + 1;
+        int direction = dir[x_dir][y_dir];
+        if (direction != NOMOVE) {
+            // pass current location and inflated map to raycaster returns score
+            temp_score += cast_all_rays(traversal_traj[current_loc].x, traversal_traj[current_loc].y, trav_cover_map, elev_map, SVR[direction], FVL[direction]);
+        } // if !NOMOVE
+    } //for current_loc
+    if (DISPLAY_OUTPUT) {
+        printf("robot %d ->(%d, %d) score: %.0f dist: %.1f bias: %.5f IG/Dist ratio: %.0f region: %x total: %.0f\n", robot_id, x_target, y_target, temp_score, dist, bias(robot_id, x_target, y_target), IG_dist_ratio((int)temp_score, dist), region_map[x_target + map_size_x*y_target], bias(robot_id, x_target,y_target)*IG_dist_ratio((int)temp_score, dist)); }
+
+    return (bias(robot_id, x_target, y_target) *IG_dist_ratio((int)temp_score, dist));
+}
+
+void GPLAN::find_frontier(const unsigned int IG_map[], const int dijkstra[], const int RID, std::priority_queue<frontier_pts, std::vector<frontier_pts>, fp_compare_min>* temp_frontier ) {
+    // function scans coverage map and populates the frontier queue with frontier points
+
+    int dim = (int)(sqrt((sensor_radius* SENSORWIDTH)/(2*M_PI*map_cell_size)));
+
+    // if (DISPLAY_OUTPUT) {printf("start %d FF\n", RID);}
+    while (!temp_frontier->empty()) {
+        temp_frontier->pop();
+    }
+    //  if (DISPLAY_OUTPUT) {printf("before %d loop\n", RID);}
     for (int j = 1; j < map_size_y - 1; j++) {
         for (int i = 1; i < map_size_x - 1; i++) {
-			if (dijkstra[i + map_size_x * j+ map_size_x*map_size_y*RID] < UNKOBSTACLE) {
+            if (dijkstra[i + map_size_x * j+ map_size_x*map_size_y*RID] < DIJKSTRA_LIMIT) {
                 if ((real_cover_map[i + map_size_x * j] == KNOWN)
                         && ((real_cover_map[(i + 1) + map_size_x * (j)] != KNOWN) 
                             || (real_cover_map[(i - 1) + map_size_x * (j)] != KNOWN)
                             || (real_cover_map[(i) + map_size_x * (j + 1)] != KNOWN) 
                             || (real_cover_map[(i) + map_size_x * (j - 1)] != KNOWN))) {
-                    frontier_pts temp(i,j, bias(RID,i,j)*IG_dist_ratio(get_IG(IG_map, i, j, dim), dijkstra[i + map_size_x * j + map_size_x*map_size_y*RID]));
-                    
-                    //frontier_pts temp(i, j, heading_bias(i,j)*get_IG(IG_map, i, j, dim),
-                    //      dijkstra[i + map_size_x * j + map_size_x*map_size_y*RID], DIST_GAIN);
-                    frontier.push(temp);
-                    //cout << i << "," << j << " is on the frontier " << endl;
+                    frontier_pts temp(i,j,RID, bias(RID,i,j)*IG_dist_ratio(get_IG(IG_map, i, j, dim), dijkstra[i + map_size_x * j + map_size_x*map_size_y*RID]));
+                    if (temp_frontier->size() < FRONTIER_HEAP_SIZE) {
+                        temp_frontier->push(temp);
+
+                    }
+                    else {
+                        if (temp_frontier->top().total < temp.total) {
+                            temp_frontier->pop();
+                            temp_frontier->push(temp);
+                        }
+                    }
                 }
             }
         }
     }
+    //  if (DISPLAY_OUTPUT) {printf("size for %d is %d\n", RID, (int)temp_frontier->size() );}
 }
 //
 //void denoise(unsigned char src[], int strel, int mapm, int mapn) {
@@ -477,49 +516,48 @@ int dim = (int)(sqrt((sensor_radius* SENSORWIDTH)/(2*M_PI*map_cell_size)));
 //
 //}
 
-void GPLAN::fix_cover(int robot_id) {
-    // function to make checked coverage map include the other robots estimated maps
-    if (DISPLAY_OUTPUT) {printf(" fix cover for %d\n", robot_id);}
-    //delete [] cover_map;
-    //cover_map = new unsigned char[map_size_x * map_size_y];   // non-const storage for each possible goal
-    //memcpy((void *)cover_map, (void *)real_cover_map, map_size_x*map_size_y * (sizeof(unsigned char)));
+//void GPLAN::fix_cover(int robot_id) {
+// function to make checked coverage map include the other robots estimated maps
+//    if (DISPLAY_OUTPUT) {printf(" fix cover for %d\n", robot_id);}
+//delete [] cover_map;
+//cover_map = new unsigned char[map_size_x * map_size_y];   // non-const storage for each possible goal
+//memcpy((void *)cover_map, (void *)real_cover_map, map_size_x*map_size_y * (sizeof(unsigned char)));
 
-    robot_xx = POSEX[robot_id];
-    robot_x = (int)(robot_xx/map_cell_size);
-    robot_yy = POSEY[robot_id];
-    robot_y = (int)(robot_yy/map_cell_size);
-    theta = POSETHETA[robot_id];
+//   robot_xx = POSEXX[robot_id];
+//    robot_x = (int)(robot_xx/map_cell_size);
+//    robot_yy = POSEYY[robot_id];
+//    robot_y = (int)(robot_yy/map_cell_size);
+//    theta = POSETHETA[robot_id];
 
 //  DIST_GAIN = BASE_DIST_GAIN + robot_id*DIST_GAIN_DELTA;
 
-    if (DISPLAY_OUTPUT) {cout << "robot " << robot_id << " is at UTM " << robot_xx << "," << robot_yy << " cell " << robot_x << "," << robot_y << endl;}
+//   if (DISPLAY_OUTPUT) {cout << "robot " << robot_id << " is at UTM " << robot_xx << "," << robot_yy << " cell " << robot_x << "," << robot_y << endl;}
 
-    //  for (int id=0; id < NUMROBOTS; id++) {
-    //  cout << "looking at map " << id << endl;
+//  for (int id=0; id < NUMROBOTS; id++) {
+//  cout << "looking at map " << id << endl;
 /*  if (robot_id>0) {
-        for (int y=0; y < map_size_y; y++) {
-            for (int x=0; x < map_size_x; x++) {
-                if (cover_map[x + map_size_x*y] != real_cover_map[x + map_size_x*y]) {
-                    inflated_cost_map[x+map_size_x*y]= max(cost_map[x+map_size_x*y], (unsigned char)OBSTACLE);
-                    cost_map[x+map_size_x*y]= max(cost_map[x+map_size_x*y], (unsigned char)OBSTACLE);
-                }
-                //cout !?!< << "." ;
-            }
-            //cout << " y @ " << y << endl;
-        }
-    }*/
-    //  }
-    if (DISPLAY_OUTPUT) {cout << "done with fix cover" << endl;}
+    for (int y=0; y < map_size_y; y++) {
+    for (int x=0; x < map_size_x; x++) {
+    if (cover_map[x + map_size_x*y] != real_cover_map[x + map_size_x*y]) {
+    inflated_cost_map[x+map_size_x*y]= max(cost_map[x+map_size_x*y], (unsigned char)OBSTACLE);
+    cost_map[x+map_size_x*y]= max(cost_map[x+map_size_x*y], (unsigned char)OBSTACLE);
+    }
+//cout !?!< << "." ;
 }
+//cout << " y @ " << y << endl;
+}
+}*/
+//  }
+//   if (DISPLAY_OUTPUT) {cout << "done with fix cover" << endl;}
+//}
 
-void GP_threads::SearchFxn(int RID, int dijkstra[], int r_robot_x, int r_robot_y, GPLAN * gplanner) {
-    cout << "s" <<  RID << endl;
-
+void GP_threads::SearchFxn(const int RID, int dijkstra[], const int r_robot_x, const int r_robot_y, GPLAN * gplanner) {
+   printf("SFs%d\n", RID);
     int sx = gplanner->map_size_x;
     int sy = gplanner->map_size_y;
     // ensure that the robot cell is not an obstacle and clear a little box if there is
-	int rad = (int)ceil(gplanner->inflation_size + gplanner->SOFT_PAD_DIST*gplanner->map_cell_size + 2);
-	float rad_2 = pow(rad, 2);
+    int rad = (int)ceil(gplanner->inflation_size + gplanner->SOFT_PAD_DIST*gplanner->map_cell_size + 2);
+    float rad_2 = pow(rad, 2);
     gplanner->cover_map[r_robot_x + sx * r_robot_y] = KNOWN;
     //cost_map[robot_x + map_size_x * robot_y] = 0;
     /*  if (cost_map[robot_x + map_size_x * robot_y] >= OBSTACLE) {
@@ -540,19 +578,19 @@ void GP_threads::SearchFxn(int RID, int dijkstra[], int r_robot_x, int r_robot_y
      }
 
      }*/
-//	if (gplanner->inflated_cost_map[r_robot_x + sx * r_robot_y] == OBSTACLE) {
-        for (int xxx = -rad; xxx < rad; xxx++) {
-            for (int yyy = -rad; yyy < rad; yyy++) {
-				if (gplanner->OnMap(r_robot_x + xxx, r_robot_y + yyy) && ((xxx*xxx + yyy*yyy) <= rad_2)) {
-                    if (gplanner->cost_map[r_robot_x + xxx + (sx * (r_robot_y+yyy))] !=OBSTACLE) {
-                        gplanner->inflated_cost_map[r_robot_x + xxx + (sx * (r_robot_y + yyy))] 
-							= min((int) gplanner->inflated_cost_map[r_robot_x + xxx+ (sx * (r_robot_y + yyy))], 240);
-									//OBSTACLE - ((3	* rad * rad) / (1 + xxx * xxx + yyy * yyy)));
+    //	if (gplanner->inflated_cost_map[r_robot_x + sx * r_robot_y] == OBSTACLE) {
+    for (int xxx = -rad; xxx < rad; xxx++) {
+        for (int yyy = -rad; yyy < rad; yyy++) {
+            if (gplanner->OnMap(r_robot_x + xxx, r_robot_y + yyy) && ((xxx*xxx + yyy*yyy) <= rad_2)) {
+                if (gplanner->cost_map[r_robot_x + xxx + (sx * (r_robot_y+yyy))] !=OBSTACLE) {
+                    gplanner->inflated_cost_map[r_robot_x + xxx + (sx * (r_robot_y + yyy))] 
+                        = min((int) gplanner->inflated_cost_map[r_robot_x + xxx+ (sx * (r_robot_y + yyy))], START_FOOTPRINT_INF_CLEAR);
+                    //OBSTACLE - ((3	* rad * rad) / (1 + xxx * xxx + yyy * yyy)));
                 }
             }
         }
     }
-//	}
+    //	}
 
     // setup search environment
     SBPL2DGridSearch search(sy, sx, gplanner->map_cell_size);
@@ -569,7 +607,15 @@ void GP_threads::SearchFxn(int RID, int dijkstra[], int r_robot_x, int r_robot_y
             dijkstra[i + sx * j + sx * sy * RID] = (int) (search.getlowerboundoncostfromstart_inmm(j, i));
         }
     }
-    cout << "d" << RID << endl;
+    //cout << "d" << RID << endl;
+    printf("SFd%d\n", RID);
+}
+
+void GP_threads::FrontierFxn(const int RID, const int dijkstra[], const unsigned int IG_map[], std::priority_queue<frontier_pts, std::vector<frontier_pts>, fp_compare_min>* temp_frontier, GPLAN * gplanner) {
+    // fxn to create frontier lists for each robot in a separate thread
+    printf("FFs%d\n", RID); 
+    gplanner->find_frontier(IG_map, dijkstra, RID, temp_frontier);
+    printf("FFd%d\n", RID); 
 }
 
 void GPLAN::global_planner(double goal_x, double goal_y, double goal_theta) {
@@ -581,11 +627,7 @@ void GPLAN::global_planner(double goal_x, double goal_y, double goal_theta) {
     float *nonfree_array = new float[map_size_x * map_size_y];
     float **nonfree_ptr_array = new float*[map_size_y];
 
-    gettimeofday(&tv_stop, NULL);
-    time_ms=(tv_stop.tv_sec-tv_start.tv_sec)*1000+(tv_stop.tv_usec-tv_start.tv_usec)/1000;
-	//cout << time_ms << "                                            time @ start "  << endl;
-	printf("\t\t\t\t\t %5.0f - Time @ start\n", time_ms);
-    tv_prev = tv_stop;
+    if (DISPLAY_OUTPUT) {timer_fxn("Time @ start");}
 
     // set up array of pointers
     for (int j = 0; j < map_size_y; j++) {
@@ -594,14 +636,14 @@ void GPLAN::global_planner(double goal_x, double goal_y, double goal_theta) {
     }
 
     // remove obstacles from unknown areas
-    for (int j = 0; j < map_size_y; j++) {
-        for (int i = 0; i < map_size_x; i++) {
-            if (cover_map[i + map_size_x * j] == UNKNOWN) {
-                elev_map[i + map_size_x * j] = -OBS16;
-                cost_map[i + map_size_x * j] = 0;
-            }
-        }
-    }
+    //for (int j = 0; j < map_size_y; j++) {
+    //for (int i = 0; i < map_size_x; i++) {
+    //if (cover_map[i + map_size_x * j] == UNKNOWN) {
+    //elev_map[i + map_size_x * j] = -OBS16;
+    //cost_map[i + map_size_x * j] = 0;
+    //}
+    //}
+    //}
 
     // inflate map
     computeDistancestoNonfreeAreas(cost_map_pa, map_size_y, map_size_x, OBSTACLE, obs_ptr_array, nonfree_ptr_array);
@@ -618,13 +660,12 @@ void GPLAN::global_planner(double goal_x, double goal_y, double goal_theta) {
                     inflated_cost_map[i + map_size_x * j] = OBSTACLE;
                 }
             }
-            //if(obs_ptr_array[j][i]<=inflation_size) { inflated_cost_map[i+map_size_x*j] = OBSTACLE;   }
             else {
                 int pad_dist = (int)(SOFT_PAD_DIST/map_cell_size); 
                 int buffer = (pad_dist - (int)inflation_size);
-                //printf("%i %i %f\n", pad_dist, buffer, inflation_size);
+
                 inflated_cost_map[i + map_size_x * j] = (unsigned char) max((double) (cost_map[i + map_size_x * j]) , (double)((pad_dist - obs_ptr_array[j][i])*200/buffer));
-                //printf("(%4.2f", (double)((pad_dist - obs_ptr_array[j][i])*200/buffer));
+
                 //          inflated_cost_map[i + map_size_x * j] = (unsigned char) max( 0.0, 
                 //                  (double) (cost_map[i + map_size_x * j]) 
                 //                  - (double)(get_IG(IG_map, i, j, dim)) / (4.0 * dim * dim)
@@ -653,308 +694,269 @@ void GPLAN::global_planner(double goal_x, double goal_y, double goal_theta) {
         cover_map[(map_size_x - 1) + j * map_size_x] = KNOWN;
     }
 
-//  memcpy((void *)real_cost_map, (void *)cost_map, map_size_x*map_size_y * (sizeof(unsigned char)));
     memcpy((void *)real_cover_map, (void *)cover_map, map_size_x*map_size_y * (sizeof(unsigned char)));
 
-    gettimeofday(&tv_stop, NULL);
-    time_ms=(tv_stop.tv_sec-tv_start.tv_sec)*1000+(tv_stop.tv_usec-tv_start.tv_usec)/1000;
-    elap_time_ms=(tv_stop.tv_sec-tv_prev.tv_sec)*1000+(tv_stop.tv_usec-tv_prev.tv_usec)/1000;
-	//cout << time_ms << " elapsed " <<  elap_time_ms << "                                            time before dijkstra "  << endl;
-	printf("\t\t\t\t\t %5.0f : %.0f - Time before Dijkstra\n", time_ms, elap_time_ms);
-
-    tv_prev = tv_stop;          
+    if (DISPLAY_OUTPUT) {timer_fxn("Time before Dijkstra");}
 
     int * dijkstra = new int[map_size_x * map_size_y * NUMROBOTS];
 
-    GP_threads calc_dijkstra[NUMROBOTS];
+    GP_threads GP_threadlist[NUMROBOTS];
+    list<int> remaining_robots;
 
-	//cout << " start thread for robot " <<endl;
-	printf("start thread for each robot\n");
-    for (int RID=0; RID < NUMROBOTS; RID++) {
-        calc_dijkstra[RID].start(RID,  dijkstra,  (int)(POSEX[RID]/map_cell_size),  (int)(POSEY[RID]/map_cell_size), this);
+    // storage for frontier points
+    vector < priority_queue<frontier_pts, vector<frontier_pts>, fp_compare_min>* >  temp_frontier;
+    temp_frontier.resize(NUMROBOTS);
+    for (int ridx=0; ridx < NUMROBOTS; ridx++) {
+        temp_frontier[ridx] = new priority_queue<frontier_pts, vector<frontier_pts>, fp_compare_min>;
     }
 
-    // wait for all threads to finish
-    //for (int RID=0; RID < NUMROBOTS; RID++) {
-    //calc_dijkstra[RID].join();
-    //}
+    if (DISPLAY_OUTPUT) {printf("start Dijkstra thread for each robot\n");}
+    for (int ridx=0; ridx < NUMROBOTS; ridx++) {
+        if(ROBOTAVAIL[ridx]) { 
+            GP_threadlist[ridx].start_dijkstra(ridx,  dijkstra,  POSEX[ridx],  POSEY[ridx], this);
+            remaining_robots.push_back(ridx);
+        }
+    }
 
-    gettimeofday(&tv_stop, NULL);
-    time_ms=(tv_stop.tv_sec-tv_start.tv_sec)*1000+(tv_stop.tv_usec-tv_start.tv_usec)/1000;
-    elap_time_ms=(tv_stop.tv_sec-tv_prev.tv_sec)*1000+(tv_stop.tv_usec-tv_prev.tv_usec)/1000;
-	//cout << time_ms << " elapsed " <<  elap_time_ms << "                                            time after dijkstra "  << endl;
-	printf("\t\t\t\t\t %5.0f : %.0f - Time after Dijkstra\n", time_ms, elap_time_ms);
-    tv_prev = tv_stop;
+    if (DISPLAY_OUTPUT) {timer_fxn("Time after Dijkstra");}
 
-    for (int RID = 0; RID < NUMROBOTS; RID++) {
-        if (ROBOTAVAIL[RID]) {
-            // make sure this thread is complete
-            calc_dijkstra[RID].join();
-			//cout << endl << endl << "Starting planning for robot number " << RID << endl << endl;
-			printf("\nStart planning for robot %d\n", RID);
-            gettimeofday(&tv_stop, NULL);
-            time_ms=(tv_stop.tv_sec-tv_start.tv_sec)*1000+(tv_stop.tv_usec-tv_start.tv_usec)/1000;
-            elap_time_ms=(tv_stop.tv_sec-tv_prev.tv_sec)*1000+(tv_stop.tv_usec-tv_prev.tv_usec)/1000;
-			//cout << time_ms << " elapsed " <<  elap_time_ms << "                                            time begin each RID loop "  << endl;
-			printf("\t\t\t\t\t %5.0f : %.0f - Time at beginning of each RID loop\n", time_ms, elap_time_ms);
-            tv_prev = tv_stop;
+    while(!remaining_robots.empty()) {
+        printf("A");
+        if (DISPLAY_OUTPUT) {printf("\nStart planning with %d robots in list\n", (int)remaining_robots.size());}
 
-            // update position and adjust cover map if desired
-            fix_cover(RID);
+        if (DISPLAY_OUTPUT) {timer_fxn("Time at beginning of each loop");}
 
-            unsigned int * IG_map = new unsigned int[map_size_x * map_size_y];
+        // update position and adjust cover map if desired
+        //    fix_cover(RID);
 
-            //calculate the IG at each point based on current coverage map
-            //bool IG_above_thres;
-            calc_all_IG(IG_map);
+        unsigned int * IG_map = new unsigned int[map_size_x * map_size_y];
 
-            find_frontier(IG_map, dijkstra, RID);
+        //calculate the IG at each point based on current coverage map
+        calc_all_IG(IG_map);
 
-            if (DISPLAY_OUTPUT) {cout << "Robot pose x= " << robot_x << " xx=" << robot_xx << " y=" << robot_y << " yy=" << robot_yy << endl;}
+        for(list<int>::const_iterator pos = remaining_robots.begin(); pos != remaining_robots.end(); pos++) {
+            // spawn thread to get the frontier points for each remaining robot and put into temp_frontier
+            GP_threadlist[*pos].join();
+            GP_threadlist[*pos].start_frontier((int)(*pos), dijkstra, IG_map, temp_frontier[*pos], this);
 
-            //  for (int qq = -5; qq <= 5; qq++) {
-            //      for (int ww = -5; ww <= 5; ww++) {
-            //          cout << (int)cost_map[robot_x+qq+map_size_x*(robot_y+ww)] << "/"<< (int)cover_map[robot_x+qq+map_size_x*(robot_y+ww)] << "/" << (int)inflated_cost_map[robot_x+qq+map_size_x*(robot_y+ww)] << " ";
-            //      }
-            // cout << endl;
-            //}
+            //clear old traj of remaining robots
+            traj[*pos].clear();
+        }
 
-            double best_score = 0; // tracks best score this run
-            int x_target, y_target;//, best_x, best_y;
-            vector<Traj_pt_s> test_traj; // temp trajectory
-            //vector<int> traj_score_l; // storage for score at each point along trajectory for post processing
-            //vector<int> traj_score_r;
-            unsigned char * temp_cover_map = new unsigned char[map_size_x * map_size_y]; // non-const storage for each possible goal
+        // wait for all threads to finish
+        for(list<int>::const_iterator pos = remaining_robots.begin(); pos != remaining_robots.end(); pos++) {
+            GP_threadlist[*pos].join();
+            if (DISPLAY_OUTPUT) {printf("frontier list for robot %d has %d elements and the min is %f\n", (int) *pos, (int) temp_frontier[*pos]->size(), temp_frontier[*pos]->top().total);}
+        }
 
-            clock_t start, finish;
-            start = finish = clock();
-
-            // support for calculating path to desired goal (do we need?)
-            //      if (goal_x != -1) {
-            // set goal
-            //          if (DISPLAY_OUTPUT) {cout << "determining path to assigned goal" << endl;}
-            //          return_path((int) (goal_x / map_cell_size), (int) (goal_y / map_cell_size), dijkstra, traj[RID], RID);
-
-            //      } else {
-            //find good point
-            //clear old traj
-            traj[RID].clear();
-            //      }
-            gettimeofday(&tv_stop, NULL);
-            time_ms=(tv_stop.tv_sec-tv_start.tv_sec)*1000+(tv_stop.tv_usec-tv_start.tv_usec)/1000;
-            elap_time_ms=(tv_stop.tv_sec-tv_prev.tv_sec)*1000+(tv_stop.tv_usec-tv_prev.tv_usec)/1000;
-			//cout << time_ms << " elapsed " <<  elap_time_ms << "                                            time after frontier before timed loop "  << endl;
-			printf("\t\t\t\t\t %5.0f : %.0f - Time after frontier before timed loop\n", time_ms, elap_time_ms);
-            tv_prev = tv_stop;
-    
-            bool first_run_flag = true;
-
-            while (finish-start < GP_PLAN_TIME*CLOCKS_PER_SEC) { // while less than plan time  (XP should not have 0.5)
-			printf(".");
-				//cout << ".";// << IG_above_thres;
-
-                // temp map for tracking changes during runs
-                memcpy((void *) temp_cover_map, (void *) cover_map, map_size_x  * map_size_y * (sizeof(unsigned char)));
-
-                if (!first_run_flag) {  sample_point(x_target, y_target);if (DISPLAY_OUTPUT) {cout << "normal flag " << x_target  << "," << y_target << endl;} }
+        // merge lists as long as they are all done into frontier
+        priority_queue<frontier_pts, vector<frontier_pts>, fp_compare_min> temp_combine_frontier;
+        for (list<int>::iterator pos = remaining_robots.begin(); pos != remaining_robots.end(); pos++) {
+            while (!temp_frontier[*pos]->empty()) {
+                if (temp_combine_frontier.size() < FRONTIER_HEAP_SIZE) {
+                    temp_combine_frontier.push(temp_frontier[*pos]->top());
+                    temp_frontier[*pos]->pop();
+                }
                 else {
-                    first_run_flag = false;
-                    int rx = robot_goals[RID*2];
-                    int ry = robot_goals[RID*2+1];
-
-                if (DISPLAY_OUTPUT) { cout << "goals 1st time " << rx << "," << ry << endl;}
-					if ((dijkstra[rx + map_size_x * ry + map_size_x*map_size_y*RID] < UNKOBSTACLE) 
-                            && (real_cover_map[rx + map_size_x * ry] == KNOWN)
-                                && ((real_cover_map[(rx + 1) + map_size_x * (ry)] != KNOWN) 
-                                    || (real_cover_map[(rx - 1) + map_size_x * (ry)] != KNOWN)
-                                    || (real_cover_map[(rx) + map_size_x * (ry + 1)] != KNOWN) 
-                                    || (real_cover_map[(rx) + map_size_x * (ry - 1)] != KNOWN)) ) {
-                        x_target = rx;
-                        y_target = ry;
-                        if (DISPLAY_OUTPUT) {cout << "going for previous" << endl;}
-
+                    if (temp_frontier[*pos]->top().total > temp_combine_frontier.top().total) {
+                        temp_combine_frontier.pop();
+                        temp_combine_frontier.push(temp_frontier[*pos]->top());
                     }
-                    else { sample_point(x_target, y_target); if (DISPLAY_OUTPUT) {cout << "normal 1st " << x_target  << "," << y_target << endl;} }
+                    temp_frontier[*pos]->pop();
                 }
+            }
+        }
+        while(!frontier.empty()) { frontier.pop(); }
+        while(!temp_combine_frontier.empty()) {
+            frontier.push(temp_combine_frontier.top());
+            temp_combine_frontier.pop();
+        }
+        
+        double best_score = 0, temp_score = 0; // tracks best score this run
+        int best_RID = -1;  //tracks best robot number
+        int x_target, y_target;//, best_x, best_y;
+        vector<Traj_pt_s> test_traj; // temp trajectory
+        unsigned char * temp_cover_map = new unsigned char[map_size_x * map_size_y]; // non-const storage for each possible goal
 
+        clock_t start, finish;
+        start = finish = clock();
 
-                        if (DISPLAY_OUTPUT) {cout << x_target << "," << y_target << " is potential goal";}
+        if (DISPLAY_OUTPUT) {timer_fxn("Time after frontier before timed loop");}
 
-                // if return is -1, -1 then no more points found return null trajectory
-                if ((x_target == -1) && (y_target == -1)) {
-					printf("No valid goal.  Break from timed while loop\n");
-                    break;
-                }
+        // run each robot to last goal and compare as best
+        for(list<int>::const_iterator pos = remaining_robots.begin(); pos != remaining_robots.end(); pos++) {
+            memcpy((void *) temp_cover_map, (void *) cover_map, map_size_x  * map_size_y * (sizeof(unsigned char)));
+            int RID = *pos;
+            int rx = robot_goals[RID*2];
+            int ry = robot_goals[RID*2+1];
 
-                // determine path to each goal point
-                double dist;
-                dist = return_path(x_target, y_target, dijkstra, test_traj, RID);
+            if (DISPLAY_OUTPUT) {printf("checking last run for %d -> (%d,%d)\n", RID,rx, ry);}
+            if ((dijkstra[rx + map_size_x * ry + map_size_x*map_size_y*RID] < DIJKSTRA_LIMIT) 
+                    && (real_cover_map[rx + map_size_x * ry] == KNOWN)
+                    && ((real_cover_map[(rx + 1) + map_size_x * (ry)] != KNOWN) 
+                        || (real_cover_map[(rx - 1) + map_size_x * (ry)] != KNOWN)
+                        || (real_cover_map[(rx) + map_size_x * (ry + 1)] != KNOWN) 
+                        || (real_cover_map[(rx) + map_size_x * (ry - 1)] != KNOWN)) ) {
+                x_target = rx;
+                y_target = ry;
+                if (DISPLAY_OUTPUT) {printf("going for previous\n");}
 
-                if (DISPLAY_OUTPUT) {cout << " and the distance is " << dist;}
+                temp_score = trace_path(x_target, y_target, test_traj, RID, dijkstra, temp_cover_map);
 
-                // determine gain from each possible goal point
-                double temp_score = 0;
-                for (int current_loc = 1; current_loc < test_traj.size(); current_loc++) {
-                    // determine the direction of travel in each axis
-                    int x_dir = test_traj[current_loc].x - test_traj[current_loc - 1].x + 1;
-                    int y_dir = test_traj[current_loc].y - test_traj[current_loc - 1].y + 1;
-                    int direction = dir[x_dir][y_dir];
-                    if (direction != NOMOVE) {
-                        // pass current location and inflated map to raycaster returns score
-                        temp_score += cast_all_rays(test_traj[current_loc].x,
-                                test_traj[current_loc].y, temp_cover_map, elev_map,
-                                SVR[direction], FVL[direction]);
-                        //                  temp_score += cast_all_rays(test_traj[current_loc].x,
-                        //                          test_traj[current_loc].y, temp_cover_map, elev_map,
-                        //                          SVL[direction], FVL[direction]);
-                    } // if !NOMOVE
-                } //for current_loc
-
-                // store as traj if best score per distance traveled
-                //if ((heading_bias(x_target, y_target)*((temp_score*DIST_GAIN)+1.0)/ (dist*(1.0-DIST_GAIN)+0.1)) > best_score) {
-
-
-                if (bias(RID, x_target, y_target) *IG_dist_ratio((int)temp_score, dist) > best_score) {
-					//cout << "****";
-					printf("*");
-                    //traj = test_traj;
-                    best_score = bias(RID, x_target, y_target)*IG_dist_ratio((int)temp_score, dist);
+                if (temp_score > best_score) {
+                    printf("*");
+                    best_score = temp_score;
+                    best_RID = RID;
                     traj[RID].swap(test_traj);
-                    //  best_score =(heading_bias(x_target, y_target)*((temp_score*DIST_GAIN)+1.0)/ (dist*(1.0-DIST_GAIN)+0.1));
-					if (DISPLAY_OUTPUT) {
-                    cout << endl << "pt " << x_target << "," << y_target << " with ray score:" << temp_score << " dist:" << dist << " bias:" << bias(RID, x_target, y_target) << " and IG/dist ratio:" << IG_dist_ratio((int)temp_score, dist) << " region:" << (int)region_map[x_target + map_size_x*y_target] << " total score:" << best_score <<endl;// bias(RID, x_target, y_target)*IG_dist_ratio((int)temp_score, dist) << endl;
-					}
-
-
                 }
-                if (DISPLAY_OUTPUT) {
-                    cout << "pt " << x_target << "," << y_target << " with ray score:" << temp_score << " dist:" << dist << " bias:" << bias(RID, x_target, y_target) << " and IG/dist ratio:" << IG_dist_ratio((int)temp_score, dist) << " region:" << (int)region_map[x_target + map_size_x*y_target] << " total score:" << bias(RID, x_target, y_target)*IG_dist_ratio((int)temp_score, dist) << endl;
-                }
-                //finish time
-                finish = clock();
-                } // while time remaining
-            if (DISPLAY_OUTPUT) {cout << "GP done looking at points" << endl;}
-            //  } // else find good point
-            // select highest scoring trajectory after XX seconds
-            //best_score = 0;
-            if (traj[RID].empty()) {
-				//	cout << " traj is empty - no valid trajectory" << endl;
-				printf("Trajectory is empty after timed loop - no valid trajectory found, deleting arrays and returning\n");
-				// wait for all threads to finish
-				for (int RID=0; RID < NUMROBOTS; RID++) {
-					calc_dijkstra[RID].join();
-				}
-				delete [] temp_cover_map;
-				delete [] IG_map;
-				delete [] dijkstra;
-				delete [] obs_array;
-				delete [] nonfree_array;
-				delete [] obs_ptr_array;
-				delete [] nonfree_ptr_array;
-                return;
-            } else {
-				//	cout << "final best goal " << traj[RID].back().x << "," << traj[RID].back().y
-				//		<< " size " << traj[RID].size() << endl;
-				printf( "final best goal (%d, %d) size %d\n",traj[RID].back().x, traj[RID].back().y, (int) traj[RID].size() );
+            }
+        }// check of previous goals
+
+        if (DISPLAY_OUTPUT) {timer_fxn("Time after previous goal checks");}
+
+        while (finish-start < GP_PLAN_TIME*CLOCKS_PER_SEC) { // while less than plan time  
+            printf(".");    
+            int RID = -1;
+            // temp map for tracking changes during runs
+            memcpy((void *) temp_cover_map, (void *) cover_map, map_size_x  * map_size_y * (sizeof(unsigned char)));
+
+            sample_point(x_target, y_target, RID); 
+     //       if (DISPLAY_OUTPUT) {printf("robot %d believes (%d,%d) to be a potential goal\n", RID, x_target, y_target);}
+
+            // if return is -1, -1 then no more points found 
+            if ((x_target == -1) && (y_target == -1)) {
+                printf("Sample point has exhausted the frontier heap.  Break from timed while loop\n");
+                break;
             }
 
-            // save goal locations 
-            robot_goals[RID*2] = traj[RID].back().x;
-            robot_goals[RID*2+1] = traj[RID].back().y;
+            temp_score = trace_path(x_target, y_target, test_traj, RID, dijkstra, temp_cover_map);
 
-            traj[RID][0].xx = traj[RID][0].x * map_cell_size;
-            traj[RID][0].yy = traj[RID][0].y * map_cell_size;
-
-            for (int current_loc = 1; current_loc < traj[RID].size(); current_loc++) {
-                //cout << "loc " <<  traj[current_loc].x << "," << traj[current_loc].y << endl;
-                // determine the direction of travel in each axis
-                int x_dir = traj[RID][current_loc].x - traj[RID][current_loc - 1].x + 1;
-                int y_dir = traj[RID][current_loc].y - traj[RID][current_loc - 1].y + 1;
-                int direction = dir[x_dir][y_dir];
-
-                //cout << direction << ": dir 0 is along x-axis" << SVR[direction] << " " << FVR[direction] << " " << FVL[direction] << endl;
-                if (direction != NOMOVE) {
-                    // pass current location and inflated map to raycaster returns score
-                    cast_all_rays(traj[RID][current_loc].x, traj[RID][current_loc].y, cover_map, elev_map,SVR[direction], FVL[direction]);
-                
-                    traj[RID][current_loc].xx = traj[RID][current_loc].x * map_cell_size;
-                    traj[RID][current_loc].yy = traj[RID][current_loc].y * map_cell_size;
-
-                } // if !NOMOVE
-            } //for current_loc
-
-            if (!traj[RID].empty())
-                if (DISPLAY_OUTPUT) {
-                    cout << "goal point " << traj[RID].back().x << "," << traj[RID].back().y
-                        << " cost val = " << (int) cost_map[traj[RID].back().x + map_size_x* traj[RID].back().y];
-                }
-
-            // write results to disk - cover map shows what was presumed to have been seen during traversal
-            if (WRITE_FILES) {
-                if (DISPLAY_OUTPUT) {printf(" writing map files to disk\n");}
-            //  writefiles(cover_map, inflated_cost_map, elev_map, "Map_out.txt",
-            //          map_size_x, map_size_y);
-                writefileextra(dijkstra, "Map_extra.txt", map_size_x, map_size_y);
-            //  writefiletraj(best_score, traj[RID], "Map_traj.txt");
-            char str[50];
-            sprintf(str, "Map%d.bmp", RID);
-                writeBMP(cover_map, inflated_cost_map, &dijkstra[map_size_x*map_size_y*RID], map_size_x, map_size_y , traj[RID], str) ;
+            if (temp_score > best_score) {
+                printf("*");
+                best_score = temp_score;
+                best_RID = RID;
+                traj[RID].swap(test_traj);
             }
 
-            // frees recalculated arrays
+            //finish time
+            finish = clock();
+        } // while time remaining
+
+        if (DISPLAY_OUTPUT) {printf("GP done looking at points\n");}
+
+        // select highest scoring trajectory after XX seconds
+        if (best_RID == -1) {
+            printf("Trajectory is empty after timed loop - no valid trajectory found, deleting arrays and returning\n");
+            // wait for all threads to finish
+            // for (int ridx=0; ridx < NUMROBOTS; ridx++) {
+            //     calc_dijkstra[ridx].join();
+            // }
             delete [] temp_cover_map;
             delete [] IG_map;
-            //printf("done deleting temp storage\n");
-    }   // if robot is available
-    else { printf("Robot %d is not avail\n", RID); }
-    gettimeofday(&tv_stop, NULL);
-    time_ms=(tv_stop.tv_sec-tv_start.tv_sec)*1000+(tv_stop.tv_usec-tv_start.tv_usec)/1000;
-    elap_time_ms=(tv_stop.tv_sec-tv_prev.tv_sec)*1000+(tv_stop.tv_usec-tv_prev.tv_usec)/1000;
-//	cout << time_ms << " elapsed " <<  elap_time_ms << "                                            time after loop " <<  endl;
-				printf("\t\t\t\t\t %5.0f : %.0f - Time after timed loop\n", time_ms, elap_time_ms);
-    tv_prev = tv_stop;
+            delete [] dijkstra;
+            delete [] obs_array;
+            delete [] nonfree_array;
+            delete [] obs_ptr_array;
+            delete [] nonfree_ptr_array;
 
-} // for all robots
-// frees un-needed arrays
+            for (int ridx=0; ridx < NUMROBOTS; ridx++) {
+                delete temp_frontier[ridx];
+            }
+           // delete [] temp_frontier;
+           // delete [] GP_Threadlist;
+           // delete [] remaining_robots;
 
-delete [] dijkstra;
-delete [] obs_array;
-delete [] nonfree_array;
-delete [] obs_ptr_array;
-delete [] nonfree_ptr_array;
+            return;
+        } else {
+            //	cout << "final best goal " << traj[RID].back().x << "," << traj[RID].back().y
+            //		<< " size " << traj[RID].size() << endl;
+            printf( "final best goal (%d, %d) for robot %d score %f\n",traj[best_RID].back().x, traj[best_RID].back().y, best_RID, best_score );
+        }
+
+        // save goal locations 
+        x_target = robot_goals[best_RID*2] = traj[best_RID].back().x;
+        y_target = robot_goals[best_RID*2+1] = traj[best_RID].back().y;
+printf("B");
+        // update cover map
+        trace_path(x_target, y_target, traj[best_RID], best_RID, dijkstra, cover_map);
+printf("C");
+        for (int current_loc = 0; current_loc < traj[best_RID].size(); current_loc++) {
+            traj[best_RID][current_loc].xx = traj[best_RID][current_loc].x * map_cell_size;
+            traj[best_RID][current_loc].yy = traj[best_RID][current_loc].y * map_cell_size;
+        } //for current_loc
+
+        // remove best_RID from list
+        remaining_robots.remove(best_RID);
+printf("D");
+        // frees recalculated arrays
+        delete [] temp_cover_map;
+        delete [] IG_map;
+    } // while remaining_robots !empty
+
+    // write results to disk - cover map shows what was presumed to have been seen during traversal
+    if (WRITE_FILES) {
+        if (DISPLAY_OUTPUT) { printf(" writing map files to disk\n"); }
+        //  writefiles(cover_map, inflated_cost_map, elev_map, "Map_out.txt", map_size_x, map_size_y);
+        writefileextra(dijkstra, "Map_extra.txt", map_size_x, map_size_y);
+        //  writefiletraj(best_score, traj[RID], "Map_traj.txt");
+        char str[50];
+        for (int ridx = 0; ridx < NUMROBOTS; ridx++) {
+            sprintf(str, "Map%d.bmp", ridx);
+            writeBMP(cover_map, inflated_cost_map, &dijkstra[map_size_x*map_size_y*ridx], map_size_x, map_size_y , traj[ridx], str) ;
+        }
+    }
+printf("E");
+    // frees un-needed arrays
+    delete [] dijkstra;
+    delete [] obs_array;
+    delete [] nonfree_array;
+    delete [] obs_ptr_array;
+    delete [] nonfree_ptr_array;
+    printf("F");
+    for (int ridx=0; ridx < NUMROBOTS; ridx++) {
+        delete  temp_frontier[ridx];
+    }
+    printf("G");
+//    delete [] temp_frontier;
+//    delete [] GP_Threadlist;
+//    delete [] remaining_robots;
+
+    if (DISPLAY_OUTPUT) {
+        timer_fxn("Time after main planner\n");
+    }
 }
 
 bool GPLAN::gplan_init(GP_PLANNER_PARAMETER * gp_planner_param_p) {
-//      GP_ROBOT_PARAMETER * gp_robot_parameter_p) {
-//      GP_FULL_UPDATE * gp_full_update_p) {
+    //      GP_ROBOT_PARAMETER * gp_robot_parameter_p) {
+    //      GP_FULL_UPDATE * gp_full_update_p) {
     // function to initialize map and robot data, read in initial full map, and set highlevel planning parameters
     //function to handle map and robot parameters and loads full map
 
     //update planner variables
     GP_PLAN_TIME = gp_planner_param_p->GP_PLAN_TIME; // seconds to allow for planning
-		cout << " GP_PLAN_TIME = " << GP_PLAN_TIME << endl;
+    cout << " GP_PLAN_TIME = " << GP_PLAN_TIME << endl;
     WRITE_FILES = gp_planner_param_p->WRITE_FILES; // flag to write files out
-        cout << " WRITE_FILES = " << WRITE_FILES << endl;
+    cout << " WRITE_FILES = " << WRITE_FILES << endl;
     DISPLAY_OUTPUT = gp_planner_param_p->DISPLAY_OUTPUT; // flag to display any output
-        cout << " DISPLAY_OUTPUT = " << DISPLAY_OUTPUT << endl;
+    cout << " DISPLAY_OUTPUT = " << DISPLAY_OUTPUT << endl;
     if (abs(gp_planner_param_p->SENSORWIDTH) < 2*M_PI) {SENSORWIDTH = abs(gp_planner_param_p->SENSORWIDTH);}
-        cout << " SENSORWIDTH = " << SENSORWIDTH << endl;
+    cout << " SENSORWIDTH = " << SENSORWIDTH << endl;
     if ((gp_planner_param_p->DIST_GAIN >=0) && (gp_planner_param_p->DIST_GAIN <1)) {DIST_GAIN = gp_planner_param_p->DIST_GAIN;}
-        cout << " DIST_GAIN = " << DIST_GAIN << endl;
+    cout << " DIST_GAIN = " << DIST_GAIN << endl;
     if ((gp_planner_param_p->THETA_BIAS >=0) && (gp_planner_param_p->THETA_BIAS <=1)) {THETA_BIAS = gp_planner_param_p->THETA_BIAS;}
-        cout << " THETA_BIAS = " << THETA_BIAS << endl;
+    cout << " THETA_BIAS = " << THETA_BIAS << endl;
     // desired min and max ranges to nearest other robot in the same region
     if (gp_planner_param_p->MIN_RANGE >=0) {MIN_RANGE = gp_planner_param_p->MIN_RANGE;}
-        cout << " MIN_RANGE = " << MIN_RANGE << endl;
+    cout << " MIN_RANGE = " << MIN_RANGE << endl;
     if (gp_planner_param_p->MAX_RANGE >=0) {MAX_RANGE = gp_planner_param_p->MAX_RANGE;}
-        cout << " MAX_RANGE = " << MAX_RANGE << endl;
+    cout << " MAX_RANGE = " << MAX_RANGE << endl;
     // penalty per cell for being outside desird range (delta cells * DIST_PENALTY)
     //if (gp_planner_param_p->DIST_PENALTY >=0)  
     DIST_PENALTY = gp_planner_param_p->DIST_PENALTY;
     cout << " DIST_PENALTY = " << DIST_PENALTY << endl;
     // penalty for being in the same region as another robot (does not apply for outside)
     if (gp_planner_param_p->REGION_PENALTY >=0) {REGION_PENALTY = gp_planner_param_p->REGION_PENALTY;}
-        cout << " REGION_PENALTY = " << REGION_PENALTY << endl;
+    cout << " REGION_PENALTY = " << REGION_PENALTY << endl;
 
     // update number of robots and associated variables
     NUMROBOTS = gp_planner_param_p->NR;
@@ -970,8 +972,8 @@ bool GPLAN::gplan_init(GP_PLANNER_PARAMETER * gp_planner_param_p) {
     delete [] POSEX;
     delete [] POSEY;
     delete [] POSETHETA;
-    POSEX = new double[NUMROBOTS];
-    POSEY = new double[NUMROBOTS];
+    POSEX = new int[NUMROBOTS];
+    POSEY = new int[NUMROBOTS];
     POSETHETA = new double[NUMROBOTS];
 
     traj.resize(NUMROBOTS);
@@ -991,7 +993,7 @@ bool GPLAN::gplan_init(GP_PLANNER_PARAMETER * gp_planner_param_p) {
     //  cout << " The robot can go " << MAX_VELOCITY << " m/s and turn at " << MAX_TURN_RATE << " rad/sec.  The sensor is " << sensor_height << " cm high and can see " << sensor_radius << " m" << endl;
 
     // establish sensor endpoints
-//  int sensor_int_radius = (int) (sensor_radius / map_cell_size);
+    //  int sensor_int_radius = (int) (sensor_radius / map_cell_size);
     rasterCircle((int) (sensor_radius / map_cell_size));
 
     //determine start and stop vector numbers for each direction
@@ -1010,64 +1012,50 @@ bool GPLAN::gplan_init(GP_PLANNER_PARAMETER * gp_planner_param_p) {
     FVR[8] = FVL[8] = NUMVECTORS - 1;
 
     //determines outer bounding circle of robot for inflation purposes
-    double max_dist = 0;
-
-    max_dist = gp_planner_param_p->perimeter_radius;
-    inflation_size = max_dist / map_cell_size;
+    inflation_size =  gp_planner_param_p->perimeter_radius / map_cell_size;
 
     //allocate memory for the maps according to the size variables
     bool val = map_alloc();
+    if (val) {cout << "done alloc "; }
+    else { printf("Map Allocation failed!!\n"); }
 
-    cout << "done alloc ";
 }
 
 vector < vector<Traj_pt_s> > GPLAN::gplan_plan(GP_POSITION_UPDATE * gp_position_update_p,
         GP_FULL_UPDATE * gp_full_update_p) {
-//	cout << "starting library planning cycle" << endl;
+    //	cout << "starting library planning cycle" << endl;
     //function replans based on updated short map and position update
     gettimeofday(&tv_start, NULL);
-
-//	cout << "copying data into static storage" << endl;
+    tv_prev = tv_start;
+    //	cout << "copying data into static storage" << endl;
     //place data into the correct arrays
     memcpy((void *) cover_map, (void *) gp_full_update_p->coverage_map, map_size_x * map_size_y * sizeof(unsigned char));
-//  memcpy((void *) real_cover_map, (void *) gp_full_update_p->coverage_map, map_size_x * map_size_y * sizeof(unsigned char));
     memcpy((void *) cost_map, (void *) gp_full_update_p->cost_map, map_size_x * map_size_y * sizeof(unsigned char));
     memcpy((void *) elev_map, (void *) gp_full_update_p->elev_map, map_size_x * map_size_y * sizeof(int16_t));
-    memcpy((void *) region_map, (void *) gp_full_update_p->region_map, map_size_x * map_size_y * sizeof(unsigned char));
+    memcpy((void *) region_map, (void *) gp_full_update_p->region_map, map_size_x * map_size_y * sizeof(uint16_t));
 
-//	cout << "prepping other variables" << endl;
-    
+    //	cout << "prepping other variables" << endl;
 
-        //map variables
+    //map variables
     for (int idx=0; idx < NUMROBOTS; idx++) { ROBOTAVAIL[idx]= (bool)gp_position_update_p->avail[idx];}
 
     //updates the stored robot position
     for (int idx = 0; idx < NUMROBOTS; idx++) {
-    POSEX[idx] = gp_position_update_p->x[idx];
-    POSEY[idx] = gp_position_update_p->y[idx];
+        POSEX[idx] = (int)(gp_position_update_p->x[idx] / map_cell_size);
+        POSEY[idx] = (int)(gp_position_update_p->y[idx] / map_cell_size);
         POSETHETA[idx] = gp_position_update_p->theta[idx];
         traj[idx].reserve(300); 
-        //cout << idx << " traj size =" << traj[idx].size() << endl;
-		//cout << "robot " << idx << " is at " << POSEX[idx] << "," << POSEY[idx] << endl;
-		printf("robot %d is at (%.0f,%.0f)\n", idx, POSEX[idx], POSEY[idx]);
+        printf("robot %d is at (%.0f,%.0f)\n", idx, POSEX[idx]*map_cell_size, POSEY[idx]*map_cell_size);
     }
 
-//	cout << "starting actual planner" << endl;
+    //	cout << "starting actual planner" << endl;
     global_planner(-1, -1, -1);
-	//cout << endl;  
-    //cout << "traj size " << traj.size();
-//	for (int idx = 0; idx < NUMROBOTS; idx++) {
-//		cout << " " << idx << "-" << traj[idx].size();
-//	}
-//	cout << endl;  
+    for (int idx = 0; idx < NUMROBOTS; idx++) {
+        cout << " " << idx << "-" << traj[idx].size();
+    }
+    cout << endl;  
 
-    gettimeofday(&tv_stop, NULL);
-    time_ms=(tv_stop.tv_sec-tv_start.tv_sec)*1000+(tv_stop.tv_usec-tv_start.tv_usec)/1000;
-    elap_time_ms=(tv_stop.tv_sec-tv_prev.tv_sec)*1000+(tv_stop.tv_usec-tv_prev.tv_usec)/1000;
-//	cout << "done with planner " << time_ms << " elapsed " <<  elap_time_ms << endl;
-					printf("\t\t\t\t\t %5.0f : %.0f - Done with planner\n", time_ms, elap_time_ms);
-
-    tv_prev = tv_stop;
+    if (DISPLAY_OUTPUT) {timer_fxn("Done with planner");};
 
     return traj;
 }

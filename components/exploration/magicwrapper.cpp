@@ -1,21 +1,7 @@
-//#include "common_headers.h"
-
-#include <vector>
-#include <queue>
-#include <stdint.h>
-#include <cstdlib>
-#include <cmath>
-#include <iostream>
-#include <fstream>
-#include <cstring>
-#include <cstdio>
-#include <boost/thread.hpp>
+#include "common_headers.h"
 
 using namespace std;
 
-#include "map_globals.h"
-#include "messages_IPC.h"
-#include "global_planner.h"
 
 #include "../../common/dataTypes/MagicPlanDataTypes.h"
 #include "../../ipc/ipc.h"
@@ -89,9 +75,9 @@ static void DATAhandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientDa
 	maps.coverage_map = new unsigned char[planner.map_size_x * planner.map_size_y];
 	maps.cost_map = new unsigned char[planner.map_size_x * planner.map_size_y];
 	maps.elev_map = new int16_t[planner.map_size_x * planner.map_size_y];
-	maps.region_map = new unsigned char[planner.map_size_x * planner.map_size_y];
+	maps.region_map = new uint16_t[planner.map_size_x * planner.map_size_y];
 
-	memcpy((void *)maps.region_map, (void *)data->region_map, planner.map_size_x*planner.map_size_y*sizeof(unsigned char));
+	memcpy((void *)maps.region_map, (void *)data->region_map, planner.map_size_x*planner.map_size_y*sizeof(uint16_t));
 
 	for (int j = 0; j < planner.map_size_y; j++) {
 		for (int i = 0; i < planner.map_size_x; i++) {
@@ -165,7 +151,7 @@ int main () {
 	maps.coverage_map = new unsigned char[1];
 	maps.cost_map = new unsigned char[1];
 	maps.elev_map = new int16_t[1];
-	maps.region_map = new unsigned char[1];
+	maps.region_map = new uint16_t[1];
 
 
 	//IPC stuff

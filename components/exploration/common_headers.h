@@ -8,9 +8,10 @@
 #include <vector>
 #include <deque>
 #include <cstring>
+#include <list>
 #include <time.h>
 #include <queue>
-#include <limits>
+#include <climits>
 #include <fstream>
 #include <string>
 #include <stdint.h>
@@ -18,13 +19,12 @@
 #include <sys/time.h>
 
 //#include "/opt/mathworks/matlab2010a/extern/include/mex.h"
-//#include "stdint.h" // only for XP MS C++
-
 using namespace std;
 
 #include "messages_IPC.h"
 #include "map_globals.h"
 #include "global_planner.h"
+#include "../sbpl/src/sbpl/headers.h"
 //#include "raycaster.h"
 
 //#define _DEBUGLVL_JMB 5

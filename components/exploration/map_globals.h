@@ -24,9 +24,11 @@ const int UNKOBSTACLE = 251; // value for UNKNOWN cells on obstacle map
 const int UNKNOWN = 0; // value for unknown on coverage map
 const int KNOWN = 249; // value for known on coverage map
 //const int UNKSCORE = 256; // score to assign for UNKNOWN (NOT USED)	
-const int DIJKSTRA_LIMIT = 10000000; // value above which cells are not reachable
-//extern int HIGH_IG_THRES; // value of IG below which search is pure greedy
+const int DIJKSTRA_LIMIT = 100000000; // value above which cells are not reachable
 const int16_t OBS16 = 30000; // default value for obstacles
+const int START_FOOTPRINT_INF_CLEAR = 240; //value for clearing starting footprint from inf_obs_map
+
+
 
 // 8 connected moves and costs
 enum {MOVERIGHT, MOVEUPRIGHT, MOVEUP, MOVEUPLEFT, MOVELEFT, MOVEDOWNLEFT, MOVEDOWN, MOVEDOWNRIGHT, NOMOVE};
@@ -42,9 +44,6 @@ struct Traj_pt_s {
 	double xx; // position in meters
 	double yy;
 	double theta; // heading in radians
-//	float velocity; // in m/s
-//	float right_pan; // heading of right pan limit in radians
-//	float left_pan; // heading of left pan limit in radians
 
 	Traj_pt_s() {
 		x = 0;
@@ -52,9 +51,6 @@ struct Traj_pt_s {
 		xx =0;
 		yy=0;
 		theta = 0.0;
-//		velocity = 1.0;
-//		right_pan = 0.0;
-//		left_pan = 0.0;
 		}
 
 	Traj_pt_s(int a, int b, double c, double d, double e) {
@@ -63,9 +59,6 @@ struct Traj_pt_s {
 		xx = c;
 		yy = d;
 		theta = e;
-//		velocity = f;
-//		right_pan = g;
-//		left_pan = h;
 	}
 };
 
@@ -75,36 +68,39 @@ class frontier_pts {
 	public:
 		int x;
 		int y;
-//		unsigned int IG;
-//		int cost;
-//		double weight;
+        int RID;
 		double total;
 
 		frontier_pts() {
 			x = -1;
 			y = -1;
-//			IG = 0;
-//			cost = 0;
+            RID = -1;
 			total = 0;
-//			weight = 1.0;
 		}
-		frontier_pts(int a, int b, double e) {
+		frontier_pts(const int a, const int b, const int c, const double e) {
 			x = a;
 			y = b;
-//			IG = c;
-//			cost =  d;
-//			weight = e;
-			total = e;// ((c*e)+1.0)/ (d*(1.0-e)+0.1);
+            RID = c;
+			total = e;
 		}
 };
 
-class fp_compare {
+class fp_compare_max {
 	public:
 		bool operator () (const frontier_pts& lhs, const frontier_pts& rhs) const
 		{
 			return (lhs.total<rhs.total); 
 		}
 };
+
+class fp_compare_min {
+	public:
+		bool operator () (const frontier_pts& lhs, const frontier_pts& rhs) const
+		{
+			return (lhs.total>rhs.total); 
+		}
+};
+
 
 
 struct RAY_TEMPLATE_PT {
