@@ -80,7 +80,7 @@ if ~isempty(AVOID_REGIONS.x)
   adjusted_regions.x = round((AVOID_REGIONS.x-planMap.UTM_x)/planMap.resolution);
   adjusted_regions.y = round((AVOID_REGIONS.y-planMap.UTM_y)/planMap.resolution);
   onMap = (adjusted_regions.x>=0)&(adjusted_regions.x<planMap.size_x)&(adjusted_regions.y>=0)&(adjusted_regions.y<planMap.size_y);
-  planMap.map(adjusted_regions.x(onMap),adjusted_regions.y(onMap)) = 100;
+  planMap.map(sub2ind(size(planMap.map),adjusted_regions.x(onMap),adjusted_regions.y(onMap))) = 100;
 end
 
 disp('sending map...');
