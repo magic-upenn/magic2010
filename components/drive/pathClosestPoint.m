@@ -11,6 +11,7 @@ if (nPath == 1),
   xc = xPath;
   yc = yPath;
   ac = 0;
+  imin = 1;
   return;
 end
 
