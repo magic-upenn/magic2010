@@ -2,7 +2,7 @@
 #ifndef GP_HEADER
 #define GP_HEADER
 
-#define GP_DATA_FORM "{int, double, double, double, double, double, double, double, int, int, double, double, <short:1>, <double:1>, <double:1>, <double:1>, <double:9,10>, <ubyte:9,10>}"	
+#define GP_DATA_FORM "{int, double, double, double, double, double, double, double, int, int, double, double, <short:1>, <double:1>, <double:1>, <double:1>, <double:9,10>, <short:9,10>}"	
 #define GP_DATA_MSG "Global_Planner_DATA"
 
 typedef struct {
@@ -27,7 +27,7 @@ typedef struct {
 	double *theta; 		// robot heading referenced to 0 = positive x-axis
 	// maps
 	double *map;		// map of uncertainty in measurements
-	unsigned char *region_map;     // map of labeled regions with 0 being outdoors
+	uint16_t *region_map;     // map of labeled regions with 0 being outdoors
 
 	static const char*  getIPCFormat() { return GP_DATA_FORM; };
 
