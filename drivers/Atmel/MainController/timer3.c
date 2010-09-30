@@ -21,7 +21,7 @@ ISR(TIMER3_COMPA_vect)
 
 void timer3_init(void)
 {
-  TCCR3B = _BV(CS30) | _BV(CS31); // CS30 | CS31: prescaler = 1/64, 262.1 ms cycle
+  TCCR3B = _BV(CS32); // CS32: prescaler = 1/256, 1.0486 ms cycle, 16uS tic.
 }
 
 void timer3_set_overflow_callback(void (*callback)(void))

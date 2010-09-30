@@ -36,7 +36,7 @@ int Xbee::Disconnect()
   return 0;
 }
 
-int Xbee::WritePacket(uint8_t * data, int size)
+int Xbee::WritePacket(uint8_t * data, int size, int addr)
 {
   if (!this->connected)
   {
@@ -47,6 +47,12 @@ int Xbee::WritePacket(uint8_t * data, int size)
   if (size > XBEE_MAX_DATA_LENGTH)
   {
     PRINT_ERROR("data length is too big\n");
+    return -1;
+  }
+
+  if (addr < 0 || addr > 0xFFFF)
+  {
+    PRINT_ERROR("address value is outside of range : "<<addr<<"\n");
     return -1;
   }
 
@@ -65,7 +71,7 @@ int Xbee::WritePacket(uint8_t * data, int size)
   *pbuf8++  = XBEE_API_TX_REQUEST_16;          //type (tx request)
   *pbuf8++  = 0x00;                            //frame id
   pbuf16    = (uint16_t*)pbuf8; pbuf8+=2;
-  *pbuf16   = 0xFFFF;                          //destination address
+  *pbuf16   = htons(addr);                          //destination address
   *pbuf8++  = 0x00;                            //option
 
   memcpy(pbuf8,data,size);                     //payload
@@ -86,6 +92,8 @@ int Xbee::WritePacket(uint8_t * data, int size)
   printf("\n");
 
   this->sd.WriteChars((char*)&(buf[0]),packetSize);
+
+  return 0;
 }
 
 int Xbee::ReceivePacket(XbeeFrame * frame, double timeout)

@@ -18,6 +18,7 @@
 #include "attitudeFilter.h"
 #include "ParamTable.h"
 #include <avr/eeprom.h>
+#include "Servo1Controller.h"
 
 DynamixelPacket hostPacketIn;
 DynamixelPacket busPacketIn;
@@ -27,6 +28,9 @@ DynamixelPacket xbeePacketIn;
 #define encoderRequestRawPacketMaxSize 32
 volatile uint8_t encoderRequestRawPacket[encoderRequestRawPacketMaxSize];
 volatile uint8_t encoderRequestRawPacketSize = 0;
+
+uint8_t servo1PacketOutBuf[32];
+uint8_t servo1PacketOutBufSize = 0;
 
 uint16_t adcVals[NUM_ADC_CHANNELS];
 float rpy[3];
@@ -39,6 +43,8 @@ uint16_t imuPacket[NUM_ADC_CHANNELS+1];
 volatile uint8_t rs485Blocked = 0;
 volatile uint8_t rcCmdPending = 0;
 volatile uint8_t needToSendMotorCmd = 0;
+volatile uint8_t needToRequestFb = 0;
+volatile uint8_t needToSendServo1Packet = 0;
 
 uint8_t estop = 0;
 volatile uint8_t freshMotorCmd = 0;
@@ -47,6 +53,8 @@ volatile uint8_t mode = MMC_MC_MODE_RUN;
 ParamTable EEMEM ptableE;
 ParamTable ptableR;
 uint8_t eepromTempData[sizeof(ParamTable)+4];
+
+volatile uint32_t globalTimer = 0;
 
 int WriteParamTableBlock(uint16_t offset, uint8_t * data, uint16_t size)
 {
@@ -107,6 +115,18 @@ int XbeeSendPacket(uint8_t id, uint8_t type, uint8_t * buf, uint8_t size)
   return 0;
 }
 
+void globalTimerOverflow(void)
+{
+  globalTimer += 0xFFFF; 
+}
+
+uint32_t GlobalTimerGetTime()
+{
+  uint32_t temp = globalTimer;
+  uint16_t temp2 = TCNT3;
+  return temp + temp2;
+}
+
 
 void Rs485ResponseTimeout(void)
 {
@@ -126,14 +146,17 @@ void InitLeds()
   
 }
 
+void SetBusBlocked()
+{
+  rs485Blocked = 1;
+  TCNT4 = 0;
+  timer4_enable_compa_callback();
+}
+
 void EncodersRequestFcn(void)
 {
-  BusSendRawData(encoderRequestRawPacket,encoderRequestRawPacketSize);
-  rs485Blocked = 1;
-
+  needToRequestFb = 1;
   TCNT1 = 0;
-//  TCNT4 = 0;
-//  timer4_enable_compa_callback();
 }
 
 void init(void)
@@ -164,12 +187,13 @@ void init(void)
 
   //timer for sending out estop status
   timer3_init();
-  timer3_set_overflow_callback(SendEstopStatus);
-  
+  //timer3_set_overflow_callback(SendEstopStatus);
+  timer3_set_overflow_callback(globalTimerOverflow);  
+
 //  timer4_init();
   
-//  timer4_set_compa_callback(Rs485ResponseTimeout);
-//  timer4_disable_compa_callback();
+  timer4_set_compa_callback(Rs485ResponseTimeout);
+  timer4_disable_compa_callback();
 
   timer1_init();
   timer1_set_compa_callback(EncodersRequestFcn);
@@ -181,6 +205,8 @@ void init(void)
                           &dummy,sizeof(dummy),
                           encoderRequestRawPacket,
                           encoderRequestRawPacketMaxSize);
+
+  Servo1Init(GlobalTimerGetTime());
 
   //enable global interrupts 
   sei();
@@ -363,18 +389,21 @@ int HostPacketHandler(DynamixelPacket * dpacket)
       break;
   }
 
+  cli();
   LED_PC_ACT_TOGGLE;
-   
+  sei();   
+
   return 0;
 }
 
 int BusPacketHandler(DynamixelPacket * packet)
 {
+  //disable the timeout for RS485 bus, since the response came back
   timer4_disable_compa_callback();
   rs485Blocked = 0;
   HostSendRawPacket(packet);
   
-  //disable the timeout for RS485 bus, since the response came back
+  
   return 0;
 }
 
@@ -402,6 +431,12 @@ int main(void)
   int c;
   int imuRet;
   int ret;
+
+  uint8_t * servo1PacketOut        = NULL;
+  DynamixelPacket * servo1PacketIn = NULL;
+  uint8_t servo1PacketOutSize      = 0;
+  float servo1Angle;
+  uint32_t servo1Time;
   
   DynamixelPacketInit(&hostPacketIn);
   DynamixelPacketInit(&busPacketIn);
@@ -417,6 +452,9 @@ int main(void)
   }
 
   init();
+
+  Servo1SetMode(SERVO_CONTROLLER_MODE_FB_ONLY);
+  //Servo1SetMode(SERVO_CONTROLLER_MODE_SERVO);
   
   while(1)
   {
@@ -442,10 +480,35 @@ int main(void)
 
      
     //receive packet from RS485 bus
+    servo1PacketIn = NULL;
     len=BusReceivePacket(&busPacketIn);
     if (len>0)
-      BusPacketHandler(&busPacketIn);
+    {
+      if (DynamixelPacketGetId(&busPacketIn) == MMC_DYNAMIXEL0_DEVICE_ID)
+        servo1PacketIn = &busPacketIn;
       
+      BusPacketHandler(&busPacketIn);
+    }
+
+
+    Servo1UpdateTime(GlobalTimerGetTime());
+    Servo1Update(servo1PacketIn,&servo1PacketOut,&servo1PacketOutSize);
+    
+    if (servo1PacketOut && servo1PacketOutSize > 0)
+    {
+      memcpy(servo1PacketOutBuf,servo1PacketOut,servo1PacketOutSize);
+      servo1PacketOutBufSize = servo1PacketOutSize;
+      needToSendServo1Packet = 1;
+    }
+
+/*
+    if (Servo1IsFreshAngle())
+    {
+      servo1Angle = Servo1GetAngle();
+      servo1Time  = Servo1GetAngleTime();
+      SendServo1StateToHost(servo1Angle,servo1Time);
+    }
+*/     
       
     //receive a line from gps
     len=GpsReceiveLine(&buf);
@@ -458,8 +521,13 @@ int main(void)
       ret = DynamixelPacketProcessChar(c,&xbeePacketIn);
       if (ret > 0)
       {
-        XbeeSendPacket(0,0,NULL,0);
-        LED_RC_TOGGLE;
+        //XbeeSendPacket(0,0,NULL,0);
+        //LED_RC_TOGGLE;
+        if (DynamixelPacketGetId(&xbeePacketIn) == MMC_MOTOR_CONTROLLER_DEVICE_ID)
+        {
+          DynamixelPacketCopy(&motorCmdPacketOut,&xbeePacketIn);
+          needToSendMotorCmd = 1;
+        }
       }
       c = XBEE_COM_PORT_GETCHAR();
     }
@@ -491,10 +559,24 @@ int main(void)
       }
     }
 
+    if ( (needToSendServo1Packet == 1) && (rs485Blocked == 0))
+    {
+      SetBusBlocked();
+      BusSendRawData(servo1PacketOutBuf,servo1PacketOutBufSize);
+      needToSendServo1Packet = 0;
+    }
+
     if ( (needToSendMotorCmd == 1) && (rs485Blocked == 0))
     {
       BusSendRawPacket(&motorCmdPacketOut);
       needToSendMotorCmd = 0;
+    }
+
+    if ( (needToRequestFb == 1) && (rs485Blocked == 0) )
+    {
+      SetBusBlocked();
+      BusSendRawData(encoderRequestRawPacket,encoderRequestRawPacketSize);
+      needToRequestFb = 0;
     }
 
   }

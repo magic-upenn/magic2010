@@ -35,7 +35,7 @@ int main()
   
   while(1)
   {
-    if (xbee.WritePacket(buf,ret))
+    if (xbee.WritePacket(buf,ret,0xFFFF))
     {
       PRINT_ERROR("could not write packet\n");
       return -1;

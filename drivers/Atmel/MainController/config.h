@@ -92,7 +92,7 @@
 #define LED_RC_PINN     PINE
 
 
-
+/*
 #define LED_ERROR_TOGGLE   LED_ERROR_PORT  ^= _BV(LED_ERROR_PIN)
 #define LED_PC_ACT_TOGGLE  LED_PC_ACT_PORT ^= _BV(LED_PC_ACT_PIN)
 #define LED_ESTOP_TOGGLE   LED_ESTOP_PORT  ^= _BV(LED_ESTOP_PIN)
@@ -103,8 +103,20 @@
 #define LED_ERROR_ON       LED_ERROR_PORT  |= _BV(LED_ERROR_PIN)
 #define LED_ERROR_OFF      LED_ERROR_PORT  &= ~(_BV(LED_ERROR_PIN))
 #define LED_ESTOP_ON       LED_ESTOP_PORT  |= _BV(LED_ESTOP_PIN)
-#define LED_ESTOP_OFF      LED_ESTOP_PORT  &= ~(_BV(LED_ESTOP_PIN))
-  
+#define LED_ESTOP_OFF      LED_ESTOP_PORT  &= ~(_BV(LED_ESTOP_PIN))  
+*/
+
+#define LED_ERROR_TOGGLE   
+#define LED_PC_ACT_TOGGLE  
+#define LED_ESTOP_TOGGLE   
+#define LED_GPS_TOGGLE     
+#define LED_RC_TOGGLE      
+
+
+#define LED_ERROR_ON       
+#define LED_ERROR_OFF      
+#define LED_ESTOP_ON       
+#define LED_ESTOP_OFF       
 
 //index of each control in the array of RC channels
 #define RC_V_IND 2

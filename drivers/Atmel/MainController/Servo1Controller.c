@@ -18,6 +18,7 @@ int8_t   _servo1Dir;
 float    _servo1ReversePt;
 uint32_t _servo1ReqTime;
 uint32_t _servo1ReqTimeout;
+uint32_t _servo1NextReqTime;
 
 
 //                             -HEADER--,-------ID-----------,LEN-,CMD-,ADDR,SIZE,SUM
@@ -101,7 +102,7 @@ void Servo1SetSpeed(float speed)
 }
   
   
-int Servo1Init()
+int Servo1Init(uint32_t initTime)
 {
   _servo1SpeedF     = SERVO1_DEF_SPEED;
   _servo1MinAngleF  = SERVO1_DEF_MIN_ANGLE;
@@ -114,6 +115,7 @@ int Servo1Init()
   _servo1AngleF     = 0;
   _servo1DesAngleF  = 0;
   _servo1ReversePt  = SERVO1_DEF_REVERSE_POINT;
+  _servo1NextReqTime= initTime;
 
   Servo1ComputeAndSetChecksum(_servo1FbReqPacket);
   Servo1FillAnglePacket(_servo1MinAngleF,_servo1SpeedF,_servo1SetMinPacket);
@@ -158,12 +160,15 @@ int Servo1Update(DynamixelPacket * packetIn, uint8_t ** packetOut, uint8_t * siz
     {
       case SERVO_CONTROLLER_STATE_UNINITIALIZED:
       case SERVO_CONTROLLER_STATE_IDLE:
+        if (_servo1Time < _servo1NextReqTime)
+          break;
         //send out the request command
-        *packetOut        = _servo1FbReqPacket;
-        *sizeOut          = _servo1FbReqPacketSize;
-        _servo1State      = SERVO_CONTROLLER_STATE_FB_REQUESTED;
-        _servo1ReqTime    = _servo1Time;
-        _servo1ReqTimeout = _servo1Time + SERVO1_REQ_TIMEOUT_DELTA;
+        *packetOut          = _servo1FbReqPacket;
+        *sizeOut            = _servo1FbReqPacketSize;
+        _servo1State        = SERVO_CONTROLLER_STATE_FB_REQUESTED;
+        _servo1ReqTime      = _servo1Time;
+        _servo1ReqTimeout   = _servo1Time + SERVO1_REQ_TIMEOUT_DELTA;
+        _servo1NextReqTime += SERVO1_NEXT_REQ_DELTA;
         break;
 
       case SERVO_CONTROLLER_STATE_FB_REQUESTED:
@@ -192,6 +197,9 @@ int Servo1Update(DynamixelPacket * packetIn, uint8_t ** packetOut, uint8_t * siz
     {
       case SERVO_CONTROLLER_STATE_UNINITIALIZED:
       case SERVO_CONTROLLER_STATE_IDLE:
+        if (_servo1Time < _servo1NextReqTime)
+          break;
+
         if (_servo1Dir > 0)
         {
           *packetOut       = _servo1SetMaxPacket;
@@ -207,6 +215,7 @@ int Servo1Update(DynamixelPacket * packetIn, uint8_t ** packetOut, uint8_t * siz
         _servo1State      = SERVO_CONTROLLER_STATE_SENT_ANGLE_CMD;
         _servo1ReqTime    = _servo1Time;
         _servo1ReqTimeout = _servo1Time + SERVO1_REQ_TIMEOUT_DELTA;
+        _servo1NextReqTime += SERVO1_NEXT_REQ_DELTA;
         break;
 
       case SERVO_CONTROLLER_STATE_SENT_ANGLE_CMD:
@@ -222,11 +231,14 @@ int Servo1Update(DynamixelPacket * packetIn, uint8_t ** packetOut, uint8_t * siz
         break;
 
       case SERVO_CONTROLLER_STATE_MOVING:
+        if (_servo1Time < _servo1NextReqTime)
+          break;
         *packetOut        = _servo1FbReqPacket;
         *sizeOut          = _servo1FbReqPacketSize;
         _servo1State      = SERVO_CONTROLLER_STATE_MOVING_FB_REQUESTED;
         _servo1ReqTime    = _servo1Time;
         _servo1ReqTimeout = _servo1Time + SERVO1_REQ_TIMEOUT_DELTA;
+        _servo1NextReqTime += SERVO1_NEXT_REQ_DELTA;
         break;
 
       case SERVO_CONTROLLER_STATE_MOVING_FB_REQUESTED:

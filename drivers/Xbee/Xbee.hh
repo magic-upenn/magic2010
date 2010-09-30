@@ -22,7 +22,7 @@ namespace Upenn
 
     public: int Connect(string dev, int baud);
     public: int Disconnect();
-    public: int WritePacket(uint8_t * data, int size);
+    public: int WritePacket(uint8_t * data, int size, int addr);
     public: int ReceivePacket(XbeeFrame * frame,double timeout);
 
     private: SerialDevice sd;

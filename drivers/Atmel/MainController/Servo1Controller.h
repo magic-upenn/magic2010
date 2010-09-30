@@ -15,7 +15,8 @@
 #define DYNAMIXEL_AX12_MAX_RPM              114
 #define DYNAMIXEL_AX12_MAX_SPEED            (DYNAMIXEL_AX12_MAX_RPM/60.0*360.0)
 #define SERVO1_DEF_REVERSE_POINT 2
-#define SERVO1_REQ_TIMEOUT_DELTA              1000
+#define SERVO1_REQ_TIMEOUT_DELTA              250
+#define SERVO1_NEXT_REQ_DELTA               1500
 
 #define UAV_DEVICE_ID_SERVO1 4
 
@@ -35,7 +36,7 @@ enum { SERVO_CONTROLLER_MODE_IDLE,
      };
 
 
-int       Servo1Init();
+int       Servo1Init(uint32_t initTime);
 void      Servo1UpdateTime(uint32_t timeMs);
 void      Servo1SetMode(uint8_t mode);
 void      Servo1SetMinAngle(float angle);

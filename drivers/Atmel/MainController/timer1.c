@@ -37,8 +37,7 @@ void timer1_init(void)
   
   //TCCR1B = _BV(CS11); // CS11: prescaler = 8, 32.8 ms cycle
   //TIMSK1 = _BV(OCIE1A);
-  //OCR1A = 12500;      //50 ms
-  OCR1A = 1250;      //50 ms
+  OCR1A = 12500/2;      //50 ms
 }
 
 void timer1_set_overflow_callback(void (*callback)(void))

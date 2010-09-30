@@ -485,8 +485,11 @@ int MicroGateway::MotorControllerPacketHandler(DynamixelPacket * dpacket)
     //PRINT_INFO("GOT encoders");
     double dt = t0.Toc(true); t0.Tic();
     printf("encoders: %d %d %d %d %d\n",(uint16_t)encData[0],encData[1],encData[2],encData[3], encData[4]);
-    if (dt > 0.07)
+    if (dt < 1 && dt > 0.03)
+    {
       printf("!!!!!!!!!!!!!!!!!\n");
+      //exit(1);
+    }
 #endif
     EncoderCounts encPacket(Upenn::Timer::GetAbsoluteTime(),
                            (uint16_t)encData[0],encData[1],encData[2],encData[3], encData[4]);
@@ -566,12 +569,25 @@ int MicroGateway::RcPacketHandler(DynamixelPacket * dpacket)
   return 0;
 }
 
+#define DYNAMIXEL_CONTROLLER_MIN_ANGLE              -150
+#define DYNAMIXEL_CONTROLLER_MAX_ANGLE               150
+
+int AngleVal2AngleDeg(uint16_t val, double &angle)
+{
+  angle = val/1023.0*(DYNAMIXEL_CONTROLLER_MAX_ANGLE-DYNAMIXEL_CONTROLLER_MIN_ANGLE) + DYNAMIXEL_CONTROLLER_MIN_ANGLE;
+  return 0;
+}
+
 int MicroGateway::ServoPacketHandler(DynamixelPacket * dpacket)
 {
   int id = DynamixelPacketGetId(dpacket);
 
+  double angle;
+  AngleVal2AngleDeg(*(uint16_t*)(dpacket->buffer+5),angle);
+  printf("got servo angle = %f\n",angle);
   /*
   //TODO: send out servo angle
+  
   
 
 */

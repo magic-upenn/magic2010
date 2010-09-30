@@ -253,7 +253,7 @@ int main()
   }
 
   ParamTable ptable;
-  ptable.id = 2;
+  ptable.id = 6;
   ptable.mode = 1;
   ptable.accBiasX = 670;
   ptable.accBiasY = 670;
