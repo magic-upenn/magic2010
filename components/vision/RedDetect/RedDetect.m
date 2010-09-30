@@ -23,15 +23,17 @@ function RedDetect
 
 	    %%%% send images and OOI to vision GUI console through IPC %%%%%
 		ipcReceiveMessages;
-		[omni_cand,front_cand,omni, front, omni_stats, front_stats] = red_detect_cams();  
+		[omni_sm, front_sm, omni_cands, front_cands, omni_stats, front_stats] = red_detect_cams();
 
 		%%%%% send compressed jpg image through IPC %%%%%
 		imPacket.id = str2double(getenv('ROBOT_ID'));
 		imPacket.t  = GetUnixTime();
-		imPacket.omni = cjpeg(omni);
-		imPacket.front = cjpeg(front);
-		imPacket.omni_cand = cjpeg(omni_cand);
-		imPacket.front_cand = cjpeg(front_cand);
+		imPacket.omni = cjpeg(omni_sm);
+		imPacket.front = cjpeg(front_sm);
+		for im = 1:3
+			imPacket.omni_cands{im}  = cjpeg(omni_cands{im});
+			imPacket.front_cands{im} = cjpeg(front_cands{im});
+		end 
 		imPacket.omni_stats = omni_stats;
 		imPacket.front_stats = front_stats;
 		ipcAPIPublish(imageMsgName,serialize(imPacket));

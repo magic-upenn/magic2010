@@ -58,25 +58,35 @@ handles.output = hObject;
 % Update handles structure
 guidata(hObject, handles);
 
-global PACKET
-all_stats = [];
-cand = 1; 
+global OMNI_GUI
+global OMNI_UP
+OMNI_GUI = hObject; 
+OMNI_UP = @updateGui;
+
+global CAND
+FOCUS = 1;
+CAND = 1; 
+updateGui; 
+
+
+function updateGui
+global OMNI_GUI
+global CAND
+global IMAGES
+handles = guidata(OMNI_GUI);
 for i = 1:9
-	packet = PACKET{i};
+	image = IMAGES(i);
 	oname = sprintf('omni%d',i);
 	cname = sprintf('cand%d',i);
-	all_stats = [all_stats; [ones(size(packet.omni_stats,1),1),packet.omni_stats]];
-	packet.stats = flipud(sortrows(packet.omni_stats,1));  
-	draw_cands_on_image(handles.(oname),packet.omni_stats,packet.omni); 
-	axes(handles.(cname)); imagesc(packet.omni_cands{cand}); daspect([1 1 1]);  
+%	image.stats = flipud(sortrows(image.omni_stats,1));  
+	draw_cands_on_image(handles.(oname),image.omni_stats,image.omni); 
+	if(isempty(image.omni_cands))
+		continue
+	end
+	imagesc(image.omni_cands{CAND},'Parent',handles.(cname)); daspect(handles.(cname),[1 1 1]);  
 end
 
-global OMNI_HANDLES; 
-OMNI_HANDLES = handles;
 
-while true
-	'hi'
-end 
 %all_stats = flipud(sortrows(all_stats,3));  
 %for i = 1:8
 %	cname = sprintf('cand%d',i)
@@ -103,16 +113,16 @@ function switch_cand_Callback(hObject, eventdata, handles)
 % hObject    handle to switch_cand (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-global PACKET;
+global IMAGES;
 global CAND;
  
 CAND = mod(CAND+1,3) + 1; 
 for i = 1:9
-	packet = PACKET{i};
+	image = IMAGES(i);
 	cname = sprintf('cand%d',i);
-	axes(handles.(cname)); imagesc(packet.omni_cands{CAND}); daspect([1 1 1]);  
+	if(isempty(image.omni_cands))
+		continue
+	end
+	axes(handles.(cname)); imagesc(image.omni_cands{CAND}); daspect([1 1 1]);  
 end
-
-
-
 

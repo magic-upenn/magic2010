@@ -57,60 +57,39 @@ handles.output = hObject;
 
 % Update handles structure
 
-global FRONT, global OMNI
 guidata(hObject, handles);
 
-global FRONT_HANDLES, global FRONT_GUI;
-FRONT_HANDLES = handles; 
+global FRONT_GUI
+global FRONT_UP
 FRONT_GUI = hObject; 
+FRONT_UP = @updateGui;
 
-global PACKET
 global CAND
 global FOCUS
-all_stats = [];
-
-
 FOCUS = 1;
-CAND = 1;  
-packet = PACKET{FOCUS};
-draw_cands_on_image(handles.front_focus,packet.front_stats,packet.front); 
-axes(handles.flat_focus); imagesc(packet.omni); daspect([1 1 1]); 
+CAND = 1; 
+updateGui; 
+
+function updateGui 
+global FRONT_GUI
+global CAND
+global FOCUS
+global IMAGES
+handles = guidata(FRONT_GUI);
+image = IMAGES(FOCUS);
+draw_cands_on_image(handles.front_focus,image.front_stats,image.front); 
+imagesc(image.omni,'Parent',handles.flat_focus); daspect(handles.flat_focus,[1 1 1]); 
 for i = 1:9
-	packet = PACKET{i};
+	image = IMAGES(i);
 	oname = sprintf('front%d',i);
 	cname = sprintf('cand%d',i);
-	all_stats = [all_stats; [ones(size(packet.front_stats,1),1),packet.front_stats]];
-	packet.stats = flipud(sortrows(packet.front_stats,1));  
-	draw_cands_on_image(handles.(oname),packet.front_stats,packet.front); 
-	axes(handles.(cname)); imagesc(packet.front_cands{CAND}); daspect([1 1 1]);  
+%	image.stats = flipud(sortrows(image.front_stats,1));  
+	draw_cands_on_image(handles.(oname),image.front_stats,image.front); 
+	if(isempty(image.front_cands))
+		continue
+	end
+	imagesc(image.front_cands{CAND},'Parent',handles.(cname)); daspect(handles.(cname),[1 1 1]);  
 end
-%all_stats = [];
-%if ~isempty(FRONT) 
-%for i = 1:9
-%	fname = sprintf('front%d',i)
-%	all_stats = [all_stats; [ones(size(FRONT(i).stats,1),1),FRONT(i).stats]];
-%	FRONT(i).stats = flipud(sortrows(FRONT(i).stats,2));  
-%	draw_cands_on_image(FRONT_HANDLES.(fname),FRONT(i).stats,FRONT(i).img); 
-%	if i == 9
-%		break
-%	end
-%	cname = sprintf('cand%d',i)
-%	draw_cand_on_axes(FRONT_HANDLES.(cname),FRONT(i).stats,i,FRONT(i).img); 
-%end
-%end
-%%vision_guis
-%for i =1:100000
-%	im = get_image(2);
-%	axes(handles.front_focus); 
-%	imagesc(im); 
-%	[red, stats] = find_red_candidates(im);
-%	size(stats);
-%	draw_cands_on_image(handles.front1,stats,im); 
-%	draw_cand_on_axes(handles.cand1,stats,1,im);  	 
-%	pause(1); 
-%end
-% UIWAIT makes front_gui wait for user response (see UIRESUME)
-% uiwait(handles.figure1);
 
 
 % --- Outputs from this function are returned to the command line.
@@ -261,14 +240,17 @@ function switch_cand_Callback(hObject, eventdata, handles)
 % hObject    handle to switch_cand (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-global PACKET;
+global IMAGES;
 global CAND;
- 
+
 CAND = mod(CAND+1,3) + 1; 
 for i = 1:9
-	packet = PACKET{i};
+	image = IMAGES(i);
 	cname = sprintf('cand%d',i);
-	axes(handles.(cname)); imagesc(packet.front_cands{CAND}); daspect([1 1 1]);  
+	if(isempty(image.front_cands))
+		continue
+	end
+	axes(handles.(cname)); imagesc(image.front_cands{CAND}); daspect([1 1 1]);  
 end
 
 

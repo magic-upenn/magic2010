@@ -9,8 +9,28 @@
 #include <sys/mman.h>
 #include <cctype>
 #include <algorithm>
-#include "v4l2.h"
+#include <vector>
+#include <map>
+#include <string>
 #include <string.h>
+#include "v4l2.h"
+
+// Logitech UVC controls
+#ifndef V4L2_CID_FOCUS
+#define V4L2_CID_FOCUS 0x0A046D04
+#endif
+#ifndef V4L2_CID_LED1_MODE
+#define V4L2_CID_LED1_MODE 0x0A046D05
+#endif
+#ifndef V4L2_CID_LED1_FREQUENCY
+#define V4L2_CID_LED1_FREQUENCY 0x0A046D06
+#endif
+#ifndef V4L2_CID_DISABLE_PROCESSING
+#define V4L2_CID_DISABLE_PROCESSING 0x0A046D71
+#endif
+#ifndef V4L2_CID_RAW_BITS_PER_PIXEL
+#define V4L2_CID_RAW_BITS_PER_PIXEL 0x0A046D72
+#endif
 
 static int xioctl(int fd, int request, void *arg) {
   int r;
@@ -242,6 +262,7 @@ int V4l2::v4l2_init(int width, int height) {
 //    v4l2_error("VIDIOC_G_PARM");
 //  printf("Current framerate %u/%u", (unsigned int)params.timeperframe.numerator, (unsigned int)params.timeperframe.denominator); 
  
+  printf("Querying V4L2 controls"); 
   // Query V4L2 controls:
   v4l2_query_ctrl(V4L2_CID_BASE,
 		  V4L2_CID_LASTP1);
@@ -249,6 +270,19 @@ int V4l2::v4l2_init(int width, int height) {
 		  V4L2_CID_PRIVATE_BASE+20);
   v4l2_query_ctrl(V4L2_CID_CAMERA_CLASS_BASE+1,
 		  V4L2_CID_CAMERA_CLASS_BASE+20);
+
+  printf("Querying logitech controls"); 
+  // Logitech specific controls:
+  v4l2_query_ctrl(V4L2_CID_FOCUS,
+		  V4L2_CID_FOCUS+1);
+  v4l2_query_ctrl(V4L2_CID_LED1_MODE,
+		  V4L2_CID_LED1_MODE+1);
+  v4l2_query_ctrl(V4L2_CID_LED1_FREQUENCY,
+		  V4L2_CID_LED1_FREQUENCY+1);
+  v4l2_query_ctrl(V4L2_CID_DISABLE_PROCESSING,
+		  V4L2_CID_DISABLE_PROCESSING+1);
+  v4l2_query_ctrl(V4L2_CID_RAW_BITS_PER_PIXEL,
+		  V4L2_CID_RAW_BITS_PER_PIXEL+1);
 
   // Initialize memory map
   v4l2_init_mmap();
@@ -303,7 +337,7 @@ int V4l2::v4l2_read_frame() {
   if (xioctl(video_fd, VIDIOC_DQBUF, &buf) == -1) {
     switch (errno) {
     case EAGAIN:
-      fprintf(stdout, "no frame available\n");
+      //fprintf(stdout, "no frame available\n");
       return -1;
     case EIO:
       // Could ignore EIO

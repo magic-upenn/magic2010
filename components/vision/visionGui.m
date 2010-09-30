@@ -1,7 +1,6 @@
 function visionGui
 	SetMagicPaths
 	visionGuiInit;
-	visionGuiSetupFigure;
 
 	while(1)
 	  fprintf(1,'.');
@@ -22,8 +21,8 @@ function visionGuiInit
 	    IMAGES(ii).t = [];
 	    IMAGES(ii).omni = [];
 	    IMAGES(ii).front = [];
-	    IMAGES(ii).omni_cand = [];
-	    IMAGES(ii).front_cand = [];
+	    IMAGES(ii).omni_cands = [];
+	    IMAGES(ii).front_cands = [];
 	    IMAGES(ii).omni_stats = [];
 	    IMAGES(ii).front_stats = [];
 		
@@ -39,7 +38,7 @@ function visionGuiInit
 	ipcInit;
 
 	masterConnectRobots(ids,'127.0.0.1');
-	%masterConnectRobots(ids);
+%	masterConnectRobots(ids);
 
 	for ii=1:length(ROBOTS)
 	  if (ROBOTS(ii).connected == 1)
@@ -58,10 +57,6 @@ function visionGuiInit
 
 
 % Set up the figure
-function visionGuiSetupFigure
-	global GUI PLOTHANDLES 
-	figure(1), clf(gcf)
-
 
 function ipcRecvImageFcn(msg,name)
 	global IMAGES PLOTHANDLES GUI
@@ -70,17 +65,19 @@ function ipcRecvImageFcn(msg,name)
 	IMAGES(imPacket.id) = imPacket;
 	IMAGES(imPacket.id).omni = djpeg(imPacket.omni);
 	IMAGES(imPacket.id).front = djpeg(imPacket.front);
-	IMAGES(imPacket.id).omni_cand = djpeg(imPacket.omni_cand);
-	IMAGES(imPacket.id).front_cand = djpeg(imPacket.front_cand);
+	for im = 1:3
+		IMAGES(imPacket.id).omni_cands{im}  = djpeg(imPacket.omni_cands{im});
+		IMAGES(imPacket.id).front_cands{im} = djpeg(imPacket.front_cands{im});
+	end 
 	omni = IMAGES(imPacket.id).omni; 
 	front = IMAGES(imPacket.id).front; 
-	subplot(1,2,1);
-	imagesc(draw_cands(imPacket.omni_stats,omni));  	 
-	daspect([1 1 1]); 
-	subplot(1,2,2); 
-	imagesc(draw_cands(imPacket.front_stats,front));  	 
-	daspect([1 1 1]); 
-
+	omni_cand = IMAGES(imPacket.id).omni_cands{1}; 
+	front_cand = IMAGES(imPacket.id).front_cands{1}; 
+	
+	global FRONT_UP
+	feval(FRONT_UP);  
+	global OMNI_UP
+	feval(OMNI_UP);  
 	%set(PLOTHANDLES(imPacket.id),'CData',IMAGES(imPacket.id).jpg);
 	%set(GUI.hYcurr(imPacket.id),'String',num2str(imPacket.Ymean));
 %	if isempty(imPacket.POSE)

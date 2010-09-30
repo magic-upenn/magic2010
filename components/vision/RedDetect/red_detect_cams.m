@@ -1,4 +1,4 @@
-function [omni_sm, front_sm, omni_stats, front_stats] = red_detect_cams()
+function [omni_sm, front_sm, omni_cands, front_cands, omni_stats, front_stats] = red_detect_cams()
 	omni  = get_image(0,3); 
 	front = get_image(1,3);
 	circle = [600,800,650]/2; 

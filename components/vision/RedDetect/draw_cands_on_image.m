@@ -1,6 +1,8 @@
 function draw_cands_on_image(axeh,stats,img)
-	axes(axeh);
-	imagesc(img); daspect([1 1 1])
+	imagesc(img,'Parent',axeh); daspect(axeh,[1 1 1])
+	if isempty(stats)
+		return
+	end
 	stats = flipud(sortrows(stats,1));  
 	for i = 1:min(size(stats,1),25)
 		linecolor = 'blue';
@@ -15,8 +17,8 @@ function draw_cands_on_image(axeh,stats,img)
 		end
 		bb = stats(i,2:end);
 		bb = max(bb,1);  
-		line([bb(3),bb(4)],[bb(1),bb(1)],'Color',linecolor,'LineWidth',2);
-		line([bb(3),bb(4)],[bb(2),bb(2)],'Color',linecolor,'LineWidth',2);
-		line([bb(3),bb(3)],[bb(1),bb(2)],'Color',linecolor,'LineWidth',2);
-		line([bb(4),bb(4)],[bb(1),bb(2)],'Color',linecolor,'LineWidth',2);
+		line([bb(3),bb(4)],[bb(1),bb(1)],'Color',linecolor,'LineWidth',2,'Parent',axeh);
+		line([bb(3),bb(4)],[bb(2),bb(2)],'Color',linecolor,'LineWidth',2,'Parent',axeh);
+		line([bb(3),bb(3)],[bb(1),bb(2)],'Color',linecolor,'LineWidth',2,'Parent',axeh);
+		line([bb(4),bb(4)],[bb(1),bb(2)],'Color',linecolor,'LineWidth',2,'Parent',axeh);
 	end
