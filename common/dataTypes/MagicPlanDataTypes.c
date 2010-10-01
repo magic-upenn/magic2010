@@ -68,7 +68,7 @@ int GP_DATA::WriteToMatlab(mxArray * mxArr, int index)
   
     MEX_WRITE_FIELD(mxArr,index,num_regions);
   MEX_WRITE_FIELD(mxArr,index,num_states);
-  MEX_WRITE_FIELD_RAW_ARRAY2D_UINT8(mxArr,index,bias_table, num_states, num_regions);
+  MEX_WRITE_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,bias_table, num_states, num_regions);
 
   return 0;
 }
