@@ -10,6 +10,8 @@
 #include <stdint.h>
 #include <mex.h>
 
+#define MAXBUFLEN 65500
+
 using namespace std;
 
 int fd = -1;
@@ -84,6 +86,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     uint8_t * data = (uint8_t*)mxGetData(prhs[1]);
     int size       = mxGetNumberOfElements(prhs[1]);
 
+    if (size > MAXBUFLEN)
+    {
+      printf("UdpSendAPI: data size (%d) exceeds the maximum limit of %d\n",size,MAXBUFLEN);
+      plhs[0] = mxCreateDoubleScalar(0);
+	    return;
+    }
+
     if (sendto(fd, data, size, 0,(struct sockaddr *) &addr, sizeof(addr)) < 0)
     {
       printf("UdpSendAPI: could not send data\n");
@@ -96,7 +105,5 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   else
     mexErrMsgTxt("unknown command");
 }
-
-
 
 
