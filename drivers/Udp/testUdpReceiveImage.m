@@ -1,7 +1,7 @@
 SetMagicPaths
 addpath ../Xbee/
 
-addr = '127.0.0.1';
+addr = '192.168.10.102';
 port = 12345;
 
 UdpReceiveAPI('connect',addr,port);
