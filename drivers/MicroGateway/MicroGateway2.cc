@@ -25,8 +25,8 @@ using namespace Magic;
 //#define PRINT_IMU_FILTERED
 //#define PRINT_IMU_RAW
 //#define PRINT_GPS
-#define PRINT_ENCODERS
-
+//#define PRINT_ENCODERS
+//#define PRINT_SERVO
 
 /////////////////////////////////////////////////////////////////////////
 // Constructor
@@ -609,7 +609,10 @@ int MicroGateway::ServoPacketHandler(DynamixelPacket * dpacket)
 
   double angle;
   AngleVal2AngleDeg(*(uint16_t*)(dpacket->buffer+5),angle);
+
+#ifdef PRINT_SERVO
   printf("got servo angle = %f\n",angle);
+#endif
   /*
   //TODO: send out servo angle
   
