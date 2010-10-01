@@ -5,6 +5,7 @@ global RPOSE RMAP RPATH EXPLORE_PATH
 global GPOSE GMAP GPATH
 global RDISPLAY GDISPLAY
 global PLANDISPLAY PLANMAP PLAN_DEBUG
+global MAGIC_COLORMAP; 
 
 axlim = 10;
 
@@ -12,6 +13,8 @@ ret = [];
 switch event
   case 'entry'
     RDISPLAY.iframe = 1;
+
+    initColormap; 
 
     % Setup individual robot windows
     for id = GCS.ids,
@@ -37,7 +40,9 @@ switch event
       axis([-axlim axlim -axlim axlim]);
       RDISPLAY.hAxes{id} = gca;
       set(gca,'Position', [.2 .1 .8 .8], 'XLimMode', 'manual', 'YLimMode', 'manual');
-      colormap(jet);
+      set(gca,'CLim',[-100 100]); 
+      set(gca,'CLimMode','manual');
+      colormap(MAGIC_COLORMAP); 
 
       hfig = gcf;
       RDISPLAY.hFigure{id} = hfig;
@@ -137,12 +142,15 @@ switch event
     axis([-40 40 -40 40]);
     GDISPLAY.hAxes = gca;
     set(gca,'Position', [.01 .025 .95 .95], 'XLimMode', 'manual', 'YLimMode', 'manual');
-    colormap(jet);
+    set(gca,'CLim',[-100 100]); 
+    set(gca,'CLimMode','manual');
+    colormap(MAGIC_COLORMAP); 
     GDISPLAY.visualExploreOverlay = [];%patch([0],[0],[0 0 1],'Visible','off');
     GDISPLAY.visualExploreText = [];
     GDISPLAY.visualAvoidOverlay = [];%patch([0],[0],[1 0 0],'Visible','off');
     GDISPLAY.visualAvoidText = [];
     GDISPLAY.lastRegionSelection = -1;
+    patch([0 1 1 0],[0 0 1 1],[0 1 0],'FaceAlpha',0.0,'EdgeAlpha',0.0);
     drawnow
 
     hfig = gcf;
@@ -347,6 +355,24 @@ switch event
                                 'Units', 'Normalized', ...
                                 'Position', [.35 .0 .3 .1]);
 
+    GDISPLAY.cursorClickText = uicontrol(Std, ...
+                                'Parent', hfig, ...
+                                'Style', 'text', ...
+                                'String', 'Last Click: (0,0)', ...
+                                'KeyPressFcn', @keypress, ...
+                                'HorizontalAlignment','left', ...
+                                'Units', 'Normalized', ...
+                                'Position', [.025 .08 .15 .02]);
+    GDISPLAY.cursorDistanceText = uicontrol(Std, ...
+                                'Parent', hfig, ...
+                                'Style', 'text', ...
+                                'String', 'Click Distance: 0', ...
+                                'KeyPressFcn', @keypress, ...
+                                'HorizontalAlignment','left', ...
+                                'Units', 'Normalized', ...
+                                'Position', [.025 .06 .15 .02]);
+    GDISPLAY.last_click = [0 0];
+
 
     GDISPLAY.templateGroup = uibuttongroup('Parent', hfig, ...
                                 'visible', 'on', ...
@@ -441,6 +467,14 @@ switch event
                                         'Units', 'Normalized', ...
                                         'Position', [.80 .58 .10 .03]);
 
+    GDISPLAY.gridOverlay = uicontrol(Std, ...
+                                        'Parent', hfig, ...
+                                        'Style', 'checkbox', ...
+                                        'String', 'Grid Overlay', ...
+                                        'Callback', ['gridOverlay()'], ...
+                                        'KeyPressFcn', @keypress, ...
+                                        'Units', 'Normalized', ...
+                                        'Position', [.80 .55 .10 .03]);
 
     if PLAN_DEBUG
       PLANDISPLAY.fig = figure(11);
@@ -490,6 +524,14 @@ switch event
 
     cost = getdata(GMAP, 'cost');
     set(GDISPLAY.hMap, 'CData', cost');
+
+    new_pos = get(GDISPLAY.hAxes,'CurrentPoint');
+    new_pos = new_pos(1,1:2);
+    if sum(GDISPLAY.last_click ~= new_pos) == 2
+      set(GDISPLAY.cursorClickText,'String', ['Last Click: (',num2str(new_pos(1)),',',num2str(new_pos(2)),')']);
+      set(GDISPLAY.cursorDistanceText,'String', ['Click Distance: ',num2str(sqrt(sum((new_pos-GDISPLAY.last_click).^2)))]);
+      GDISPLAY.last_click = new_pos;
+    end
 
     if PLAN_DEBUG
       %set(PLANDISPLAY.map, 'CData', PLANMAP.map);

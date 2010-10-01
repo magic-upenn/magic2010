@@ -9,9 +9,9 @@ if(numel(x_corner) > 2)
   GDISPLAY.avoidRegions(end).corner_y = y_corner;
   [GDISPLAY.avoidRegions(end).y GDISPLAY.avoidRegions(end).x] = find(mask);
   ymap = y(GMAP);
-  GDISPLAY.avoidRegions(end).y = GDISPLAY.avoidRegions(end).y*resolution(GMAP) + ymap(1);
+  GDISPLAY.avoidRegions(end).y = GDISPLAY.avoidRegions(end).y'*resolution(GMAP) + ymap(1);
   xmap = x(GMAP);
-  GDISPLAY.avoidRegions(end).x = GDISPLAY.avoidRegions(end).x*resolution(GMAP) + xmap(1);
+  GDISPLAY.avoidRegions(end).x = GDISPLAY.avoidRegions(end).x'*resolution(GMAP) + xmap(1);
 
   set(GDISPLAY.avoidRegionList,'String',1:length(GDISPLAY.avoidRegions));
   avoidRegionOverlay();

@@ -24,7 +24,7 @@ if get(GDISPLAY.avoidOverlay,'Value')
     temp_y = GDISPLAY.avoidRegions(i).corner_y;%;[GDISPLAY.exploreRegions(i).corner_y; ones(offset,1)*GDISPLAY.exploreRegions(i).corner_y(end)];
     %x_corners = [x_corners temp_x];
     %y_corners = [y_corners temp_y];
-    GDISPLAY.visualAvoidOverlay(i) = patch(temp_x,temp_y,[1 0 0],'ButtonDownFcn',@regionSelect,'Tag',strcat('a',num2str(i)));
+    GDISPLAY.visualAvoidOverlay(i) = patch(temp_x,temp_y,[1 0 0],'ButtonDownFcn',@regionSelect,'Tag',strcat('a',num2str(i)),'FaceAlpha',0.3);
     GDISPLAY.visualAvoidText(i) = text(mean(temp_x),mean(temp_y),num2str(i),'FontSize',30);
   end
   %set(GDISPLAY.visualExploreOverlay, 'XData', x_corners, 'YData', y_corners, 'Visible', 'on');
