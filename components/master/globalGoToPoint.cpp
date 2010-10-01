@@ -223,8 +223,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
     path = (double *) mxGetPr(plhs[0]);
     
     for(int idx = 0; idx < NUMPTS; idx++) {
-        path[idx*2] = (traj[idx].x + UTM[0])*cell_size;
-        path[idx*2 +1]= (traj[idx].y*cell_size + UTM[1])*cell_size;
+        path[idx*2] = traj[idx].x*cell_size + UTM[0];
+        path[idx*2 +1]= traj[idx].y*cell_size + UTM[1];
     }
     
     delete [] map;
