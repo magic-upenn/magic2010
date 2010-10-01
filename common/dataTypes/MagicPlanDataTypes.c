@@ -28,7 +28,7 @@ int GP_DATA::ReadFromMatlab(mxArray * mxArr, int index)
 
     MEX_READ_FIELD(mxArr,index,num_regions,numFieldsRead);
   MEX_READ_FIELD(mxArr,index,num_states,numFieldsRead);
-  MEX_READ_FIELD_RAW_ARRAY2D_UINT8(mxArr,index,bias_table,numFieldsRead);
+  MEX_READ_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,bias_table,numFieldsRead);
 
 
   return numFieldsRead;

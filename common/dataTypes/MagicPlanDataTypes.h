@@ -2,7 +2,7 @@
 #ifndef GP_HEADER
 #define GP_HEADER
 
-#define GP_DATA_FORM "{int, double, double, double, double, double, double, double, int, int, double, double, <short:1>, <double:1>, <double:1>, <double:1>, <double:9,10>, <uchar:9,10>, int, int, <double:19,20>}"	
+#define GP_DATA_FORM "{int, double, double, double, double, double, double, double, int, int, double, double, <short:1>, <double:1>, <double:1>, <double:1>, <double:9,10>, <ubyte:9,10>, int, int, <double:19,20>}"	
 #define GP_DATA_MSG "Global_Planner_DATA"
 
 typedef struct {
