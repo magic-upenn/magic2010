@@ -24,7 +24,11 @@ int GP_DATA::ReadFromMatlab(mxArray * mxArr, int index)
   MEX_READ_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,y,numFieldsRead);
   MEX_READ_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,theta,numFieldsRead);
   MEX_READ_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,map,numFieldsRead);
-  MEX_READ_FIELD_RAW_ARRAY2D_UINT16(mxArr,index,region_map,numFieldsRead);
+  MEX_READ_FIELD_RAW_ARRAY2D_UINT8(mxArr,index,region_map,numFieldsRead);
+
+    MEX_READ_FIELD(mxArr,index,num_regions,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,num_states,numFieldsRead);
+  MEX_READ_FIELD_RAW_ARRAY2D_UINT8(mxArr,index,bias_table,numFieldsRead);
 
 
   return numFieldsRead;
@@ -32,7 +36,7 @@ int GP_DATA::ReadFromMatlab(mxArray * mxArr, int index)
 
 int GP_DATA::CreateMatlabStructMatrix(mxArray ** mxArrPP,int m, int n)
 {
-  const char * fields[]= { "NR", "GP_PLAN_TIME", "DIST_GAIN", "MIN_RANGE", "MAX_RANGE", "DIST_PENALTY", "REGION_PENALTY", "map_cell_size", "map_size_x", "map_size_y", "UTM_x", "UTM_y", "avail", "x", "y", "theta","map","region_map" };
+  const char * fields[]= { "NR", "GP_PLAN_TIME", "DIST_GAIN", "MIN_RANGE", "MAX_RANGE", "DIST_PENALTY", "REGION_PENALTY", "map_cell_size", "map_size_x", "map_size_y", "UTM_x", "UTM_y", "avail", "x", "y", "theta","map","region_map", "num_regions", "num_states", "bias_table" };
   const int nfields = sizeof(fields)/sizeof(*fields);
     
   *mxArrPP = mxCreateStructMatrix(m,n,nfields,fields);
@@ -60,8 +64,12 @@ int GP_DATA::WriteToMatlab(mxArray * mxArr, int index)
   MEX_WRITE_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,y,NR, 1);
   MEX_WRITE_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,theta,NR, 1);
   MEX_WRITE_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,map, map_size_x, map_size_y);
-  MEX_WRITE_FIELD_RAW_ARRAY2D_UINT16(mxArr,index,region_map, map_size_x, map_size_y);
+  MEX_WRITE_FIELD_RAW_ARRAY2D_UINT8(mxArr,index,region_map, map_size_x, map_size_y);
   
+    MEX_WRITE_FIELD(mxArr,index,num_regions);
+  MEX_WRITE_FIELD(mxArr,index,num_states);
+  MEX_WRITE_FIELD_RAW_ARRAY2D_UINT8(mxArr,index,bias_table, num_states, num_regions);
+
   return 0;
 }
 
