@@ -758,7 +758,7 @@ void GPLAN::global_planner(double goal_x, double goal_y, double goal_theta) {
         // wait for all threads to finish
         for(list<int>::const_iterator pos = remaining_robots.begin(); pos != remaining_robots.end(); pos++) {
             GP_threadlist[*pos].join();
-            if (DISPLAY_OUTPUT) {printf("frontier list for robot %d has %d elements and the min is %f\n", (int) *pos, (int) temp_frontier[*pos]->size(), temp_frontier[*pos]->top().total);}
+            //if (DISPLAY_OUTPUT) {printf("frontier list for robot %d has %d elements and the min is %f\n", (int) *pos, (int) temp_frontier[*pos]->size(), temp_frontier[*pos]->top().total);}
         }
 
         // merge lists as long as they are all done into frontier

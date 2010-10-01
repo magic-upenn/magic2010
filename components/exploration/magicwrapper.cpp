@@ -88,7 +88,7 @@ static void DATAhandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientDa
     
 	for (int j = 0; j < planner.map_size_y; j++) {
 		for (int i = 0; i < planner.map_size_x; i++) {
-			if(data->map[i+planner.map_size_x*j] > 0.5)  {
+			if(data->map[i+planner.map_size_x*j] > 90)  {
 				maps.coverage_map[i+planner.map_size_x*j] = KNOWN; 
 				maps.cost_map[i+planner.map_size_x*j] = OBSTACLE;
 			}
@@ -144,7 +144,7 @@ static void DATAhandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientDa
 
 int main () {
 	planner.WRITE_FILES = 0; // flag to write files out
-	planner.DISPLAY_OUTPUT =0; // flag to display any output
+	planner.DISPLAY_OUTPUT =1; // flag to display any output
 	planner.SENSORWIDTH = M_PI;
 	planner.THETA_BIAS = 0; // 0 to 1 bias on rough direction to goal location default is 1
 	planner.sensor_radius = 7.0;		// sensing radius of robot in m
