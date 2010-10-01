@@ -71,17 +71,24 @@ static void DATAhandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientDa
 	delete [] maps.cost_map;
 	delete [] maps.elev_map;
 	delete [] maps.region_map;
+    delete [] maps.bias_table;
+
+    maps.num_regions = data->num_regions;
+    maps.num_states = data->num_states;
+    if(maps.num_states != planner.NR +2) { printf("FAIL: bias table is wrong dimensions\n"); }
 
 	maps.coverage_map = new unsigned char[planner.map_size_x * planner.map_size_y];
 	maps.cost_map = new unsigned char[planner.map_size_x * planner.map_size_y];
 	maps.elev_map = new int16_t[planner.map_size_x * planner.map_size_y];
-	maps.region_map = new uint16_t[planner.map_size_x * planner.map_size_y];
+	maps.region_map = new unsigned char[planner.map_size_x * planner.map_size_y];
+    maps.bias_table = new double[maps.num_regions * maps.num_states];
 
-	memcpy((void *)maps.region_map, (void *)data->region_map, planner.map_size_x*planner.map_size_y*sizeof(uint16_t));
-
+	memcpy((void *)maps.region_map, (void *)data->region_map, planner.map_size_x*planner.map_size_y*sizeof(unsigned char));
+    memcpy((void *)maps.bias_table, (void *)data->bias_table, maps.num_regions*maps.num_states*sizeof(double));
+    
 	for (int j = 0; j < planner.map_size_y; j++) {
 		for (int i = 0; i < planner.map_size_x; i++) {
-			if(data->map[i+planner.map_size_x*j] > 0.05)  {
+			if(data->map[i+planner.map_size_x*j] > 0.5)  {
 				maps.coverage_map[i+planner.map_size_x*j] = KNOWN; 
 				maps.cost_map[i+planner.map_size_x*j] = OBSTACLE;
 			}
@@ -154,7 +161,8 @@ int main () {
 	maps.coverage_map = new unsigned char[1];
 	maps.cost_map = new unsigned char[1];
 	maps.elev_map = new int16_t[1];
-	maps.region_map = new uint16_t[1];
+	maps.region_map = new unsigned char[1];
+    maps.bias_table = new double[1];
 
 
 	//IPC stuff

@@ -36,7 +36,7 @@ class GPLAN {
 	unsigned char * cover_map;
 	unsigned char * cost_map;
 	int16_t * elev_map; 
-	uint16_t * region_map;
+	unsigned char * region_map;
 	unsigned char * real_cover_map;
 
 
@@ -60,9 +60,12 @@ class GPLAN {
 	double MIN_RANGE;
 	double MAX_RANGE;
 	double DIST_PENALTY;
-	double REGION_PENALTY;
-    uint16_t * BN;
-    uint16_t GENERIC_REGION_MASK;
+    double REGION_PENALTY;
+    //uint16_t * BN;
+    //uint16_t GENERIC_REGION_MASK;
+    int num_regions;
+    double * bias_table;
+    
 
     // sensor variables
 	int NUMVECTORS;

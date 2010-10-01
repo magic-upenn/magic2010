@@ -42,11 +42,13 @@ GPLAN::GPLAN() {
     cover_map = new unsigned char[DEFAULTMAP];
     cost_map = new unsigned char[DEFAULTMAP];
     elev_map = new int16_t[DEFAULTMAP]; 
-    region_map = new uint16_t[DEFAULTMAP];
+    region_map = new unsigned char[DEFAULTMAP];
     real_cover_map = new unsigned char[DEFAULTMAP];
     inflated_cost_map = new unsigned char[DEFAULTMAP];
     cost_map_pa = new unsigned char*[DEFAULTMAP]; // ptr to first element of each row
     inf_cost_map_pa = new unsigned char*[DEFAULTMAP]; //ptr to first element of each row for inflated map
+    bias_table = new double[DEFAULTMAP];
+
 
     // planner variables
     GP_PLAN_TIME = 1.0; // seconds to allow for planning
@@ -61,9 +63,9 @@ GPLAN::GPLAN() {
     FRONTIER_HEAP_SIZE = 100;
 
     // zone setup
-    BN = new uint16_t[16];
-    for(int i = 0; i<16; i++) { BN[i] = (unsigned int16_t)(1 << (15-i)); }
-    GENERIC_REGION_MASK = 63;
+    //BN = new uint16_t[16];
+    //for(int i = 0; i<16; i++) { BN[i] = (unsigned int16_t)(1 << (15-i)); }
+    //GENERIC_REGION_MASK = 63;
 
     // sensor variables
     NUMVECTORS = 0;
@@ -82,7 +84,8 @@ GPLAN::~GPLAN() {
     delete [] inflated_cost_map;
     delete [] inf_cost_map_pa;
     delete [] cost_map_pa;
-    delete [] BN;
+    //delete [] BN;
+    delete [] bias_table;
 }
 
 inline void GPLAN::timer_fxn(const char txt[]) {
@@ -194,12 +197,12 @@ bool GPLAN::map_alloc(void) {
     delete[] cost_map_pa;
     delete[] inf_cost_map_pa;
     delete [] real_cover_map;
-
+ 
     //allocate new storage
     cost_map = new unsigned char[map_size_x * map_size_y];
     elev_map = new int16_t[map_size_x * map_size_y];
     cover_map = new unsigned char[map_size_x * map_size_y];
-    region_map = new uint16_t[map_size_x*map_size_y];
+    region_map = new unsigned char[map_size_x*map_size_y];
     real_cover_map = new unsigned char[map_size_x*map_size_y];
     inflated_cost_map = new unsigned char[map_size_x * map_size_y];
 
@@ -298,40 +301,49 @@ double GPLAN::bias(const int RID, const int x, const int y) {
     // benefit for going to the same point
     if ((x == robot_goals[RID*2]) && (y == robot_goals[RID*2+1])) { same_bonus = 2; }
 
-    // if in my own or someone elses region apply value
-    if (region_map[x+map_size_x*y] & BN[RID]) { region_bias = 1000; }
-    else if (region_map[x+map_size_x*y] & ~(BN[RID]|GENERIC_REGION_MASK)) { region_bias = .0001; }
-    // if in a generic region see if I am alone then apply appropriate value
-    else  {
-        region_bias = 100;
-        for (int ridx = 0; ridx < NUMROBOTS; ridx++) {
-            int xx = robot_goals[ridx*2];
-            int yy = robot_goals[ridx*2+1];
-            if (ridx != RID) {
-                if ((region_map[xx + map_size_x*yy] & GENERIC_REGION_MASK) == (region_map[x + map_size_x*y] & GENERIC_REGION_MASK)) { 
-                    robot_in_region = true;
-                    int dist2 = ((x-xx)*(x-xx) + (y-yy)*(y-yy));
-                    if (dist2 < min_dist2) { min_dist2 = dist2; }
-                }
+    //// if in my own or someone elses region apply value
+    //if (region_map[x+map_size_x*y] & BN[RID]) { region_bias = 1000; }
+    //else if (region_map[x+map_size_x*y] & ~(BN[RID]|GENERIC_REGION_MASK)) { region_bias = .0001; }
+    //// if in a generic region see if I am alone then apply appropriate value
+    //else  {
+    //region_bias = 100;
+
+    // check the other robots to see if any in same region
+    for (int ridx = 0; ridx < NUMROBOTS; ridx++) {
+        int xx = robot_goals[ridx*2];
+        int yy = robot_goals[ridx*2+1];
+        if (ridx != RID) {
+            if (region_map[xx + map_size_x*yy] == region_map[x + map_size_x*y]) { 
+                robot_in_region = true;
+                int dist2 = ((x-xx)*(x-xx) + (y-yy)*(y-yy));
+                if (dist2 < min_dist2) { min_dist2 = dist2; }
             }
         }
-
-        // if robot is in same region calc bias
-        if (robot_in_region) {
-            double dist;
-
-            // determine if in region zero and if not (since we are in this block) apply the penalty for sharing regions
-            if ((region_map[x + map_size_x*y] & GENERIC_REGION_MASK) == 0) {region_bias = 1;} else { region_bias = .01;}
-
-            // determine distance and delta from desired range
-            dist = sqrt((double)(min_dist2)) * map_cell_size;
-            if (dist < MIN_RANGE) { delta = dist/MIN_RANGE; }
-            else if (dist > MAX_RANGE) {delta = MAX_RANGE/dist; }
-
-            // calculate bias
-            dist_bias = (delta) * DIST_PENALTY;
-        }
     }
+
+
+    // if robot is in same region calc bias
+    if (robot_in_region) {
+        double dist;
+
+        //// determine if in region zero and if not (since we are in this block) apply the penalty for sharing regions
+        //if ((region_map[x + map_size_x*y] & GENERIC_REGION_MASK) == 0) {region_bias = 1;} else { region_bias = .01;}
+
+        // determine distance and delta from desired range
+        dist = sqrt((double)(min_dist2)) * map_cell_size;
+        if (dist < MIN_RANGE) { delta = dist/MIN_RANGE; }
+        else if (dist > MAX_RANGE) {delta = MAX_RANGE/dist; }
+
+        // calculate bias
+        dist_bias = (delta) * DIST_PENALTY;
+    }
+
+    // pick region type (generic or defined)
+    if (bias_table[NUMROBOTS + 1 + (NUMROBOTS+2)*region_map[x + map_size_x*y] ] != 0) {
+        region_bias = bias_table[NUMROBOTS + robot_in_region + (NUMROBOTS+2)*region_map[x + map_size_x*y] ];
+                }
+    else { region_bias = bias_table[RID  + (NUMROBOTS+2)*region_map[x + map_size_x*y] ]; }
+
     double bias = dist_bias * region_bias * same_bonus;// *  heading_bias ;
     //  cout << " penalties for " << x << "," << y << " d: " << delta << " "<<  dist_bias << " r0: " << region_bias << " h: " << heading_bias << " t: " << bias << endl;
     return bias;
@@ -423,7 +435,7 @@ double GPLAN::trace_path(const int x_target, const int y_target, vector<Traj_pt_
         } // if !NOMOVE
     } //for current_loc
     if (DISPLAY_OUTPUT) {
-        printf("robot %d ->(%d, %d) score: %.0f dist: %.1f bias: %.5f IG/Dist ratio: %.0f region: %x total: %.0f\n", robot_id, x_target, y_target, temp_score, dist, bias(robot_id, x_target, y_target), IG_dist_ratio((int)temp_score, dist), region_map[x_target + map_size_x*y_target], bias(robot_id, x_target,y_target)*IG_dist_ratio((int)temp_score, dist)); }
+        printf("robot %d ->(%d, %d) score: %.0f dist: %.1f bias: %.5f IG/Dist ratio: %.0f region: %d total: %.0f\n", robot_id, x_target, y_target, temp_score, dist, bias(robot_id, x_target, y_target), IG_dist_ratio((int)temp_score, dist), (int)region_map[x_target + map_size_x*y_target], bias(robot_id, x_target,y_target)*IG_dist_ratio((int)temp_score, dist)); }
 
     return (bias(robot_id, x_target, y_target) *IG_dist_ratio((int)temp_score, dist));
 }
@@ -987,6 +999,9 @@ bool GPLAN::gplan_init(GP_PLANNER_PARAMETER * gp_planner_param_p) {
     map_size_y = gp_planner_param_p->map_size_y;
     cout << "The maps are " << map_size_x << " x " << map_size_y << endl;
 
+    // zeros out region bias table
+    num_regions = 0;
+
     //stores new robot parameters
     sensor_radius = gp_planner_param_p->sensor_radius;
     sensor_height = gp_planner_param_p->sensor_height;
@@ -1032,7 +1047,24 @@ vector < vector<Traj_pt_s> > GPLAN::gplan_plan(GP_POSITION_UPDATE * gp_position_
     memcpy((void *) cover_map, (void *) gp_full_update_p->coverage_map, map_size_x * map_size_y * sizeof(unsigned char));
     memcpy((void *) cost_map, (void *) gp_full_update_p->cost_map, map_size_x * map_size_y * sizeof(unsigned char));
     memcpy((void *) elev_map, (void *) gp_full_update_p->elev_map, map_size_x * map_size_y * sizeof(int16_t));
-    memcpy((void *) region_map, (void *) gp_full_update_p->region_map, map_size_x * map_size_y * sizeof(uint16_t));
+    memcpy((void *) region_map, (void *) gp_full_update_p->region_map, map_size_x * map_size_y * sizeof(unsigned char));
+
+    if (num_regions != gp_full_update_p->num_regions) {
+        num_regions = gp_full_update_p->num_regions;
+        delete [] bias_table;
+        bias_table = new double[num_regions*(NUMROBOTS+2)];
+    }
+
+    num_regions = gp_full_update_p->num_regions;
+    memcpy((void *) bias_table, (void *) gp_full_update_p->bias_table, num_regions * (NUMROBOTS+2) * sizeof(double));
+
+    printf("printing bias table %d %d\n", num_regions, gp_full_update_p->num_states);
+for (int j = 0; j < num_regions; j++) {
+    for (int i =0; i < (NUMROBOTS+2); i++) {
+        printf(" %f ", bias_table[i+j*(NUMROBOTS+2)]);
+    }
+    printf("\n");
+}
 
     //	cout << "prepping other variables" << endl;
 

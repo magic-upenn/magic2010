@@ -30,8 +30,7 @@ typedef struct{
 	double sensor_radius;		// sensing radius of robot in m
 	int16_t sensor_height;		// sensing height of robot in cm
 	double perimeter_radius;	// radius of bounding circle
-
-} GP_PLANNER_PARAMETER, *GP_PLANNER_PARAMETER_PTR;
+ } GP_PLANNER_PARAMETER, *GP_PLANNER_PARAMETER_PTR;
 
 //#define GP_PLANNER_PARAMETER_FORM "{float, boolean, boolean, float, float}"
 //#define GP_PLANNER_PARAMETER_MSG "Global_Planner_Parameters"
@@ -75,12 +74,15 @@ typedef struct {
 #define GP_GOAL_ASSIGN_MSG "Global_Planner_Goal_Assignment"
 */			
 typedef struct {
-//	double UTM_x;
-//	double UTM_y;
-	unsigned char *coverage_map;		// map of uncertainty in measurements
-	unsigned char *cost_map;		// map of traversibility costs
-	int16_t *elev_map;				// map of elevations
-	uint16_t *region_map;     // map of labeled regions with 0 being outdoors
+    //	double UTM_x;
+    //	double UTM_y;
+    unsigned char *coverage_map;		// map of uncertainty in measurements
+    unsigned char *cost_map;		// map of traversibility costs
+    int16_t *elev_map;				// map of elevations
+    unsigned char *region_map;     // map of labeled regions with 0 being outdoors
+    int num_regions;            // number of regions in lookup table
+    int num_states;             // number of states (should be num robots + 2)
+    double *bias_table;          // region bias values in look up table
 }  GP_FULL_UPDATE, *GP_FULL_UPDATE_PTR;
 
 //#define GP_FULL_UPDATE_FORM "{int, int, int, int, int, int, <ubyte: 1, 2>, <ubyte: 3, 4>, <short: 5, 6>}"
