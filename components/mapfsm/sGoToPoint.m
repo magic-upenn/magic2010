@@ -1,4 +1,5 @@
 function ret = sGoToPoint(event, varargin);
+global MPOSE PATH_DATA 
 
 persistent DATA
 
@@ -43,6 +44,12 @@ switch event
   if strcmp(ret,'obstacle') || strcmp(ret,'timeout') || strcmp(ret,'stop') || strcmp(ret,'off path')
     DATA.havePath = false;
     ret = [];
+  elseif strcmp(ret,'done')
+    goal_dist = sqrt(sum(([MPOSE.x MPOSE.y]-PATH_DATA.goToPointGoal(end,1:2)).^2));
+    if goal_dist > 1.0
+      DATA.havePath = false;
+      ret = [];
+    end
   elseif strcmp(ret,'recovery')
     ret = [];
     if ~DATA.recovering
