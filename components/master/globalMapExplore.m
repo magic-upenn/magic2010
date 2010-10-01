@@ -2,4 +2,8 @@ function globalMapExplore()
 
 global GDISPLAY
 
-sendStateEvent(GDISPLAY.selectedRobot,'explore');
+for i=1:length(GDISPLAY.robotRadioControl)
+  if get(GDISPLAY.robotRadioControl{i},'Value')
+    sendStateEvent(i,'explore');
+  end
+end

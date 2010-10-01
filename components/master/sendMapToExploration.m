@@ -1,5 +1,5 @@
 function sendMapToExploration
-global GPOSE GMAP gcs_machine GTRANSFORM GCS GDISPLAY
+global GPOSE GMAP gcs_machine GTRANSFORM GCS GDISPLAY EXPLORE_TEMPLATES
 
 data.NR = max(GCS.ids);
 data.GP_PLAN_TIME = 0.5;
@@ -17,14 +17,23 @@ data.UTM_y = ymap(1);
 
 data.map = double(getdata(GMAP, 'cost'));
 for i = 1:length(GDISPLAY.avoidRegions)
-  data.map(round((GDISPLAY.avoidRegions(i).x-data.UTM_x)/data.map_cell_size), ...
-           round((GDISPLAY.avoidRegions(i).y-data.UTM_y)/data.map_cell_size)) = 100;
+  data.map(sub2ind(size(data.map),round((GDISPLAY.avoidRegions(i).x-data.UTM_x)/data.map_cell_size), ...
+           round((GDISPLAY.avoidRegions(i).y-data.UTM_y)/data.map_cell_size))) = 100;
 end
 
 data.region_map = uint8(zeros(size(GMAP)));
+data.bias_table = zeros(data.NR+2,length(GDISPLAY.exploreRegions)+1);
+data.num_states = data.NR+2;
+data.num_regions = length(GDISPLAY.exploreRegions)+1;
+data.bias_table(1:end-2,1) = 1;
 for i = 1:length(GDISPLAY.exploreRegions)
-  data.region_map(round((GDISPLAY.exploreRegions(i).x-data.UTM_x)/data.map_cell_size), ...
-                  round((GDISPLAY.exploreRegions(i).y-data.UTM_y)/data.map_cell_size)) = GDISPLAY.exploreRegions(i).id;
+  region_x = round((GDISPLAY.exploreRegions(i).x-data.UTM_x)/data.map_cell_size);
+  region_y = round((GDISPLAY.exploreRegions(i).y-data.UTM_y)/data.map_cell_size);
+  region_idx = sub2ind(size(data.region_map),region_x,region_y);
+  data.region_map(region_idx) = i;
+
+  data.bias_table(1:data.NR,i+1) = EXPLORE_TEMPLATES(GDISPLAY.exploreRegions(i).template).out_robots;
+  data.bias_table(GDISPLAY.exploreRegions(i).id,i+1) = EXPLORE_TEMPLATES(GDISPLAY.exploreRegions(i).template).in_robots;
 end
 
 data.avail = int16(zeros(data.NR,1));
@@ -33,7 +42,9 @@ data.y =     zeros(data.NR,1);
 data.theta = zeros(data.NR,1);
 
 for id = GCS.ids
+  %if strcmp(get(GDISPLAY.robotStatusText{id},'String'),'sExplore')
   data.avail(id) = 1;
+  %end
   if ~isempty(GPOSE{id})
     data.x(id) = GPOSE{id}.x;
     data.y(id) = GPOSE{id}.y;

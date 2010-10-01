@@ -4,29 +4,31 @@ global GDISPLAY
 
 switch(eventdata.Key)
 case '1'
-  set(GDISPLAY.grp,'SelectedObject',GDISPLAY.robotRadioControl{1});
-  GDISPLAY.selectedRobot = 1;
+  set(GDISPLAY.robotRadioControl{1},'Value',~get(GDISPLAY.robotRadioControl{1},'Value'));
 case '2'
-  set(GDISPLAY.grp,'SelectedObject',GDISPLAY.robotRadioControl{2});
-  GDISPLAY.selectedRobot = 2;
+  set(GDISPLAY.robotRadioControl{2},'Value',~get(GDISPLAY.robotRadioControl{2},'Value'));
 case '3'
-  set(GDISPLAY.grp,'SelectedObject',GDISPLAY.robotRadioControl{3});
-  GDISPLAY.selectedRobot = 3;
+  set(GDISPLAY.robotRadioControl{3},'Value',~get(GDISPLAY.robotRadioControl{3},'Value'));
 case '4'
-  set(GDISPLAY.grp,'SelectedObject',GDISPLAY.robotRadioControl{4});
-  GDISPLAY.selectedRobot = 4;
+  set(GDISPLAY.robotRadioControl{4},'Value',~get(GDISPLAY.robotRadioControl{4},'Value'));
 case '5'
-  set(GDISPLAY.grp,'SelectedObject',GDISPLAY.robotRadioControl{5});
-  GDISPLAY.selectedRobot = 5;
+  set(GDISPLAY.robotRadioControl{5},'Value',~get(GDISPLAY.robotRadioControl{5},'Value'));
 case '6'
-  set(GDISPLAY.grp,'SelectedObject',GDISPLAY.robotRadioControl{6});
-  GDISPLAY.selectedRobot = 6;
+  set(GDISPLAY.robotRadioControl{6},'Value',~get(GDISPLAY.robotRadioControl{6},'Value'));
 case '7'
-  set(GDISPLAY.grp,'SelectedObject',GDISPLAY.robotRadioControl{7});
-  GDISPLAY.selectedRobot = 7;
+  set(GDISPLAY.robotRadioControl{7},'Value',~get(GDISPLAY.robotRadioControl{7},'Value'));
 case '8'
-  set(GDISPLAY.grp,'SelectedObject',GDISPLAY.robotRadioControl{8});
-  GDISPLAY.selectedRobot = 8;
+  set(GDISPLAY.robotRadioControl{8},'Value',~get(GDISPLAY.robotRadioControl{8},'Value'));
+case '9'
+  set(GDISPLAY.robotRadioControl{9},'Value',~get(GDISPLAY.robotRadioControl{9},'Value'));
+case 'hyphen'
+  for i=1:length(GDISPLAY.robotRadioControl)
+    set(GDISPLAY.robotRadioControl{i},'Value',0);
+  end
+case 'equal'
+  for i=1:length(GDISPLAY.robotRadioControl)
+    set(GDISPLAY.robotRadioControl{i},'Value',1);
+  end
 case 'q'
   globalMapStop();
 case 'w'
@@ -37,6 +39,15 @@ case 'r'
   globalMapExploreRegion();
 case 't'
   globalMapAvoid();
+case 'a'
+  set(GDISPLAY.exploreOverlay,'Value',~get(GDISPLAY.exploreOverlay,'Value'));
+  exploreRegionOverlay();
+case 's'
+  set(GDISPLAY.avoidOverlay,'Value',~get(GDISPLAY.avoidOverlay,'Value'));
+  avoidRegionOverlay();
+case 'd'
+  set(GDISPLAY.UAVOverlay,'Value',~get(GDISPLAY.UAVOverlay,'Value'));
+  UAVOverlay();
 case 'delete'
   if GDISPLAY.lastRegionSelection ~= -1
     tag = get(GDISPLAY.lastRegionSelection,'Tag');
@@ -49,5 +60,4 @@ case 'delete'
     end
   end
 end
-%GDISPLAY.selectedRobot
 

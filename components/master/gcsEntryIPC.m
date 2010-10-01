@@ -18,7 +18,7 @@ for id = ids,
   RPOSE{id}.y = 0;
   RPOSE{id}.yaw = 0;
   RPOSE{id}.heading = 0;
-  RMAP{id} = map2d(800,800,.20,'vlidar','hlidar','cost');
+  RMAP{id} = map2d(800,800,.10,'vlidar','hlidar','cost');
 
   GTRANSFORM{id}.init = 0;
   GPOSE{id} = [];
@@ -39,14 +39,16 @@ masterConnectRobots(ids);
 messages = {'PoseExternal', ...
             'IncMapUpdateH', ...
             'IncMapUpdateV', ...
-            'Planner_Path'};
+            'Planner_Path', ...
+            'FSM_Status'};
 
 handles  = {@gcsRecvPoseExternal, ...
             @gcsRecvIncMapUpdateH, ...
             @gcsRecvIncMapUpdateV, ...
-            @gcsRecvPlannerPathFcn};
+            @gcsRecvPlannerPathFcn, ...
+            @gcsRecvFsmStatusFcn};
           
-queueLengths = [5 5 5 1];
+queueLengths = [5 5 5 1 1];
 
 if PLAN_DEBUG
   messages = [messages, 'Planner_Map'];
