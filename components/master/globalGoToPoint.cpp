@@ -76,11 +76,11 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
     const double stepcost[3][3] = {{1.414213562, 1, 1.414213562}, {1, 0, 1}, {1.414213562, 1, 1.414213562}};
     
     // set up map sizes, initial pose and target locations
-    int pose_x = (int)(pose[0]/cell_size - UTM[0]);
-    int pose_y = (int)(pose[1]/cell_size - UTM[1]);
+    int pose_x = (int)((pose[0] - UTM[0])/cell_size);
+    int pose_y = (int)((pose[1] - UTM[1])/cell_size);
     
-    int target_x = (int)(target[0]/cell_size - UTM[0]);
-    int target_y = (int)(target[1]/cell_size - UTM[1]);
+    int target_x = (int)((target[0] - UTM[0])/cell_size);
+    int target_y = (int)((target[1] - UTM[1])/cell_size);
     
     int pad_dist = (int)(SOFT_PAD_DIST/cell_size);
     int buffer = (pad_dist - (int)inflation_size);
@@ -223,8 +223,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
     path = (double *) mxGetPr(plhs[0]);
     
     for(int idx = 0; idx < NUMPTS; idx++) {
-        path[idx*2] = traj[idx].x*cell_size + UTM[0];
-        path[idx*2 +1]= traj[idx].y*cell_size + UTM[1];
+        path[idx*2] = (traj[idx].x + UTM[0])*cell_size;
+        path[idx*2 +1]= (traj[idx].y*cell_size + UTM[1])*cell_size;
     }
     
     delete [] map;
