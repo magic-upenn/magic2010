@@ -55,7 +55,8 @@ function visionGuiInit
 	%setup local IPC to send confirmed OOI to Mapping Console 
 	ipcAPIDefine('ConfirmedOOI');
 
-
+	front_gui
+	omni_gui
 % Set up the figure
 
 function ipcRecvImageFcn(msg,name)
