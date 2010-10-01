@@ -67,6 +67,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
     const unsigned char UNK = 125;
     const unsigned char FREE = 0;
     
+    const double ABS_TH = 500;
     const double OBS_TH = 90;
     const double UNK_TH = -1;
     
@@ -106,10 +107,13 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
     
     for (int j = 0; j < size_y; j++) {
         for (int i = 0; i < size_x; i++) {
-            if(map_d[i+size_x*j] > OBS_TH)  {
+            if(map_d[i+size_x*j] >= ABS_TH) {
+                map[i+size_x*j] = ABS_OBS;
+            }
+            if(map_d[i+size_x*j] >= OBS_TH)  {
                 map[i+size_x*j] = OBS;
             }
-            else if(map_d[i+size_x*j] > UNK_TH)  {
+            else if(map_d[i+size_x*j] >= UNK_TH)  {
                 map[i+size_x*j] = UNK;
             }
             else {
@@ -130,7 +134,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
         inf_map[(size_x - 1) + j * size_x] = map[(size_x - 1) + j * size_x] = ABS_OBS;
     }
     
-    computeDistancestoNonfreeAreas(map_pa, size_y, size_x, ABS_OBS, obs_ptr_array, nonfree_ptr_array);
+    computeDistancestoNonfreeAreas(map_pa, size_y, size_x, OBS, obs_ptr_array, nonfree_ptr_array);
     
     //update inflated map based on robot size and make unknown areas obstacles w/o inflation
     for (int j = 0; j < size_y; j++) {
