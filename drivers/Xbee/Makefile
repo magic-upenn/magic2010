@@ -1,11 +1,8 @@
 OBJECTS  = Xbee.o XbeeFrame.o ErrorMessage.o
 
-TARGETS = testXbeeSend testXbeeReceive XbeeAPI.$(MEXEXT) JoystickLogitechX3dAPI.$(MEXEXT)
+TARGETS = testXbeeSend testXbeeReceive XbeeAPI.$(MEXEXT) UdpSendAPI.$(MEXEXT) UdpReceiveAPI.$(MEXEXT)
 
 include $(MAGIC_DIR)/Makefile.mk
-
-JoystickLogitechX3dAPI.$(MEXEXT) : JoystickLogitechX3dAPI.cc ErrorMessage.o Joystick.o
-	mex -O $^ $(INCLUDES) $(LIB_DIRS) $(LIBS) -lpthread
 
 XbeeAPI.$(MEXEXT): XbeeAPI.cc Xbee.o XbeeFrame.o ErrorMessage.o
 	mex -O $^ $(INCLUDES) $(LIB_DIRS) $(LIBS)
@@ -18,3 +15,10 @@ testXbeeReceive: testXbeeReceive.cc $(OBJECTS)
 
 ErrorMessage.o: ../../common/ErrorMessage.cc
 	g++ $(INCLUDES) $(CPP_FLAGS) -c -o $@ $^
+
+
+UdpSendAPI.$(MEXEXT) : UdpSendAPI.cc
+	mex -O $^
+
+UdpReceiveAPI.$(MEXEXT) : UdpReceiveAPI.cc
+	mex -O $^ -lpthread

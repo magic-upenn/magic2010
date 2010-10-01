@@ -40,16 +40,20 @@ int main(void)
 	}
 
 	addr_len = sizeof(struct sockaddr);
-	if ((numbytes = recvfrom(sockfd, buf, MAXBUFLEN-1 , 0,
-		(struct sockaddr *)&their_addr, &addr_len)) == -1) {
-		perror("recvfrom");
-		exit(1);
-	}
 
-	printf("got packet from %s\n",inet_ntoa(their_addr.sin_addr));
-	printf("packet is %d bytes long\n",numbytes);
-	buf[numbytes] = '\0';
-	printf("packet contains \"%s\"\n",buf);
+  while(1)
+  {
+	  if ((numbytes = recvfrom(sockfd, buf, MAXBUFLEN-1 , 0,
+		  (struct sockaddr *)&their_addr, &addr_len)) == -1) {
+		  perror("recvfrom");
+		  exit(1);
+	  }
+
+	  printf("got packet from %s\n",inet_ntoa(their_addr.sin_addr));
+	  printf("packet is %d bytes long\n",numbytes);
+	  buf[numbytes] = '\0';
+	  printf("packet contains \"%s\"\n",buf);
+  }
 
 	close(sockfd);
 
