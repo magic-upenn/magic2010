@@ -1,6 +1,6 @@
 OBJECTS  = Xbee.o XbeeFrame.o ErrorMessage.o
 
-TARGETS = testXbeeSend testXbeeReceive XbeeAPI.$(MEXEXT) UdpSendAPI.$(MEXEXT) UdpReceiveAPI.$(MEXEXT)
+TARGETS = testXbeeSend testXbeeReceive XbeeAPI.$(MEXEXT) uvcCam cjpeg djpeg
 
 include $(MAGIC_DIR)/Makefile.mk
 
@@ -16,9 +16,12 @@ testXbeeReceive: testXbeeReceive.cc $(OBJECTS)
 ErrorMessage.o: ../../common/ErrorMessage.cc
 	g++ $(INCLUDES) $(CPP_FLAGS) -c -o $@ $^
 
-
-UdpSendAPI.$(MEXEXT) : UdpSendAPI.cc
+uvcCam: uvcCam.cpp v4l2.cpp
 	mex -O $^
 
-UdpReceiveAPI.$(MEXEXT) : UdpReceiveAPI.cc
-	mex -O $^ -lpthread
+cjpeg: cjpeg.cpp
+	mex -O $^ -ljpeg
+
+djpeg: djpeg.cpp
+	mex -O $^ -ljpeg
+
