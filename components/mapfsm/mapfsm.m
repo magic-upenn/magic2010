@@ -138,9 +138,10 @@ mapfsmExit;
 %==========
 function mapfsmEntry
 
-global MP PATH_DATA AVOID_REGIONS
+global MP PATH_DATA AVOID_REGIONS LAST_STATE
 
 MP.sm = entry(MP.sm);
+LAST_STATE = '';
 
 % Initialize IPC
 ipcInit;
@@ -164,6 +165,7 @@ ipcReceiveSetFcn(GetMsgName('OoiDynamic'), @mapfsmRecvOoiDynamicFcn);
 %ipcAPIDefine(GetMsgName('Cost_Map_Full'),MagicGP_MAGIC_MAPSerializer('getFormat'));
 %ipcAPIDefine(GetMsgName('Planner_State'),MagicGP_SET_STATESerializer('getFormat'));
 ipcAPIDefine(GetMsgName('Planner_Path'));
+ipcAPIDefine(GetMsgName('FSM_Status'));
 
 PATH_DATA.newExplorePath = false;
 AVOID_REGIONS.x = [];
@@ -175,6 +177,7 @@ function mapfsmUpdate
 
 global MP
 global MPOSE MAP
+global LAST_STATE
 
 MP.nupdate = MP.nupdate + 1;
 
@@ -182,6 +185,12 @@ MP.nupdate = MP.nupdate + 1;
 ipcReceiveMessages;
 
 MP.sm = update(MP.sm);
+
+%if the state has changed send a status message to the GCS
+if ~strcmp(currentState(MP.sm),LAST_STATE)
+  ipcAPIPublish(GetMsgName('FSM_Status'), serialize(currentState(MP.sm)));
+end
+LAST_STATE = currentState(MP.sm);
 
 if ~isempty(MPOSE) && rem(MP.nupdate, 10) == 0,
   % See if map needs to be shifted:
