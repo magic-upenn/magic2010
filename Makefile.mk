@@ -6,6 +6,8 @@ else
   MAGIC_OSX=1;
 endif
 
+MEXEXT = $(shell mexext)
+
 MAGIC_LIB_DIR    = $(MAGIC_DIR)/lib
 MAGIC_INCLUDE_DIR = $(MAGIC_DIR)/include
 
