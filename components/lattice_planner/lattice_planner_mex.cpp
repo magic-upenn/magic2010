@@ -292,7 +292,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray*prhs[] ){
 
         int cell_x = (explore_path[i]-global_x_offset)/resolution;
         int cell_y = (explore_path[i + num_pts]-global_y_offset)/resolution;
-        if(!OnMap(cell_x, cell_y) || costmap[cell_x][cell_y] >= obst_thresh)
+        //if(!OnMap(cell_x, cell_y) || costmap[cell_x][cell_y] >= obst_thresh)
+        if(!OnMap(cell_x, cell_y))
           break;
       }
       //if(i==GP_Traj_p->num_traj_pts)
