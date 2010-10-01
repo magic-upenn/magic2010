@@ -15,9 +15,12 @@ enum { MMC_MAIN_CONTROLLER_DEVICE_ID,
        MMC_DYNAMIXEL1_DEVICE_ID,
        MMC_GATEWAY_DEVICE_ID,
        MMC_RC_DEVICE_ID,
-       MMC_ESTOP_DEVICE_ID
+       MMC_ESTOP_DEVICE_ID,
+       MMC_MASTER_DEVICE_ID
      };
 
+
+enum { MMC_MASTER_ROBOT_SELECT };
 
 //main conroller packet
 enum { MMC_MC_RESET,

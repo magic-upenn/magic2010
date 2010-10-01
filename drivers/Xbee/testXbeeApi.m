@@ -12,12 +12,18 @@ JoystickLogitechX3dAPI('connect',joyDev);
 
 CreateGui;
 ROBOT_CNTRL.selected = -1;
+prevSelected = ROBOT_CNTRL.selected;
 
 while(1)
   [v w] = JoystickLogitechX3dAPI('getCmd');
   v = v/4;
   w = w/4;
   if (ROBOT_CNTRL.selected > 0)
+    if (prevSelected ~= ROBOT_CNTRL.selected)
+      XbeeAPI('writeRobSelect',uint8(ROBOT_CNTRL.selected));
+      prevSelected = ROBOT_CNTRL.selected;
+    end
+    
     XbeeAPI('writeVelCmd',int8([v w]),ROBOT_CNTRL.selected);
   end
   pause(0.025)

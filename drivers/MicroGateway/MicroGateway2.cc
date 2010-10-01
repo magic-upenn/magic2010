@@ -203,6 +203,7 @@ int MicroGateway::InitializeMessages()
   this->encMsgName   = this->DefineMsg("Encoders",EncoderCounts::getIPCFormat());
   this->imuMsgName   = this->DefineMsg("ImuFiltered",ImuFiltered::getIPCFormat());
   this->estopMsgName = this->DefineMsg("EstopState",EstopState::getIPCFormat());
+  this->selectedIdMsgName  = this->DefineMsg("SelectedId","{byte}");
 
 
   string msgName = this->robotName + "/" + "VelocityCmd";
@@ -417,6 +418,9 @@ int MicroGateway::HandleSerialPacket(DynamixelPacket * dpacket)
     case MMC_ESTOP_DEVICE_ID:
       this->EstopPacketHandler(dpacket);
       break;
+
+    case MMC_MASTER_DEVICE_ID:
+      this->MasterPacketHandler(dpacket);
     default:
       break;
   }
@@ -566,6 +570,27 @@ int MicroGateway::RcPacketHandler(DynamixelPacket * dpacket)
     */
     }
 
+  return 0;
+}
+
+int MicroGateway::MasterPacketHandler(DynamixelPacket * dpacket)
+{
+  int packetType = DynamixelPacketGetType(dpacket);
+  uint8_t * data = DynamixelPacketGetData(dpacket);
+  uint8_t selectedId;
+
+  switch (packetType)
+  {
+    case MMC_MASTER_ROBOT_SELECT:
+      selectedId = *data;
+      printf("Robot #%d has been selected\n",selectedId);
+      IPC_publishData(this->selectedIdMsgName.c_str(),&selectedId);
+      break;
+
+    default:
+      break;
+  }
+  
   return 0;
 }
 

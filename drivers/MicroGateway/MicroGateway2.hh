@@ -97,6 +97,7 @@ namespace Upenn
     private: int RcPacketHandler(DynamixelPacket * dpacket);
     private: int ServoPacketHandler(DynamixelPacket * dpacket);
     private: int EstopPacketHandler(DynamixelPacket * dpacket);
+    private: int MasterPacketHandler(DynamixelPacket * dpacket);
     
     private: SerialDevice * sd;
     private: bool connectedSerial;
@@ -119,6 +120,7 @@ namespace Upenn
     private: string encMsgName;
     private: string imuMsgName;
     private: string estopMsgName;
+    private: string selectedIdMsgName;
   };
 }
 #endif

@@ -145,6 +145,41 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     plhs[0] = mxCreateDoubleScalar(1);
     return;
   }
+  else if (strcasecmp(command, "writeRobSelect") == 0)
+  {
+    if (nrhs != 2) mexErrMsgTxt("provide robot number as second argument");
+    uint8_t id = (uint8_t)(mxGetPr(prhs[1])[0]);
+
+    if (id > 10) mexErrMsgTxt("bad robot id");
+
+    const int bufSize = 256;
+    uint8_t buf[bufSize];
+
+    int packetSize = DynamixelPacketWrapData(MMC_MASTER_DEVICE_ID,
+                                             MMC_MASTER_ROBOT_SELECT,
+                                             &id,sizeof(uint8_t),buf,bufSize);
+
+    int addr = 0xFFFF;  //broadcast robot selection
+    if (packetSize > 0)
+    {
+      if (xbee.WritePacket(buf,packetSize,addr))
+      {
+        printf("could not write xbee packet\n");
+        plhs[0] = mxCreateDoubleScalar(0);
+        return;
+      }
+    }
+    else
+    {
+      printf("could not wrap xbee packet\n");
+      plhs[0] = mxCreateDoubleScalar(0);
+      return;
+    }
+
+    plhs[0] = mxCreateDoubleScalar(1);
+    return;
+
+  }
   else
     mexErrMsgTxt("unknown command\n");
 }

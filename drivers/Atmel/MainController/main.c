@@ -528,6 +528,8 @@ int main(void)
           DynamixelPacketCopy(&motorCmdPacketOut,&xbeePacketIn);
           needToSendMotorCmd = 1;
         }
+        else
+          HostSendRawPacket(&xbeePacketIn);
       }
       c = XBEE_COM_PORT_GETCHAR();
     }
