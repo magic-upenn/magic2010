@@ -68,7 +68,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
     const unsigned char FREE = 0;
     
     const double OBS_TH = 90;
-    const double UNK_TH = 0;
+    const double UNK_TH = -1;
     
     const double SOFT_PAD_DIST = 1.0;
     

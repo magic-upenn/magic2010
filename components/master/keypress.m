@@ -4,31 +4,45 @@ global GDISPLAY
 
 switch(eventdata.Key)
 case '1'
-  set(GDISPLAY.robotRadioControl{1},'Value',~get(GDISPLAY.robotRadioControl{1},'Value'));
+  if strcmp(get(GDISPLAY.robotRadioControl{1},'Enable'),'on')
+    set(GDISPLAY.robotRadioControl{1},'Value',~get(GDISPLAY.robotRadioControl{1},'Value'));
+  end
 case '2'
-  set(GDISPLAY.robotRadioControl{2},'Value',~get(GDISPLAY.robotRadioControl{2},'Value'));
+  if strcmp(get(GDISPLAY.robotRadioControl{2},'Enable'),'on')
+    set(GDISPLAY.robotRadioControl{2},'Value',~get(GDISPLAY.robotRadioControl{2},'Value'));
+  end
 case '3'
-  set(GDISPLAY.robotRadioControl{3},'Value',~get(GDISPLAY.robotRadioControl{3},'Value'));
+  if strcmp(get(GDISPLAY.robotRadioControl{3},'Enable'),'on')
+    set(GDISPLAY.robotRadioControl{3},'Value',~get(GDISPLAY.robotRadioControl{3},'Value'));
+  end
 case '4'
-  set(GDISPLAY.robotRadioControl{4},'Value',~get(GDISPLAY.robotRadioControl{4},'Value'));
+  if strcmp(get(GDISPLAY.robotRadioControl{4},'Enable'),'on')
+    set(GDISPLAY.robotRadioControl{4},'Value',~get(GDISPLAY.robotRadioControl{4},'Value'));
+  end
 case '5'
-  set(GDISPLAY.robotRadioControl{5},'Value',~get(GDISPLAY.robotRadioControl{5},'Value'));
+  if strcmp(get(GDISPLAY.robotRadioControl{5},'Enable'),'on')
+    set(GDISPLAY.robotRadioControl{5},'Value',~get(GDISPLAY.robotRadioControl{5},'Value'));
+  end
 case '6'
-  set(GDISPLAY.robotRadioControl{6},'Value',~get(GDISPLAY.robotRadioControl{6},'Value'));
+  if strcmp(get(GDISPLAY.robotRadioControl{6},'Enable'),'on')
+    set(GDISPLAY.robotRadioControl{6},'Value',~get(GDISPLAY.robotRadioControl{6},'Value'));
+  end
 case '7'
-  set(GDISPLAY.robotRadioControl{7},'Value',~get(GDISPLAY.robotRadioControl{7},'Value'));
+  if strcmp(get(GDISPLAY.robotRadioControl{7},'Enable'),'on')
+    set(GDISPLAY.robotRadioControl{7},'Value',~get(GDISPLAY.robotRadioControl{7},'Value'));
+  end
 case '8'
-  set(GDISPLAY.robotRadioControl{8},'Value',~get(GDISPLAY.robotRadioControl{8},'Value'));
+  if strcmp(get(GDISPLAY.robotRadioControl{8},'Enable'),'on')
+    set(GDISPLAY.robotRadioControl{8},'Value',~get(GDISPLAY.robotRadioControl{8},'Value'));
+  end
 case '9'
-  set(GDISPLAY.robotRadioControl{9},'Value',~get(GDISPLAY.robotRadioControl{9},'Value'));
+  if strcmp(get(GDISPLAY.robotRadioControl{9},'Enable'),'on')
+    set(GDISPLAY.robotRadioControl{9},'Value',~get(GDISPLAY.robotRadioControl{9},'Value'));
+  end
 case 'hyphen'
-  for i=1:length(GDISPLAY.robotRadioControl)
-    set(GDISPLAY.robotRadioControl{i},'Value',0);
-  end
+  selectNone();
 case 'equal'
-  for i=1:length(GDISPLAY.robotRadioControl)
-    set(GDISPLAY.robotRadioControl{i},'Value',1);
-  end
+  selectAll();
 case 'q'
   globalMapStop();
 case 'w'
@@ -48,6 +62,9 @@ case 's'
 case 'd'
   set(GDISPLAY.UAVOverlay,'Value',~get(GDISPLAY.UAVOverlay,'Value'));
   UAVOverlay();
+case 'f'
+  set(GDISPLAY.gridOverlay,'Value',~get(GDISPLAY.gridOverlay,'Value'));
+  gridOverlay();
 case 'delete'
   if GDISPLAY.lastRegionSelection ~= -1
     tag = get(GDISPLAY.lastRegionSelection,'Tag');

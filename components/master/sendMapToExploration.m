@@ -32,8 +32,13 @@ for i = 1:length(GDISPLAY.exploreRegions)
   region_idx = sub2ind(size(data.region_map),region_x,region_y);
   data.region_map(region_idx) = i;
 
-  data.bias_table(1:data.NR,i+1) = EXPLORE_TEMPLATES(GDISPLAY.exploreRegions(i).template).out_robots;
-  data.bias_table(GDISPLAY.exploreRegions(i).id,i+1) = EXPLORE_TEMPLATES(GDISPLAY.exploreRegions(i).template).in_robots;
+  if isempty(GDISPLAY.exploreRegions(i).id)
+    data.bias_table(end-1,i+1) = EXPLORE_TEMPLATES(GDISPLAY.exploreRegions(i).template).in_robots;
+    data.bias_table(end,i+1) = EXPLORE_TEMPLATES(GDISPLAY.exploreRegions(i).template).out_robots;
+  else
+    data.bias_table(1:data.NR,i+1) = EXPLORE_TEMPLATES(GDISPLAY.exploreRegions(i).template).out_robots;
+    data.bias_table(GDISPLAY.exploreRegions(i).id,i+1) = EXPLORE_TEMPLATES(GDISPLAY.exploreRegions(i).template).in_robots;
+  end
 end
 
 data.avail = int16(zeros(data.NR,1));
