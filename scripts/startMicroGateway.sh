@@ -34,7 +34,7 @@ StartFunction ()
 
 # List session names and commands for screen, delimited by ":"
 StartFunction <<EOF
-microGateway:$(MAGIC_DIR)/drivers/MicroGateway/runMicroGateway /dev/microGateway
+microGateway:$MAGIC_DIR/drivers/MicroGateway/runMicroGateway /dev/microGateway
 EOF
 
 exit
