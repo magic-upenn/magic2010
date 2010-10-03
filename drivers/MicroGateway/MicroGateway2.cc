@@ -26,7 +26,7 @@ using namespace Magic;
 //#define PRINT_IMU_RAW
 //#define PRINT_GPS
 //#define PRINT_ENCODERS
-//#define PRINT_SERVO
+#define PRINT_SERVO
 
 /////////////////////////////////////////////////////////////////////////
 // Constructor
@@ -153,23 +153,31 @@ void MicroGateway::ServoControllerCmdMsgHandler (MSG_INSTANCE msgRef,
   uint8_t tempBuf1[bufSize];
   uint8_t tempBuf2[bufSize];
 
+  float minAngle = scmd->minAngle;
+  float maxAngle = scmd->maxAngle;
+  float speed    = scmd->speed;
+
   tempBuf1[0] = scmd->mode;
-  memcpy(tempBuf1+1,&(scmd->minAngle),sizeof(float));
-  memcpy(tempBuf1+1+sizeof(float),&(scmd->maxAngle),sizeof(float));
-  memcpy(tempBuf1+1+2*sizeof(float),&(scmd->speed),sizeof(float));
+  memcpy(tempBuf1+1,&(minAngle),sizeof(float));
+  memcpy(tempBuf1+1+sizeof(float),&(maxAngle),sizeof(float));
+  memcpy(tempBuf1+1+2*sizeof(float),&(speed),sizeof(float));
 
   int size;
 
   switch (scmd->id)
   {
-    case MMC_DYNAMIXEL0_DEVICE_ID:
+    case 1:
       size = DynamixelPacketWrapData(MMC_MAIN_CONTROLLER_DEVICE_ID,
                                      MMC_MC_SERVO1_MODE,
                                      tempBuf1, 1+3*sizeof(float),
                                      tempBuf2,bufSize);
       
       if (size > 0)
+      {
         mg->SendSerialPacket(tempBuf2,size);
+        printf("sent servo command id=%d, mode=%d, min=%f, max=%f, speed=%f\n",
+                scmd->id,scmd->mode,scmd->minAngle,scmd->maxAngle,scmd->speed);
+      }
       else
         PRINT_ERROR("could not wrap packet\n");
 
@@ -631,13 +639,18 @@ int AngleVal2AngleDeg(uint16_t val, double &angle)
 int MicroGateway::ServoPacketHandler(DynamixelPacket * dpacket)
 {
   int id = DynamixelPacketGetId(dpacket);
+  int type = DynamixelPacketGetType(dpacket);
+  int size = DynamixelPacketGetPayloadSize(dpacket);
 
-  double angle;
-  AngleVal2AngleDeg(*(uint16_t*)(dpacket->buffer+5),angle);
+  if (1)//(size > 0)
+  {
+    double angle;
+    AngleVal2AngleDeg(*(uint16_t*)(dpacket->buffer+5),angle);
 
 #ifdef PRINT_SERVO
-  printf("got servo angle = %f\n",angle);
+    PRINT_INFO("got servo angle = "<<angle<<", type = "<<type<<", size = "<<size<<"\n");
 #endif
+  }
   /*
   //TODO: send out servo angle
   
