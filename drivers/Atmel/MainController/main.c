@@ -522,7 +522,7 @@ int main(void)
       if (ret > 0)
       {
         //XbeeSendPacket(0,0,NULL,0);
-        //LED_RC_TOGGLE;
+        LED_RC_TOGGLE;
         if (DynamixelPacketGetId(&xbeePacketIn) == MMC_MOTOR_CONTROLLER_DEVICE_ID)
         {
           DynamixelPacketCopy(&motorCmdPacketOut,&xbeePacketIn);
@@ -530,6 +530,8 @@ int main(void)
         }
         else
           HostSendRawPacket(&xbeePacketIn);
+        
+        break;
       }
       c = XBEE_COM_PORT_GETCHAR();
     }
@@ -561,6 +563,7 @@ int main(void)
       }
     }
 
+
     if ( (needToSendServo1Packet == 1) && (rs485Blocked == 0))
     {
       SetBusBlocked();
@@ -568,7 +571,7 @@ int main(void)
       needToSendServo1Packet = 0;
     }
 
-    if ( (needToSendMotorCmd == 1) && (rs485Blocked == 0))
+    if ( (needToSendMotorCmd == 1) ) //&& (rs485Blocked == 0))
     {
       BusSendRawPacket(&motorCmdPacketOut);
       needToSendMotorCmd = 0;
