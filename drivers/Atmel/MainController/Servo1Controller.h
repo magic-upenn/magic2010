@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "DynamixelPacket.h"
+#include "MagicMicroCom.h"
 
 
 #define SERVO1_DEF_MIN_ANGLE -20

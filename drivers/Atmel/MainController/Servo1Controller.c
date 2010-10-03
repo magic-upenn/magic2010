@@ -197,8 +197,8 @@ int Servo1Update(DynamixelPacket * packetIn, uint8_t ** packetOut, uint8_t * siz
     {
       case SERVO_CONTROLLER_STATE_UNINITIALIZED:
       case SERVO_CONTROLLER_STATE_IDLE:
-        if (_servo1Time < _servo1NextReqTime)
-          break;
+        //if (_servo1Time < _servo1NextReqTime)
+        //  break;
 
         if (_servo1Dir > 0)
         {

@@ -190,8 +190,7 @@ void init(void)
   //timer3_set_overflow_callback(SendEstopStatus);
   timer3_set_overflow_callback(globalTimerOverflow);  
 
-//  timer4_init();
-  
+  timer4_init();
   timer4_set_compa_callback(Rs485ResponseTimeout);
   timer4_disable_compa_callback();
 
@@ -479,7 +478,7 @@ int main(void)
 
   init();
 
-  Servo1SetMode(SERVO_CONTROLLER_MODE_FB_ONLY);
+  //Servo1SetMode(SERVO_CONTROLLER_MODE_FB_ONLY);
   //Servo1SetMode(SERVO_CONTROLLER_MODE_SERVO);
   
   while(1)
@@ -590,24 +589,26 @@ int main(void)
     }
 
 
-    if ( (needToSendServo1Packet == 1) && (rs485Blocked == 0))
-    {
-      SetBusBlocked();
-      BusSendRawData(servo1PacketOutBuf,servo1PacketOutBufSize);
-      needToSendServo1Packet = 0;
-    }
 
-    if ( (needToSendMotorCmd == 1) ) //&& (rs485Blocked == 0))
+    if ( (needToSendMotorCmd == 1) && (rs485Blocked == 0))
     {
       BusSendRawPacket(&motorCmdPacketOut);
       needToSendMotorCmd = 0;
     }
 
+/*
     if ( (needToRequestFb == 1) && (rs485Blocked == 0) )
     {
       SetBusBlocked();
       BusSendRawData(encoderRequestRawPacket,encoderRequestRawPacketSize);
       needToRequestFb = 0;
+    }
+*/
+    if ( (needToSendServo1Packet == 1) && (rs485Blocked == 0))
+    {
+      SetBusBlocked();
+      BusSendRawData(servo1PacketOutBuf,servo1PacketOutBufSize);
+      needToSendServo1Packet = 0;
     }
 
   }
