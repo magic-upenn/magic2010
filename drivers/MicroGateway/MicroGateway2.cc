@@ -126,7 +126,7 @@ void MicroGateway::VelocityCmdMsgHandler(MSG_INSTANCE msgRef,
   uint8_t cmd[] = {vcmd->vCmd, vcmd->wCmd,0,0};
 
   const int bufSize=256;
-  uint8_t * tempBuf = new uint8_t[bufSize];
+  uint8_t tempBuf[bufSize];
 
   uint8_t id   = MMC_MOTOR_CONTROLLER_DEVICE_ID;
   uint8_t type = MMC_MOTOR_CONTROLLER_VELOCITY_SETTING;
@@ -141,20 +141,45 @@ void MicroGateway::VelocityCmdMsgHandler(MSG_INSTANCE msgRef,
   IPC_freeData(IPC_msgInstanceFormatter(msgRef),callData);
 }
 
+
 void MicroGateway::ServoControllerCmdMsgHandler (MSG_INSTANCE msgRef, 
                                       BYTE_ARRAY callData, void *clientData)
 {
-  /*
-
+  
   MicroGateway * mg         = (MicroGateway *)clientData;
   ServoControllerCmd * scmd = (ServoControllerCmd*)callData;
   
-  
-    TODO: implement servo command update
+  const int bufSize=32;
+  uint8_t tempBuf1[bufSize];
+  uint8_t tempBuf2[bufSize];
 
+  tempBuf1[0] = scmd->mode;
+  memcpy(tempBuf1+1,&(scmd->minAngle),sizeof(float));
+  memcpy(tempBuf1+1+sizeof(float),&(scmd->maxAngle),sizeof(float));
+  memcpy(tempBuf1+1+2*sizeof(float),&(scmd->speed),sizeof(float));
 
-  */
-  
+  int size;
+
+  switch (scmd->id)
+  {
+    case MMC_DYNAMIXEL0_DEVICE_ID:
+      size = DynamixelPacketWrapData(MMC_MAIN_CONTROLLER_DEVICE_ID,
+                                     MMC_MC_SERVO1_MODE,
+                                     tempBuf1, 1+3*sizeof(float),
+                                     tempBuf2,bufSize);
+      
+      if (size > 0)
+        mg->SendSerialPacket(tempBuf2,size);
+      else
+        PRINT_ERROR("could not wrap packet\n");
+
+      break;
+
+    default:
+      PRINT_ERROR("invalid servo id\n");
+      break;
+
+   }
 }
 
 
