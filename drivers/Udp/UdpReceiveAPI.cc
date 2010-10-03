@@ -14,52 +14,60 @@
 #include <vector>
 #include <string>
 #include <list>
+#include "UdpCommon.hh"
+
+#define DEF_MAX_QUEUE_LENGTH 100
 
 using namespace std;
 
-#define MAXBUFLEN 65500
-char buf[MAXBUFLEN];
+struct UdpPacket
+{
+  UdpPacket() {}
+  UdpPacket(string _srcAddr,int _srcPort, uint8_t * _data, int size)
+  {
+    srcAddr = string(_srcAddr);
+    srcPort = _srcPort;
+    data.resize(size);
+    memcpy(&(data[0]),_data,size);
+  }
+  string srcAddr;
+  int srcPort;
+  vector<uint8_t> data;
+};
 
-#define DEF_MAX_QUEUE_LENGTH 10
+struct UdpConnection
+{
+  UdpConnection() {}
+  UdpConnection(string _addr, int _port) : addr(_addr), port(_port) {}
+  string addr;
+  int port;
+};
 
-int fd = -1;
-sockaddr_in addr;
-bool connected     = false;
+char buf[UDP_MAX_BUF_LEN];
+
+vector<int> fds;
+vector<UdpConnection> connections;
+
 bool threadRunning = false;
 int maxQueueLength    = DEF_MAX_QUEUE_LENGTH;
 
 pthread_t udpThread;
 pthread_mutex_t udpMutex = PTHREAD_MUTEX_INITIALIZER;
-
-struct UdpPacket
-{
-  UdpPacket() {}
-  UdpPacket(string _src, uint8_t * _data, int size)
-  {
-    src = string(_src);
-    data.resize(size);
-    memcpy(&(data[0]),_data,size);
-  }
-  string src;
-  vector<uint8_t> data;
-};
-
 list<UdpPacket> packets;
 
 void Disconnect()
 {
   if (threadRunning)
   {
-    printf("stopping thread..."); fflush(stdout);
+    printf("UdpReceiveAPI: stopping thread..."); fflush(stdout);
     pthread_cancel(udpThread);
     pthread_join(udpThread,NULL);
     threadRunning = false;
     printf("done\n");
   }
 
-  if (connected)
-    close(fd);
-  connected = false;
+  for (int ii=0; ii<fds.size(); ii++)
+    close(fds[ii]);
 }
 
 
@@ -82,7 +90,10 @@ void * UdpReceiveThreadFunc(void * input)
     int numbytes;
     sockaddr_in senderAddr;
     socklen_t addr_len = sizeof(struct sockaddr);
-    if ((numbytes = recvfrom(fd, buf, MAXBUFLEN-1 , 0,
+
+    
+
+    if ((numbytes = recvfrom(fds[0], buf, UDP_MAX_BUF_LEN-1 , 0,
 		  (struct sockaddr *)&senderAddr, &addr_len)) == -1)
     {
 		  printf("error while receiving data\n");
@@ -96,7 +107,9 @@ void * UdpReceiveThreadFunc(void * input)
 	  printf("packet contains \"%s\"\n",buf);
 */
     pthread_mutex_lock(&udpMutex);
-    packets.push_back(UdpPacket(inet_ntoa(senderAddr.sin_addr),(uint8_t*)buf,numbytes));
+    packets.push_back(UdpPacket(inet_ntoa(senderAddr.sin_addr),
+                                ntohs(senderAddr.sin_port),
+                                 (uint8_t*)buf,numbytes));
 
     while (packets.size() > maxQueueLength)
       packets.pop_front();
@@ -121,12 +134,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	//parse the commands
 	if (strcasecmp(command, "connect") == 0) 
   {
-    if (connected)
-    {
-			plhs[0] = mxCreateDoubleScalar(1);
-			return;
-		}
-    
     if (nrhs != 3) mexErrMsgTxt("Please enter correct arguments: 'connect', <address>, <port>\n");
 
 		char address[BUFLEN];
@@ -135,9 +142,24 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 		int port=(int)mxGetPr(prhs[2])[0];
 
+    //check for existing connection
+    int nConn = connections.size();
+    for (int ii=0; ii<nConn; ii++)
+    {
+      UdpConnection & conn = connections[ii];
+      if ( (conn.addr == string(address)) && (conn.port == port) )
+      {
+        printf("UdpReceiveAPI: connection (%s : %d) already exists\n",address,port);
+        plhs[0] = mxCreateDoubleScalar(1);
+			  return;
+      }
+    }
+
+    int fd;
     if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
       mexErrMsgTxt("could not create a socked");
 
+    sockaddr_in addr;
     memset(&addr,0,sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = inet_addr(address);
@@ -147,21 +169,27 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		    sizeof(struct sockaddr)) == -1)
       mexErrMsgTxt("could not bind to socket");
 
-    //start thread
-    if (pthread_create(&udpThread,NULL,UdpReceiveThreadFunc, NULL))
-      mexErrMsgTxt("Could not start thread");
-    
-    connected = true;
-    threadRunning = true;
+    fds.push_back(fd);
+    connections.push_back(UdpConnection(address,port));
 
-    mexAtExit(mexExit);
-    connected = true;
+    //start thread
+    if (!threadRunning)
+    {    
+      if (pthread_create(&udpThread,NULL,UdpReceiveThreadFunc, NULL))
+        mexErrMsgTxt("Could not start thread");
+      threadRunning = true;
+      mexAtExit(mexExit);
+    }
+
     plhs[0] = mxCreateDoubleScalar(1);
 	  return;
   }
   else if (strcasecmp(command, "receive") == 0)
   {
-    const char * fields[]= {"src","data"};
+    if (!threadRunning)
+      printf("UdpReceiveAPI: WARNING : thread is not running!!\n");
+
+    const char * fields[]= {"srcAddr","srcPort","data"};
     const int nfields = sizeof(fields)/sizeof(*fields);
 
     pthread_mutex_lock(&udpMutex);
@@ -171,7 +199,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     for (int ii = 0; ii < size; ii++)
     {
       UdpPacket * packet = &(packets.front());
-      mxSetField(plhs[0],ii,"src",mxCreateString(packet->src.c_str()));
+      mxSetField(plhs[0],ii,"srcAddr",mxCreateString(packet->srcAddr.c_str()));
+      mxSetField(plhs[0],ii,"srcPort",mxCreateDoubleScalar(packet->srcPort));
 
       int dataSize = packet->data.size();
       int dims[2];

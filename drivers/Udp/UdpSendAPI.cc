@@ -9,8 +9,7 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <mex.h>
-
-#define MAXBUFLEN 65500
+#include "UdpCommon.hh"
 
 using namespace std;
 
@@ -86,9 +85,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     uint8_t * data = (uint8_t*)mxGetData(prhs[1]);
     int size       = mxGetNumberOfElements(prhs[1]);
 
-    if (size > MAXBUFLEN)
+    if (size > UDP_MAX_BUF_LEN)
     {
-      printf("UdpSendAPI: data size (%d) exceeds the maximum limit of %d\n",size,MAXBUFLEN);
+      printf("UdpSendAPI: data size (%d) exceeds the maximum limit of %d\n",size,UDP_MAX_BUF_LEN);
       plhs[0] = mxCreateDoubleScalar(0);
 	    return;
     }
