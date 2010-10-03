@@ -328,6 +328,7 @@ int HostPacketHandler(DynamixelPacket * dpacket)
 {
   uint8_t id   = DynamixelPacketGetId(dpacket);
   uint8_t type = DynamixelPacketGetType(dpacket);
+  uint8_t * data;
 
   switch (id)
   {
@@ -354,6 +355,14 @@ int HostPacketHandler(DynamixelPacket * dpacket)
             ReplyHostConfigWriteDenied(0);
           else
             HandleConfigWriteRequest(dpacket);
+          break;
+
+        case MMC_MC_SERVO1_MODE:
+          data = DynamixelPacketGetData(dpacket);
+          Servo1SetMinAngle(*((float*)(data+1)));
+          Servo1SetMaxAngle(*((float*)(data+5)));
+          Servo1SetSpeed(*((float*)(data+9)));
+          Servo1SetMode(*data);
           break;
 
         default:
@@ -421,6 +430,23 @@ int LoadAndSetEepromParams()
 {
   ReadParamTableBlock(0,&ptableR,sizeof(ParamTable));
   SetImuAccBiases(ptableR.accBiasX,ptableR.accBiasY,ptableR.accBiasZ);
+  return 0;
+}
+
+int SendServo1StateToHost(float angle, uint32_t cntr)
+{
+  const uint8_t bufSize = 20;
+  uint8_t buf[bufSize];
+  uint8_t tempBuf[8];
+  uint8_t size;
+
+  memcpy(tempBuf,&cntr,sizeof(uint32_t));
+  memcpy(tempBuf+sizeof(uint32_t),&angle,sizeof(float));
+
+  size = DynamixelPacketWrapData(0,4,tempBuf,8,buf,bufSize);
+  if (size > 0)
+    HostSendRawData(buf,size);
+
   return 0;
 }
 
