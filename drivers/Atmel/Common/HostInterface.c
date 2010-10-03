@@ -76,3 +76,13 @@ int HostSendRawPacket(DynamixelPacket * packet)
   return 0;
 }
 
+int HostSendRawData(uint8_t * data, uint8_t size)
+{
+  uint8_t ii;
+
+  for (ii=0; ii<size; ii++)
+    HOST_COM_PORT_PUTCHAR(*data++);
+
+  return 0;
+}
+

@@ -17,4 +17,7 @@ int HostSendPacket(uint8_t id, uint8_t type, uint8_t * buf, uint8_t size);
 //assumes the data is already in the packet format
 int HostSendRawPacket(DynamixelPacket * packet);
 
+//send raw data
+int HostSendRawData(uint8_t * data, uint8_t size);
+
 #endif //HOST_INTERFACE_H
