@@ -26,7 +26,7 @@ using namespace Magic;
 //#define PRINT_IMU_RAW
 //#define PRINT_GPS
 //#define PRINT_ENCODERS
-#define PRINT_SERVO
+//#define PRINT_SERVO
 
 /////////////////////////////////////////////////////////////////////////
 // Constructor
