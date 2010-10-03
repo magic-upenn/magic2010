@@ -29,6 +29,13 @@ namespace Upenn
         return temp.tv_sec + temp.tv_usec*0.000001;
       }
 
+      static double GetUnixTime()
+      {
+        static struct timeval temp;
+        gettimeofday(&temp,NULL);
+        return temp.tv_sec + temp.tv_usec*0.000001;
+      }
+
       double GetInitTime()
       {
         return (init.tv_sec + (init.tv_usec*0.000001));
