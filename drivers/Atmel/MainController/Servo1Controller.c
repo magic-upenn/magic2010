@@ -168,13 +168,13 @@ int Servo1Update(DynamixelPacket * packetIn, uint8_t ** packetOut, uint8_t * siz
         _servo1State        = SERVO_CONTROLLER_STATE_FB_REQUESTED;
         _servo1ReqTime      = _servo1Time;
         _servo1ReqTimeout   = _servo1Time + SERVO1_REQ_TIMEOUT_DELTA;
-        _servo1NextReqTime += SERVO1_NEXT_REQ_DELTA;
+        _servo1NextReqTime  = _servo1ReqTime + SERVO1_NEXT_REQ_DELTA;
         break;
 
       case SERVO_CONTROLLER_STATE_FB_REQUESTED:
         if (packetIn)
         {
-          if (packetIn->buffer[4] != 0)
+          if ((packetIn->buffer[4] != 0) || (DynamixelPacketGetPayloadSize(packetIn) != 2))
             break;
           _servo1AngleI       = *(uint16_t*)(packetIn->buffer+5);
           _servo1AngleTime    = _servo1Time;
@@ -197,8 +197,8 @@ int Servo1Update(DynamixelPacket * packetIn, uint8_t ** packetOut, uint8_t * siz
     {
       case SERVO_CONTROLLER_STATE_UNINITIALIZED:
       case SERVO_CONTROLLER_STATE_IDLE:
-        //if (_servo1Time < _servo1NextReqTime)
-        //  break;
+        if (_servo1Time < _servo1NextReqTime)
+          break;
 
         if (_servo1Dir > 0)
         {
@@ -215,13 +215,13 @@ int Servo1Update(DynamixelPacket * packetIn, uint8_t ** packetOut, uint8_t * siz
         _servo1State      = SERVO_CONTROLLER_STATE_SENT_ANGLE_CMD;
         _servo1ReqTime    = _servo1Time;
         _servo1ReqTimeout = _servo1Time + SERVO1_REQ_TIMEOUT_DELTA;
-        _servo1NextReqTime += SERVO1_NEXT_REQ_DELTA;
+        _servo1NextReqTime = _servo1ReqTime + SERVO1_NEXT_REQ_DELTA;
         break;
 
       case SERVO_CONTROLLER_STATE_SENT_ANGLE_CMD:
         if (packetIn)
         {
-          if (packetIn->buffer[4] == 0)
+          if (packetIn->buffer[4] == 0 && (DynamixelPacketGetPayloadSize(packetIn) == 0))
             _servo1State = SERVO_CONTROLLER_STATE_MOVING;
           else
             _servo1State = SERVO_CONTROLLER_STATE_IDLE;
@@ -238,13 +238,13 @@ int Servo1Update(DynamixelPacket * packetIn, uint8_t ** packetOut, uint8_t * siz
         _servo1State      = SERVO_CONTROLLER_STATE_MOVING_FB_REQUESTED;
         _servo1ReqTime    = _servo1Time;
         _servo1ReqTimeout = _servo1Time + SERVO1_REQ_TIMEOUT_DELTA;
-        _servo1NextReqTime += SERVO1_NEXT_REQ_DELTA;
+        _servo1NextReqTime = _servo1ReqTime + SERVO1_NEXT_REQ_DELTA;
         break;
 
       case SERVO_CONTROLLER_STATE_MOVING_FB_REQUESTED:
         if (packetIn)
         {
-          if (packetIn->buffer[4] != 0)
+          if ((packetIn->buffer[4] != 0) || (DynamixelPacketGetPayloadSize(packetIn) != 2))
             break;
 
           _servo1AngleI       = *(uint16_t*)(packetIn->buffer+5);

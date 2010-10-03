@@ -41,7 +41,6 @@ uint16_t adcCntr = 0;
 uint16_t imuPacket[NUM_ADC_CHANNELS+1];
 
 volatile uint8_t rs485Blocked = 0;
-volatile uint8_t rcCmdPending = 0;
 volatile uint8_t needToSendMotorCmd = 0;
 volatile uint8_t needToRequestFb = 0;
 volatile uint8_t needToSendServo1Packet = 0;
@@ -133,7 +132,7 @@ void Rs485ResponseTimeout(void)
   rs485Blocked = 0;
   
   //disable the timeout, since we consider the packet lost
-  //timer4_disable_compa_callback();
+  timer4_disable_compa_callback();
 }
 
 void InitLeds()
@@ -196,6 +195,7 @@ void init(void)
 
   timer1_init();
   timer1_set_compa_callback(EncodersRequestFcn);
+  //timer1_set_compb_callback(MotorCmdSendFcn);
   //timer1_set_overflow_callback(EncodersRequestFcn);
 
   //generate the request packets:
@@ -406,10 +406,18 @@ int HostPacketHandler(DynamixelPacket * dpacket)
 
 int BusPacketHandler(DynamixelPacket * packet)
 {
+  uint8_t id = DynamixelPacketGetId(packet);
   //disable the timeout for RS485 bus, since the response came back
   timer4_disable_compa_callback();
   rs485Blocked = 0;
   HostSendRawPacket(packet);
+
+  
+  if ( (id == MMC_MOTOR_CONTROLLER_DEVICE_ID) && (needToSendMotorCmd == 1))
+  {
+    BusSendRawPacket(&motorCmdPacketOut);
+    needToSendMotorCmd = 0;
+  }
   
   
   return 0;
@@ -519,7 +527,7 @@ int main(void)
     Servo1UpdateTime(GlobalTimerGetTime());
     Servo1Update(servo1PacketIn,&servo1PacketOut,&servo1PacketOutSize);
     
-    if (servo1PacketOut && servo1PacketOutSize > 0)
+    if (servo1PacketOut && (servo1PacketOutSize > 0))
     {
       memcpy(servo1PacketOutBuf,servo1PacketOut,servo1PacketOutSize);
       servo1PacketOutBufSize = servo1PacketOutSize;
@@ -590,28 +598,22 @@ int main(void)
 
 
 
-    if ( (needToSendMotorCmd == 1) && (rs485Blocked == 0))
-    {
-      BusSendRawPacket(&motorCmdPacketOut);
-      needToSendMotorCmd = 0;
-    }
 
-/*
-    if ( (needToRequestFb == 1) && (rs485Blocked == 0) )
-    {
-      SetBusBlocked();
-      BusSendRawData(encoderRequestRawPacket,encoderRequestRawPacketSize);
-      needToRequestFb = 0;
-    }
-*/
     if ( (needToSendServo1Packet == 1) && (rs485Blocked == 0))
     {
       SetBusBlocked();
       BusSendRawData(servo1PacketOutBuf,servo1PacketOutBufSize);
       needToSendServo1Packet = 0;
+      TCNT1 = 12500/4;
     }
 
-  }
+    if ( (needToRequestFb == 1) && (rs485Blocked == 0) )
+    {
+      SetBusBlocked();
+      BusSendRawData(encoderRequestRawPacket,encoderRequestRawPacketSize);
+      needToRequestFb = 0;
+    }  
+ }
 
   
 
