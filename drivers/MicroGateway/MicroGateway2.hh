@@ -121,6 +121,7 @@ namespace Upenn
     private: string imuMsgName;
     private: string estopMsgName;
     private: string selectedIdMsgName;
+    private: string servo1StateMsgName;
   };
 }
 #endif

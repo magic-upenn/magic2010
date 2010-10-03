@@ -237,6 +237,7 @@ int MicroGateway::InitializeMessages()
   this->imuMsgName   = this->DefineMsg("ImuFiltered",ImuFiltered::getIPCFormat());
   this->estopMsgName = this->DefineMsg("EstopState",EstopState::getIPCFormat());
   this->selectedIdMsgName  = this->DefineMsg("SelectedId","{byte}");
+  this->servo1StateMsgName = this->DefineMsg("Servo1",ServoState::getIPCFormat());
 
 
   string msgName = this->robotName + "/" + "VelocityCmd";
@@ -642,21 +643,33 @@ int MicroGateway::ServoPacketHandler(DynamixelPacket * dpacket)
   int type = DynamixelPacketGetType(dpacket);
   int size = DynamixelPacketGetPayloadSize(dpacket);
 
-  if (1)//(size > 0)
+  double angle;
+  AngleVal2AngleDeg(*(uint16_t*)(dpacket->buffer+5),angle);
+
+  if (size > 0)
   {
-    double angle;
-    AngleVal2AngleDeg(*(uint16_t*)(dpacket->buffer+5),angle);
+
+    Magic::ServoState sstate;
+    sstate.position     = angle/180.0*M_PI;
+    sstate.velocity     = 0;
+    sstate.acceleration = 0;
+    sstate.t            = Timer::GetUnixTime();
+    sstate.id           = id;
+    sstate.counter      = 0;
+
+    if (IPC_publishData(this->servo1StateMsgName.c_str(),&sstate) != IPC_OK)
+    {
+      PRINT_ERROR("could not publish dynamixel message to ipc\n");
+      return -1;
+    }
+  }
 
 #ifdef PRINT_SERVO
-    PRINT_INFO("got servo angle = "<<angle<<", type = "<<type<<", size = "<<size<<"\n");
+  PRINT_INFO("got servo angle = "<<angle<<", type = "<<type<<", size = "<<size<<"\n");
 #endif
-  }
-  /*
-  //TODO: send out servo angle
-  
-  
 
-*/
+ 
+
   return 0;
 }
 
