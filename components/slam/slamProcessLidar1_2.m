@@ -32,12 +32,16 @@ if (tLidar < tServo) && size(SERVO1.hist,2) > 3
     if (SERVO1.hist(2,ii) > tLidar)
       da = (SERVO1.hist(1,ii)-SERVO1.hist(1,ii-1))/(SERVO1.hist(2,ii)-SERVO1.hist(2,ii-1));
       servoAngle = SERVO1.hist(1,ii-1) + da*(tLidar-SERVO1.hist(2,ii-1));
+      %fprintf(1,'blah\n');
+      %return;
       break;
     end
   end
-elseif (size(SERVO1.hist,2) > 1)
-  da = (SERVO1.hist(1,end)-SERVO1.hist(1,end-1))/(SERVO1.hist(2,end)-SERVO1.hist(2,end-1));
-  servoAngle = SERVO1.hist(1,end) + da*(tLidar-SERVO1.hist(2,end));
+elseif (size(SERVO1.hist,2) > 8)
+  %fprintf(1,'blah2\n');
+  filtLen = 4;
+  da = (SERVO1.hist(1,end)-SERVO1.hist(1,end-filtLen))/(SERVO1.hist(2,end)-SERVO1.hist(2,end-filtLen));
+  servoAngle = SERVO1.hist(1,end) + da*(tLidar-SERVO1.hist(2,end)) -sign(da)*0.025;
 end
 
 if isempty(servoAngle)
