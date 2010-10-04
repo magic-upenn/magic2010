@@ -569,8 +569,10 @@ int main(void)
       c = XBEE_COM_PORT_GETCHAR();
     }
 
+    cli();
     len = adc_get_data(adcVals);
-    
+    sei();    
+
     if (len > 0)
     {
       imuRet = ProcessImuReadings(adcVals,rpy,wrpy);
