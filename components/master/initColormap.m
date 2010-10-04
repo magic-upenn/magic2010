@@ -14,7 +14,6 @@ colorHelper([1,1,0], [.5,0,0], 90);
 %sure obstacles
 colorHelper([.5,0,0], [0,0,0], 10);
 
-MAGIC_COLORMAP
 
 
 function colorHelper(c0,c1,s)

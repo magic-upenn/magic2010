@@ -1,5 +1,11 @@
-function gcs
+function gcs(log_file)
 more off;
+
+global INIT_LOG RPOSE RMAP GPOSE GMAP GTRANSFORM
+INIT_LOG = nargin >= 1;
+if INIT_LOG
+  load(log_file);
+end
 
 %%%  gcs stuff
 global gcs_machine Robots PLAN_DEBUG

@@ -1,6 +1,6 @@
 function gcsEntryIPC(ids)
 
-global GCS
+global GCS INIT_LOG
 global ROBOTS
 global RPOSE RMAP RPATH EXPLORE_PATH
 global GTRANSFORM GPOSE GMAP GPATH
@@ -14,25 +14,25 @@ GCS.ids = ids;
 GCS.tSave = gettime;
 
 for id = ids,
-  RPOSE{id}.x = 0;
-  RPOSE{id}.y = 0;
-  RPOSE{id}.yaw = 0;
-  RPOSE{id}.heading = 0;
-  RMAP{id} = map2d(800,800,.20,'vlidar','hlidar','cost');
+  if ~INIT_LOG
+    RPOSE{id}.x = 0;
+    RPOSE{id}.y = 0;
+    RPOSE{id}.yaw = 0;
+    RPOSE{id}.heading = 0;
+    RMAP{id} = map2d(800,800,.20,'vlidar','hlidar','cost');
 
-  GTRANSFORM{id}.init = 0;
-  GPOSE{id} = [];
+    GTRANSFORM{id}.init = 0;
+    GPOSE{id} = [];
+  end
 
   RPATH{id} = [];
   GPATH{id} = [];
   EXPLORE_PATH{id} = [];
 end
 
-%Exploration planner looks at idmax indices of GPOSE
-idmax = 3;
-GPOSE{idmax} = [];
-
-GMAP = map2d(800, 800, .20, 'hlidar', 'cost');
+if ~INIT_LOG
+  GMAP = map2d(800, 800, .20, 'hlidar', 'cost');
+end
 
 masterConnectRobots(ids);
 

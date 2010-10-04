@@ -2,16 +2,16 @@ function gcsUpdateIPC
 
 global GCS
 global RPOSE RMAP
-global GPOSE GMAP
+global GPOSE GMAP GTRANSFORM
 
 % Non blocking receive:
 masterReceiveFromRobots();
 GetLocalMsg();
 
-if (gettime - GCS.tSave > 120)
+if (gettime - GCS.tSave > 20)
   savefile = ['/tmp/gcs_', datestr(clock,30)];
   disp(sprintf('Saving log file: %s', savefile));
-  eval(['save ' savefile ' RPOSE RMAP GPOSE GMAP']);
+  eval(['save ' savefile ' RPOSE RMAP GPOSE GMAP GTRANSFORM ']);
   GCS.tSave = gettime;
 end
 
