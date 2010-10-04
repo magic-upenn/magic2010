@@ -9,9 +9,11 @@ function draw_center_line(handle,img,angle,req_angle)
 		req_X = [req_center,req_center]; 
 		line(req_X,Y,'Color','c','Parent',handle,'LineWidth',2,'LineStyle','-','Marker','o','MarkerFaceColor','black'); 
 	end
-	center = round(angle_to_pixel(img,angle)); 	
-
-	X = [center,center]; 
+	if isempty(angle)
+		angle = 0; 
+	end
+	center = angle_to_pixel(img,angle); 	
+	X = [center,center];
 	line(X,Y,'Color','m','Parent',handle,'LineWidth',2,'LineStyle','-','Marker','o','MarkerFaceColor','black'); 
 	hold off; 
 	%1						width

@@ -23,13 +23,13 @@ function visionGuiInit
 	    IMAGES(ii).t = [];
 	    IMAGES(ii).omni = [];
 	    IMAGES(ii).front = [];
+	    IMAGES(ii).front_angle = [];
 	    IMAGES(ii).omni_cands = [];
 	    IMAGES(ii).front_cands = [];
 	    IMAGES(ii).omni_stats = [];
 	    IMAGES(ii).front_stats = [];
-	    IMAGES(ii).front_angle = [];
-	
-	   % IMAGES(ii).POSE = [];
+	   
+	    % IMAGES(ii).POSE = [];
 	    STATIC_OOI(ii).OOI = [];
 	    STATIC_OOI(ii).id = [];
 	    STATIC_OOI(ii).t = [];
