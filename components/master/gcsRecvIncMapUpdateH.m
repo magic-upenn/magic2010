@@ -61,9 +61,13 @@ if ~isempty(GPOSE{id}),
   GTRANSFORM{id}.dy = Tnew(2,3);
   GTRANSFORM{id}.dyaw = GTRANSFORM{id}.dyaw - am;
 
-  if(~ViewedByAnotherRobot(id, xg, yg))
-      asgn(GMAP, 'hlidar', xg, yg, cm);
-      asgn(GMAP, 'cost', xg, yg, cm);
-  end
+  NotViewed = NotViewedByAnotherRobot(id, xg, yg);
+  
+  xg = xg(NotViewed);
+  yg = yg(NotViewed);
+  cm = cm(NotViewed);
+  
+  asgn(GMAP, 'hlidar', xg, yg, cm);
+  asgn(GMAP, 'cost', xg, yg, cm);
   
 end

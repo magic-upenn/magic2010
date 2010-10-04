@@ -22,7 +22,12 @@ asgn(RMAP{id}, 'cost', xm, ym, cm);
 
 if ~isempty(GPOSE{id}),
   [xg, yg] = rpos_to_gpos(id, xm, ym);
-  if(~ViewedByAnotherRobot(id, xg, yg))
-      asgn(GMAP, 'cost', xg, yg, cm);
-  end
+  
+  NotViewed = NotViewedByAnotherRobot(id, xg, yg);
+  
+  xg = xg(NotViewed);
+  yg = yg(NotViewed);
+  cm = cm(NotViewed);
+  asgn(GMAP, 'cost', xg, yg, cm);
+  
 end
