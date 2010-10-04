@@ -53,16 +53,21 @@ case 'r'
   globalMapExploreRegion();
 case 't'
   globalMapAvoid();
+case 'y'
+  globalMapOOI();
 case 'a'
   set(GDISPLAY.exploreOverlay,'Value',~get(GDISPLAY.exploreOverlay,'Value'));
   exploreRegionOverlay();
 case 's'
+  set(GDISPLAY.ooiOverlay,'Value',~get(GDISPLAY.ooiOverlay,'Value'));
+  ooiOverlay();
+case 'd'
   set(GDISPLAY.avoidOverlay,'Value',~get(GDISPLAY.avoidOverlay,'Value'));
   avoidRegionOverlay();
-case 'd'
+case 'f'
   set(GDISPLAY.UAVOverlay,'Value',~get(GDISPLAY.UAVOverlay,'Value'));
   UAVOverlay();
-case 'f'
+case 'g'
   set(GDISPLAY.gridOverlay,'Value',~get(GDISPLAY.gridOverlay,'Value'));
   gridOverlay();
 case 'delete'
