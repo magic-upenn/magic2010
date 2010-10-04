@@ -1,23 +1,23 @@
 function exploreRegionDelete()
-global GDISPLAY
+global GDISPLAY EXPLORE_REGIONS
 
-if length(GDISPLAY.exploreRegions) == 0
+if length(EXPLORE_REGIONS) == 0
   return;
 end
 
 id = get(GDISPLAY.exploreRegionList,'Value');
 
-if length(GDISPLAY.exploreRegions) == 1
-  GDISPLAY.exploreRegions = [];
-elseif id == length(GDISPLAY.exploreRegions)
-  GDISPLAY.exploreRegions = GDISPLAY.exploreRegions(1:end-1);
+if length(EXPLORE_REGIONS) == 1
+  EXPLORE_REGIONS = [];
+elseif id == length(EXPLORE_REGIONS)
+  EXPLORE_REGIONS = EXPLORE_REGIONS(1:end-1);
   set(GDISPLAY.exploreRegionList,'Value',id-1);
 elseif id == 1
-  GDISPLAY.exploreRegions = GDISPLAY.exploreRegions(2:end);
+  EXPLORE_REGIONS = EXPLORE_REGIONS(2:end);
 else
-  GDISPLAY.exploreRegions = [GDISPLAY.exploreRegions(1:id-1) GDISPLAY.exploreRegions(id+1:end)];
+  EXPLORE_REGIONS = [EXPLORE_REGIONS(1:id-1) EXPLORE_REGIONS(id+1:end)];
 end
 
-set(GDISPLAY.exploreRegionList,'String',1:length(GDISPLAY.exploreRegions));
+set(GDISPLAY.exploreRegionList,'String',1:length(EXPLORE_REGIONS));
 
 exploreRegionOverlay();

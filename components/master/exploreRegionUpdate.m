@@ -1,16 +1,16 @@
 function exploreRegionUpdate()
-global GDISPLAY
+global GDISPLAY EXPLORE_REGIONS
 
 if GDISPLAY.lastRegionSelection ~= -1
   tag = get(GDISPLAY.lastRegionSelection,'Tag');
   if tag(1)=='e'
     reg = str2double(tag(2:end));
-    GDISPLAY.exploreRegions(reg).id = [];
+    EXPLORE_REGIONS(reg).id = [];
     for i=1:length(GDISPLAY.robotRadioControl)
       if get(GDISPLAY.robotRadioControl{i},'Value')
-        GDISPLAY.exploreRegions(reg).id(end+1) = i;
+        EXPLORE_REGIONS(reg).id(end+1) = i;
       end
     end
-    GDISPLAY.exploreRegions(reg).template = GDISPLAY.selectedTemplate;
+    EXPLORE_REGIONS(reg).template = GDISPLAY.selectedTemplate;
   end
 end

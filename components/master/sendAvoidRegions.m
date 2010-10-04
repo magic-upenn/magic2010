@@ -1,12 +1,12 @@
 function sendAvoidRegions()
-global GDISPLAY GCS ROBOTS
+global GCS ROBOTS AVOID_REGIONS
 
-if isempty(GDISPLAY.avoidRegions)
+if isempty(AVOID_REGIONS)
   msg.x = [];
   msg.y = [];
 else
-  msg.x = cell2mat({GDISPLAY.avoidRegions(:).x});
-  msg.y = cell2mat({GDISPLAY.avoidRegions(:).y});
+  msg.x = cell2mat({AVOID_REGIONS(:).x});
+  msg.y = cell2mat({AVOID_REGIONS(:).y});
 end
 for id = GCS.ids
   msgName = ['Robot',num2str(id),'/Avoid_Regions'];

@@ -1,6 +1,6 @@
 function globalMapGoToPoint()
 
-global GDISPLAY ROBOTS GMAP GPOSE
+global GDISPLAY ROBOTS GMAP GPOSE AVOID_REGIONS
 
 [xp, yp] = ginput(1);
 
@@ -16,9 +16,9 @@ if ~isempty(xp),
       UTM_y = ymap(1);
 
       costmap = double(getdata(GMAP, 'cost'));
-      for i = 1:length(GDISPLAY.avoidRegions)
-        costmap(sub2ind(size(costmap),round((GDISPLAY.avoidRegions(i).x-UTM_x)/map_cell_size), ...
-                 round((GDISPLAY.avoidRegions(i).y-UTM_y)/map_cell_size))) = 100;
+      for i = 1:length(AVOID_REGIONS)
+        costmap(sub2ind(size(costmap),round((AVOID_REGIONS(i).x-UTM_x)/map_cell_size), ...
+                 round((AVOID_REGIONS(i).y-UTM_y)/map_cell_size))) = 100;
       end
 
       path = globalGoToPoint(costmap,[GPOSE{id}.x GPOSE{id}.y],[xp, yp],[UTM_x, UTM_y],sqrt(2)*0.25,map_cell_size)

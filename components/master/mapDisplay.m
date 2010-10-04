@@ -7,6 +7,7 @@ global RDISPLAY GDISPLAY
 global PLANDISPLAY PLANMAP PLAN_DEBUG
 global MAGIC_COLORMAP
 global INIT_LOG
+global EXPLORE_REGIONS AVOID_REGIONS
 
 axlim = 10;
 
@@ -125,8 +126,6 @@ switch event
     set(GDISPLAY.hFigure,'Position',[1 scrsz(4) scrsz(3)*0.95 scrsz(4)*0.90]);
     clf;
     set(gcf,'NumberTitle', 'off', 'Name',sprintf('Global Map'));
-    GDISPLAY.exploreRegions = [];
-    GDISPLAY.avoidRegions = [];
 
 
     % Individual map
@@ -503,6 +502,14 @@ switch event
                                         'KeyPressFcn', @keypress, ...
                                         'Units', 'Normalized', ...
                                         'Position', [.80 .55 .10 .03]);
+
+    if ~INIT_LOG
+      EXPLORE_REGIONS = [];
+      AVOID_REGIONS = [];
+    else
+      set(GDISPLAY.exploreRegionList,'String',1:length(EXPLORE_REGIONS));
+      set(GDISPLAY.avoidRegionList,'String',1:length(AVOID_REGIONS));
+    end
 
     if PLAN_DEBUG
       PLANDISPLAY.fig = figure(11);

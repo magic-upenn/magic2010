@@ -1,7 +1,7 @@
 function gcs(log_file)
 more off;
 
-global INIT_LOG RPOSE RMAP GPOSE GMAP GTRANSFORM
+global INIT_LOG RPOSE RMAP GPOSE GMAP GTRANSFORM EXPLORE_REGIONS AVOID_REGIONS
 INIT_LOG = nargin >= 1;
 if INIT_LOG
   load(log_file);

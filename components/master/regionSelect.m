@@ -1,5 +1,5 @@
 function regionSelect(src,eventdata)
-global GDISPLAY
+global GDISPLAY EXPLORE_REGIONS
 
 if GDISPLAY.lastRegionSelection ~= -1
   set(GDISPLAY.lastRegionSelection,'Selected','off');
@@ -15,11 +15,11 @@ if tag(1)=='e'
   end
 
   reg = str2double(tag(2:end));
-  for id = GDISPLAY.exploreRegions(reg).id
+  for id = EXPLORE_REGIONS(reg).id
     set(GDISPLAY.robotRadioControl{id},'Value',1);
   end
 
-  set(GDISPLAY.templateGroup,'SelectedObject',GDISPLAY.templateControl{GDISPLAY.exploreRegions(reg).template});
-  GDISPLAY.selectedTemplate = GDISPLAY.exploreRegions(reg).template;
+  set(GDISPLAY.templateGroup,'SelectedObject',GDISPLAY.templateControl{EXPLORE_REGIONS(reg).template});
+  GDISPLAY.selectedTemplate = EXPLORE_REGIONS(reg).template;
 end
 
