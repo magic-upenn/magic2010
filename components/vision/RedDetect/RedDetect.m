@@ -1,5 +1,7 @@
 function RedDetect
 	SetMagicPaths;
+	addpath( [ getenv('MAGIC_DIR') '/trunk/components/vision/uvcCam' ] )
+	addpath( [ getenv('MAGIC_DIR') '/trunk/components/vision/RedDetect' ] )
 %	global POSE targetY
 %	POSE.data = [];
 
@@ -30,6 +32,7 @@ function RedDetect
 		imPacket.t  = GetUnixTime();
 		imPacket.omni = cjpeg(omni_sm);
 		imPacket.front = cjpeg(front_sm);
+		imPacket.front_angle = 0; 
 		for im = 1:3
 			imPacket.omni_cands{im}  = cjpeg(omni_cands{im});
 			imPacket.front_cands{im} = cjpeg(front_cands{im});

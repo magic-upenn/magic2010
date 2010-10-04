@@ -22,7 +22,7 @@ function varargout = omni_gui(varargin)
 
 % Edit the above text to modify the response to help omni_gui
 
-% Last Modified by GUIDE v2.5 27-Sep-2010 12:50:58
+% Last Modified by GUIDE v2.5 04-Oct-2010 13:30:42
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -64,8 +64,9 @@ OMNI_GUI = hObject;
 OMNI_UP = @updateGui;
 
 global CAND
-FOCUS = 1;
 CAND = 1; 
+global REQ_ANGLES
+REQ_ANGLES = -ones(1,9); 
 updateGui; 
 
 
@@ -73,17 +74,22 @@ function updateGui
 global OMNI_GUI
 global CAND
 global IMAGES
+global REQ_ANGLES
 handles = guidata(OMNI_GUI);
 for i = 1:9
 	image = IMAGES(i);
 	oname = sprintf('omni%d',i);
 	cname = sprintf('cand%d',i);
 %	image.stats = flipud(sortrows(image.omni_stats,1));  
-	draw_cands_on_image(handles.(oname),image.omni_stats,image.omni); 
+	omni_h  = draw_cands_on_image(handles.(oname),image.omni_stats,image.omni); 
+	draw_center_line(handles.(oname),image.omni,image.front_angle,REQ_ANGLES(i)); 
 	if(isempty(image.omni_cands))
 		continue
 	end
-	imagesc(image.omni_cands{CAND},'Parent',handles.(cname)); daspect(handles.(cname),[1 1 1]);  
+	cand_h = imagesc(image.omni_cands{CAND},'Parent',handles.(cname)); daspect(handles.(cname),[1 1 1]);  
+	set(omni_h,'ButtonDownFcn',{@omni_ButtonDownFcn,i,handles.(oname)});
+	set(cand_h,'ButtonDownFcn',{@cand_ButtonDownFcn,i,handles.(cname)});
+	 
 end
 
 
@@ -117,12 +123,41 @@ global IMAGES;
 global CAND;
  
 CAND = mod(CAND+1,3) + 1; 
-for i = 1:9
-	image = IMAGES(i);
-	cname = sprintf('cand%d',i);
-	if(isempty(image.omni_cands))
-		continue
-	end
-	axes(handles.(cname)); imagesc(image.omni_cands{CAND}); daspect([1 1 1]);  
-end
+updateGui; 
+%for i = 1:9
+%	image = IMAGES(i);
+%	cname = sprintf('cand%d',i);
+%	if(isempty(image.omni_cands))
+%		continue
+%	end
+%	axes(handles.(cname)); imagesc(image.omni_cands{CAND}); daspect([1 1 1]);  
+%end
+
+
+% --- Executes on mouse press over axes background.
+function cand_ButtonDownFcn(hObject, eventdata, id, axeh)
+	global IMAGES;
+	global CAND;
+	global REQ_ANGLES;
+	xpos = IMAGES(id).omni_stats(CAND,4:end);
+	[id,CAND] 
+	angle = pixel_to_angle(IMAGES(id).omni,mean(xpos));  
+	REQ_ANGLES(id) = angle; 
+	updateGui;   
+
+function omni_ButtonDownFcn(hObject, eventdata, id, axeh)
+	global IMAGES;
+	global REQ_ANGLES;
+	id
+	cp = get(axeh,'CurrentPoint');
+	x = cp(1,1);
+	y = cp(1,2);  
+	[x,y]
+	angle = pixel_to_angle(IMAGES(id).omni,x) 
+	REQ_ANGLES(id) = angle; 
+	updateGui;   
+% hObject    handle to omni1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
 

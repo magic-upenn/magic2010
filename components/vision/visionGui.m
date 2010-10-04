@@ -1,5 +1,7 @@
 function visionGui
 	SetMagicPaths
+	addpath( [ getenv('MAGIC_DIR') '/trunk/components/vision/uvcCam' ] )
+	addpath( [ getenv('MAGIC_DIR') '/trunk/components/vision/RedDetect' ] )
 	visionGuiInit;
 
 	while(1)
@@ -14,7 +16,7 @@ function visionGuiInit
 	global IMAGES STATIC_OOI ROBOTS
 
 	nRobots = 10;
-	ids = [1]; % list of ID's of available robots
+	ids = [1,3]; % list of ID's of available robots
 
 	for ii=1:nRobots
 	    IMAGES(ii).id = [];
@@ -25,9 +27,8 @@ function visionGuiInit
 	    IMAGES(ii).front_cands = [];
 	    IMAGES(ii).omni_stats = [];
 	    IMAGES(ii).front_stats = [];
-		
-	   % IMAGES(ii).jpg = [];
-	   % IMAGES(ii).Ymean = [];
+	    IMAGES(ii).front_angle = [];
+	
 	   % IMAGES(ii).POSE = [];
 	    STATIC_OOI(ii).OOI = [];
 	    STATIC_OOI(ii).id = [];
@@ -37,8 +38,8 @@ function visionGuiInit
 
 	ipcInit;
 
-	masterConnectRobots(ids,'127.0.0.1');
-%	masterConnectRobots(ids);
+%	masterConnectRobots(ids,'127.0.0.1');
+	masterConnectRobots(ids);
 
 	for ii=1:length(ROBOTS)
 	  if (ROBOTS(ii).connected == 1)

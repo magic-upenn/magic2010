@@ -1,5 +1,5 @@
-function draw_cands_on_image(axeh,stats,img)
-	imagesc(img,'Parent',axeh); daspect(axeh,[1 1 1])
+function h = draw_cands_on_image(axeh,stats,img)
+	h = imagesc(img,'Parent',axeh); daspect(axeh,[1 1 1])
 	if isempty(stats)
 		return
 	end

@@ -22,7 +22,7 @@ function varargout = front_gui(varargin)
 
 % Edit the above text to modify the response to help front_gui
 
-% Last Modified by GUIDE v2.5 27-Sep-2010 12:42:53
+% Last Modified by GUIDE v2.5 01-Oct-2010 17:08:43
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -252,5 +252,25 @@ for i = 1:9
 	end
 	axes(handles.(cname)); imagesc(image.front_cands{CAND}); daspect([1 1 1]);  
 end
+
+
+% --- Executes on key press with focus on figure1 and no controls selected.
+function figure1_KeyPressFcn(hObject, eventdata, handles)
+global FOCUS; 
+char = get(gcf,'CurrentCharacter')
+
+num = str2num(char); 
+if ~isempty(num)
+	if num == 0
+		switch_cand_Callback(hObject, eventdata, handles)
+	else 
+		FOCUS = num; 
+		updateGui;
+	end
+end
+
+% hObject    handle to figure1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
 
 
