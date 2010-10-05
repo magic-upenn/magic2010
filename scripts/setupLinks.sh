@@ -10,3 +10,4 @@ sudo ln -s $MAGIC_DIR/ipc/xdrgen.linux32 /usr/local/bin/xdrgen
 sudo chmod 755 /usr/local/bin/central
 sudo chmod 755 /usr/local/bin/xdrgen
 sudo chmod 4755 /usr/bin/nice
+
