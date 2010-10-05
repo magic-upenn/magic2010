@@ -49,6 +49,8 @@ uint8_t estop = 0;
 volatile uint8_t freshMotorCmd = 0;
 volatile uint8_t mode = MMC_MC_MODE_RUN;
 
+float voltageBatt = 0;
+
 ParamTable EEMEM ptableE;
 ParamTable ptableR;
 uint8_t eepromTempData[sizeof(ParamTable)+4];
@@ -207,12 +209,17 @@ void init(void)
 
   Servo1Init(GlobalTimerGetTime());
 
+
+  //buzzer port
+  BUZZER_DDR |= _BV(BUZZER_PIN);
+
   //enable global interrupts 
   sei();
 
   LED_ERROR_OFF;
 }
 
+/*
 int ImuPacketHandler(uint8_t len)
 {
   imuPacket[0] = adcCntr++;
@@ -221,6 +228,7 @@ int ImuPacketHandler(uint8_t len)
                  (uint8_t*)imuPacket,(NUM_ADC_CHANNELS+1)*sizeof(uint16_t));
   return 0;
 }
+*/
 
 
 int ReplyHostConfigReadDenied(uint8_t flag)
@@ -575,6 +583,7 @@ int main(void)
 
     if (len > 0)
     {
+      adcCntr++;
       imuRet = ProcessImuReadings(adcVals,rpy,wrpy);
       if (imuRet == 0) //will return 0 if updated, 1 if not yet updated
       {
@@ -591,10 +600,26 @@ int main(void)
       }
       else if (imuRet == 1)    //send out raw values if calibration is not finished
       {
-        imuPacket[0] = adcCntr++;
+        imuPacket[0] = adcCntr;
         memcpy(&(imuPacket[1]),adcVals,NUM_ADC_CHANNELS*sizeof(uint16_t));
         HostSendPacket(MMC_IMU_DEVICE_ID,MMC_IMU_RAW,
 		       (uint8_t*)imuPacket,(NUM_ADC_CHANNELS+1)*sizeof(uint16_t));
+      }
+
+      if (adcCntr % 100 == 0)
+      {
+        voltageBatt = adcVals[6]/1024.0*2.56*(11.0);
+        HostSendPacket(MMC_MAIN_CONTROLLER_DEVICE_ID,MMC_MC_VOLTAGE_BATT,
+	   (uint8_t*)(&voltageBatt),sizeof(float));
+
+        if (voltageBatt < 21.0)
+        {
+          cli();  BUZZER_ON; sei();
+        }
+        else
+        {
+          cli(); BUZZER_OFF; sei();
+        }
       }
     }
 

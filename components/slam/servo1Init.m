@@ -23,6 +23,9 @@ if isempty(SERVO1) || ~isfield(SERVO1,'initialized') ||(SERVO1.initialized ~= 1)
       case 3
           aOff = 2.5;
           SERVO1.amult = 1.0;
+      case 6
+          aOff = 0.0;
+          SERVO1.amult = 1.0;
       otherwise
           aOff = 0;
           SERVO1.amult = 1.0;

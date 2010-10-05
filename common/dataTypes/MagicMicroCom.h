@@ -27,7 +27,9 @@ enum { MMC_MC_RESET,
        MMC_MC_MODE_SWITCH,
        MMC_MC_EEPROM_READ,
        MMC_MC_EEPROM_WRITE,
-       MMC_MC_SERVO1_MODE
+       MMC_MC_SERVO1_MODE,
+       MMC_MC_SERVO2_MODE,
+       MMC_MC_VOLTAGE_BATT
      };
 
 

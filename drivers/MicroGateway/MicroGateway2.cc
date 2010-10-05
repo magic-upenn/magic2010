@@ -428,6 +428,9 @@ int MicroGateway::HandleSerialPacket(DynamixelPacket * dpacket)
 
   switch (deviceId)
   {
+    case MMC_MAIN_CONTROLLER_DEVICE_ID:
+      this->MainControllerPacketHandler(dpacket);
+      break;
     case MMC_MOTOR_CONTROLLER_DEVICE_ID:
       this->MotorControllerPacketHandler(dpacket);
       break;
@@ -461,6 +464,18 @@ int MicroGateway::HandleSerialPacket(DynamixelPacket * dpacket)
 
   return 0;
 }
+
+int MicroGateway::MainControllerPacketHandler(DynamixelPacket * dpacket)
+{
+  int packetType = DynamixelPacketGetType(dpacket);
+  uint8_t * data = DynamixelPacketGetData(dpacket);
+  if (packetType == MMC_MC_VOLTAGE_BATT)
+  {
+    printf("got battery voltage %f\n",*((float*)data)); 
+  }
+  return 0;
+}
+
 
 int MicroGateway::EstopPacketHandler(DynamixelPacket * dpacket)
 {

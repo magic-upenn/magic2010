@@ -119,6 +119,12 @@
 #define LED_ESTOP_OFF       
 */
 
+#define BUZZER_DDR DDRB
+#define BUZZER_PORT PORTB
+#define BUZZER_PIN  PB6
+#define BUZZER_ON BUZZER_PORT |= _BV(BUZZER_PIN)
+#define BUZZER_OFF BUZZER_PORT &= ~(_BV(BUZZER_PIN))
+
 //index of each control in the array of RC channels
 #define RC_V_IND 2
 #define RC_W_IND 1
@@ -130,7 +136,7 @@
 #define RC_W_RANGE 230
 
 #include "timer5.h"
-#define NUM_ADC_CHANNELS 6
+#define NUM_ADC_CHANNELS 7
 #define ADC_TIMER_PERIOD_TICS 2500 //2500 = 100Hz with 1/64 prescaler
 #define ADC_TIMER_RESET timer5_reset
 #define ADC_TIMER_INIT timer5_init

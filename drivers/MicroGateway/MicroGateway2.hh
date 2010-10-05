@@ -98,6 +98,7 @@ namespace Upenn
     private: int ServoPacketHandler(DynamixelPacket * dpacket);
     private: int EstopPacketHandler(DynamixelPacket * dpacket);
     private: int MasterPacketHandler(DynamixelPacket * dpacket);
+    private: int MainControllerPacketHandler(DynamixelPacket * dpacket);
     
     private: SerialDevice * sd;
     private: bool connectedSerial;
