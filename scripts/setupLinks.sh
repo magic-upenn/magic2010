@@ -11,3 +11,8 @@ sudo chmod 755 /usr/local/bin/central
 sudo chmod 755 /usr/local/bin/xdrgen
 sudo chmod 4755 /usr/bin/nice
 
+sudo ln -s /usr/bin/ccache /usr/local/bin/gcc
+sudo ln -s /usr/bin/ccache /usr/local/bin/g++
+sudo ln -s /usr/bin/ccache /usr/local/bin/cc
+
+
