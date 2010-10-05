@@ -22,7 +22,7 @@ function varargout = front_gui(varargin)
 
 % Edit the above text to modify the response to help front_gui
 
-% Last Modified by GUIDE v2.5 04-Oct-2010 18:36:34
+% Last Modified by GUIDE v2.5 05-Oct-2010 19:30:39
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -48,24 +48,18 @@ end
 function front_gui_OpeningFcn(hObject, eventdata, handles, varargin)
 	handles.output = hObject;
 	guidata(hObject, handles);
-	
-	setup_global_fns; 
-	global FRONT_GUI FRONT_UP CAND FOCUS
-	FRONT_GUI = hObject; 
-	FRONT_UP = @updateGui;
-	FOCUS = 1;
-	CAND = 1; 
-	REQ_ANGLES = -ones(1,9); 
+	setup_global_vars(hObject); 
 	updateGui; 
 
-function updateGui 
-	global FRONT_GUI CAND FOCUS IMAGES REQ_ANGLES
-	handles = guidata(FRONT_GUI);
-	image = IMAGES(FOCUS);
-	draw_cands_on_image(handles.front_focus,image.front_stats,image.front); 
+function updateGui
+	global GLOBALS IMAGES; 
+	handles = guidata(GLOBALS.front_gui);
+	image = IMAGES(GLOBALS.focus);
+	focus_h = draw_cands_on_image(handles.front_focus,image.front_stats,image.front); 
+	set(focus_h,'ButtonDownFcn',{@focus_ButtonDownFcn,handles.front_focus});
 	omni_h = imagesc(image.omni,'Parent',handles.flat_focus); daspect(handles.flat_focus,[1 1 1]); 
-	set(omni_h,'ButtonDownFcn',{@omni_ButtonDownFcn,FOCUS,handles.flat_focus});
-	draw_center_line(handles.flat_focus,image.omni,image.front_angle,REQ_ANGLES(FOCUS)); 
+	set(omni_h,'ButtonDownFcn',{@omni_ButtonDownFcn,GLOBALS.focus,handles.flat_focus});
+	draw_center_line(handles.flat_focus,image.omni,image.front_angle,GLOBALS.req_angles(GLOBALS.focus)); 
 	for i = 1:9
 		image = IMAGES(i);
 		oname = sprintf('front%d',i);
@@ -74,9 +68,27 @@ function updateGui
 		if(isempty(image.front_cands))
 			continue
 		end
-		imagesc(image.front_cands{CAND},'Parent',handles.(cname)); daspect(handles.(cname),[1 1 1]);  
+		imagesc(image.front_cands{GLOBALS.cand},'Parent',handles.(cname)); daspect(handles.(cname),[1 1 1]);  
+		axis(handles.(cname),'off')
+		axis(handles.(oname),'off')
 	end
-
+	if ~isempty(GLOBALS.current_bb) & numel(GLOBALS.current_bb) == 4
+		bb = GLOBALS.current_bb;
+		image = IMAGES(GLOBALS.focus);
+		imagesc(image.front(bb(1):bb(2),bb(3):bb(4),:),'Parent',handles.cand_focus);
+		daspect(handles.cand_focus,[1 1 1]);  
+		axis(handles.cand_focus,'off')
+		line([bb(3),bb(4)],[bb(1),bb(1)],'Color','c','LineWidth',2,'Parent',handles.front_focus);
+		line([bb(3),bb(4)],[bb(2),bb(2)],'Color','c','LineWidth',2,'Parent',handles.front_focus);
+		line([bb(3),bb(3)],[bb(1),bb(2)],'Color','c','LineWidth',2,'Parent',handles.front_focus);
+		line([bb(4),bb(4)],[bb(1),bb(2)],'Color','c','LineWidth',2,'Parent',handles.front_focus);
+		po = front_pixel_to_omni(IMAGES(1).omni,IMAGES(1).front,mean(bb(3:4))); 
+		angle = pixel_to_angle(IMAGES(1).omni,po); 
+		GLOBALS.req_angles(GLOBALS.focus) = angle; 
+	end
+	set(handles.current_label,'String',strcat('<--',GLOBALS.current_label)); 
+	
+	axis(handles.front_focus,'off')
 
 % --- Outputs from this function are returned to the command line.
 function varargout = front_gui_OutputFcn(hObject, eventdata, handles) 
@@ -88,17 +100,37 @@ function varargout = front_gui_OutputFcn(hObject, eventdata, handles)
 	% Get default command line output from handles structure
 	varargout{1} = handles.output;
 
+function focus_ButtonDownFcn(hObject, eventdata, axeh)
+	global IMAGES GLOBALS 
+	cp = get(axeh,'CurrentPoint');
+	x = cp(1,1);
+	y = cp(1,2);  
+	[x,y]
+	if numel(GLOBALS.current_bb) == 2
+		x1 = GLOBALS.current_bb(1); 
+		y1 = GLOBALS.current_bb(2);
+		if abs(x1-x) < 10 & abs(y1-y) < 10
+			GLOBALS.current_bb = IMAGES(GLOBALS.focus).front_stats(GLOBALS.cand,2:end);
+			po = front_pixel_to_omni(IMAGES(1).omni,IMAGES(1).front,x); 
+			angle = pixel_to_angle(IMAGES(1).omni,po); 
+			GLOBALS.req_angles(GLOBALS.focus) = angle; 
+			set_status('Focus request'); 
+		else
+			GLOBALS.current_bb = round([y1,y,x1,x]);  
+		end
+	elseif numel(GLOBALS.current_bb) == 4
+		GLOBALS.current_bb = [x,y]; 
+	end 
+	updateGui; 
 
 function omni_ButtonDownFcn(hObject, eventdata, id, axeh)
-	global IMAGES;
-	global REQ_ANGLES;
-	id
+	global IMAGES GLOBALS;
 	cp = get(axeh,'CurrentPoint');
 	x = cp(1,1);
 	y = cp(1,2);  
 	[x,y]
 	angle = pixel_to_angle(IMAGES(id).omni,x) 
-	REQ_ANGLES(id) = angle; 
+	GLOBALS.req_angles(id) = angle; 
 	updateGui;   
 
 %All buttons
@@ -129,57 +161,85 @@ function figure1_KeyPressFcn(hObject, eventdata, handles)
 %	end
 
 function set_status(msg)
-	global FRONT_GUI;
-	h = guidata(FRONT_GUI);
+	global GLOBALS;
+	h = guidata(GLOBALS.front_gui);
 	set(h.status_text,'String',msg)
 
 
-function setup_global_fns
-	global FRONT_FNS;
-	FRONT_FNS.set_status		  = @set_status;  
-	FRONT_FNS.switch_cand_Callback    = @switch_cand_Callback; 
-	FRONT_FNS.lookat_Callback         = @lookat_Callback;
-	FRONT_FNS.yellow_barrel_Callback  = @yellow_barrel_Callback;
-	FRONT_FNS.car_Callback            = @car_Callback;
-	FRONT_FNS.door_Callback           = @door_Callback;
-	FRONT_FNS.red_barrel_Callback     = @red_barrel_Callback;
-	FRONT_FNS.cancel_type_Callback    = @cancel_type_Callback;
-	FRONT_FNS.confirm_type_Callback   = @confirm_type_Callback;
-	FRONT_FNS.mobile_ooi_Callback     = @mobile_ooi_Callback;
-	FRONT_FNS.lazer_up_Callback       = @lazer_up_Callback;
-	FRONT_FNS.lazer_up_on_Callback    = @lazer_up_on_Callback;
-	FRONT_FNS.lazer_down_Callback     = @lazer_down_Callback;
-	FRONT_FNS.lazer_off_Callback      = @lazer_off_Callback;
+function setup_global_vars(front_gui)
+	global GLOBALS IMAGES;
+	GLOBALS.front_gui = front_gui; 
+	GLOBALS.focus = 1; 
+	GLOBALS.cand = 1; 
+	GLOBALS.req_angles = -ones(1,9);
+	GLOBALS.current_bb = IMAGES(GLOBALS.focus).front_stats(GLOBALS.cand,2:end); 
+	GLOBALS.current_label = '?'; 
+	front_fns.updateGui		  = @updateGui;  
+	front_fns.set_status		  = @set_status;  
+	front_fns.switch_cand_Callback    = @switch_cand_Callback; 
+	front_fns.lookat_Callback         = @lookat_Callback;
+	front_fns.yellow_barrel_Callback  = @yellow_barrel_Callback;
+	front_fns.car_Callback            = @car_Callback;
+	front_fns.door_Callback           = @door_Callback;
+	front_fns.red_barrel_Callback     = @red_barrel_Callback;
+	front_fns.cancel_type_Callback    = @cancel_type_Callback;
+	front_fns.confirm_type_Callback   = @confirm_type_Callback;
+	front_fns.mobile_ooi_Callback     = @mobile_ooi_Callback;
+	front_fns.lazer_up_Callback       = @lazer_up_Callback;
+	front_fns.lazer_on_Callback       = @lazer_on_Callback;
+	front_fns.lazer_down_Callback     = @lazer_down_Callback;
+	front_fns.lazer_off_Callback      = @lazer_off_Callback;
+	GLOBALS.front_fns = front_fns; 
 	
 function switch_cand_Callback(hObject, eventdata, handles)
-	global IMAGES CAND;
-	CAND = mod(CAND+1,3) + 1; 
-	updateGui; 
+	global GLOBALS IMAGES;
+	GLOBALS.cand = mod(GLOBALS.cand+1,3) + 1; 
 	set_status('switch cands'); 
+	GLOBALS.current_bb = IMAGES(GLOBALS.focus).front_stats(GLOBALS.cand,2:end); 
+	GLOBALS.current_label = 'red'; 
+	updateGui; 
 	
 function lookat_Callback(hObject, eventdata, handles)
 	set_status('lookat');
  	
 function yellow_barrel_Callback(hObject, eventdata, handles)
+	global GLOBALS; 
+	GLOBALS.current_label = 'yellow'; 
 	set_status('label yellow barrel'); 	
+	updateGui;  
 
 function car_Callback(hObject, eventdata, handles)
+	global GLOBALS; 
+	GLOBALS.current_label = 'car';
 	set_status('label car'); 	
+	updateGui;  
 
 function door_Callback(hObject, eventdata, handles)
+	global GLOBALS; 
+	GLOBALS.current_label = 'door'; 
 	set_status('label door'); 	
+	updateGui;  
 
 function red_barrel_Callback(hObject, eventdata, handles)
+	global GLOBALS; 
+	GLOBALS.current_label = 'red'; 
 	set_status('label red barrel'); 	
+	updateGui;  
 
 function cancel_type_Callback(hObject, eventdata, handles)
+	global GLOBALS; 
+	GLOBALS.current_label = '?'; 
 	set_status('cancel label'); 	
+	updateGui;  
 
 function confirm_type_Callback(hObject, eventdata, handles)
 	set_status('confirm label'); 	
 
 function mobile_ooi_Callback(hObject, eventdata, handles)
+	global GLOBALS; 
+	GLOBALS.current_label = 'mobile'; 
 	set_status('mobile ooi mode'); 	
+	updateGui;  
 
 function lazer_up_Callback(hObject, eventdata, handles)
 	set_status('lazer up'); 	
