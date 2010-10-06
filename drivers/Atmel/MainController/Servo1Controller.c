@@ -20,6 +20,12 @@ uint32_t _servo1ReqTime;
 uint32_t _servo1ReqTimeout;
 uint32_t _servo1NextReqTime;
 
+uint8_t  _servo1ConfigChanged = 0;
+float    _servo1TempMinAngleF;
+float    _servo1TempMaxAngleF;
+float    _servo1TempSpeedF;
+uint8_t  _servo1TempMode;
+
 
 //                             -HEADER--,-------ID-----------,LEN-,CMD-,ADDR,SIZE,SUM
 uint8_t _servo1FbReqPacket[]  = {0xFF,0xFF,UAV_DEVICE_ID_SERVO1,0x04,0x02,0x24,0x02,0x00};
@@ -32,6 +38,25 @@ uint8_t _servo1SetMinPacket[] = {0xFF,0xFF,UAV_DEVICE_ID_SERVO1,0x07,0x03,0x1E,
 uint8_t _servo1SetMaxPacket[] = {0xFF,0xFF,UAV_DEVICE_ID_SERVO1,0x07,0x03,0x1E,
                                  0x00,0x02,0x00,0x02, 0x00};
 
+void Servo1UpdateConfig()
+{
+  if (!_servo1ConfigChanged)
+    return;
+
+  _servo1Mode      = _servo1TempMode;
+  _servo1SpeedF    = _servo1TempSpeedF;
+
+  _servo1MinAngleF = _servo1TempMinAngleF;
+  Servo1FillAnglePacket(_servo1MinAngleF,_servo1SpeedF,_servo1SetMinPacket);
+
+  _servo1MaxAngleF = _servo1TempMaxAngleF;
+  Servo1FillAnglePacket(_servo1MaxAngleF,_servo1SpeedF,_servo1SetMaxPacket);
+
+
+  _servo1State     = SERVO_CONTROLLER_STATE_IDLE;
+  _servo1ConfigChanged = 0;
+}
+
 inline void Servo1UpdateTime(uint32_t timeMs)
 {
   _servo1Time = timeMs;
@@ -39,7 +64,8 @@ inline void Servo1UpdateTime(uint32_t timeMs)
 
 inline void Servo1SetMode(uint8_t mode)
 {
-  _servo1Mode = mode;
+  _servo1TempMode = mode;
+  _servo1ConfigChanged = 1;
 }
 
 void Servo1ComputeAndSetChecksum(uint8_t * packet)
@@ -83,22 +109,20 @@ void Servo1FillAnglePacket(float angle, float speed, uint8_t * packet)
 
 void Servo1SetMinAngle(float angle)
 {
-  _servo1MinAngleF = angle;
-  Servo1FillAnglePacket(_servo1MinAngleF,_servo1SpeedF,_servo1SetMinPacket);
-  
+  _servo1TempMinAngleF = angle;
+  _servo1ConfigChanged = 1;
 }
 
 void Servo1SetMaxAngle(float angle)
 {
-  _servo1MaxAngleF = angle;
-  Servo1FillAnglePacket(_servo1MaxAngleF,_servo1SpeedF,_servo1SetMaxPacket);
+  _servo1TempMaxAngleF = angle;
+  _servo1ConfigChanged = 1;
 }
 
 void Servo1SetSpeed(float speed)
 {
-  _servo1SpeedF = speed;
-  Servo1FillAnglePacket(_servo1MinAngleF,_servo1SpeedF,_servo1SetMinPacket);
-  Servo1FillAnglePacket(_servo1MaxAngleF,_servo1SpeedF,_servo1SetMaxPacket);
+  _servo1TempSpeedF = speed;
+  _servo1ConfigChanged = 1;
 }
   
   
@@ -162,6 +186,14 @@ int Servo1Update(DynamixelPacket * packetIn, uint8_t ** packetOut, uint8_t * siz
       case SERVO_CONTROLLER_STATE_IDLE:
         if (_servo1Time < _servo1NextReqTime)
           break;
+
+        //only update the configuration when it's safe
+        if (_servo1ConfigChanged)
+        {
+          Servo1UpdateConfig();
+          break;
+        }
+
         //send out the request command
         *packetOut          = _servo1FbReqPacket;
         *sizeOut            = _servo1FbReqPacketSize;
@@ -191,6 +223,85 @@ int Servo1Update(DynamixelPacket * packetIn, uint8_t ** packetOut, uint8_t * siz
         break;
     }
   }
+
+  else if (_servo1Mode == SERVO_CONTROLLER_MODE_POINT)
+  {
+    switch (_servo1State)
+    {
+      case SERVO_CONTROLLER_STATE_UNINITIALIZED:
+      case SERVO_CONTROLLER_STATE_IDLE:
+        if (_servo1Time < _servo1NextReqTime)
+          break;
+
+        //only update the configuration when it's safe
+        if (_servo1ConfigChanged)
+        {
+          Servo1UpdateConfig();
+          break;
+        }
+
+        *packetOut       = _servo1SetMinPacket;
+        _servo1DesAngleF = _servo1MinAngleF;
+          
+        *sizeOut          = 11;
+        _servo1State      = SERVO_CONTROLLER_STATE_SENT_ANGLE_CMD;
+        _servo1ReqTime    = _servo1Time;
+        _servo1ReqTimeout = _servo1Time + SERVO1_REQ_TIMEOUT_DELTA;
+        _servo1NextReqTime = _servo1ReqTime + SERVO1_NEXT_REQ_DELTA;
+        break;
+
+      case SERVO_CONTROLLER_STATE_SENT_ANGLE_CMD:
+        if (packetIn)
+        {
+          if (packetIn->buffer[4] == 0 && (DynamixelPacketGetPayloadSize(packetIn) == 0))
+            _servo1State = SERVO_CONTROLLER_STATE_MOVING;
+          else
+            _servo1State = SERVO_CONTROLLER_STATE_IDLE;
+        }
+        else if (_servo1Time > _servo1ReqTimeout)
+          _servo1State = SERVO_CONTROLLER_STATE_IDLE;
+        break;
+
+      case SERVO_CONTROLLER_STATE_MOVING:
+        if (_servo1Time < _servo1NextReqTime)
+          break;
+
+        //only update the configuration when it's safe
+        if (_servo1ConfigChanged)
+        {
+          Servo1UpdateConfig();
+          break;
+        }
+
+        *packetOut        = _servo1FbReqPacket;
+        *sizeOut          = _servo1FbReqPacketSize;
+        _servo1State      = SERVO_CONTROLLER_STATE_MOVING_FB_REQUESTED;
+        _servo1ReqTime    = _servo1Time;
+        _servo1ReqTimeout = _servo1Time + SERVO1_REQ_TIMEOUT_DELTA;
+        _servo1NextReqTime = _servo1ReqTime + SERVO1_NEXT_REQ_DELTA;
+        break;
+
+      case SERVO_CONTROLLER_STATE_MOVING_FB_REQUESTED:
+        if (packetIn)
+        {
+          if ((packetIn->buffer[4] != 0) || (DynamixelPacketGetPayloadSize(packetIn) != 2))
+            break;
+
+          _servo1AngleI       = *(uint16_t*)(packetIn->buffer+5);
+          _servo1AngleTime    = _servo1Time;
+          _servo1FreshAngle   = 1;
+          _servo1AngleF       = _servo1AngleI/1023.0*(DYNAMIXEL_MAX_ANGLE-DYNAMIXEL_MIN_ANGLE) +
+                                 DYNAMIXEL_MIN_ANGLE;
+
+          _servo1State = SERVO_CONTROLLER_STATE_MOVING;
+          
+        }
+        else if (_servo1Time > _servo1ReqTimeout)
+          _servo1State = SERVO_CONTROLLER_STATE_IDLE;
+        break;
+    }
+  }
+
   else if (_servo1Mode == SERVO_CONTROLLER_MODE_SERVO)
   {
     switch (_servo1State)
@@ -199,6 +310,13 @@ int Servo1Update(DynamixelPacket * packetIn, uint8_t ** packetOut, uint8_t * siz
       case SERVO_CONTROLLER_STATE_IDLE:
         if (_servo1Time < _servo1NextReqTime)
           break;
+
+        //only update the configuration when it's safe
+        if (_servo1ConfigChanged)
+        {
+          Servo1UpdateConfig();
+          break;
+        }
 
         if (_servo1Dir > 0)
         {
@@ -233,6 +351,14 @@ int Servo1Update(DynamixelPacket * packetIn, uint8_t ** packetOut, uint8_t * siz
       case SERVO_CONTROLLER_STATE_MOVING:
         if (_servo1Time < _servo1NextReqTime)
           break;
+
+        //only update the configuration when it's safe
+        if (_servo1ConfigChanged)
+        {
+          Servo1UpdateConfig();
+          break;
+        }
+
         *packetOut        = _servo1FbReqPacket;
         *sizeOut          = _servo1FbReqPacketSize;
         _servo1State      = SERVO_CONTROLLER_STATE_MOVING_FB_REQUESTED;
