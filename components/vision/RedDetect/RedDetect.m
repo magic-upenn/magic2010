@@ -59,7 +59,6 @@ function RedDetect
 	%                ipcAPIPublish(staticOoiMsgName,serialize(OOIpacket));
 	%            end
 	%        end
-	    pause(.1); 
 	end
 
 function PoseMsgHander(data,name)

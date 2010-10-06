@@ -27,7 +27,8 @@ function im = get_image(cam,waste)
 		if cam == 1
 			if init_1 == 0
 				'Initializing camera 1'
-				uvcCam1('init','/dev/video1',800,600);
+				uvcCam1('init','/dev/video1',1600,1200);
+				%uvcCam1('init','/dev/video1',800,600);
 				pause(1); 
 				uvcCam1('stream_on'); 
 				init_1 = 1; 
