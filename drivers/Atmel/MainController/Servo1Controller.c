@@ -181,7 +181,6 @@ int Servo1Update(DynamixelPacket * packetIn, uint8_t ** packetOut, uint8_t * siz
     if (_servo1ConfigChanged)
     {
       Servo1UpdateConfig();
-      break;
     }
     return 0;
   }
