@@ -28,6 +28,7 @@ string dev        = string(VIDEO_DEVICE);
 
 void mexExit(void)
 {
+  printf("Exiting uvcCam\n");
   v4l2_stream_off();
   v4l2_close();
 
