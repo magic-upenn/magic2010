@@ -16,6 +16,12 @@ if isempty(LIDAR0) || ~isfield(LIDAR0,'initialized') || (LIDAR0.initialized ~= 1
   LIDAR0.timeout = 0.1;
   LIDAR0.lastTime = []; 
   
+  LIDAR0.mask    = ones(size(LIDAR0.angles));
+  LIDAR0.mask(10:40)    = 0;
+  LIDAR0.mask(80:120)   = 0;
+  LIDAR0.mask(970:1010) = 0;
+  LIDAR0.mask(1050:end) = 0;
+  
   ipcInit;
   ipcAPIDefine(LIDAR0.msgName,MagicLidarScanSerializer('getFormat'));
   

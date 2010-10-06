@@ -1,6 +1,6 @@
 OBJECTS  = MicroGateway2.o ErrorMessage.o DynamixelController.o 
 
-TARGETS = runMicroGateway2 MicroConfig #runMicroGateway readIMU
+TARGETS = runMicroGateway2 MicroConfig readIMU #runMicroGateway
 
 include $(MAGIC_DIR)/Makefile.mk
 

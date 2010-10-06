@@ -26,7 +26,12 @@ tServo = SERVO1.data.t;
 
 servoAngle = [];
 
-if (tLidar < tServo) && size(SERVO1.hist,2) > 3
+dtServo = tLidar - tServo;
+
+if (dtServo > 0.1)
+    fprintf(1,'servo data is too old!!!');
+    return;
+elseif (dtServo < 0) && size(SERVO1.hist,2) > 3
   %find the closest time
   for ii=2:length(SERVO1.hist)
     if (SERVO1.hist(2,ii) > tLidar)

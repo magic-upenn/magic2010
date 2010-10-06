@@ -13,7 +13,7 @@ while(1)
       toc
       tic
       lidarScan =  MagicLidarScanSerializer('deserialize',msgs(i).data);
-      plot(lidarScan.ranges);
+      plot(lidarScan.ranges,'.');
       drawnow;
       %fprintf(1,'.');
     end

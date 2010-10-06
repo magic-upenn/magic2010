@@ -255,8 +255,8 @@ int main()
   ParamTable ptable;
   ptable.id = 6;
   ptable.mode = 1;
-  ptable.accBiasX = 670;
-  ptable.accBiasY = 670;
+  ptable.accBiasX = 660;
+  ptable.accBiasY = 650;
   ptable.accBiasZ = 670;
   ptable.gyroNomBias = 512;
 

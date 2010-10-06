@@ -39,7 +39,7 @@ if (mod(SLAM.lidar0Cntr,40) == 0)
 end
   
 ranges = double(LIDAR0.scan.ranges)'; %convert from float to double
-indGood = ranges >0.25;
+indGood = ranges >0.25 & LIDAR0.mask;
 
 xs = ranges.*LIDAR0.cosines;
 ys = ranges.*LIDAR0.sines;
