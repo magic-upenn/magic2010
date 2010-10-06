@@ -1,7 +1,7 @@
 function dObstacle = pathObstacleDistance(xp, yp, map, offsets)
 
 if nargin < 4,
-  offsets = [-0.2 0 0.2];
+  offsets = [-0.28 0 0.28];
 end
 
 xp = xp(:);
@@ -17,9 +17,9 @@ if (size(cp,2) > 1),
 end
 
 % Clip between 0 and 1:
-cp = min(max(cp./20,0),1);
+cp = min(max(cp./90,0),1);
 
-threshold = 2.0;
+threshold = 0.9;
 % Find first cumsum crossing of threshold:
 ifind = find(cumsum(cp) > threshold);
 

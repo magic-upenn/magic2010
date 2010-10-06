@@ -80,9 +80,9 @@ switch event
    [turnPath, cost, look_ahead_idx] = turnControl(PATH, MPOSE);
 
    % Check for obstacles ahead:
-   xp = MPOSE.x + [.4:.1:5]*cos(MPOSE.heading);
-   yp = MPOSE.y + [.4:.1:5]*sin(MPOSE.heading);
-   dObstacle = pathObstacleDistance(xp, yp, MAP);
+   xp = MPOSE.x + [.25:.1:5]*cos(MPOSE.heading);
+   yp = MPOSE.y + [.25:.1:5]*sin(MPOSE.heading);
+   dObstacle = pathObstacleDistance(xp, yp, MAP)
 
    if (dObstacle < .3),
      dxStart = PATH(1,1)-MPOSE.x;
