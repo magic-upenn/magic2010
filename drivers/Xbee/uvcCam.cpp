@@ -22,8 +22,8 @@ using namespace std;
 mxArray *bufArray = NULL;
 bool init         = false;
 bool streamOn     = false;
-int _width         = WIDTH;
-int _height        = HEIGHT;
+int width         = WIDTH;
+int height        = HEIGHT;
 string dev        = string(VIDEO_DEVICE);
 
 void mexExit(void)
@@ -42,7 +42,7 @@ void mexExit(void)
 */
     //instead of destroying the array, re-assign it to a dummy matrix
     //this memory will be free'd when the matlab's variable is released from memory
-    bufArray = mxCreateNumericMatrix(_width/2, _height, mxUINT32_CLASS, mxREAL);
+    bufArray = mxCreateNumericMatrix(width/2, height, mxUINT32_CLASS, mxREAL);
   }
 }
 
@@ -85,18 +85,18 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       if (nrhs>1) dev = GetString(prhs[1]);
       if (nrhs>2)
       {
-        _width  = mxGetPr(prhs[2])[0];
-        _height = mxGetPr(prhs[2])[1];
+        width  = mxGetPr(prhs[2])[0];
+        height = mxGetPr(prhs[2])[1];
 
-        if (_width < 0 || _height < 0 || _width > 10000 || _height > 10000)
-          mexErrMsgTxt("bad _width or _height");
+        if (width < 0 || height < 0 || width > 10000 || height > 10000)
+          mexErrMsgTxt("bad width or height");
       }
 
       printf("opening video device %s ...",dev.c_str()); fflush(stdout);
       if (v4l2_open(dev.c_str()))
         mexErrMsgTxt("could not open device");
 
-      bufArray = mxCreateNumericMatrix(_width/2, _height, mxUINT32_CLASS, mxREAL);
+      bufArray = mxCreateNumericMatrix(width/2, height, mxUINT32_CLASS, mxREAL);
       mexMakeArrayPersistent(bufArray);
       mxFree(mxGetData(bufArray));
       

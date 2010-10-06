@@ -33,8 +33,8 @@
 
 int video_fd = -1;
 int nbuffer = 4;
-int width = 320;
-int height = 240;
+extern int width;
+extern int height;
 
 struct buffer {
   void * start;
