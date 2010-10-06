@@ -39,7 +39,7 @@ while(1)
    jpgc     = cjpeg(imRgb);
    data.jpg = jpgc;
    data.t   = GetUnixTime();
-   data.id  = 'Robot1/FrontCam';
+   data.id  = sprintf('Robot%d/FrontCam',id);
    data.cnt = cnt;
    payload  = serialize(data);
 
