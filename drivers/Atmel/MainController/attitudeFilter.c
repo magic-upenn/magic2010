@@ -199,8 +199,8 @@ int ProcessImuReadings(uint16_t * adcVals, float * rpy, float * wrpy)
   
   
   //skip processing every other time
-  if (imuUpdateCntr % 2)
-    return 2;
+  //if (imuUpdateCntr % 2)
+  //  return 2;
   
   //calculate the gyro update
   //calculate the required components of the new rotation matrix
