@@ -299,8 +299,8 @@ int main(int argc, char * argv[])
         }
 
         printf(".");fflush(stdout);
-        double dt = scanTimer.Toc(); scanTimer.Tic();
-        printf("elapsed time = %f\n",dt);
+        //double dt = scanTimer.Toc(); scanTimer.Tic();
+        //printf("elapsed time = %f\n",dt);
       }
     }
 
