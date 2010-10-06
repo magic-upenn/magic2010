@@ -11,12 +11,16 @@ case 'Weak'
   GDISPLAY.selectedTemplate = 3;
 case 'Red Bin'
   GDISPLAY.selectedOOI = 1;
-case 'Red Person'
+case 'Red Bin (Disrupted)'
   GDISPLAY.selectedOOI = 2;
-case 'Yellow Bin'
+case 'Red Person'
   GDISPLAY.selectedOOI = 3;
-case 'Door'
+case 'Red Person (Observed)'
   GDISPLAY.selectedOOI = 4;
-case 'Car'
+case 'Yellow Bin'
   GDISPLAY.selectedOOI = 5;
+case 'Door'
+  GDISPLAY.selectedOOI = 6;
+case 'Car'
+  GDISPLAY.selectedOOI = 7;
 end

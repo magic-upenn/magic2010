@@ -1,5 +1,5 @@
 function regionSelect(src,eventdata)
-global GDISPLAY EXPLORE_REGIONS
+global GDISPLAY EXPLORE_REGIONS OOI
 
 if GDISPLAY.lastRegionSelection ~= -1
   set(GDISPLAY.lastRegionSelection,'Selected','off');
@@ -21,5 +21,10 @@ if tag(1)=='e'
 
   set(GDISPLAY.templateGroup,'SelectedObject',GDISPLAY.templateControl{EXPLORE_REGIONS(reg).template});
   GDISPLAY.selectedTemplate = EXPLORE_REGIONS(reg).template;
+
+elseif tag(1)=='o'
+  ooi = str2double(tag(2:end));
+  set(GDISPLAY.ooiGroup,'SelectedObject',GDISPLAY.ooiRadioControl{OOI(ooi).type});
+  GDISPLAY.selectedOOI = OOI(ooi).type;
 end
 

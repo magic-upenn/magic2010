@@ -19,7 +19,7 @@ for ids = GCS.ids
 end
 
 if isempty(pos_r)
-  ListOfNotCovered = ones(t_size);
+  ListOfNotCovered = 1:t_size;
   return;
 end
 

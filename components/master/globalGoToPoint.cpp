@@ -152,7 +152,9 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
     search.setOPENdatastructure(SBPL_2DGRIDSEARCH_OPENTYPE_HEAP);
     
     // dijkstra map to get cost to target point
+    printf("before searching\n");
     search.search(inf_map_pa, ABS_OBS, pose_y, pose_x, target_y, target_x, SBPL_2DGRIDSEARCH_TERM_CONDITION_OPTPATHFOUND);
+    printf("after searching\n");
     
 //     for (int i=0; i<size_x; i++) {
 //         for (int j=0; j<size_y; j++) {
@@ -169,7 +171,16 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
             dijkstra[i + size_x * j] = (int) (search.getlowerboundoncostfromstart_inmm(j, i));
         }
     }
-    
+
+
+    int temp_s = 15;
+    for(int x=target_x-temp_s; x<target_x+temp_s; x++){
+      for(int y=target_y-temp_s; y<target_y+temp_s; y++){
+        printf("%d/%d ",dijkstra[x + size_x*y],inf_map_pa[y][x]);
+      }
+      printf("\n");
+    }
+
     // generate the path
     Traj_pt_s current;
     vector<Traj_pt_s> inv_traj;
@@ -182,6 +193,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
     inv_traj.clear();
     inv_traj.push_back(current);
     int min_val;
+    printf("before loop\n");
     while ((x_val != pose_x) || (y_val != pose_y)) {
         min_val = DIJKSTRA_LIMIT ;
         for (int x = -1; x < 2; x++) {
@@ -200,12 +212,18 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
                 } // if onmap
             } // y
         } //x
+        if(min_val == dijkstra[x_val + size_x*y_val]){
+          printf("ERROR: Weird search sbpl\n");
+          inv_traj.clear();
+          break;
+        }
         
         //cost += temp_cost;
         current.x = x_val = best_x_val;
         current.y = y_val = best_y_val;
         inv_traj.push_back(current);
     }
+    printf("after loop\n");
     
    // printf("done with inversion\n");
     // invert the trajectory to send back
@@ -223,6 +241,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
     
     /*  set the output pointer to the output matrix */
     //int dims[2] = {NUMPTS, 1};
+    printf("allocating lhs\n");
     plhs[0] = mxCreateDoubleMatrix(2, NUMPTS, mxREAL);
     path = (double *) mxGetPr(plhs[0]);
     

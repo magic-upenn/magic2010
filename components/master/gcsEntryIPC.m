@@ -19,7 +19,7 @@ for id = ids,
     RPOSE{id}.y = 0;
     RPOSE{id}.yaw = 0;
     RPOSE{id}.heading = 0;
-    RMAP{id} = map2d(800,800,.20,'vlidar','hlidar','cost');
+    RMAP{id} = map2d(800,800,.10,'vlidar','hlidar','cost');
 
     GTRANSFORM{id}.init = 0;
     GPOSE{id} = [];
@@ -31,7 +31,7 @@ for id = ids,
 end
 
 if ~INIT_LOG
-  GMAP = map2d(800, 800, .20, 'hlidar', 'cost');
+  GMAP = map2d(800, 800, .10, 'hlidar', 'cost');
 end
 
 masterConnectRobots(ids);
@@ -83,8 +83,11 @@ for id = ids,
   msgNameStateEvent = ['Robot',num2str(id),'/StateEvent'];
   ROBOTS(id).ipcAPI('define', msgNameStateEvent);
 
-  msgNameOoiDynamic = ['Robot',num2str(id),'/OoiDynamic'];
-  ROBOTS(id).ipcAPI('define', msgNameOoiDynamic);
+  msgNameLook = ['Robot',num2str(id),'/Look_Msg'];
+  ROBOTS(id).ipcAPI('define', msgNameLook);
+
+  %msgNameOoiDynamic = ['Robot',num2str(id),'/OoiDynamic'];
+  %ROBOTS(id).ipcAPI('define', msgNameOoiDynamic);
   
   %msgNamePath = ['Robot',num2str(id),'/Waypoints'];
   %ROBOTS(id).ipcAPI('define', msgNamePath, MagicGP_TRAJECTORYSerializer('getFormat'));

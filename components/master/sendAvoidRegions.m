@@ -10,6 +10,7 @@ else
 end
 for id = GCS.ids
   msgName = ['Robot',num2str(id),'/Avoid_Regions'];
+  [msg.x msg.y] = gpos_to_rpos(id, msg.x, msg.y);
   ROBOTS(id).ipcAPI('publish', msgName, serialize(msg));
 end
 

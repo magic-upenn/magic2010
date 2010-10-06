@@ -20,13 +20,18 @@ end
 
 function GetLocalMsg
 global gcs_machine
+global IPC
 msgs = gcs_machine.ipcAPI('listen',50);
 nmsg = length(msgs);
 %process messages
 for mi=1:nmsg
     name = msgs(mi).name;
     name(name=='/')='_';
-    GPTRAJHandler(msgs(mi).data,msgs(mi).name);
+    if isfield(IPC.handler,name),
+      IPC.handler.(name)(msgs(mi).data,msgs(mi).name);
+    else
+      warning('no handler for message name %s',msgs(mi).name);
+    end
 end
 end
 

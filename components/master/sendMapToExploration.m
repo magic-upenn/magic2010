@@ -46,10 +46,12 @@ data.x =     zeros(data.NR,1);
 data.y =     zeros(data.NR,1);
 data.theta = zeros(data.NR,1);
 
-for id = GCS.ids
+for id = GCS.sensor_ids
   %if strcmp(get(GDISPLAY.robotStatusText{id},'String'),'sExplore')
   data.avail(id) = 1;
   %end
+end
+for id = GCS.ids
   if ~isempty(GPOSE{id})
     data.x(id) = GPOSE{id}.x;
     data.y(id) = GPOSE{id}.y;

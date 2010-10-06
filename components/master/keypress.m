@@ -79,6 +79,9 @@ case 'delete'
     elseif tag(1)=='a'
       set(GDISPLAY.avoidRegionList,'Value',str2double(tag(2:end)));
       avoidRegionDelete();
+    elseif tag(1)=='o'
+      set(GDISPLAY.ooiList,'Value',str2double(tag(2:end)));
+      ooiDelete();
     end
   end
 end
