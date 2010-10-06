@@ -52,6 +52,7 @@ function front_gui_OpeningFcn(hObject, eventdata, handles, varargin)
 	updateGui; 
 
 function updateGui
+	
 	global GLOBALS IMAGES; 
 	handles = guidata(GLOBALS.front_gui);
 	image = IMAGES(GLOBALS.focus);
@@ -174,6 +175,7 @@ function setup_global_vars(front_gui)
 	GLOBALS.req_angles = -ones(1,9);
 	GLOBALS.current_bb = IMAGES(GLOBALS.focus).front_stats(GLOBALS.cand,2:end); 
 	GLOBALS.current_label = '?'; 
+	GLOBALS.current_ser = 1; 
 	front_fns.updateGui		  = @updateGui;  
 	front_fns.set_status		  = @set_status;  
 	front_fns.switch_cand_Callback    = @switch_cand_Callback; 
@@ -233,7 +235,16 @@ function cancel_type_Callback(hObject, eventdata, handles)
 	updateGui;  
 
 function confirm_type_Callback(hObject, eventdata, handles)
+	global GLOBALS VISION_IPC 
 	set_status('confirm label'); 	
+	VISION_IPC('define','OOI_Msg'); 
+	msg.id=GLOBALS.focus;  
+	msg.ser= GLOBALS.current_ser; 
+	msg.type= 1
+	msg.x= 5
+	msg.y= 0
+	VISION_IPC('publish','OOI_Msg',serialize(msg)); 
+	GLOBALS.current_ser = GLOBALS.current_ser + 1;  
 
 function mobile_ooi_Callback(hObject, eventdata, handles)
 	global GLOBALS; 
