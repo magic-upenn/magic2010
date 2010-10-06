@@ -176,7 +176,15 @@ int Servo1Update(DynamixelPacket * packetIn, uint8_t ** packetOut, uint8_t * siz
   
 
   if (_servo1Mode == SERVO_CONTROLLER_MODE_IDLE)
+  {
+    //only update the configuration when it's safe
+    if (_servo1ConfigChanged)
+    {
+      Servo1UpdateConfig();
+      break;
+    }
     return 0;
+  }
 
   else if (_servo1Mode == SERVO_CONTROLLER_MODE_FB_ONLY)
   {
