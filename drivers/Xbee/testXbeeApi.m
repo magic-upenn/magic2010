@@ -20,7 +20,7 @@ while(1)
   w = w/4;
   if (ROBOT_CNTRL.selected > 0)
     if (prevSelected ~= ROBOT_CNTRL.selected)
-      XbeeAPI('writeRobSelect',uint8(ROBOT_CNTRL.selected));
+      XbeeAPI('writeRobSelect',ROBOT_CNTRL.selected);
       prevSelected = ROBOT_CNTRL.selected;
     end
     
