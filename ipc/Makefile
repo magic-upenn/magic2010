@@ -16,6 +16,13 @@ ipcWrapperAPI.$(MEXEXT): ipcWrapperAPI.cc IpcWrapper.cc
 	cp ipcWrapperAPI.$(MEXEXT) ipcWrapperAPI2.$(MEXEXT)
 	cp ipcWrapperAPI.$(MEXEXT) ipcWrapperAPI3.$(MEXEXT)
 	cp ipcWrapperAPI.$(MEXEXT) ipcWrapperAPI4.$(MEXEXT)
+	cp ipcWrapperAPI.$(MEXEXT) ipcWrapperAPI5.$(MEXEXT)
+	cp ipcWrapperAPI.$(MEXEXT) ipcWrapperAPI6.$(MEXEXT)
+	cp ipcWrapperAPI.$(MEXEXT) ipcWrapperAPI7.$(MEXEXT)
+	cp ipcWrapperAPI.$(MEXEXT) ipcWrapperAPI8.$(MEXEXT)
+	cp ipcWrapperAPI.$(MEXEXT) ipcWrapperAPI9.$(MEXEXT)
+	cp ipcWrapperAPI.$(MEXEXT) ipcWrapperAPI10.$(MEXEXT)
+
 	cp ipcWrapperAPI.$(MEXEXT) ipcWrapperAPIVision.$(MEXEXT)
 	cp ipcWrapperAPI.$(MEXEXT) ipcWrapperAPIMaster.$(MEXEXT)
 clean:
