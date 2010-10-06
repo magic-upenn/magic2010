@@ -77,79 +77,11 @@ if (1)
   
   %figure out how much to search over the yaw space based on the 
   %instantaneous angular velocity from imu
+ 
+  slamScanMatchPass1;
   
-  if (abs(IMU.data.wyaw) < 50/180*pi)
-    nyaw = 5;
-    dyaw = 0.1/180.0*pi;
-  elseif (abs(IMU.data.wyaw) < 100/180*pi)
-    nyaw = 5;
-    dyaw = 0.2/180.0*pi;
-  elseif (abs(IMU.data.wyaw) < 200/180*pi)
-    nyaw = 9;
-    dyaw = 0.1/180.0*pi;
-  else
-    nyaw = 15;
-    dyaw = 0.1/180.0*pi;
-  end
-      
-  %resolution of the candidate poses
-  %TODO: make this dependent on angular velocity / motion speed
-
-  tEncoders = ENCODERS.counts.t;
-  tLidar0   = LIDAR0.scan.startTime;  
-
-  if abs(tLidar0-tEncoders) < 0.1
-    nxs  = 5;
-    nys  = 5;
-    dx   = 0.02;
-    dy   = 0.02;
-  else
-    nxs  = 11;
-    nys  = 11; 
-    dx   = 0.05;
-    dy   = 0.05;
-  end
-
-  yawRange = floor(nyaw/2);
-  xRange   = floor(nxs/2); 
-  yRange   = floor(nys/2);
-
-  %create the candidate locations in each dimension
-  aCand = (-yawRange:yawRange)*dyaw+SLAM.yaw + IMU.data.wyaw*dt;
-  xCand = (-xRange:xRange)*dx+SLAM.xOdom;
-  yCand = (-yRange:yRange)*dy+SLAM.yOdom;
-
-  %get a local 3D sampling of pose likelihood
-  hits = ScanMatch2D('match',OMAP.map.data,xsss,ysss, ...
-                xCand,yCand,aCand);
-
-  %find maximum
-  [hmax imax] = max(hits(:));
-  [kmax mmax jmax] = ind2sub([nxs,nys,nyaw],imax);
-
-  if (SLAM.lidar0Cntr > 1)
-
-    %extract the 2D slice of xy poses at the best angle
-    hitsXY = hits(:,:,jmax);
-
-    %create a grid of distance-based costs from each cell to odometry pose
-    [yGrid xGrid] = meshgrid(yCand,xCand);
-    xDiff = xGrid - SLAM.xOdom;
-    yDiff = yGrid - SLAM.yOdom;
-    distGrid = sqrt(xDiff.^2 + yDiff.^2);
-
-    %combine the pose likelihoods with the distance from odometry prediction
-    %TODO: play around with the weights!!
-    costGrid = distGrid - hitsXY;
-
-    %find the minimum and save the new pose
-    [cmin cimin] = min(costGrid(:));
-
-    %save the best pose
-    SLAM.yaw = aCand(jmax);
-    SLAM.x   = xGrid(cimin);
-    SLAM.y   = yGrid(cimin);
-  end
+  slamScanMatchPass2;
+ 
 else
   %fprintf(1,'not moving\n');
 end
