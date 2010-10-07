@@ -59,6 +59,11 @@ function updateGui
 	%Front Focus	
 	focus_h = draw_cands_on_image(handles.front_focus,image.front_stats,image.front); 
 	set(focus_h,'ButtonDownFcn',{@focus_ButtonDownFcn,handles.front_focus});
+	mid = round(size(image.front,2)/2);
+	step = size(image.front,1)/15; 
+	for txt = 1:15
+		text(mid,round(step*txt),sprintf('%.1f',GLOBALS.depths(txt)),'Parent',handles.front_focus,'FontSize',16); 
+	end	  
 	
 	%Omni Focus	
 	omni_h = imagesc(image.omni,'Parent',handles.flat_focus); daspect(handles.flat_focus,[1 1 1]); 
@@ -85,9 +90,6 @@ function updateGui
 	line([bb(3),bb(4)],[bb(2),bb(2)],'Color','c','LineWidth',2,'Parent',handles.front_focus);
 	line([bb(3),bb(3)],[bb(1),bb(2)],'Color','c','LineWidth',2,'Parent',handles.front_focus);
 	line([bb(4),bb(4)],[bb(1),bb(2)],'Color','c','LineWidth',2,'Parent',handles.front_focus);
-%	po = front_pixel_to_omni(IMAGES(1).omni,IMAGES(1).front,mean(bb(3:4))); 
-%	angle = pixel_to_angle(IMAGES(1).omni,po); 
-%	GLOBALS.req_angles(GLOBALS.focus) = angle; 
 	
 	set(handles.current_label,'String',strcat('<--',GLOBALS.current_label)); 
 	
@@ -95,12 +97,6 @@ function updateGui
 
 % --- Outputs from this function are returned to the command line.
 function varargout = front_gui_OutputFcn(hObject, eventdata, handles) 
-	% varargout  cell array for returning output args (see VARARGOUT);
-	% hObject    handle to figure
-	% eventdata  reserved - to be defined in a future version of MATLAB
-	% handles    structure with handles and user data (see GUIDATA)
-
-	% Get default command line output from handles structure
 	varargout{1} = handles.output;
 
 function focus_ButtonDownFcn(hObject, eventdata, axeh)
@@ -109,6 +105,7 @@ function focus_ButtonDownFcn(hObject, eventdata, axeh)
 	x = cp(1,1);
 	y = cp(1,2);  
 	[x,y]
+	GLOBALS.current_bb
 	if numel(GLOBALS.current_bb) == 6
 		x1 = GLOBALS.current_bb(5); 
 		y1 = GLOBALS.current_bb(6);
@@ -121,10 +118,9 @@ function focus_ButtonDownFcn(hObject, eventdata, axeh)
 		else
 			GLOBALS.current_bb = round([y1,y,x1,x]);  
 		end
-		GLOBALS.current_bb = [GLOBALS.current_bb,[1 1 1 1]]; 
-	elseif numel(GLOBALS.current_bb) == 8
-		GLOBALS.current_bb(5:6) = round([x,y]);
-		GLOBALS.current_bb(7:8) = [];
+		GLOBALS.current_bb = [GLOBALS.current_bb]; 
+	elseif mod(numel(GLOBALS.current_bb),4) == 0
+		GLOBALS.current_bb = [GLOBALS.current_bb,round([x,y])];
 	end
 	updateGui; 
 
@@ -169,7 +165,9 @@ function setup_global_vars(front_gui)
 	GLOBALS.req_angles = -ones(1,9);
 	GLOBALS.current_bb = [1,1,1,1,1,1,1,1]; 
 	GLOBALS.current_label = '?'; 
-	GLOBALS.current_ser = 1; 
+	GLOBALS.current_ser = 1;
+	GLOBALS.last_look = [];  
+	GLOBALS.depths = zeros(15,1);  
 	front_fns.updateGui		  = @updateGui;  
 	front_fns.set_status		  = @set_status;  
 	front_fns.switch_cand_Callback    = @switch_cand_Callback; 
@@ -260,6 +258,7 @@ function confirm_type_Callback(hObject, eventdata, handles)
 	y = 0; 
 	send_ooi_msg(GLOBALS.focus,GLOBALS.current_ser,x,y,GLOBALS.current_label)
 	GLOBALS.current_ser = GLOBALS.current_ser + 1;  
+	send_look_msg(GLOBALS.focus,0,0,'done');
 
 function lazer_up_Callback(hObject, eventdata, handles)
 	global GLOBALS; 
@@ -282,14 +281,24 @@ function lazer_off_Callback(hObject, eventdata, handles)
 	send_lazer_msg(GLOBALS.focus,'off'); 
 
 function nudge_right_Callback(hObject, eventdata, handles)
-	global GLOBALS; 
+	global GLOBALS;
 	set_status('nudge_right'); 	
-	send_nudge_msg(GLOBALS.focus,'right'); 
+	msg = GLOBALS.last_look;  
+	if isempty(msg)
+		return; 
+	end
+	msg.theta = mod(msg.theta - pi/180,2*pi); 
+	send_look_msg(GLOBALS.focus,msg.theta,msg.phi,msg.type);  
 
 function nudge_left_Callback(hObject, eventdata, handles)
-	global GLOBALS; 
+	global GLOBALS;
 	set_status('nudge_left'); 	
-	send_nudge_msg(GLOBALS.focus,'left'); 
+	msg = GLOBALS.last_look;  
+	if isempty(msg)
+		return; 
+	end
+	msg.theta = mod(msg.theta + pi/180,2*pi); 
+	send_look_msg(GLOBALS.focus,msg.theta,msg.phi,msg.type);  
 
 
 function lookat(id,theta)
@@ -297,17 +306,14 @@ function lookat(id,theta)
 	GLOBALS.req_angles(id) = theta; 
 	set_status('lookat');
 	updateGui; 
+	phi = 0;  
+	send_look_msg(id,theta,phi,'look'); 
 
 function set_label(label)
 	global GLOBALS; 
 	GLOBALS.current_label = label; 
 	set_status(strcat('label:',label)); 	
 	updateGui;  
-
-function send_nudge_msg(id,status)
-	name = sprintf('robot%d/Nudge_Msg',id); 
-	msg.status = status; %Left/Right
-	send_message_to_gcs(name,msg); 
 
 function send_ooi_msg(id,ser,x,y,type)
 	name = 'OOI_Msg'; 
@@ -330,10 +336,12 @@ function send_lazer_msg(id,status)
 	send_message_to_gcs(name,msg); 
 
 function send_look_msg(id,theta,phi,type);
+	global GLOBALS; 
 	name = sprintf('robot%d/Look_Msg',id); 
 	msg.theta = theta;  
 	msg.phi = phi; 
 	msg.type = type; %'look', 'track', 'done'
+	GLOBALS.last_look = msg; 
 	send_message_to_gcs(name,msg); 
 
 function send_message_to_gcs(name,msg);

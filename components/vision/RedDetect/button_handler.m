@@ -5,6 +5,7 @@ function button_handler(chr,gui)
 	if ~isempty(num)
 		if num == 0
 			GLOBALS.front_fns.switch_cand_Callback(); 
+			GLOBALS.omni_fns.updateGui();
 		else 
 			GLOBALS.focus = num; 
 			GLOBALS.front_fns.set_status(strcat('Switching focus to: ',chr)); 
