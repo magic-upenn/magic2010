@@ -7,7 +7,7 @@ ipcAPIDefine(servoMsgName,MagicServoControllerCmdSerializer('getFormat'));
 
 
 servoCmd.id           = 1;
-servoCmd.mode         = 0; %0 for point mode (minAngle is the goal), 1 for servo mode
+servoCmd.mode         = 2; %0: disabled; 1: feedback only: 2: point minAngle is the goal), 3: servo mode
 servoCmd.minAngle     = 0;
 servoCmd.maxAngle     = 35;
 servoCmd.speed        = 100;
