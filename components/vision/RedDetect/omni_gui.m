@@ -22,7 +22,7 @@ function varargout = omni_gui(varargin)
 
 % Edit the above text to modify the response to help omni_gui
 
-% Last Modified by GUIDE v2.5 04-Oct-2010 13:30:42
+% Last Modified by GUIDE v2.5 07-Oct-2010 14:03:16
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -43,121 +43,71 @@ else
 end
 % End initialization code - DO NOT EDIT
 
-
-% --- Executes just before omni_gui is made visible.
 function omni_gui_OpeningFcn(hObject, eventdata, handles, varargin)
-% This function has no output args, see OutputFcn.
-% hObject    handle to figure
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to omni_gui (see VARARGIN)
-
-% Choose default command line output for omni_gui
-handles.output = hObject;
-
-% Update handles structure
-guidata(hObject, handles);
-
-global OMNI_GUI
-global OMNI_UP
-OMNI_GUI = hObject; 
-OMNI_UP = @updateGui;
-
-global CAND
-CAND = 1; 
-global REQ_ANGLES
-REQ_ANGLES = -ones(1,9); 
-updateGui; 
-
+	handles.output = hObject;
+	guidata(hObject, handles);
+	setup_global_vars(hObject); 
+	updateGui; 
 
 function updateGui
-global OMNI_GUI
-global CAND
-global IMAGES
-global REQ_ANGLES
-handles = guidata(OMNI_GUI);
-for i = 1:9
-	image = IMAGES(i);
-	oname = sprintf('omni%d',i);
-	cname = sprintf('cand%d',i);
-%	image.stats = flipud(sortrows(image.omni_stats,1));  
-	omni_h  = draw_cands_on_image(handles.(oname),image.omni_stats,image.omni); 
-	draw_center_line(handles.(oname),image.omni,image.front_angle,REQ_ANGLES(i)); 
-	if(isempty(image.omni_cands))
-		continue
+	global GLOBALS IMAGES; 
+	handles = guidata(GLOBALS.omni_gui);
+	for i = 1:9
+		image = IMAGES(i);
+		oname = sprintf('omni%d',i);
+		cname = sprintf('cand%d',i);
+		omni_h  = draw_cands_on_image(handles.(oname),image.omni_stats,image.omni); 
+		draw_center_line(handles.(oname),image.omni,image.front_angle,GLOBALS.req_angles(i)); 
+		cand_h = imagesc(image.omni_cands{GLOBALS.cand},'Parent',handles.(cname)); 
+		daspect(handles.(cname),[1 1 1]);  
+		set(omni_h,'ButtonDownFcn',{@omni_ButtonDownFcn,i,handles.(oname)});
+		set(cand_h,'ButtonDownFcn',{@cand_ButtonDownFcn,i,handles.(cname)});
+		axis(handles.(cname),'off')
+		axis(handles.(oname),'off')
 	end
-	cand_h = imagesc(image.omni_cands{CAND},'Parent',handles.(cname)); daspect(handles.(cname),[1 1 1]);  
-	set(omni_h,'ButtonDownFcn',{@omni_ButtonDownFcn,i,handles.(oname)});
-	set(cand_h,'ButtonDownFcn',{@cand_ButtonDownFcn,i,handles.(cname)});
-	 
-end
 
-
-%all_stats = flipud(sortrows(all_stats,3));  
-%for i = 1:8
-%	cname = sprintf('cand%d',i)
-%	draw_cand_on_axes(handles.(cname),all_stats(i,2:end),i,OMNI(all_stats(i,1)).img); 
-%end
-
-% UIWAIT makes omni_gui wait for user response (see UIRESUME)
-% uiwait(handles.figure1);a 
-
-
-% --- Outputs from this function are returned to the command line.
-function varargout = omni_gui_OutputFcn(hObject, eventdata, handles) 
-% varargout  cell array for returning output args (see VARARGOUT);
-% hObject    handle to figure
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Get default command line output from handles structure
-varargout{1} = handles.output;
-
-
-% --- Executes on button press in switch_cand.
-function switch_cand_Callback(hObject, eventdata, handles)
-% hObject    handle to switch_cand (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-global IMAGES;
-global CAND;
+function setup_global_vars(omni_gui)
+	global GLOBALS IMAGES;
+	GLOBALS.omni_gui = omni_gui; 
+	omni_fns.updateGui = @updateGui; 
+	GLOBALS.omni_fns = omni_fns;
  
-CAND = mod(CAND+1,3) + 1; 
-updateGui; 
-%for i = 1:9
-%	image = IMAGES(i);
-%	cname = sprintf('cand%d',i);
-%	if(isempty(image.omni_cands))
-%		continue
-%	end
-%	axes(handles.(cname)); imagesc(image.omni_cands{CAND}); daspect([1 1 1]);  
-%end
+function varargout = omni_gui_OutputFcn(hObject, eventdata, handles) 
+	varargout{1} = handles.output;
 
 
-% --- Executes on mouse press over axes background.
+function switch_cand_Callback(hObject, eventdata, handles)
+	button_handler('0','front'); 
+
 function cand_ButtonDownFcn(hObject, eventdata, id, axeh)
-	global IMAGES;
-	global CAND;
-	global REQ_ANGLES;
-	xpos = IMAGES(id).omni_stats(CAND,4:end);
-	[id,CAND] 
-	angle = pixel_to_angle(IMAGES(id).omni,mean(xpos));  
-	REQ_ANGLES(id) = angle; 
+	global IMAGES GLOBALS;
+	xpos = IMAGES(id).omni_stats(GLOBALS.cand,4:5);
+	theta = pixel_to_angle(IMAGES(id).omni,mean(xpos));  
+	GLOBALS.front_fns.lookat(id,theta); 
 	updateGui;   
 
 function omni_ButtonDownFcn(hObject, eventdata, id, axeh)
-	global IMAGES;
-	global REQ_ANGLES;
-	id
+	global GLOBALS IMAGES;
 	cp = get(axeh,'CurrentPoint');
 	x = cp(1,1);
 	y = cp(1,2);  
-	[x,y]
-	angle = pixel_to_angle(IMAGES(id).omni,x) 
-	REQ_ANGLES(id) = angle; 
+	theta = pixel_to_angle(IMAGES(id).omni,x) 
+	GLOBALS.front_fns.lookat(id,theta); 
 	updateGui;   
-% hObject    handle to omni1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
-
+function figure1_KeyPressFcn(hObject, eventdata, handles)
+	chr = get(gcf,'CurrentCharacter'); 
+	if chr == 13 
+		chr = 'enter'; 
+	elseif chr == 127
+		chr = 'del'; 
+	elseif chr == 28
+		chr = 'left';
+	elseif chr == 29
+		chr = 'right'; 
+	elseif chr == 30
+		chr = 'up';
+	elseif chr == 31
+		chr = 'down';
+	end
+	button_handler(chr,'omni'); 

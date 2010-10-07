@@ -10,6 +10,7 @@ function button_handler(chr,gui)
 			GLOBALS.front_fns.set_status(strcat('Switching focus to: ',chr)); 
 			GLOBALS.current_bb = IMAGES(num).front_stats(GLOBALS.cand,2:end); 
 			GLOBALS.front_fns.updateGui();
+			GLOBALS.omni_fns.updateGui();
 		end
 	elseif strcmp(chr, '.')
 		GLOBALS.front_fns.lookat_Callback();         
@@ -19,6 +20,8 @@ function button_handler(chr,gui)
 		GLOBALS.front_fns.lazer_down_Callback();     
 	elseif strcmp(chr, '*')
 		GLOBALS.front_fns.lazer_on_Callback();    
+	elseif strcmp(chr, '|')
+		GLOBALS.front_fns.still_mobile_Callback();     
 	elseif strcmp(chr, '\')
 		GLOBALS.front_fns.mobile_ooi_Callback();     
 	elseif strcmp(chr, '/')
@@ -30,11 +33,15 @@ function button_handler(chr,gui)
 	elseif strcmp(chr, 'left')
 		GLOBALS.front_fns.car_Callback();            
 	elseif strcmp(chr, 'down')
-		GLOBALS.front_fns.yellow_barrel_Callback(); 
+		GLOBALS.front_fns.yellow_ooi_Callback(); 
 	elseif strcmp(chr, 'up')
-		GLOBALS.front_fns.red_barrel_Callback();     
+		GLOBALS.front_fns.red_ooi_Callback();     
 	elseif strcmp(chr, 'right')
 		GLOBALS.front_fns.door_Callback();          
+	elseif strcmp(chr, 'w') | strcmp(chr,'['); 
+		GLOBALS.front_fns.nudge_left_Callback();          
+	elseif strcmp(chr, 'v') | strcmp(chr,']'); 
+		GLOBALS.front_fns.nudge_right_Callback();          
 	else 
 		GLOBALS.front_fns.set_status(strcat('Invalid hotkey',chr)); 
 	end
