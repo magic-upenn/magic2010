@@ -1,4 +1,5 @@
 function RedDetect
+%global VISION_IPC host
 	SetMagicPaths;
 	addpath( [ getenv('MAGIC_DIR') '/trunk/components/vision/uvcCam' ] )
 	addpath( [ getenv('MAGIC_DIR') '/trunk/components/vision/RedDetect' ] )

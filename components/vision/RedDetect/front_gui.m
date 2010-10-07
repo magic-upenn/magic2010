@@ -76,7 +76,9 @@ function updateGui
 	if ~isempty(GLOBALS.current_bb) & numel(GLOBALS.current_bb) == 4
 		bb = GLOBALS.current_bb;
 		image = IMAGES(GLOBALS.focus);
-		imagesc(image.front(bb(1):bb(2),bb(3):bb(4),:),'Parent',handles.cand_focus);
+		if ~isempty(image.front)
+			imagesc(image.front(bb(1):bb(2),bb(3):bb(4),:),'Parent',handles.cand_focus);
+		end
 		daspect(handles.cand_focus,[1 1 1]);  
 		axis(handles.cand_focus,'off')
 		line([bb(3),bb(4)],[bb(1),bb(1)],'Color','c','LineWidth',2,'Parent',handles.front_focus);
@@ -111,7 +113,9 @@ function focus_ButtonDownFcn(hObject, eventdata, axeh)
 		x1 = GLOBALS.current_bb(1); 
 		y1 = GLOBALS.current_bb(2);
 		if abs(x1-x) < 10 & abs(y1-y) < 10
-			GLOBALS.current_bb = IMAGES(GLOBALS.focus).front_stats(GLOBALS.cand,2:end);
+			if ~isemtpy(IMAGES(GLOBALS.focus).front_stats)
+				GLOBALS.current_bb = IMAGES(GLOBALS.focus).front_stats(GLOBALS.cand,2:end);
+			end
 			po = front_pixel_to_omni(IMAGES(1).omni,IMAGES(1).front,x); 
 			angle = pixel_to_angle(IMAGES(1).omni,po); 
 			GLOBALS.req_angles(GLOBALS.focus) = angle; 
@@ -173,7 +177,7 @@ function setup_global_vars(front_gui)
 	GLOBALS.focus = 1; 
 	GLOBALS.cand = 1; 
 	GLOBALS.req_angles = -ones(1,9);
-	GLOBALS.current_bb = IMAGES(GLOBALS.focus).front_stats(GLOBALS.cand,2:end); 
+	GLOBALS.current_bb = [1,1,1,1]; 
 	GLOBALS.current_label = '?'; 
 	GLOBALS.current_ser = 1; 
 	front_fns.updateGui		  = @updateGui;  
@@ -203,7 +207,13 @@ function switch_cand_Callback(hObject, eventdata, handles)
 	
 function lookat_Callback(hObject, eventdata, handles)
 	set_status('lookat');
- 	
+	global ROBOTS, GLOBALS; 
+	id = GLOBALS.focus; 
+	msg.phi = 0; 
+	msg.theta = GLOBALS.req_angles(id);
+	msg.type = 'look';  
+	ROBOTS(id).ipcAPI('publish',sprintf('Robot%d/Look_Msg',id),serialize(msg));
+
 function yellow_barrel_Callback(hObject, eventdata, handles)
 	global GLOBALS; 
 	GLOBALS.current_label = 'yellow'; 

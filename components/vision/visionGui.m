@@ -16,7 +16,7 @@ function visionGuiInit
 	global IMAGES STATIC_OOI ROBOTS
 
 	nRobots = 10;
-	ids = [1,3]; % list of ID's of available robots
+	ids = [6]; % list of ID's of available robots
 
 	for ii=1:nRobots
 	    IMAGES(ii).id = [];
@@ -44,6 +44,7 @@ function visionGuiInit
 	for ii=1:length(ROBOTS)
 	  if (ROBOTS(ii).connected == 1)
 	    ROBOTS(ii).ipcAPI('define',sprintf('Robot%d/CamParam',ii));
+	    ROBOTS(ii).ipcAPI('define',sprintf('Robot%d/Look_Msg',ii));
 	  end
 	end
 
@@ -76,8 +77,8 @@ function ipcRecvImageFcn(msg,name)
 	omni_cand = IMAGES(imPacket.id).omni_cands{1}; 
 	front_cand = IMAGES(imPacket.id).front_cands{1}; 
 	
-	global FRONT_UP
-	feval(FRONT_UP);  
+	global GLOBALS;
+	feval(GLOBALS.front_fns.updateGui);  
 	global OMNI_UP
 	feval(OMNI_UP);  
 	%set(PLOTHANDLES(imPacket.id),'CData',IMAGES(imPacket.id).jpg);
