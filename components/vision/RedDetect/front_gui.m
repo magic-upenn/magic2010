@@ -301,13 +301,16 @@ function nudge_left_Callback(hObject, eventdata, handles)
 	send_look_msg(GLOBALS.focus,msg.theta,msg.phi,msg.type);  
 
 
-function lookat(id,theta)
+function lookat(id,theta,type)
+	if ~exist('type')
+		type = 'look'
+	end
 	global GLOBALS; 
 	GLOBALS.req_angles(id) = theta; 
 	set_status('lookat');
 	updateGui; 
 	phi = 0;  
-	send_look_msg(id,theta,phi,'look'); 
+	send_look_msg(id,theta,phi,type); 
 
 function set_label(label)
 	global GLOBALS; 

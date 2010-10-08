@@ -19,16 +19,6 @@ function visionGuiInit
 	ids = [6]; % list of ID's of available robots
 
 	for ii=1:nRobots
-	    IMAGES(ii).id = [];
-	    IMAGES(ii).t = [];
-	    IMAGES(ii).omni = [];
-	    IMAGES(ii).front = [];
-	    IMAGES(ii).front_angle = [];
-	    IMAGES(ii).omni_cands = [];
-	    IMAGES(ii).front_cands = [];
-	    IMAGES(ii).omni_stats = [];
-	    IMAGES(ii).front_stats = [];
-	   
 	    % IMAGES(ii).POSE = [];
 	    STATIC_OOI(ii).OOI = [];
 	    STATIC_OOI(ii).id = [];

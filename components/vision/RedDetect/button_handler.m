@@ -19,9 +19,19 @@ function button_handler(chr,gui)
 		elseif strcmp(chr, 'enter')
 		elseif strcmp(chr, 'del')
 		elseif strcmp(chr, 'left')
+			GLOBALS.track_fns.set_cand([],[],[],[GLOBALS.track_toggle,1]); 
 		elseif strcmp(chr, 'down')
+			GLOBALS.track_fns.set_cand([],[],[],[GLOBALS.track_toggle,2]); 
 		elseif strcmp(chr, 'up')
+			focus = GLOBALS.track_toggle; 
+			id = GLOBALS.track_focus(focus).id;
+			cand = GLOBALS.track_focus(focus).cand;
+			x = mean(IMAGES(id).front_stats(cand,4:5));
+			po = front_pixel_to_omni(IMAGES(id).omni,IMAGES(id).front,x); 
+			angle = pixel_to_angle(IMAGES(id).omni,po);
+			GLOBALS.front_fns.lookat(GLOBALS.focus, angle,'track');  
 		elseif strcmp(chr, 'right')
+			GLOBALS.track_fns.set_cand([],[],[],[GLOBALS.track_toggle,3]); 
 		elseif strcmp(chr, 'w') | strcmp(chr,'['); 
 		elseif strcmp(chr, 'v') | strcmp(chr,']'); 
 		else 
