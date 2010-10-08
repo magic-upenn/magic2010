@@ -35,7 +35,7 @@ end
 best_path = [];
 best_id = -1;
 for id = ids
-  path = globalGoToPoint(costmap,[GPOSE{id}.x GPOSE{id}.y],[xg, yg],[UTM_x, UTM_y],sqrt(2)*0.25,map_cell_size)
+  path = globalGoToPoint(costmap,[GPOSE{id}.x GPOSE{id}.y],[xg, yg],[UTM_x, UTM_y],sqrt(2)*0.25,map_cell_size);
   if(numel(path) > 0 && (isempty(best_path) || size(path,2)<size(best_path,2)))
     best_path = path;
     best_id = id;
@@ -51,7 +51,7 @@ end
 prune_amount = round(r/map_cell_size);
 if(size(best_path,2)<=prune_amount)
   %the robot is already close enough, so just send a stop command
-  sendStateEvent(num2str(best_id),'stop');
+  sendStateEvent(best_id,'stop');
 else
   best_path = best_path(:,1:end-prune_amount);
   [xr yr] = gpos_to_rpos(best_id, best_path(1,:)', best_path(2,:)')

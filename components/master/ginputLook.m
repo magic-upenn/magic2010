@@ -1,6 +1,6 @@
 function ginputLook(id)
 
-global ROBOTS
+global ROBOTS RPOSE
 
 [xp, yp] = ginput(1);
 
@@ -8,7 +8,8 @@ msgName = ['Robot',num2str(id),'/Look_Msg'];
 
 if ~isempty(xp),
   %ooi = [xp(1) yp(1)];
-  ooi.theta = atan2(yp(1),xp(1));
+  ooi.theta = atan2(yp(1)-RPOSE{id}.y,xp(1)-RPOSE{id}.x);
   ooi.type = 'look';
   ROBOTS(id).ipcAPI('publish', msgName, serialize(ooi));
+  disp('sent look message');
 end
