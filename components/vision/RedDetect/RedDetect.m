@@ -8,11 +8,11 @@ function RedDetect
 
 	ipcInit;
 	imageMsgName = GetMsgName('Image');
-	staticOoiMsgName = GetMsgName('StaticOOI');
+%	staticOoiMsgName = GetMsgName('StaticOOI');
 	ipcAPIDefine(imageMsgName);
-	ipcAPIDefine(staticOoiMsgName);
+%	ipcAPIDefine(staticOoiMsgName);
 
-%	ipcReceiveSetFcn(GetMsgName('Pose'), @PoseMsgHander);
+	ipcReceiveSetFcn(GetMsgName('Pose'), @PoseMsgHander);
 %	ipcReceiveSetFcn(GetMsgName('CamParam'), @CamParamMsgHander);
 
 	%%%%%%%%%%%%%%%%%%
@@ -33,33 +33,15 @@ function RedDetect
 		imPacket.t  = GetUnixTime();
 		imPacket.omni = cjpeg(omni_sm);
 		imPacket.front = cjpeg(front_sm);
-		imPacket.front_angle = 0; 
+		imPacket.front_angle = 0;
 		for im = 1:3
 			imPacket.omni_cands{im}  = cjpeg(omni_cands{im});
 			imPacket.front_cands{im} = cjpeg(front_cands{im});
 		end 
 		imPacket.omni_stats = omni_stats;
 		imPacket.front_stats = front_stats;
+		imPacket.pose = POSE.data; 
 		ipcAPIPublish(imageMsgName,serialize(imPacket));
-
-	%        if ~isempty(r) && counter > 20
-	%            [maxr,indr] = max([r.redbinscore]); % best red bin candidate
-	%            if maxr > 0.5
-	%                counter = 0;
-	%                r = r(indr);
-	%                OOIpacket.OOI = r;
-	%                %  add POSE.data
-	%                OOIpacket.id = str2double(getenv('ROBOT_ID'));
-	%                OOIpacket.t = GetUnixTime()
-	%                if ~isempty(POSE.data)
-	%                    OOIpacket.POSE = POSE.data;
-	%                else
-	%                    OOIpacket.POSE = [];
-	%                end
-	%                %%%%% send struct r through IPC %%%%%
-	%                ipcAPIPublish(staticOoiMsgName,serialize(OOIpacket));
-	%            end
-	%        end
 	end
 
 function PoseMsgHander(data,name)
@@ -68,13 +50,12 @@ function PoseMsgHander(data,name)
 	if isempty(data)
 	    return;
 	end
-
 	POSE.data = MagicPoseSerializer('deserialize',data);
 
-	function CamParamMsgHander(data,name)
-	global targetY
-	if isempty(data)
-	    return;
-	end
+function CamParamMsgHander(data,name)
+global targetY
+if isempty(data)
+    return;
+end
 
-	targetY = deserialize(data);
+targetY = deserialize(data);

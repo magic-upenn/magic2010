@@ -17,15 +17,6 @@ function visionGuiInit
 
 	nRobots = 10;
 	ids = [6]; % list of ID's of available robots
-
-	for ii=1:nRobots
-	    % IMAGES(ii).POSE = [];
-	    STATIC_OOI(ii).OOI = [];
-	    STATIC_OOI(ii).id = [];
-	    STATIC_OOI(ii).t = [];
-	    STATIC_OOI(ii).POSE = [];
-	end
-
 	ipcInit;
 
 %	masterConnectRobots(ids,'127.0.0.1');
@@ -33,19 +24,19 @@ function visionGuiInit
 
 	for ii=1:length(ROBOTS)
 	  if (ROBOTS(ii).connected == 1)
-	    ROBOTS(ii).ipcAPI('define',sprintf('Robot%d/CamParam',ii));
+	%    ROBOTS(ii).ipcAPI('define',sprintf('Robot%d/CamParam',ii));
 	    ROBOTS(ii).ipcAPI('define',sprintf('Robot%d/Look_Msg',ii));
 	  end
 	end
 
-	messages = {'Image','StaticOOI'};
-	handles  = {@ipcRecvImageFcn,@ipcRecvStaticOoiFcn};
+	messages = {'Image'};
+	handles  = {@ipcRecvImageFcn};
 
 	%subscribe to messages
 	masterSubscribeRobots(messages,handles,[1 1]);
 
 	%setup local IPC to send confirmed OOI to Mapping Console 
-	ipcAPIDefine('ConfirmedOOI');
+%	ipcAPIDefine('ConfirmedOOI');
 
 	front_gui
 	omni_gui
@@ -66,6 +57,7 @@ function ipcRecvImageFcn(msg,name)
 	front = IMAGES(imPacket.id).front; 
 	omni_cand = IMAGES(imPacket.id).omni_cands{1}; 
 	front_cand = IMAGES(imPacket.id).front_cands{1}; 
+	IMAGES(imPacket.id).pose = imPacket.pose;  
 	
 	global GLOBALS;
 	feval(GLOBALS.front_fns.updateGui);  

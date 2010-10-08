@@ -187,12 +187,14 @@ function setup_global_vars(front_gui)
 	front_fns.nudge_right_Callback    = @nudge_right_Callback;
 	front_fns.nudge_left_Callback     = @nudge_left_Callback; 
 	front_fns.lookat	          = @lookat; 
-
 	GLOBALS.front_fns = front_fns; 
 	null_front = null_image(320,240); 	
 	null_omni  = null_image(775,155);
 	null_cand  = null_image(150,150);
 	null_cands = {}; 
+	null_pose.x = 0;  
+	null_pose.y = 0;  
+	null_pose.yaw = 0;  
 	null_stats = ones(3,5); 
 	null_stats(:,1) = 0; 
 	for cand = 1:3
@@ -208,6 +210,7 @@ function setup_global_vars(front_gui)
 	    IMAGES(id).front_cands = null_cands;
 	    IMAGES(id).omni_stats = null_stats;
 	    IMAGES(id).front_stats = null_stats;
+	    IMAGES(id).pose = null_pose;
 	end
 	GLOBALS.null_cand = null_cand; 
 	
@@ -302,15 +305,20 @@ function nudge_left_Callback(hObject, eventdata, handles)
 
 
 function lookat(id,theta,type)
-	if ~exist('type')
-		type = 'look'
+	if nargin < 3
+		type = 'look';
 	end
-	global GLOBALS; 
-	GLOBALS.req_angles(id) = theta; 
+	global GLOBALS IMAGES; 
+	GLOBALS.req_angles(id) = theta;
+	if isempty(IMAGES(id).pose)
+		abs_angle = 0; 
+	else 
+		abs_angle = IMAGES(id).pose.yaw;   
+	end
 	set_status('lookat');
 	updateGui; 
 	phi = 0;  
-	send_look_msg(id,theta,phi,type); 
+	send_look_msg(id,mod(theta+abs_angle,2*pi),phi,type); 
 
 function set_label(label)
 	global GLOBALS; 
