@@ -55,21 +55,19 @@ function updateGui
 	global GLOBALS IMAGES; 
 	handles = guidata(GLOBALS.front_gui);
 	image = IMAGES(GLOBALS.focus);
-
 	%Front Focus	
 	focus_h = draw_cands_on_image(handles.front_focus,image.front_stats,image.front); 
 	set(focus_h,'ButtonDownFcn',{@focus_ButtonDownFcn,handles.front_focus});
 	mid = round(size(image.front,2)/2);
 	step = size(image.front,1)/15; 
 	for txt = 1:15
-		text(mid,round(step*txt),sprintf('%.1f',GLOBALS.depths(txt)),'Parent',handles.front_focus,'FontSize',16); 
+		text(mid,round(step*txt),sprintf('%.1f',image.scanV(txt)),'Parent',handles.front_focus,'FontSize',16); 
 	end	  
 	
-	%Omni Focus	
+	%Omni Focus
 	omni_h = imagesc(image.omni,'Parent',handles.flat_focus); daspect(handles.flat_focus,[1 1 1]); 
 	set(omni_h,'ButtonDownFcn',{@omni_ButtonDownFcn,GLOBALS.focus,handles.flat_focus});
 	draw_center_line(handles.flat_focus,image.omni,image.front_angle,GLOBALS.req_angles(GLOBALS.focus)); 
-	
 	for i = 1:9
 		image = IMAGES(i);
 		oname = sprintf('front%d',i);
@@ -80,7 +78,6 @@ function updateGui
 		axis(handles.(cname),'off')
 		axis(handles.(oname),'off')
 	end
-
 	bb = GLOBALS.current_bb;
 	image = IMAGES(GLOBALS.focus);
 	imagesc(image.front(bb(1):bb(2),bb(3):bb(4),:),'Parent',handles.cand_focus);
@@ -206,6 +203,8 @@ function setup_global_vars(front_gui)
 	    IMAGES(id).omni = null_omni;
 	    IMAGES(id).front = null_front;
 	    IMAGES(id).front_angle = [];
+	    IMAGES(id).scanH = [];
+	    IMAGES(id).scanV = zeros(15,1); ;
 	    IMAGES(id).omni_cands = null_cands;
 	    IMAGES(id).front_cands = null_cands;
 	    IMAGES(id).omni_stats = null_stats;
@@ -258,7 +257,12 @@ function confirm_type_Callback(hObject, eventdata, handles)
 	global GLOBALS IMAGES;  
 	set_status('confirm label'); 	
 	x = IMAGES(GLOBALS.focus).pose.x; 
-	y = IMAGES(GLOBALS.focus).pose.y; 
+	y = IMAGES(GLOBALS.focus).pose.y;
+	yaw = IMAGES(GLOBALS.focus).pose.yaw;
+	servo_yaw = IMAGES(GLOBALS.focus).front_angle; ;
+	distance = mean(IMAGES(GLOBALS.focus).scanV(7:9));  
+	x = x + distance * cos(yaw + servo_yaw);  
+	y = y + distance * sin(yaw + servo_yaw);  
 	send_ooi_msg(GLOBALS.focus,GLOBALS.current_ser,x,y,GLOBALS.current_label)
 	GLOBALS.current_ser = GLOBALS.current_ser + 1;  
 	send_look_msg(GLOBALS.focus,0,0,'done');
@@ -317,7 +321,8 @@ function lookat(id,theta,type)
 	end
 	set_status('lookat');
 	updateGui; 
-	phi = 0;  
+	phi = 0; 
+	[theta,abs_angle,theta+abs_angle,mod(theta-abs_angle,2*pi)] 
 	send_look_msg(id,mod(theta+abs_angle,2*pi),phi,type); 
 
 function set_label(label)
@@ -347,18 +352,19 @@ function send_lazer_msg(id,status)
 	send_message_to_gcs(name,msg); 
 
 function send_look_msg(id,theta,phi,type);
-	global GLOBALS; 
+	global GLOBALS ROBOTS; 
 	name = sprintf('robot%d/Look_Msg',id); 
 	msg.theta = theta;  
 	msg.phi = phi; 
 	msg.type = type; %'look', 'track', 'done'
-	GLOBALS.last_look = msg; 
-	send_message_to_gcs(name,msg); 
-
+	GLOBALS.last_look = msg;
+	ROBOTS(id).ipcAPI('define',name);  
+	ROBOTS(id).ipcAPI('publish',name,serialize(msg));  
+	
 function send_message_to_gcs(name,msg);
-	'NOT SENDING MESSAGES TODAY!!!'
+	%'NOT SENDING MESSAGES TODAY!!!'
 	msg 
-	return
+	%return
 	global VISION_IPC 
 	VISION_IPC('define',name); 
 	VISION_IPC('publish',name,serialize(msg)); 

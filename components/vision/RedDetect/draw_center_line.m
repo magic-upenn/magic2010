@@ -1,5 +1,5 @@
 function draw_center_line(handle,img,angle,req_angle)
-	hold on; 
+	hold(handle,'on'); ; 
 	width = size(img,2);
 	height = size(img,1);
 	Y = [1,round(height*.1)]; 
@@ -15,7 +15,7 @@ function draw_center_line(handle,img,angle,req_angle)
 	center = angle_to_pixel(img,angle); 	
 	X = [center,center];
 	line(X,Y,'Color','m','Parent',handle,'LineWidth',2,'LineStyle','-','Marker','o','MarkerFaceColor','black'); 
-	hold off; 
+	hold(handle,'off'); 
 	%1						width
 	%_______________________________________________
 	%|			|			|	

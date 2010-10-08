@@ -33,13 +33,14 @@ function visionGuiInit
 	handles  = {@ipcRecvImageFcn};
 
 	%subscribe to messages
-	masterSubscribeRobots(messages,handles,[1 1]);
+	masterSubscribeRobots(messages,handles,[1]);
 
 	%setup local IPC to send confirmed OOI to Mapping Console 
 %	ipcAPIDefine('ConfirmedOOI');
 
 	front_gui
 	omni_gui
+	track_gui
 % Set up the figure
 
 function ipcRecvImageFcn(msg,name)
@@ -57,21 +58,18 @@ function ipcRecvImageFcn(msg,name)
 	front = IMAGES(imPacket.id).front; 
 	omni_cand = IMAGES(imPacket.id).omni_cands{1}; 
 	front_cand = IMAGES(imPacket.id).front_cands{1}; 
-	IMAGES(imPacket.id).pose = imPacket.pose;  
-	
+	IMAGES(imPacket.id).pose = imPacket.pose;
+	if ~isempty(imPacket.scanV)
+		IMAGES(imPacket.id).scanV =  imresize(fliplr(imPacket.scanV.ranges(445:628)),[1,15],'nearest'); 
+	else
+		IMAGES(imPacket.id).scanV = zeros([1,15]); 
+	end
+%	IMAGES(imPacket.id).scanV = imPacket.scanV.ranges;%  imresize(imPacket.scanV.ranges(241:601+240),[1,15],'nearest'); 
 	global GLOBALS;
-	feval(GLOBALS.front_fns.updateGui);  
-	global OMNI_UP
-	feval(OMNI_UP);  
-	%set(PLOTHANDLES(imPacket.id),'CData',IMAGES(imPacket.id).jpg);
-	%set(GUI.hYcurr(imPacket.id),'String',num2str(imPacket.Ymean));
-%	if isempty(imPacket.POSE)
-%	    fprintf(1,'No POSE.data from Robot %d\n',imPacket.id);
-%	    return
-%	end
-	%set(GUI.hRobotXY(imPacket.id),'String',sprintf('X:%s, Y:%s, yaw:%s',num2str(imPacket.POSE.x),num2str(imPacket.POSE.y),num2str(imPacket.POSE.yaw)));
-
-	drawnow;
+	GLOBALS.front_fns.updateGui();  
+	GLOBALS.omni_fns.updateGui();  
+	GLOBALS.track_fns.updateGui();  
+ 
 
 function ipcRecvStaticOoiFcn(msg,name)
 	global  IMAGES STATIC_OOI GUI
@@ -90,7 +88,6 @@ function ipcRecvStaticOoiFcn(msg,name)
 		text(BB(1),BB(2)+BB(4),sprintf('%2.2f',OOIpacket.OOI.angle),'color','g');
 	hold off;
 	set(GUI.hConfOOI(OOIpacket.id),'Visible','on');
-	drawnow;
 
 function manualOOI(hObj,eventdata)
 	id = get(hObj,'UserData');
