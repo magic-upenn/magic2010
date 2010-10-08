@@ -6,9 +6,11 @@
 #include <mex.h>
 #define BYTE uint8_t
 
+#define MAX_UNCOMPRESSED_SIZE 1000000
+
 using namespace std;
 
-vector<uint8_t> temp;
+vector<uint8_t> temp(MAX_UNCOMPRESSED_SIZE);
 
 int UncompressData( const BYTE* abSrc, int nLenSrc, BYTE* abDst, int nLenDst )
 {
@@ -44,10 +46,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   int lenSrc = mxGetNumberOfElements(prhs[0])*mxGetElementSize(prhs[0]);
   uint8_t * dataSrc = (uint8_t*)mxGetData(prhs[0]);
   
-  temp.resize(lenSrc*100);
 
   //printf("%d %d\n",lenSrc,lenDst);
-  int lenUnpacked= UncompressData( dataSrc, lenSrc, &(temp[0]), lenSrc*100 );
+  int lenUnpacked= UncompressData( dataSrc, lenSrc, &(temp[0]), temp.size() );
 
   if (lenUnpacked > 0)
   {
