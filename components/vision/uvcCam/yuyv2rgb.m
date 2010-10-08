@@ -12,5 +12,5 @@ y(1:2:end,:) = y1;
 y(2:2:end,:) = y2;
 %ycbcr = yuyv_u8([1 2 4], :, 1:2:end);
 %ycbcr = permute(ycbcr, [3 2 1]);
-ycbcr = cat(3,y,cb,cr); 
+ycbcr = cat(3,y',cb',cr'); 
 rgb = ycbcr2rgb(ycbcr);
