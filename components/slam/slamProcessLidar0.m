@@ -39,7 +39,8 @@ if (mod(SLAM.lidar0Cntr,40) == 0)
 end
   
 ranges = double(LIDAR0.scan.ranges)'; %convert from float to double
-indGood = ranges >0.25 & LIDAR0.mask;
+%dranges = [0; diff(ranges)];
+indGood = ranges >0.25 & LIDAR0.mask; % & (abs(dranges) <0.1);
 
 xs = ranges.*LIDAR0.cosines;
 ys = ranges.*LIDAR0.sines;
@@ -109,6 +110,15 @@ if mod(SLAM.lidar0Cntr,10) == 0
     if (SPREAD.useSpread)
       spreadSendUnreliable('Pose', serialize(POSE.data));
     end
+    
+    if (SLAM.useUdpExternal)
+        packet = POSE.data;
+        packet.type = 'Pose';
+        packet.id = GetRobotId();
+        raw = serialize(packet);
+        zraw = zlibCompress(raw);
+        UdpSendAPI('send',zraw);
+    end
 end
 
 
@@ -158,6 +168,15 @@ if (mod(SLAM.lidar0Cntr,40) == 0)
   if (SPREAD.useSpread)
     spreadSendUnreliable('MapUpdateH', serialize(MapUpdateH));
   end
+  
+  if (SLAM.useUdpExternal)
+    packet = MapUpdateH;
+    packet.type = 'MapUpdateH';
+    packet.id   = GetRobotId();
+    raw =serialize(packet);
+    zraw = zlibCompress(raw);
+    UdpSendAPI('send',zraw);
+  end
 
 
   [xdi ydi] = find(DVMAP.map.data);
@@ -168,6 +187,15 @@ if (mod(SLAM.lidar0Cntr,40) == 0)
 
   if (SPREAD.useSpread)
     spreadSendUnreliable('MapUpdateV', serialize(MapUpdateV));
+  end
+  
+  if (SLAM.useUdpExternal)
+    packet = MapUpdateV;
+    packet.type = 'MapUpdateV';
+    packet.id   = GetRobotId();
+    raw = serialize(packet);
+    zraw = zlibCompress(raw);
+    UdpSendAPI('send',zraw);
   end
   
   %reset the delta map

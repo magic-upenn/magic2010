@@ -12,6 +12,8 @@ if nargin >1
 end
 
 SPREAD.useSpread = 0;
+SLAM.useUdpExternal = 0;
+SLAM.useIpcExternal = 0;
 
 slamStart;
 
@@ -34,6 +36,12 @@ ipcInit(SLAM.addr,ipcAPIHandle);
 
 if (SPREAD.useSpread)
   spreadInit;
+end
+
+if (SLAM.useUdpExternal)
+  masterIp = '192.168.10.19';
+  masterPort = 12346;
+  UdpSendAPI('connect',masterIp,masterPort);
 end
 
 SLAM.updateExplorationMap    = 0;
