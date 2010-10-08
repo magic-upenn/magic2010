@@ -255,10 +255,10 @@ function cancel_type_Callback(hObject, eventdata, handles)
 	set_status('cancel label'); 	
 
 function confirm_type_Callback(hObject, eventdata, handles)
-	global GLOBALS;  
+	global GLOBALS IMAGES;  
 	set_status('confirm label'); 	
-	x = 5; 
-	y = 0; 
+	x = IMAGES(GLOBALS.focus).pose.x; 
+	y = IMAGES(GLOBALS.focus).pose.y; 
 	send_ooi_msg(GLOBALS.focus,GLOBALS.current_ser,x,y,GLOBALS.current_label)
 	GLOBALS.current_ser = GLOBALS.current_ser + 1;  
 	send_look_msg(GLOBALS.focus,0,0,'done');
