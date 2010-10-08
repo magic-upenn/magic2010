@@ -1,9 +1,9 @@
 function [omni_sm, front_sm, omni_cands, front_cands, omni_stats, front_stats] = red_detect_cams()
 	tic
-	omni  = get_image(0,3); 
+	omni  = get_image(0,1); 
 	front = get_image(1,3);
-	circle = [600,800,650]/2;
-	front = imrotate(front,180); 
+	circle = [600,800,650];
+	front = imrotate(front,180);
 	omni_flat = linear_unroll(omni,circle(2),circle(1),circle(3));
 	[red,omni_stats] = find_red_candidates(omni_flat); 
 	[red,front_stats] = find_red_candidates(front);
