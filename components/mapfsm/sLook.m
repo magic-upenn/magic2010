@@ -6,8 +6,8 @@ persistent DATA
 timeout = 5.0;
 ret = [];
 
-small_angle_thresh = 5*pi/180;
-big_angle_thresh = 30*pi/180;
+small_angle_thresh = 10*pi/180;
+big_angle_thresh = 40*pi/180;
 servoMsgName = GetMsgName('Servo1Cmd');
 
 switch event

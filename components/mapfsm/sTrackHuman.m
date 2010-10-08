@@ -15,7 +15,6 @@ switch event
   DATA.kp = 3;
   DATA.wmax = 1.0;
 
-  %{
   if ~isempty(OOI_DYNAMIC),
     DATA.x = OOI_DYNAMIC(1);
     DATA.y = OOI_DYNAMIC(2);
@@ -24,8 +23,8 @@ switch event
     DATA.x = MPOSE.x;
     DATA.y = MPOSE.y;
   end
-  %}
 
+%{
   DATA.init = 0;
 
   if isempty(TRACKS) || isempty(TRACKS.xs),
@@ -46,12 +45,12 @@ switch event
   r_den = (bx-ax)*(bx-ax) + (by-ay)*(by-ay);
   r = r_num./r_den;
 
-  isNearLine = (r>=0)&(r<=1)
+  isNearLine = (r>=0)&(r<=1);
 
   dist = zeros(size(r));
 
   s = ((ay-cy)*(bx-ax)-(ax-cx)*(by-ay))./r_den;
-  dist(isNearLine) = fabs(s(isNearLine)).*sqrt(r_den(isNearLine));
+  dist(isNearLine) = abs(s(isNearLine)).*sqrt(r_den(isNearLine));
 
   distEnd = (cx-bx)*(cx-bx) + (cy-by)*(cy-by);
   isNearEnd = (~isNearLine);
@@ -62,6 +61,7 @@ switch event
   DATA.x = TRACKS.xs(minIdx);
   DATA.y = TRACKS.ys(minIdx);
   DATA.init = 1;
+%}
 
   sLook('entry');
 
@@ -71,15 +71,15 @@ switch event
   
  case 'update'
 
-   if (gettime - DATA.t0 > timeout)
-     ret = 'timeout';
-   end
+   %if (gettime - DATA.t0 > timeout)
+     %ret = 'timeout';
+   %end
 
-   if ~DATA.init
-     sTrackHuman('entry');
-   end
+   %if ~DATA.init
+     %sTrackHuman('entry');
+   %end
 
-   if ~isempty(TRACKS) && ~isempty(TRACKS.xs) && DATA.init,
+   if ~isempty(TRACKS) && ~isempty(TRACKS.xs) %&& DATA.init,
      dx = TRACKS.xs - DATA.x;
      dy = TRACKS.ys - DATA.y;
      dist = sqrt(dx.^2 + dy.^2);

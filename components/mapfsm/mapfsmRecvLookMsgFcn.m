@@ -1,5 +1,5 @@
 function mapfsmRecvLookMsgFcn(data, name)
-global LOOK_ANGLE MP
+global LOOK_ANGLE MP MPOSE OOI_DYNAMIC
 
 if ~isempty(data)
   disp('got look msg');
@@ -12,7 +12,8 @@ if ~isempty(data)
     LOOK_ANGLE = msg.theta;
     MP.sm = setEvent(MP.sm, 'look');
   case 'track'
-    LOOK_ANGLE = msg.theta;
+    OOI_DYNAMIC(1) = MPOSE.x + msg.distance*cos(msg.theta);
+    OOI_DYNAMIC(2) = MPOSE.y + msg.distance*sin(msg.theta);
     MP.sm = setEvent(MP.sm, 'track');
   end
 end
