@@ -38,15 +38,12 @@ function button_handler(chr,gui)
 %		end
 %	else 
 	GLOBALS.vision_fns.set_status(strcat('Got key: ',chr)); 
-	if ~isempty(num)
+	if ~isempty(num) & ~strcmp(chr,'i') & ~strcmp(chr,'j') 
 		if num == 0
 			GLOBALS.focus = mod(GLOBALS.focus,2) + 1;
 			GLOBALS.vision_fns.set_status(sprintf('Toggled focus to: %d',GLOBALS.focus)); 
 		else 
-			swap_out = GLOBALS.bids(GLOBALS.focus);  
-			GLOBALS.bids(GLOBALS.focus) = num; 
-			GLOBALS.bids(9) = swap_out;  
-			GLOBALS.vision_fns.set_status(sprintf('Gave focus to: %d',num)); 
+			GLOBALS.vision_fns.set_focus(num); 
 		end
 		GLOBALS.vision_fns.updateGui();
 	elseif strcmp(chr, '.')
@@ -61,24 +58,26 @@ function button_handler(chr,gui)
 		GLOBALS.vision_fns.neutralized_Callback();    
 	elseif strcmp(chr, '+')
 		GLOBALS.vision_fns.lazer_on_Callback();    
-	elseif strcmp(chr, '|')
-		GLOBALS.vision_fns.still_mobile_Callback();     
-	elseif strcmp(chr, '\')
-		GLOBALS.vision_fns.mobile_ooi_Callback();     
 	elseif strcmp(chr, '-')
 		GLOBALS.vision_fns.lazer_off_Callback();     
 	elseif strcmp(chr, 'enter')
 		GLOBALS.vision_fns.announce_ooi_Callback();    
 	elseif strcmp(chr, 'del')
 		GLOBALS.vision_fns.renounce_ooi_Callback();    
-	elseif strcmp(chr, '')
+
+	elseif strcmp(chr, 'a') 
 		GLOBALS.vision_fns.car_Callback();            
-	elseif strcmp(chr, '')
-		GLOBALS.vision_fns.yellow_ooi_Callback(); 
-	elseif strcmp(chr, '')
+	elseif strcmp(chr, 'o') | strcmp(chr, 's')
 		GLOBALS.vision_fns.red_ooi_Callback();     
-	elseif strcmp(chr, '')
+	elseif strcmp(chr, 'e') | strcmp(chr, 'd')
 		GLOBALS.vision_fns.door_Callback();          
+	elseif strcmp(chr, ';') | strcmp(chr, 'z')
+		GLOBALS.vision_fns.still_mobile_Callback();     
+	elseif strcmp(chr, 'q') | strcmp(chr, 'x')
+		GLOBALS.vision_fns.yellow_ooi_Callback(); 
+	elseif strcmp(chr, 'j') | strcmp(chr, 'c')
+		GLOBALS.vision_fns.mobile_ooi_Callback();     
+
 	elseif strcmp(chr, 'left') 
 		GLOBALS.vision_fns.nudge_left_Callback();          
 	elseif strcmp(chr, 'right'); 

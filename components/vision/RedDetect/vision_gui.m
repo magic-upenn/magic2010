@@ -58,27 +58,20 @@ function updateGui
 	imagesc(uint8(cat(3,0,0,255)),'Parent',handles.(sprintf('ind%d',mod(GLOBALS.focus,2)+1)));  
 	axis(handles.ind1,'off')
 	axis(handles.ind2,'off')
-	
-	%Front Focus	
-%	focus_h = draw_cands_on_image(handles.front1,image.front_stats,image.front); 
-%	set(focus_h,'ButtonDownFcn',{@focus_ButtonDownFcn,handles.front1});
-%	mid = round(size(image.front,2)/2);
-%	step = size(image.front,1)/15; 
-%	for txt = 1:15
-%		text(mid,round(step*txt),sprintf('%.1f',image.scanV(txt)),'Parent',handles.front1,'FontSize',16); 
-%	end	  
-	
-	%Omni Focus
-	%omni_h = imagesc(image.omni,'Parent',handles.flat_focus); daspect(handles.flat_focus,[1 1 1]); 
-	%set(omni_h,'ButtonDownFcn',{@omni_ButtonDownFcn,GLOBALS.focus,handles.flat_focus});
-	%draw_center_line(handles.flat_focus,image.omni,image.front_angle,GLOBALS.req_angles(GLOBALS.focus)); 
+
+		
 	for box = 1:8
 		image = IMAGES(GLOBALS.bids(box));
 		cname = sprintf('cand%d',box);
 		oname = sprintf('omni%d',box);
 		if box < 3
 			fname = sprintf('front%d',box);
-			draw_cands_on_image(handles.(fname),image.front_stats,image.front); 
+			focus_h = draw_cands_on_image(handles.(fname),image.front_stats,image.front);
+			if GLOBALS.bids(box) == GLOBALS.current_bb_id
+				draw_box_on_axes(GLOBALS.current_bb,'c',handles.(fname)); 
+			end
+			set(focus_h,'ButtonDownFcn',{@focus_ButtonDownFcn,[handles.(fname),box,GLOBALS.bids(box)]});
+			draw_range(image.scanH,image.scanV,image.front,handles.(fname));  
 			axis(handles.(fname),'off')
 			for sc = 1:3
 				scname = sprintf('%s_%d',cname,sc); 
@@ -87,7 +80,7 @@ function updateGui
 				axis(handles.(scname),'off'); 
 				bb = image.front_stats(sc,2:end); 
 				dist = get_dist_by_bb(bb); 
-				text(30,20,sprintf('%.1fm',dist),'Parent',handles.(scname),'FontSize',20,'BackgroundColor','y'); 
+				text(1,10,sprintf('%.1fm',dist),'Parent',handles.(scname),'FontSize',16,'BackgroundColor','y'); 
 			end 
 		else
 			for sc = 1:3
@@ -97,62 +90,59 @@ function updateGui
 				axis(handles.(scname),'off'); 
 			end 
 		end
-		img = draw_cands_on_image(handles.(oname),image.omni_stats,image.omni);
+		omni_h= draw_cands_on_image(handles.(oname),image.omni_stats,image.omni);
+		draw_center_line(handles.(oname),image.omni,image.front_angle,GLOBALS.req_angles(GLOBALS.bids(box))); 
+		%Omni Focus
+		set(omni_h,'ButtonDownFcn',{@omni_ButtonDownFcn,[handles.(oname),GLOBALS.focus,GLOBALS.bids(box)]});
 		text(30,20,sprintf('%d',GLOBALS.bids(box)),'Parent',handles.(oname),'FontSize',30,'BackgroundColor','c'); 
 		axis(handles.(oname),'off')
 	end
-%	bb = GLOBALS.current_bb;
-%	image = IMAGES(GLOBALS.focus);
-% 	Something is wrong with bb!!!!
-%	imagesc(image.front(bb(1):bb(2),bb(3):bb(4),:),'Parent',handles.cand5_focus);
-%	daspect(handles.cand5_focus,[1 1 1]);  
-%	axis(handles.cand5_focus,'off')
-	%line([bb(3),bb(4)],[bb(1),bb(1)],'Color','c','LineWidth',2,'Parent',handles.front1);
-	%line([bb(3),bb(4)],[bb(2),bb(2)],'Color','c','LineWidth',2,'Parent',handles.front1);
-	%line([bb(3),bb(3)],[bb(1),bb(2)],'Color','c','LineWidth',2,'Parent',handles.front1);
-	%line([bb(4),bb(4)],[bb(1),bb(2)],'Color','c','LineWidth',2,'Parent',handles.front1);
 	if GLOBALS.focus == 1	
 		set(handles.current_label,'String',strcat('<--',GLOBALS.current_label)); 
 	else 
 		set(handles.current_label,'String',strcat(GLOBALS.current_label,'-->')); 
 	end
-%	axis(handles.front1,'off')
 
 % --- Outputs from this function are returned to the command line.
 function varargout = vision_gui_OutputFcn(hObject, eventdata, handles) 
 	varargout{1} = handles.output;
 
-function focus_ButtonDownFcn(hObject, eventdata, axeh)
+function focus_ButtonDownFcn(hObject, eventdata, data)
 	global IMAGES GLOBALS 
+	axeh = data(1);
+	focus = data(2);  
+	id = data(3);
+	GLOBALS.focus = focus;  
 	cp = get(axeh,'CurrentPoint');
 	x = cp(1,1);
 	y = cp(1,2);  
-	[x,y]
-	GLOBALS.current_bb
-	if numel(GLOBALS.current_bb) == 6
-		x1 = GLOBALS.current_bb(5); 
-		y1 = GLOBALS.current_bb(6);
-		if abs(x1-x) < 10 & abs(y1-y) < 10
-			id = GLOBALS.focus; 
-			GLOBALS.current_bb = IMAGES(id).front_stats(GLOBALS.cand,2:end);
-			po = front_pixel_to_omni(IMAGES(id).omni,IMAGES(id).front,x); 
-			angle = pixel_to_angle(IMAGES(id).omni,po);
-			lookat(GLOBALS.focus, angle);  
+	if isempty(GLOBALS.last_click) | GLOBALS.current_bb_id ~= id
+		GLOBALS.last_click = [x,y];
+		GLOBALS.current_bb = [];  
+	else
+		xp = GLOBALS.last_click(1); 
+		yp = GLOBALS.last_click(2); 
+		if abs(xp-x) < 10 & abs(yp-y) < 10
+			GLOBALS.current_bb = [];
 		else
-			GLOBALS.current_bb = round([y1,y,x1,x]);  
+			GLOBALS.current_bb = round([yp,y,xp,x]);
 		end
-		GLOBALS.current_bb = [GLOBALS.current_bb]; 
-	elseif mod(numel(GLOBALS.current_bb),4) == 0
-		GLOBALS.current_bb = [GLOBALS.current_bb,round([x,y])];
+	GLOBALS.last_click = [];   
 	end
+	GLOBALS.current_bb_id = id; 
 	updateGui; 
 
-function omni_ButtonDownFcn(hObject, eventdata, id, axeh)
+function omni_ButtonDownFcn(hObject, eventdata, data)
 	global IMAGES GLOBALS;
+	axeh = data(1);
+	focus = data(2);  
+	id = data(3);
+	set_focus(id); 
 	cp = get(axeh,'CurrentPoint');
 	x = cp(1,1);
 	y = cp(1,2);  
 	[x,y]
+	[focus,id]
 	angle = pixel_to_angle(IMAGES(id).omni,x) 
 	lookat(id,angle); 
 
@@ -185,11 +175,12 @@ function setup_global_vars(vision_gui)
 	GLOBALS.vision_gui = vision_gui; 
 	GLOBALS.focus = 1;  
 	GLOBALS.req_angles = -ones(1,9);
-	GLOBALS.current_bb = [1,1,1,1]; 
+	GLOBALS.current_bb = []; 
+	GLOBALS.current_bb_id = []; 
 	GLOBALS.current_label = '?'; 
 	GLOBALS.current_ser = 1;
 	GLOBALS.last_look = []; 
-	GLOBALS.last_click = [1,1]; 
+	GLOBALS.last_click = []; 
 	GLOBALS.bids = [1 2 3 4 5 6 7 8 9];  
 	vision_fns.updateGui		   = @updateGui;  
 	vision_fns.set_status		   = @set_status;  
@@ -211,6 +202,7 @@ function setup_global_vars(vision_gui)
 	vision_fns.nudge_right_Callback    = @nudge_right_Callback;
 	vision_fns.nudge_left_Callback     = @nudge_left_Callback; 
 	vision_fns.lookat	           = @lookat; 
+	vision_fns.set_focus	           = @set_focus; 
 	GLOBALS.vision_fns = vision_fns; 
 	null_front = null_image(320,240); 	
 	null_omni  = null_image(775,155);
@@ -241,14 +233,15 @@ function setup_global_vars(vision_gui)
 	GLOBALS.null_cand = null_cand; 
 
 %------------------------------------------------------------------------------------------
-	
-function switch_cand5_Callback(hObject, eventdata, handles)
-	global GLOBALS IMAGES;
-	GLOBALS.cand = mod(GLOBALS.cand+1,3) + 1; 
-	set_status('switch cands'); 
-	GLOBALS.current_bb = IMAGES(GLOBALS.focus).front_stats(GLOBALS.cand,2:end); 
-	GLOBALS.current_label = 'red'; 
-	updateGui; 
+
+function set_focus(new_fr)
+	global GLOBALS;
+	new_fr_old_box = find(GLOBALS.bids == new_fr);  
+	old_fr = GLOBALS.bids(GLOBALS.focus);  
+	GLOBALS.bids(GLOBALS.focus) = new_fr; 
+	GLOBALS.bids(new_fr_old_box) = old_fr; 
+	GLOBALS.bids(3:8) = sort(GLOBALS.bids(3:8));  
+	GLOBALS.vision_fns.set_status(sprintf('Gave focus to: %d',new_fr)); 
 	
 function lookat_Callback(hObject, eventdata, handles)
 	global GLOBALS IMAGES; 
@@ -280,7 +273,7 @@ function still_mobile_Callback(hObject, eventdata, handles)
 function renounce_ooi_Callback(hObject, eventdata, handles)
 	global GLOBALS; 
 	set_status('renounced label'); 	
-	send_ooi_done_msg(GLOBALS.current_ser-1,'canceled')
+	send_ooi_done_msg(GLOBALS.current_ser-1,'cancel')
 
 function announce_ooi_Callback(hObject, eventdata, handles)
 	global GLOBALS IMAGES;  
@@ -337,10 +330,14 @@ function nudge_left_Callback(hObject, eventdata, handles)
 	send_look_msg(GLOBALS.focus,msg.theta,msg.phi,msg.type);  
 
 function neutralized_Callback(hObject, eventdata, handles)
+	global GLOBALS;
 	set_status('neutralized target'); 	
+	send_ooi_done_msg(GLOBALS.current_ser,'complete'); 
 
 function explore_Callback(hObject, eventdata, handles)
+	global GLOBALS;
 	set_status('return to exploring'); 	
+	send_look_msg(GLOBALS.focus,0,0,'done');
 
 %------------------------------------------------------------------------------------------
 
@@ -378,7 +375,7 @@ function send_ooi_msg(id,ser,x,y,type)
 
 function send_ooi_done_msg(ser,status)
 	name = 'OOI_Done_Msg'
-	msg.status = status; %complete, canceled
+	msg.status = status; %complete, cancel
 	msg.ser = ser; 
 	send_message_to_gcs(name,msg); 
 
