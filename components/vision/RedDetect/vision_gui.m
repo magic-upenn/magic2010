@@ -85,6 +85,9 @@ function updateGui
 				imagesc(image.front_cands{sc},'Parent',handles.(scname)); 
 				daspect(handles.(scname),[1 1 1]); 
 				axis(handles.(scname),'off'); 
+				bb = image.front_stats(sc,2:end); 
+				dist = get_dist_by_bb(bb); 
+				text(30,20,sprintf('%.1fm',dist),'Parent',handles.(scname),'FontSize',20,'BackgroundColor','y'); 
 			end 
 		else
 			for sc = 1:3
@@ -108,9 +111,11 @@ function updateGui
 	%line([bb(3),bb(4)],[bb(2),bb(2)],'Color','c','LineWidth',2,'Parent',handles.front1);
 	%line([bb(3),bb(3)],[bb(1),bb(2)],'Color','c','LineWidth',2,'Parent',handles.front1);
 	%line([bb(4),bb(4)],[bb(1),bb(2)],'Color','c','LineWidth',2,'Parent',handles.front1);
-	
-%	set(handles.current_label,'String',strcat('<--',GLOBALS.current_label)); 
-	
+	if GLOBALS.focus == 1	
+		set(handles.current_label,'String',strcat('<--',GLOBALS.current_label)); 
+	else 
+		set(handles.current_label,'String',strcat(GLOBALS.current_label,'-->')); 
+	end
 %	axis(handles.front1,'off')
 
 % --- Outputs from this function are returned to the command line.
@@ -389,6 +394,9 @@ function send_look_msg(id,theta,phi,type);
 	msg.phi = phi; 
 	msg.type = type; %'look', 'track', 'done'
 	GLOBALS.last_look = msg;
+	'NOT SENDING MESSAGES TODAY!!!'
+	msg 
+	return
 	ROBOTS(id).ipcAPI('define',name);  
 	ROBOTS(id).ipcAPI('publish',name,serialize(msg));  
 	
