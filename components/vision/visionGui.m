@@ -16,7 +16,7 @@ function visionGuiInit
 	global IMAGES STATIC_OOI ROBOTS
 
 	nRobots = 10;
-	ids = [6]; % list of ID's of available robots
+	ids = [4 6]; % list of ID's of available robots
 	ipcInit;
 
 %	masterConnectRobots(ids,'127.0.0.1');
@@ -38,9 +38,7 @@ function visionGuiInit
 	%setup local IPC to send confirmed OOI to Mapping Console 
 %	ipcAPIDefine('ConfirmedOOI');
 
-	front_gui
-	omni_gui
-	track_gui
+	vision_gui
 % Set up the figure
 
 function ipcRecvImageFcn(msg,name)
@@ -66,10 +64,7 @@ function ipcRecvImageFcn(msg,name)
 	end
 %	IMAGES(imPacket.id).scanV = imPacket.scanV.ranges;%  imresize(imPacket.scanV.ranges(241:601+240),[1,15],'nearest'); 
 	global GLOBALS;
-	GLOBALS.front_fns.updateGui();  
-	GLOBALS.omni_fns.updateGui();  
-	GLOBALS.track_fns.updateGui();  
- 
+	GLOBALS.vision_fns.updateGui();  
 
 function ipcRecvStaticOoiFcn(msg,name)
 	global  IMAGES STATIC_OOI GUI

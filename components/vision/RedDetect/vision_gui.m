@@ -22,7 +22,7 @@ function varargout = vision_gui(varargin)
 
 % Edit the above text to modify the response to help vision_gui
 
-% Last Modified by GUIDE v2.5 08-Oct-2010 23:35:04
+% Last Modified by GUIDE v2.5 10-Oct-2010 12:57:22
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -50,7 +50,6 @@ function vision_gui_OpeningFcn(hObject, eventdata, handles, varargin)
 	guidata(hObject, handles);
 	setup_global_vars(hObject); 
 	updateGui; 
-
 function updateGui
 	global GLOBALS IMAGES; 
 	handles = guidata(GLOBALS.vision_gui);
@@ -75,12 +74,13 @@ function updateGui
 			axis(handles.(fname),'off')
 			for sc = 1:3
 				scname = sprintf('%s_%d',cname,sc); 
-				imagesc(image.front_cands{sc},'Parent',handles.(scname)); 
+				cand_h = imagesc(image.front_cands{sc},'Parent',handles.(scname)); 
 				daspect(handles.(scname),[1 1 1]); 
 				axis(handles.(scname),'off'); 
 				bb = image.front_stats(sc,2:end); 
-				dist = get_dist_by_bb(bb); 
+				[dist,vsd,hsd] = get_dist_by_bb([],bb,[],[]); 
 				text(1,10,sprintf('%.1fm',dist),'Parent',handles.(scname),'FontSize',16,'BackgroundColor','y'); 
+				set(cand_h,'ButtonDownFcn',{@cand_ButtonDownFcn,[sc,box,GLOBALS.bids(box)]});
 			end 
 		else
 			for sc = 1:3
@@ -96,6 +96,25 @@ function updateGui
 		set(omni_h,'ButtonDownFcn',{@omni_ButtonDownFcn,[handles.(oname),GLOBALS.focus,GLOBALS.bids(box)]});
 		text(30,20,sprintf('%d',GLOBALS.bids(box)),'Parent',handles.(oname),'FontSize',30,'BackgroundColor','c'); 
 		axis(handles.(oname),'off')
+	end
+	if ~isempty(GLOBALS.current_bb)
+		bb = GLOBALS.current_bb; 
+		image = IMAGES(GLOBALS.bids(GLOBALS.focus)); 
+		[imgd,vsd,hsd] = get_dist_by_bb(image.front,bb,image.scanV,image.scanH); 
+		auto = 0; 
+		selected = get(handles.dist_source,'SelectedObject'); 
+		selected = get(selected,'String'); 
+		switch(selected)
+		case 'IMG'
+			GLOBALS.current_distance = imgd; 
+		case 'HS'
+			GLOBALS.current_distance = hsd; 
+		case 'VS'
+			GLOBALS.current_distance = vsd; 
+		case 'AUTO'
+			GLOBALS.current_distance = imgd; 
+		end
+		set(handles.dists_display,'String',sprintf('%.1f | %.1f | %.1f | *%.1f*',vsd,hsd,imgd,GLOBALS.current_distance));    	
 	end
 	if GLOBALS.focus == 1	
 		set(handles.current_label,'String',strcat('<--',GLOBALS.current_label)); 
@@ -131,6 +150,16 @@ function focus_ButtonDownFcn(hObject, eventdata, data)
 	end
 	GLOBALS.current_bb_id = id; 
 	updateGui; 
+
+function cand_ButtonDownFcn(hObject, eventdata, data)
+	global IMAGES GLOBALS 
+	cand = data(1);
+	focus = data(2);  
+	id = data(3); 
+	GLOBALS.focus = focus;  
+	GLOBALS.current_bb_id = id; 
+	GLOBALS.current_bb = IMAGES(id).front_stats(cand,2:end);
+	updateGui;   
 
 function omni_ButtonDownFcn(hObject, eventdata, data)
 	global IMAGES GLOBALS;
@@ -179,6 +208,7 @@ function setup_global_vars(vision_gui)
 	GLOBALS.current_bb_id = []; 
 	GLOBALS.current_label = '?'; 
 	GLOBALS.current_ser = 1;
+	GLOBALS.current_distance = 0;
 	GLOBALS.last_look = []; 
 	GLOBALS.last_click = []; 
 	GLOBALS.bids = [1 2 3 4 5 6 7 8 9];  
@@ -282,7 +312,7 @@ function announce_ooi_Callback(hObject, eventdata, handles)
 	y = IMAGES(GLOBALS.focus).pose.y;
 	yaw = IMAGES(GLOBALS.focus).pose.yaw;
 	servo_yaw = IMAGES(GLOBALS.focus).front_angle; ;
-	distance = mean(IMAGES(GLOBALS.focus).scanV(7:9));  
+	distance = GLOBALS.current_distance;   
 	x = x + distance * cos(yaw + servo_yaw);  
 	y = y + distance * sin(yaw + servo_yaw);  
 	send_ooi_msg(GLOBALS.focus,GLOBALS.current_ser,x,y,GLOBALS.current_label)
@@ -391,20 +421,22 @@ function send_look_msg(id,theta,phi,type);
 	msg.phi = phi; 
 	msg.type = type; %'look', 'track', 'done'
 	GLOBALS.last_look = msg;
-	'NOT SENDING MESSAGES TODAY!!!'
-	msg 
-	return
+	global NOSEND
+	if ~isemtpy(NOSEND)
+		'NOT SENDING MESSAGES TODAY!!!'
+		msg 
+		return
+	end
 	ROBOTS(id).ipcAPI('define',name);  
 	ROBOTS(id).ipcAPI('publish',name,serialize(msg));  
 	
 function send_message_to_gcs(name,msg);
-	'NOT SENDING MESSAGES TODAY!!!'
-	msg 
-	return
+	global NOSEND
+	if ~isemtpy(NOSEND)
+		'NOT SENDING MESSAGES TODAY!!!'
+		msg 
+		return
+	end
 	global VISION_IPC 
 	VISION_IPC('define',name); 
 	VISION_IPC('publish',name,serialize(msg)); 
-
-
-
-
