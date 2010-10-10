@@ -22,7 +22,7 @@ function varargout = vision_gui(varargin)
 
 % Edit the above text to modify the response to help vision_gui
 
-% Last Modified by GUIDE v2.5 10-Oct-2010 12:57:22
+% Last Modified by GUIDE v2.5 10-Oct-2010 14:20:35
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -212,6 +212,7 @@ function setup_global_vars(vision_gui)
 	GLOBALS.last_look = []; 
 	GLOBALS.last_click = []; 
 	GLOBALS.bids = [1 2 3 4 5 6 7 8 9];  
+	GLOBALS.track_mode = false; 
 	vision_fns.updateGui		   = @updateGui;  
 	vision_fns.set_status		   = @set_status;  
 	vision_fns.lookat_Callback         = @lookat_Callback;
@@ -308,36 +309,41 @@ function renounce_ooi_Callback(hObject, eventdata, handles)
 function announce_ooi_Callback(hObject, eventdata, handles)
 	global GLOBALS IMAGES;  
 	set_status('announced label'); 	
-	x = IMAGES(GLOBALS.focus).pose.x; 
-	y = IMAGES(GLOBALS.focus).pose.y;
-	yaw = IMAGES(GLOBALS.focus).pose.yaw;
-	servo_yaw = IMAGES(GLOBALS.focus).front_angle; ;
+	id = GLOBALS.bids(GLOBALS.focus); 
+	x = IMAGES(id).pose.x; 
+	y = IMAGES(id).pose.y;
+	yaw = IMAGES(id).pose.yaw;
+	servo_yaw = IMAGES(id).front_angle; ;
 	distance = GLOBALS.current_distance;   
 	x = x + distance * cos(yaw + servo_yaw);  
 	y = y + distance * sin(yaw + servo_yaw);  
-	send_ooi_msg(GLOBALS.focus,GLOBALS.current_ser,x,y,GLOBALS.current_label)
+	send_ooi_msg(id,GLOBALS.current_ser,x,y,GLOBALS.current_label)
 	GLOBALS.current_ser = GLOBALS.current_ser + 1;  
-	send_look_msg(GLOBALS.focus,0,0,'done');
+	send_look_msg(id,0,0,'done');
 
 function lazer_up_Callback(hObject, eventdata, handles)
 	global GLOBALS; 
 	set_status('lazer up'); 	
-	send_lazer_msg(GLOBALS.focus,'up'); 
+	id = GLOBALS.bids(GLOBALS.focus); 
+	send_lazer_msg(id,'up'); 
 
 function lazer_down_Callback(hObject, eventdata, handles)
 	global GLOBALS; 
 	set_status('lazer down'); 	
-	send_lazer_msg(GLOBALS.focus,'down'); 
+	id = GLOBALS.bids(GLOBALS.focus); 
+	send_lazer_msg(id,'down'); 
 
 function lazer_on_Callback(hObject, eventdata, handles)
 	global GLOBALS; 
 	set_status('lazer on'); 	
-	send_lazer_msg(GLOBALS.focus,'on'); 
+	id = GLOBALS.bids(GLOBALS.focus); 
+	send_lazer_msg(id,'on'); 
 
 function lazer_off_Callback(hObject, eventdata, handles)
 	global GLOBALS; 
 	set_status('lazer off'); 	
-	send_lazer_msg(GLOBALS.focus,'off'); 
+	id = GLOBALS.bids(GLOBALS.focus); 
+	send_lazer_msg(id,'off'); 
 
 function nudge_right_Callback(hObject, eventdata, handles)
 	global GLOBALS;
@@ -347,7 +353,8 @@ function nudge_right_Callback(hObject, eventdata, handles)
 		return; 
 	end
 	msg.theta = mod(msg.theta - pi/180,2*pi); 
-	send_look_msg(GLOBALS.focus,msg.theta,msg.phi,msg.type);  
+	id = GLOBALS.bids(GLOBALS.focus); 
+	send_look_msg(id,msg.theta,msg.phi,msg.type);  
 
 function nudge_left_Callback(hObject, eventdata, handles)
 	global GLOBALS;
@@ -357,23 +364,25 @@ function nudge_left_Callback(hObject, eventdata, handles)
 		return; 
 	end
 	msg.theta = mod(msg.theta + pi/180,2*pi); 
-	send_look_msg(GLOBALS.focus,msg.theta,msg.phi,msg.type);  
+	id = GLOBALS.bids(GLOBALS.focus); 
+	send_look_msg(id,msg.theta,msg.phi,msg.type);  
 
 function neutralized_Callback(hObject, eventdata, handles)
 	global GLOBALS;
 	set_status('neutralized target'); 	
-	send_ooi_done_msg(GLOBALS.current_ser,'complete'); 
+	send_ooi_done_msg(GLOBALS.current_ser-1,'complete'); 
 
 function explore_Callback(hObject, eventdata, handles)
 	global GLOBALS;
 	set_status('return to exploring'); 	
-	send_look_msg(GLOBALS.focus,0,0,'done');
+	id = GLOBALS.bids(GLOBALS.focus); 
+	send_look_msg(id,0,0,'done');
 
 %------------------------------------------------------------------------------------------
 
 function lookat(id,theta,type)
 	if nargin < 3
-		type = 'look';
+		type = 'look'
 	end
 	global GLOBALS IMAGES; 
 	GLOBALS.req_angles(id) = theta;
@@ -382,7 +391,7 @@ function lookat(id,theta,type)
 	else 
 		abs_angle = IMAGES(id).pose.yaw;   
 	end
-	set_status('lookat');
+	set_status(type);
 	updateGui; 
 	phi = 0; 
 	[theta,abs_angle,theta+abs_angle,mod(theta-abs_angle,2*pi)] 
@@ -413,6 +422,7 @@ function send_lazer_msg(id,status)
 	name = sprintf('robot%d/Laser_Msg',id); 
 	msg.status = status; %on, off, up, down
 	send_message_to_gcs(name,msg); 
+	msg
 
 function send_look_msg(id,theta,phi,type);
 	global GLOBALS ROBOTS; 
@@ -420,23 +430,43 @@ function send_look_msg(id,theta,phi,type);
 	msg.theta = theta;  
 	msg.phi = phi; 
 	msg.type = type; %'look', 'track', 'done'
+	msg.distance = GLOBALS.current_distance; 
 	GLOBALS.last_look = msg;
 	global NOSEND
-	if ~isemtpy(NOSEND)
+	if ~isempty(NOSEND)
 		'NOT SENDING MESSAGES TODAY!!!'
 		msg 
 		return
 	end
+	msg
 	ROBOTS(id).ipcAPI('define',name);  
 	ROBOTS(id).ipcAPI('publish',name,serialize(msg));  
 	
 function send_message_to_gcs(name,msg);
 	global NOSEND
-	if ~isemtpy(NOSEND)
+	if ~isempty(NOSEND)
 		'NOT SENDING MESSAGES TODAY!!!'
 		msg 
 		return
 	end
+	name
+	msg
 	global VISION_IPC 
 	VISION_IPC('define',name); 
 	VISION_IPC('publish',name,serialize(msg)); 
+
+
+function track_Callback(hObject, eventdata, handles)
+	global GLOBALS IMAGES;  
+	id = GLOBALS.bids(GLOBALS.focus); 
+	pf = mean(GLOBALS.current_bb(3:4)); 
+	servo_yaw = IMAGES(id).front_angle; 
+	set_status('track');
+	phi = 0;
+	pf
+	width_f = size(IMAGES(id).front,2); 
+	angle = -(pf - width_f/2)/width_f * 67.5 * pi / 180; 
+	theta = servo_yaw + angle; 
+	lookat(id,theta,'track'); 
+
+
