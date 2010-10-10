@@ -1,7 +1,7 @@
 function gcsRecvIncMapUpdateH(data, name)
 
 global RMAP
-global GPOSE GTRANSFORM GMAP
+global GPOSE GTRANSFORM GMAP GCS
 
 
 if isempty(data)
@@ -61,13 +61,16 @@ if ~isempty(GPOSE{id}),
   GTRANSFORM{id}.dy = Tnew(2,3);
   GTRANSFORM{id}.dyaw = GTRANSFORM{id}.dyaw - am;
 
-  NotViewed = NotViewedByAnotherRobot(id, xg, yg);
+  %we can only put data in the global map if this is a sensor robot
+  if any(id == GCS.sensor_ids)
+    NotViewed = NotViewedByAnotherRobot(id, xg, yg);
+    
+    xg = xg(NotViewed);
+    yg = yg(NotViewed);
+    cm = cm(NotViewed);
   
-  xg = xg(NotViewed);
-  yg = yg(NotViewed);
-  cm = cm(NotViewed);
-  
-  asgn(GMAP, 'hlidar', xg, yg, cm);
-  asgn(GMAP, 'cost', xg, yg, cm);
+    asgn(GMAP, 'hlidar', xg, yg, cm);
+    asgn(GMAP, 'cost', xg, yg, cm);
+  end
   
 end

@@ -21,7 +21,7 @@ if ~isempty(xp),
                  round((AVOID_REGIONS(i).y-UTM_y)/map_cell_size))) = 100;
       end
 
-      path = globalGoToPoint(costmap,[GPOSE{id}.x GPOSE{id}.y],[xp, yp],[UTM_x, UTM_y],sqrt(2)*0.25,map_cell_size)
+      path = globalGoToPoint(costmap,[GPOSE{id}.x GPOSE{id}.y],[xp, yp],[UTM_x, UTM_y],sqrt(2)*0.25,map_cell_size);
       if(numel(path) == 0)
           disp('search failed\n');
           return

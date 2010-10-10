@@ -16,7 +16,7 @@ if get(GDISPLAY.exploreOverlay,'Value')
     temp_x = EXPLORE_REGIONS(i).corner_x;
     temp_y = EXPLORE_REGIONS(i).corner_y;
     GDISPLAY.visualExploreOverlay(i) = patch(temp_x,temp_y,[0 0 1],'ButtonDownFcn',@regionSelect,'Tag',strcat('e',num2str(i)),'FaceAlpha',0.3);
-    GDISPLAY.visualExploreText(i) = text(mean(temp_x),mean(temp_y),num2str(i),'FontSize',30);
+    GDISPLAY.visualExploreText(i) = text(temp_x(1)+1,temp_y(1)+1,num2str(i),'FontSize',30);
   end
 end
 

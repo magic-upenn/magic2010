@@ -9,18 +9,20 @@ case 'Moderate'
   GDISPLAY.selectedTemplate = 2;
 case 'Weak'
   GDISPLAY.selectedTemplate = 3;
-case 'Red Bin'
+case 'Red Barrel'
   GDISPLAY.selectedOOI = 1;
-case 'Red Bin (Neutralized)'
+case 'Red Barrel (Neutralized)'
   GDISPLAY.selectedOOI = 2;
-case 'Red Person'
+case 'Moving POI'
   GDISPLAY.selectedOOI = 3;
-case 'Red Person (Neutralized)'
+case 'Moving POI (Neutralized)'
   GDISPLAY.selectedOOI = 4;
-case 'Yellow Bin'
+case 'Stationary POI'
   GDISPLAY.selectedOOI = 5;
-case 'Door'
+case 'Yellow Barrel'
   GDISPLAY.selectedOOI = 6;
-case 'Car'
+case 'Door'
   GDISPLAY.selectedOOI = 7;
+case 'Car'
+  GDISPLAY.selectedOOI = 8;
 end

@@ -27,23 +27,30 @@ if get(GDISPLAY.ooiOverlay,'Value')
       y=[-1 -1 1 1 ones(1,length(th)-4); 0.5*sin(th)];
       c=[1 0 0; 0 0 0];
     case 3
-      x=[-1 1 0];
-      y=[-1 -1 1];
+      th = ([0 120 240]+90)*pi/180;
+      x=sqrt(2)*cos(th);
+      y=sqrt(2)*sin(th);
       c=[1 0 0];
     case 4
       th=0:0.1:2*pi;
-      x=[-1 1 0 zeros(1,length(th)-3); 0.5*cos(th)];
-      y=[-1 -1 1 ones(1,length(th)-3); 0.5*sin(th)];
+      th2 = ([0 120 240]+90)*pi/180;
+      x=[sqrt(2)*cos(th2) zeros(1,length(th)-3); 0.5*cos(th)];
+      y=[sqrt(2)*sin(th2) sqrt(2)*ones(1,length(th)-3); 0.5*sin(th)];
       c=[1 0 0; 0 0 0];
     case 5
-      x=[-1 1 1 -1];
-      y=[-1 -1 1 1];
-      c=[1 1 0];
+      th = ([0 120 240]+90)*pi/180;
+      x=sqrt(2)*cos(th);
+      y=sqrt(2)*sin(th);
+      c=[1 0 0];
     case 6
       x=[-1 1 1 -1];
       y=[-1 -1 1 1];
-      c=[0 1 0];
+      c=[1 1 0];
     case 7
+      x=[-1 1 1 -1];
+      y=[-1 -1 1 1];
+      c=[0 1 0];
+    case 8
       x=[-1 1 1 -1];
       y=[-1 -1 1 1];
       c=[0 0 1];

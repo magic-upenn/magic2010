@@ -8,8 +8,7 @@ if INIT_LOG
 end
 
 %%%  gcs stuff
-global gcs_machine Robots PLAN_DEBUG GCS
-PLAN_DEBUG = 0;
+global gcs_machine Robots GCS MAGIC_CONSTANTS
 count =0;
 
 gcs_machine.ipcAPI = str2func('ipcAPI');
@@ -20,10 +19,12 @@ ipcReceiveSetFcn('OOI_Msg',@gcsRecvOOIFcn,gcs_machine.ipcAPI,1);
 
 tUpdate = 0.1;
 
-GCS.disruptor_ids = [6];
+GCS.disruptor_ids = [4];
 GCS.sensor_ids = [6];
-ids = [6];%[GCS.disruptor_ids GCS.sensor_ids];
+ids = [GCS.disruptor_ids GCS.sensor_ids];
 
+MAGIC_CONSTANTS.ooi_range = 3.5;
+MAGIC_CONSTANTS.poi_range = 6.0;
 
 for id = ids,
   Robots(id).traj.handle = -1;

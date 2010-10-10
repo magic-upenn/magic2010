@@ -17,6 +17,8 @@ case 'RedBarrel'
   msg.type = 1;
 case 'MovingPOI'
   msg.type = 3;
+case 'StationaryPOI'
+  msg.type = 5;
 case 'YellowBarrel'
   msg.type = 5;
 case 'Doorway'

@@ -1,7 +1,7 @@
 function gcsRecvIncMapUpdateV(data, name)
 
 global RMAP
-global GPOSE GMAP
+global GPOSE GMAP GCS
 
 if isempty(data)
   return
@@ -20,7 +20,7 @@ cm = double(update.cs);
 asgn(RMAP{id}, 'vlidar', xm, ym, cm);
 asgn(RMAP{id}, 'cost', xm, ym, cm);
 
-if ~isempty(GPOSE{id}),
+if ~isempty(GPOSE{id}) && any(id == GCS.sensor_ids)
   [xg, yg] = rpos_to_gpos(id, xm, ym);
   
   NotViewed = NotViewedByAnotherRobot(id, xg, yg);

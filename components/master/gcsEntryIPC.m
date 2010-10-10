@@ -4,7 +4,6 @@ global GCS INIT_LOG
 global ROBOTS
 global RPOSE RMAP RPATH EXPLORE_PATH
 global GTRANSFORM GPOSE GMAP GPATH
-global PLANMAP PLAN_DEBUG
 
 if nargin < 1,
   ids = [1:3];
@@ -36,6 +35,7 @@ end
 
 masterConnectRobots(ids);
 
+
 messages = {'PoseExternal', ...
             'IncMapUpdateH', ...
             'IncMapUpdateV', ...
@@ -49,19 +49,6 @@ handles  = {@gcsRecvPoseExternal, ...
             @gcsRecvFsmStatusFcn};
           
 queueLengths = [5 5 5 1 1];
-
-if PLAN_DEBUG
-  messages = [messages, 'Planner_Map'];
-  handles
-  handles{end+1} = @gcsRecvPlannerMapFcn;
-  queueLengths = [queueLengths, 1];
-
-  PLANMAP.map = zeros(800,800);
-  PLANMAP.res = 0.1;
-  PLANMAP.minX = -40;
-  PLANMAP.minY = -40;
-  PLANMAP.new = 0;
-end
 
 %subscribe to messages
 masterSubscribeRobots(messages, handles, queueLengths);
