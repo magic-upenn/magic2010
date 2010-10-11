@@ -590,7 +590,15 @@ int MicroGateway::ImuPacketHandler(DynamixelPacket * dpacket)
     imu.wroll  = fp[3];
     imu.wpitch = fp[4];
     imu.wyaw   = fp[5];
-    imu.t      = Upenn::Timer::GetAbsoluteTime(); 
+    imu.t      = Upenn::Timer::GetAbsoluteTime();
+
+
+    //sanity check
+    if ( (fabs(imu.wroll) > 2*M_PI) || (fabs(imu.wpitch) > 2*M_PI) || (fabs(imu.wyaw) > 2*M_PI) )
+    {
+      printf("bad angular rate!! rpy = %f %f %f\n",imu.wroll,imu.wpitch,imu.wyaw);
+      return 0;
+    }
    
     IPC_publishData(this->imuMsgName.c_str(),&imu);
 
