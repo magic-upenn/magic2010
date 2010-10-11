@@ -67,7 +67,6 @@ int main(int argc, char * argv[])
     id = string(argv[2]);
   
   string logName          = string(HOKUYO_DEF_LOG_NAME) + id;
-  string processName      = string("runHokuyo") + id;
 
   char * robotIdStr       = getenv("ROBOT_ID");
   if (!robotIdStr)
@@ -175,7 +174,8 @@ int main(int argc, char * argv[])
 
 
   string lidarScanMsgName = robotName + "/Lidar" + id;
-  //connect to ipc  
+  //connect to ipc
+  string processName      = string("runHokuyo") + id; 
   IPC_connectModule(processName.c_str(),ipcHost.c_str());
 
   IPC_defineMsg(lidarScanMsgName.c_str(),IPC_VARIABLE_LENGTH,
