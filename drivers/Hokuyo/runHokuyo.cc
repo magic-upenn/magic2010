@@ -246,8 +246,8 @@ int main(int argc, char * argv[])
   Magic::LidarScan lidarScan;
   lidarScan.ranges.size = nPoints;
   lidarScan.ranges.data = new float[lidarScan.ranges.size];
-  lidarScan.startAngle  = -100.0/180.0*M_PI;;
-  lidarScan.stopAngle   = 100.0/180.0*M_PI;;
+  lidarScan.startAngle  = -135.0/180.0*M_PI;;
+  lidarScan.stopAngle   = 135.0/180.0*M_PI;;
   lidarScan.angleStep   = 0.25/180.0*M_PI;
   lidarScan.counter     = 0;
   lidarScan.id          = 0;
