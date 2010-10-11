@@ -233,7 +233,7 @@ int main(int argc, char * argv[])
   }
 
 
-  double timeout_sec = 0.05;
+  double timeout_sec = 0.1;
   double time_stamp;
 
   vector< vector<unsigned int> > values;
@@ -262,6 +262,7 @@ int main(int argc, char * argv[])
 
   Timer scanTimer;
   scanTimer.Tic();
+  int cntr =0;
 
   while(1)
   {
@@ -271,6 +272,7 @@ int main(int argc, char * argv[])
       //printf("num packets = %d\n",numPackets);
       for (int j=0; j<numPackets; j++)
       {
+        cntr++;
         time_stamp = timeStamps[j];
         
         //copy ranges
@@ -298,9 +300,12 @@ int main(int argc, char * argv[])
           }
         }
 
-        printf(".");fflush(stdout);
-        //double dt = scanTimer.Toc(); scanTimer.Tic();
-        //printf("elapsed time = %f\n",dt);
+        //printf(".");fflush(stdout);
+        if( cntr % 40 == 0)
+        {
+          double dt = scanTimer.Toc(); scanTimer.Tic();
+          printf("scan rate = %f\n",40/dt);
+        }
       }
     }
 
