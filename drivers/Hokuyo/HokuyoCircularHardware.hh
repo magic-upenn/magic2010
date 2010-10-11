@@ -55,6 +55,7 @@ namespace Upenn
 
     //get the sensor serial number
     public: std::string GetSerial();
+    public: std::string GetFirmware();
 
     //store the latest scan settings
     public: int scanStartNew, scanEndNew, scanSkipNew, encodingNew, scanTypeNew;
