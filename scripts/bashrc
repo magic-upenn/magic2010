@@ -109,5 +109,5 @@ alias vis='$VIS_DIR/vis.sh'
 alias make='time make'
 alias cdvis='cd $VIS_DIR'
 alias cdmagic='cd $MAGIC_DIR'
-
-
+alias cdr="cd /home/magic/svn/magic2010/trunk/components/vision/RedDetect"
+alias red="cd /home/magic/svn/magic2010/trunk/components/vision/RedDetect; matlab -nodesktop -r RedDetect"

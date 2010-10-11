@@ -38,7 +38,7 @@ central:nice -n -5 central -s
 spread:/usr/local/sbin/spread -l y
 hokuyo0:$MAGIC_DIR/drivers/Hokuyo/runHokuyo /dev/ttyACM0
 hokuyo1:$MAGIC_DIR/drivers/Hokuyo/runHokuyo /dev/ttyACM1
-microGateway:nice -n -5 $MAGIC_DIR/drivers/MicroGateway/runMicroGateway
+microGateway:nice -n -5 $MAGIC_DIR/drivers/MicroGateway/runMicroGateway2 /dev/ttyUSB0
 slam:matlab -nodesktop -r startSlam
 mapfsm: matlab -nodesktop -r startMapfsm
 EOF

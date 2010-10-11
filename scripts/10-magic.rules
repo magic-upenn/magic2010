@@ -1,0 +1,5 @@
+%Place in /etc/udev/rules.d
+%udevadm info -a --path=$(udevadm info -q path -n /dev/video0) | grep serial
+%sudo udevadm control --reload-rules
+SUBSYSTEM=="video4linux", ATTRS{serial}=="357570AE", SYMLINK+="cam_omni", mode="0777"
+SUBSYSTEM=="video4linux", ATTRS{serial}=="3C8170A3", SYMLINK+="cam_front", mode="0777"
