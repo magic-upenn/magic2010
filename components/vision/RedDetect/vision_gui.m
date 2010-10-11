@@ -22,7 +22,7 @@ function varargout = vision_gui(varargin)
 
 % Edit the above text to modify the response to help vision_gui
 
-% Last Modified by GUIDE v2.5 10-Oct-2010 14:20:35
+% Last Modified by GUIDE v2.5 10-Oct-2010 19:29:22
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -57,7 +57,6 @@ function updateGui
 	imagesc(uint8(cat(3,0,0,255)),'Parent',handles.(sprintf('ind%d',mod(GLOBALS.focus,2)+1)));  
 	axis(handles.ind1,'off')
 	axis(handles.ind2,'off')
-
 		
 	for box = 1:8
 		image = IMAGES(GLOBALS.bids(box));
@@ -77,7 +76,7 @@ function updateGui
 				cand_h = imagesc(image.front_cands{sc},'Parent',handles.(scname)); 
 				daspect(handles.(scname),[1 1 1]); 
 				axis(handles.(scname),'off'); 
-				bb = image.front_stats(sc,2:end); 
+				bb = image.front_stats(sc,2:end);
 				[dist,vsd,hsd] = get_dist_by_bb([],bb,[],[]); 
 				text(1,10,sprintf('%.1fm',dist),'Parent',handles.(scname),'FontSize',16,'BackgroundColor','y'); 
 				set(cand_h,'ButtonDownFcn',{@cand_ButtonDownFcn,[sc,box,GLOBALS.bids(box)]});
@@ -160,6 +159,7 @@ function cand_ButtonDownFcn(hObject, eventdata, data)
 	GLOBALS.current_bb_id = id; 
 	GLOBALS.current_bb = IMAGES(id).front_stats(cand,2:end);
 	updateGui;   
+	GLOBALS.focus = focus;  
 
 function omni_ButtonDownFcn(hObject, eventdata, data)
 	global IMAGES GLOBALS;
@@ -172,12 +172,16 @@ function omni_ButtonDownFcn(hObject, eventdata, data)
 	y = cp(1,2);  
 	[x,y]
 	[focus,id]
-	angle = pixel_to_angle(IMAGES(id).omni,x) 
-	lookat(id,angle); 
+	theta = pixel_to_angle(IMAGES(id).omni,x) 
+	lookat(id,theta,0,'look'); 
 
 %All buttons
 function figure1_KeyPressFcn(hObject, eventdata, handles)
 	chr = get(gcf,'CurrentCharacter'); 
+	if strcmp(chr,'')
+		'Empty char'
+		return
+	end 
 	if chr == 13 
 		chr = 'enter'; 
 	elseif chr == 127
@@ -219,7 +223,10 @@ function setup_global_vars(vision_gui)
 	vision_fns.car_Callback            = @car_Callback;
 	vision_fns.door_Callback           = @door_Callback;
 	vision_fns.renounce_ooi_Callback   = @renounce_ooi_Callback;
+	vision_fns.cand_Callback	  =  @cand_ButtonDownFcn;
 	vision_fns.announce_ooi_Callback   = @announce_ooi_Callback;
+	vision_fns.track_Callback   	   = @track_Callback;
+	vision_fns.lookat_Callback   	   = @lookat_Callback;
 	vision_fns.neutralized_Callback    = @neutralized_Callback;
 	vision_fns.explore_Callback        = @explore_Callback;
 	vision_fns.mobile_ooi_Callback     = @mobile_ooi_Callback;
@@ -232,7 +239,6 @@ function setup_global_vars(vision_gui)
 	vision_fns.still_mobile_Callback   = @still_mobile_Callback;
 	vision_fns.nudge_right_Callback    = @nudge_right_Callback;
 	vision_fns.nudge_left_Callback     = @nudge_left_Callback; 
-	vision_fns.lookat	           = @lookat; 
 	vision_fns.set_focus	           = @set_focus; 
 	GLOBALS.vision_fns = vision_fns; 
 	null_front = null_image(320,240); 	
@@ -274,13 +280,6 @@ function set_focus(new_fr)
 	GLOBALS.bids(3:8) = sort(GLOBALS.bids(3:8));  
 	GLOBALS.vision_fns.set_status(sprintf('Gave focus to: %d',new_fr)); 
 	
-function lookat_Callback(hObject, eventdata, handles)
-	global GLOBALS IMAGES; 
-	id = GLOBALS.focus; 
-	x = mean(IMAGES(id).front_stats(GLOBALS.focus,4:5));
-	po = front_pixel_to_omni(IMAGES(id).omni,IMAGES(id).front,x); 
-	angle = pixel_to_angle(IMAGES(id).omni,po);
-	lookat(id,angle); 
 	 
 
 function yellow_ooi_Callback(hObject, eventdata, handles)
@@ -380,10 +379,7 @@ function explore_Callback(hObject, eventdata, handles)
 
 %------------------------------------------------------------------------------------------
 
-function lookat(id,theta,type)
-	if nargin < 3
-		type = 'look'
-	end
+function lookat(id,theta,phi,type)
 	global GLOBALS IMAGES; 
 	GLOBALS.req_angles(id) = theta;
 	if isempty(IMAGES(id).pose)
@@ -393,7 +389,6 @@ function lookat(id,theta,type)
 	end
 	set_status(type);
 	updateGui; 
-	phi = 0; 
 	[theta,abs_angle,theta+abs_angle,mod(theta-abs_angle,2*pi)] 
 	send_look_msg(id,mod(theta+abs_angle,2*pi),phi,type); 
 
@@ -458,15 +453,27 @@ function send_message_to_gcs(name,msg);
 
 function track_Callback(hObject, eventdata, handles)
 	global GLOBALS IMAGES;  
+	if isempty(GLOBALS.current_bb)
+		return
+	end
 	id = GLOBALS.bids(GLOBALS.focus); 
-	pf = mean(GLOBALS.current_bb(3:4)); 
+	x = mean(GLOBALS.current_bb(3:4)); 
+	y = mean(GLOBALS.current_bb(1:2)); 
 	servo_yaw = IMAGES(id).front_angle; 
-	set_status('track');
-	phi = 0;
-	pf
-	width_f = size(IMAGES(id).front,2); 
-	angle = -(pf - width_f/2)/width_f * 67.5 * pi / 180; 
-	theta = servo_yaw + angle; 
-	lookat(id,theta,'track'); 
+	[theta,phi] = front_pixel_to_angle(IMAGES(id).front,x,y); 
+	theta = servo_yaw + theta; 
+	lookat(id,theta,phi,'track'); 
 
+function lookat_Callback(hObject, eventdata, handles)
+	global GLOBALS IMAGES;  
+	if isempty(GLOBALS.current_bb)
+		return
+	end
+	id = GLOBALS.bids(GLOBALS.focus); 
+	x = mean(GLOBALS.current_bb(3:4)); 
+	y = mean(GLOBALS.current_bb(1:2)); 
+	servo_yaw = IMAGES(id).front_angle; 
+	[theta,phi] = front_pixel_to_angle(IMAGES(id).front,x,y); 
+	theta = servo_yaw + theta; 
+	lookat(id,theta,phi,'look'); 
 

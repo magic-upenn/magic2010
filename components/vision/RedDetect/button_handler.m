@@ -64,7 +64,10 @@ function button_handler(chr,gui)
 		GLOBALS.vision_fns.announce_ooi_Callback();    
 	elseif strcmp(chr, 'del')
 		GLOBALS.vision_fns.renounce_ooi_Callback();    
-
+	elseif strcmp(chr, '''') | strcmp(chr, 'q')
+		GLOBALS.vision_fns.track_Callback();     
+	elseif strcmp(chr, ',') | strcmp(chr, 'w')
+		GLOBALS.vision_fns.lookat_Callback();          
 	elseif strcmp(chr, 'a') 
 		GLOBALS.vision_fns.car_Callback();            
 	elseif strcmp(chr, 'o') | strcmp(chr, 's')
@@ -77,7 +80,6 @@ function button_handler(chr,gui)
 		GLOBALS.vision_fns.yellow_ooi_Callback(); 
 	elseif strcmp(chr, 'j') | strcmp(chr, 'c')
 		GLOBALS.vision_fns.mobile_ooi_Callback();     
-
 	elseif strcmp(chr, 'left') 
 		GLOBALS.vision_fns.nudge_left_Callback();          
 	elseif strcmp(chr, 'right'); 
@@ -86,6 +88,18 @@ function button_handler(chr,gui)
 		GLOBALS.vision_fns.lazer_up_Callback();       
 	elseif strcmp(chr, 'down')
 		GLOBALS.vision_fns.lazer_down_Callback();     
+	elseif strcmp(chr, 'A') 
+		GLOBALS.vision_fns.cand_Callback([],[],[1,1,GLOBALS.bids(1)]);            
+	elseif strcmp(chr, 'O') | strcmp(chr, 'S')
+		GLOBALS.vision_fns.cand_Callback([],[],[2,1,GLOBALS.bids(1)]);            
+	elseif strcmp(chr, 'E') | strcmp(chr, 'D')
+		GLOBALS.vision_fns.cand_Callback([],[],[3,1,GLOBALS.bids(1)]);            
+	elseif strcmp(chr, ':') | strcmp(chr, 'Z')
+		GLOBALS.vision_fns.cand_Callback([],[],[1,2,GLOBALS.bids(2)]);            
+	elseif strcmp(chr, 'Q') | strcmp(chr, 'X')
+		GLOBALS.vision_fns.cand_Callback([],[],[2,2,GLOBALS.bids(2)]);            
+	elseif strcmp(chr, 'J') | strcmp(chr, 'C')
+		GLOBALS.vision_fns.cand_Callback([],[],[3,2,GLOBALS.bids(2)]);            
 	else 
 		GLOBALS.vision_fns.set_status(strcat('Invalid hotkey',chr)); 
 	end

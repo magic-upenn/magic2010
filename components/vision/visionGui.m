@@ -16,7 +16,7 @@ function visionGuiInit
 	global IMAGES STATIC_OOI ROBOTS
 
 	nRobots = 10;
-	ids = [4 6]; % list of ID's of available robots
+	ids = [4]; % list of ID's of available robots
 	ipcInit;
 
 %	masterConnectRobots(ids,'127.0.0.1');
@@ -61,6 +61,14 @@ function ipcRecvImageFcn(msg,name)
 		IMAGES(imPacket.id).scanV =  imresize(fliplr(imPacket.scanV.ranges(445:628)),[1,15],'nearest'); 
 	else
 		IMAGES(imPacket.id).scanV = zeros([1,15]); 
+	end
+	%Hokuyu: step = 1081, step = 0.0044, fov = 270
+	if ~isempty(imPacket.scanH)
+		global B; 
+		B = imPacket.scanH
+		IMAGES(imPacket.id).scanH =  imresize(fliplr(imPacket.scanH.ranges(405:675)),[1,15],'nearest'); 
+	else
+		IMAGES(imPacket.id).scanH = zeros([1,15]); 
 	end
 %	IMAGES(imPacket.id).scanV = imPacket.scanV.ranges;%  imresize(imPacket.scanV.ranges(241:601+240),[1,15],'nearest'); 
 	global GLOBALS;
