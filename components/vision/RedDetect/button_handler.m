@@ -64,9 +64,9 @@ function button_handler(chr,gui)
 		GLOBALS.vision_fns.announce_ooi_Callback();    
 	elseif strcmp(chr, 'del')
 		GLOBALS.vision_fns.renounce_ooi_Callback();    
-	elseif strcmp(chr, '''') | strcmp(chr, 'q')
+	elseif strcmp(chr, 'u') | strcmp(chr, 'f')
 		GLOBALS.vision_fns.track_Callback();     
-	elseif strcmp(chr, ',') | strcmp(chr, 'w')
+	elseif strcmp(chr, 'k') | strcmp(chr, 'v')
 		GLOBALS.vision_fns.lookat_Callback();          
 	elseif strcmp(chr, 'a') 
 		GLOBALS.vision_fns.car_Callback();            

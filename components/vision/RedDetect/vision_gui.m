@@ -72,7 +72,7 @@ function updateGui
 			draw_range(image.scanH,image.scanV,image.front,handles.(fname));  
 			axis(handles.(fname),'off')
 			for sc = 1:3
-				scname = sprintf('%s_%d',cname,sc); 
+				scname = sprintf('candf%d_%d',box,sc); 
 				cand_h = imagesc(image.front_cands{sc},'Parent',handles.(scname)); 
 				daspect(handles.(scname),[1 1 1]); 
 				axis(handles.(scname),'off'); 
@@ -81,18 +81,17 @@ function updateGui
 				text(1,10,sprintf('%.1fm',dist),'Parent',handles.(scname),'FontSize',16,'BackgroundColor','y'); 
 				set(cand_h,'ButtonDownFcn',{@cand_ButtonDownFcn,[sc,box,GLOBALS.bids(box)]});
 			end 
-		else
-			for sc = 1:3
-				scname = sprintf('%s_%d',cname,sc); 
-				imagesc(image.omni_cands{sc},'Parent',handles.(scname)); 
-				daspect(handles.(scname),[1 1 1]); 
-				axis(handles.(scname),'off'); 
-			end 
 		end
+		for sc = 1:3
+			scname = sprintf('%s_%d',cname,sc); 
+			imagesc(image.omni_cands{sc},'Parent',handles.(scname)); 
+			daspect(handles.(scname),[1 1 1]); 
+			axis(handles.(scname),'off'); 
+		end 
 		omni_h= draw_cands_on_image(handles.(oname),image.omni_stats,image.omni);
 		draw_center_line(handles.(oname),image.omni,image.front_angle,GLOBALS.req_angles(GLOBALS.bids(box))); 
 		%Omni Focus
-		set(omni_h,'ButtonDownFcn',{@omni_ButtonDownFcn,[handles.(oname),GLOBALS.focus,GLOBALS.bids(box)]});
+		set(omni_h,'ButtonDownFcn',{@omni_ButtonDownFcn,[handles.(oname),box,GLOBALS.bids(box)]});
 		text(30,20,sprintf('%d',GLOBALS.bids(box)),'Parent',handles.(oname),'FontSize',30,'BackgroundColor','c'); 
 		axis(handles.(oname),'off')
 	end
@@ -164,14 +163,17 @@ function cand_ButtonDownFcn(hObject, eventdata, data)
 function omni_ButtonDownFcn(hObject, eventdata, data)
 	global IMAGES GLOBALS;
 	axeh = data(1);
-	focus = data(2);  
+	box = data(2);  
 	id = data(3);
-	set_focus(id); 
+	if box < 3
+		GLOBALS.focus = box; 
+	else
+		set_focus(id); 
+	end
 	cp = get(axeh,'CurrentPoint');
 	x = cp(1,1);
 	y = cp(1,2);  
 	[x,y]
-	[focus,id]
 	theta = pixel_to_angle(IMAGES(id).omni,x) 
 	lookat(id,theta,0,'look'); 
 
