@@ -12,7 +12,7 @@ if nargin >1
 end
 
 SPREAD.useSpread = 0;
-SLAM.useUdpExternal = 0;
+SLAM.useUdpExternal = 1;
 SLAM.useIpcExternal = 0;
 
 slamStart;
@@ -39,7 +39,7 @@ if (SPREAD.useSpread)
 end
 
 if (SLAM.useUdpExternal)
-  masterIp = '192.168.10.19';
+  masterIp = '192.168.10.220';
   masterPort = 12346;
   UdpSendAPI('connect',masterIp,masterPort);
 end
