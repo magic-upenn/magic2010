@@ -9,19 +9,17 @@ function RedDetect
 
 	ipcInit;
 	imageMsgName = GetMsgName('Image');
-%	staticOoiMsgName = GetMsgName('StaticOOI');
 	ipcAPIDefine(imageMsgName);
-%	ipcAPIDefine(staticOoiMsgName);
-
 	ipcReceiveSetFcn(GetMsgName('Pose'), @PoseMsgHander);
-%	ipcReceiveSetFcn(GetMsgName('CamParam'), @CamParamMsgHander);
-
 	ipcReceiveSetFcn(GetMsgName('Lidar0'), @VisionLidarHHandler);
 	ipcReceiveSetFcn(GetMsgName('Lidar1'), @VisionLidarVHandler);
 	ipcReceiveSetFcn(GetMsgName('Servo1'), @VisionServoHandler);
 	LIDAR.scanH = [];
 	LIDAR.scanV = [];
 	LIDAR.servo = 0;
+	masterIp = '192.168.10.221';
+	masterPort = 12345;
+	UdpSendAPI('connect',masterIp,masterPort);
 
 	%%%%%%%%%%%%%%%%%%
 	counter = 0; 
@@ -37,7 +35,8 @@ function RedDetect
 		[omni_sm, front_sm, omni_cands, front_cands, omni_stats, front_stats] = red_detect_cams();
 
 		%%%%% send compressed jpg image through IPC %%%%%
-		imPacket.id = str2double(getenv('ROBOT_ID'));
+		imPacket.id = GetRobotId(); 
+		imPacket.type = 'Vision';  
 		imPacket.t  = GetUnixTime();
 		imPacket.omni = cjpeg(omni_sm);
 		imPacket.front = cjpeg(front_sm);
@@ -51,7 +50,11 @@ function RedDetect
 		imPacket.omni_stats = omni_stats;
 		imPacket.front_stats = front_stats;
 		imPacket.pose = POSE.data; 
-		ipcAPIPublish(imageMsgName,serialize(imPacket));
+		raw = serialize(imPacket);
+		zraw = zlibCompress(raw);
+		UdpSendAPI('send',zraw);
+		%Send message to vision gsc
+		%ipcAPIPublish(imageMsgName,serialize(imPacket));
 	end
 
 function PoseMsgHander(data,name)
