@@ -31,7 +31,7 @@ CMAP = map2d(1000,1000,0.05,'cost');
 
 %vis stuff
 if checkVis
-  VIS.mapMsgName = 'CostMap2D_map2d';
+  %VIS.mapMsgName = 'CostMap2D_map2d';
   mapMsgFormat = VisMap2DSerializer('getFormat');
 
   VIS.updateRectMsgName   = 'CostMap2D_map2dUpdateRect';
@@ -43,9 +43,13 @@ if checkVis
 
   %define messages for local viewing
   ipcAPI('connect');
-  ipcAPI('define',VIS.mapMsgName,mapMsgFormat);
-  ipcAPI('define',VIS.updateRectMsgName,updateRectMsgFormat);
-  ipcAPI('define',VIS.updatePointsMsgName,updatePointsMsgFormat);
+  
+  for ii=1:10
+    VIS.mapMsgName{ii} = sprintf('Robot%d/CostMap2D_map2d',ii);
+    ipcAPI('define',VIS.mapMsgName{ii},mapMsgFormat);
+  end
+  %ipcAPI('define',VIS.updateRectMsgName,updateRectMsgFormat);
+  %ipcAPI('define',VIS.updatePointsMsgName,updatePointsMsgFormat);
 end
 
 nRobots = length(ROBOTS);
@@ -61,8 +65,8 @@ while(1)
   n = length(packets);
   if n > 0
     for ii=1:n
-      fprintf(1,'.');
-      packet = deserialize(packets(ii).data)
+      fprintf(1,'got packet of size %d\n',length(packets(ii).data));
+      packet = deserialize(zlibUncompress(packets(ii).data));
       if ~isfield(packet,'type'), continue, end
       if ~ischar(packet.type), continue, end
       
@@ -109,29 +113,17 @@ if checkVis
   map.map.data  = uint8(getdata(CMAP,'cost') + 100);
   imagesc(CMAP,'cost'); drawnow
   content = VisMap2DSerializer('serialize',map);
-  ipcAPI('publishVC',VIS.mapMsgName,content);
+  ipcAPI('publishVC',VIS.mapMsgName{id},content);
 end
   
   
 function MapUpdateVMsgHandler(packet)
-%{
-global CMAP MAP_FIGURE POSE VIS OMAP;
+global CMAP
 
 id = packet.id;
 fprintf('got vertical map update from robot %d\n',id);
 
-update = packet;
-
-xis = ceil((update.xs - CMAP.xmin) * CMAP.invRes);
-yis = ceil((update.ys - CMAP.ymin) * CMAP.invRes);
-
-indGood = (xis > 1) & (yis > 1) & (xis < CMAP.map.sizex) & (yis < CMAP.map.sizey);
-inds = sub2ind(size(CMAP.map.data),xis(indGood),yis(indGood));
-CMAP.map.data(inds) = update.cs(indGood);
-%}
-
-
-
+asgn(CMAP,'cost',double(packet.xs),double(packet.ys),double(packet.cs));
 
 function [xi yi] = Pos2OmapInd(x,y)
 global CMAP

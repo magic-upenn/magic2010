@@ -21,7 +21,7 @@ POSE.cntr =1;
 USER_INPUT.freshClick =0;
 %id of the robot that maps should be received from
 
-ids=[2];
+ids=[4];
 
 masterConnectRobots(ids);
 
