@@ -1,11 +1,20 @@
-function [omni_sm, front_sm, omni_cands, front_cands, omni_stats, front_stats] = red_detect_file(ofile,ffile)
-%[circle,best_mask,bound] = find_center(img); 
+function [omni_sm, front_sm, omni_cands, front_cands, omni_stats, front_stats] = red_detect_file(ofile,ffile,shift)
+%[circle,best_mask,bound] = find_center(img);
+	if nargin < 3
+		shift = false; 
+	end 
 	omni  = imread(ofile); 
 	front = imread(ffile);
+	if shift
+		front = circshift(front,shift); 
+	end
 	front = imresize(front,.5); 
 	circle = [500,850,601]; 
 	%circle = [600,800,650]/2; 
 	omni_flat = linear_unroll(omni,circle(2),circle(1),circle(3));
+	if shift
+		omni_flat = circshift(omni_flat,[0 shift(2)]);
+	end
 	[red,omni_stats] = find_red_candidates(omni_flat); 
 	[red,front_stats] = find_red_candidates(front);
 
