@@ -257,6 +257,7 @@ function setup_global_vars(vision_gui)
 	end  	
 	for id=1:9
 	    IMAGES(id).id = id;
+	    IMAGES(id).type = 'vision'; 
 	    IMAGES(id).t = [];
 	    IMAGES(id).omni = null_omni;
 	    IMAGES(id).front = null_front;
@@ -416,14 +417,14 @@ function send_ooi_done_msg(ser,status)
 	send_message_to_gcs(name,msg); 
 
 function send_lazer_msg(id,status)
-	name = sprintf('robot%d/Laser_Msg',id); 
+	name = sprintf('Robot%d/Laser_Msg',id); 
 	msg.status = status; %on, off, up, down
 	send_message_to_gcs(name,msg); 
 	msg
 
 function send_look_msg(id,theta,phi,type);
 	global GLOBALS ROBOTS; 
-	name = sprintf('robot%d/Look_Msg',id); 
+	name = sprintf('Robot%d/Look_Msg',id); 
 	msg.theta = theta;  
 	msg.phi = phi; 
 	msg.type = type; %'look', 'track', 'done'
