@@ -1,0 +1,22 @@
+udevadm info -a  --path=$(udevadm info -q path -n /dev/video0) | grep serial | grep -v :
+
+%Front
+ ATTRS{serial}=="062370AB"  1)
+ ATTRS{serial}=="B88980AC"  2)
+ ATTRS{serial}=="52B980A3"  3)
+ ATTRS{serial}=="416080AE"  4)
+ ATTRS{serial}=="704231A2"  5)
+ ATTRS{serial}=="D81270A3"  6)
+ ATTRS{serial}=="3C8170A3"  7)
+ ATTRS{serial}=="818070AF"  8)
+ ATTRS{serial}=="08E070AD"  9)
+%Omni
+ ATTRS{serial}=="A7A080AE"  1)
+ ATTRS{serial}=="22C370AB"  2)
+ ATTRS{serial}=="5AA170AD"  3)
+ ATTRS{serial}=="698980A3"  4)
+ ATTRS{serial}=="112570AE"  5)
+ ATTRS{serial}=="3B5270A0"  6)
+ ATTRS{serial}=="357570AE"  7)
+ ATTRS{serial}=="4B3270A0"  8)
+ ATTRS{serial}=="C64A80AC"  9)
