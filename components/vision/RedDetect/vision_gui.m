@@ -143,6 +143,7 @@ function updateOmni(box)
 	cname = sprintf('cand%d',box);
 	oname = sprintf('omni%d',box);
 	ih_oname = ['ih_',oname];
+	id = GLOBALS.bids(box); 
 	for sc = 1:3
 		scname = sprintf('%s_%d',cname,sc); 
 		imagesc(image.omni_cands{sc},'Parent',handles.(scname)); 
@@ -152,7 +153,14 @@ function updateOmni(box)
 	draw_cands_on_image(handles.(ih_oname),handles.(oname),image.omni_stats,image.omni);
 	draw_center_line(handles.(oname),image.omni,image.front_angle,GLOBALS.req_angles(GLOBALS.bids(box))); 
 	%Omni Focus
-	text(30,20,sprintf('%d',GLOBALS.bids(box)),'Parent',handles.(oname),'FontSize',30,'BackgroundColor','c'); 
+	colors = 'ck';
+	oh = GLOBALS.heartbeat(id);
+	nh = mod(GLOBALS.heartbeat(id),2) + 1;
+	GLOBALS.heartbeat(id) = nh;
+	[oh,nh] 
+	text(30,20,sprintf('%d',GLOBALS.bids(box)),'Parent',handles.(oname),...
+	'FontSize',30,'Color',colors(oh),...
+	'BackgroundColor',colors(nh)); 
 	drawnow; 
 
 function updateLabel
@@ -286,8 +294,11 @@ function omni_ButtonDownFcn(hObject, eventdata, data)
 	end
 	cp = get(axeh,'CurrentPoint');
 	x = cp(1,1);
-	y = cp(1,2);  
+	y = cp(1,2); 
 	[x,y]
+	if x < 30 && y < 30 
+		return
+	end
 	theta = pixel_to_angle(IMAGES(id).omni,x) 
 	lookat(id,theta,0,'look'); 
 
@@ -332,6 +343,7 @@ function setup_global_vars(vision_gui)
 	GLOBALS.last_click = []; 
 	GLOBALS.bids = [1 2 3 4 5 6 7 8 9];  
 	GLOBALS.track_mode = false; 
+	GLOBALS.heartbeat = ones(1,9); 
 	vision_fns.updateGui		   = @updateGui;  
 	vision_fns.updateFrontFocused	   = @updateFrontFocused;  
 	vision_fns.updateBox		   = @updateBox;  
