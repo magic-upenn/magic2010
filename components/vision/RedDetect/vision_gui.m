@@ -48,29 +48,84 @@ end
 function vision_gui_OpeningFcn(hObject, eventdata, handles, varargin)
 	handles.output = hObject;
 	guidata(hObject, handles);
-	setup_global_vars(hObject); 
-	updateGui; 
-function updateGui
+	setup_global_vars(hObject);
+	setup_images(hObject);   
+	updateGui;
+
+function setup_images(gui)
 	global GLOBALS IMAGES; 
-	handles = guidata(GLOBALS.vision_gui);
-	imagesc(uint8(cat(3,0,255,0)),'Parent',handles.(sprintf('ind%d',GLOBALS.focus))); 
-	imagesc(uint8(cat(3,0,0,255)),'Parent',handles.(sprintf('ind%d',mod(GLOBALS.focus,2)+1)));  
+	handles = guidata(gui);
+	handles.ih_ind1 = imagesc(uint8(cat(3,255,0,0)),'Parent',handles.ind1); 
+	handles.ih_ind2 = imagesc(uint8(cat(3,255,0,0)),'Parent',handles.ind2); 
 	axis(handles.ind1,'off')
 	axis(handles.ind2,'off')
+	for t = 1:5
+		history = GLOBALS.history(t); 
+		fname = sprintf('hist_front%d',t); 
+		oname = sprintf('hist_omni%d',t);
+		ooiname = sprintf('hist_ooi%d',t); 
+		handles.ih_hist_front(t) = imagesc(history.front{1},'Parent',handles.(fname));
+		handles.ih_hist_omni(t)  = imagesc(history.omni{1},'Parent',handles.(oname));
+		handles.ih_hist_ooi(t) = imagesc(history.ooi.front,'Parent',handles.(ooiname)); ;
+		axis(handles.(fname),'off'); 
+		axis(handles.(oname),'off'); 
+		axis(handles.(ooiname),'off'); 
+	end
 		
 	for box = 1:8
 		image = IMAGES(GLOBALS.bids(box));
 		cname = sprintf('cand%d',box);
 		oname = sprintf('omni%d',box);
+		ih_oname = ['ih_',oname];
 		if box < 3
 			fname = sprintf('front%d',box);
-			focus_h = draw_cands_on_image(handles.(fname),image.front_stats,image.front);
+			ih_fname = ['ih_',fname]; 
+			handles.(ih_fname) = imagesc(image.front,'Parent',handles.(fname)); 
+			daspect(handles.(fname),[1 1 1]); 
+			axis(handles.(fname),'off'); 
+			set(handles.(ih_fname),'ButtonDownFcn',{@focus_ButtonDownFcn,[handles.(fname),box]});
+		end
+		handles.(ih_oname) = imagesc(image.omni,'Parent',handles.(oname)); 
+		set(handles.(ih_oname),'ButtonDownFcn',{@omni_ButtonDownFcn,[handles.(oname),box]});
+		axis(handles.(oname),'off')
+	end
+	guidata(gui, handles);
+
+
+function updateGui(id)
+	global GLOBALS IMAGES; 
+	if nargin == 1
+		for t = 5:-1:2
+			GLOBALS.history(t).front(id) = GLOBALS.history(t-1).front(id); 
+			GLOBALS.history(t).omni(id) = GLOBALS.history(t-1).omni(id); 
+		end
+		GLOBALS.history(1).front(id) = {IMAGES(id).front}; 
+		GLOBALS.history(1).omni(id)  = {IMAGES(id).omni}; 
+	end
+	handles = guidata(GLOBALS.vision_gui);
+	set(handles.(sprintf('ih_ind%d',GLOBALS.focus)),'CData',uint8(cat(3,0,255,0)));
+	set(handles.(sprintf('ih_ind%d',mod(GLOBALS.focus,2)+1)),'CData',uint8(cat(3,0,0,255)));
+	
+	for t = 1:5
+		history = GLOBALS.history(t); 
+		set(handles.ih_hist_front(t),'CData',history.front{1});
+		set(handles.ih_hist_omni(t),'CData',history.omni{1});
+		set(handles.ih_hist_ooi(t),'CData',history.ooi(1).front);
+	end
+
+	for box = 1:8
+		image = IMAGES(GLOBALS.bids(box));
+		cname = sprintf('cand%d',box);
+		oname = sprintf('omni%d',box);
+		ih_oname = ['ih_',oname];
+		if box < 3
+			fname = sprintf('front%d',box);
+			ih_fname = ['ih_',fname];
+			draw_cands_on_image(handles.(ih_fname),handles.(fname),image.front_stats,image.front);
 			if GLOBALS.bids(box) == GLOBALS.current_bb_id
 				draw_box_on_axes(GLOBALS.current_bb,'c',handles.(fname)); 
 			end
-			set(focus_h,'ButtonDownFcn',{@focus_ButtonDownFcn,[handles.(fname),box,GLOBALS.bids(box)]});
 			draw_range(image.scanH,image.scanV,image.front,handles.(fname));  
-			axis(handles.(fname),'off')
 			for sc = 1:3
 				scname = sprintf('candf%d_%d',box,sc); 
 				cand_h = imagesc(image.front_cands{sc},'Parent',handles.(scname)); 
@@ -88,12 +143,10 @@ function updateGui
 			daspect(handles.(scname),[1 1 1]); 
 			axis(handles.(scname),'off'); 
 		end 
-		omni_h= draw_cands_on_image(handles.(oname),image.omni_stats,image.omni);
+		draw_cands_on_image(handles.(ih_oname),handles.(oname),image.omni_stats,image.omni);
 		draw_center_line(handles.(oname),image.omni,image.front_angle,GLOBALS.req_angles(GLOBALS.bids(box))); 
 		%Omni Focus
-		set(omni_h,'ButtonDownFcn',{@omni_ButtonDownFcn,[handles.(oname),box,GLOBALS.bids(box)]});
 		text(30,20,sprintf('%d',GLOBALS.bids(box)),'Parent',handles.(oname),'FontSize',30,'BackgroundColor','c'); 
-		axis(handles.(oname),'off')
 	end
 	if ~isempty(GLOBALS.current_bb)
 		bb = GLOBALS.current_bb; 
@@ -127,8 +180,8 @@ function varargout = vision_gui_OutputFcn(hObject, eventdata, handles)
 function focus_ButtonDownFcn(hObject, eventdata, data)
 	global IMAGES GLOBALS 
 	axeh = data(1);
-	focus = data(2);  
-	id = data(3);
+	focus = data(2); 
+	id = GLOBALS.bids(focus);  
 	GLOBALS.focus = focus;  
 	cp = get(axeh,'CurrentPoint');
 	x = cp(1,1);
@@ -164,7 +217,7 @@ function omni_ButtonDownFcn(hObject, eventdata, data)
 	global IMAGES GLOBALS;
 	axeh = data(1);
 	box = data(2);  
-	id = data(3);
+	id = GLOBALS.bids(box);  
 	if box < 3
 		GLOBALS.focus = box; 
 	else
@@ -206,7 +259,7 @@ function set_status(msg)
 
 
 function setup_global_vars(vision_gui)
-	global GLOBALS IMAGES;
+	global GLOBALS IMAGES
 	GLOBALS.vision_gui = vision_gui; 
 	GLOBALS.focus = 1;  
 	GLOBALS.req_angles = -ones(1,9);
@@ -251,7 +304,7 @@ function setup_global_vars(vision_gui)
 	null_pose.y = 0;  
 	null_pose.yaw = 0;  
 	null_stats = ones(3,5); 
-	null_stats(:,1) = 0; 
+	null_stats(:,1) = 0;
 	for cand = 1:3
 		null_cands{cand} = null_cand;  
 	end  	
@@ -270,8 +323,14 @@ function setup_global_vars(vision_gui)
 	    IMAGES(id).front_stats = null_stats;
 	    IMAGES(id).pose = null_pose;
 	end
+	for t = 1:5
+		history(t).front = {IMAGES.front};  
+		history(t).omni = {IMAGES.omni};  
+		history(t).ooi.front = null_front;
+		history(t).ooi.id = 0; 
+	end 
 	GLOBALS.null_cand = null_cand; 
-
+	GLOBALS.history = history; 
 %------------------------------------------------------------------------------------------
 
 function set_focus(new_fr)
@@ -481,198 +540,19 @@ function lookat_Callback(hObject, eventdata, handles)
 	lookat(id,theta,phi,'look'); 
 
 
-% --- Executes on button press in stop.
 function stop_Callback(hObject, eventdata, handles)
-% hObject    handle to stop (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
-
-% --- Executes on button press in pushbutton46.
-function pushbutton46_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton46 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --- Executes on button press in pushbutton47.
-function pushbutton47_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton47 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --- Executes on button press in pushbutton48.
-function pushbutton48_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton48 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --- Executes on button press in pushbutton49.
-function pushbutton49_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton49 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --- Executes on button press in pushbutton50.
-function pushbutton50_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton50 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --- Executes on button press in pushbutton51.
-function pushbutton51_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton51 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --- Executes on button press in pushbutton52.
-function pushbutton52_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton52 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --- Executes on button press in pushbutton53.
-function pushbutton53_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton53 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --- Executes on slider movement.
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
 function slider1_Callback(hObject, eventdata, handles)
-% hObject    handle to slider1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-
-
-% --- Executes during object creation, after setting all properties.
 function slider1_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
-if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
-end
-
-
-% --- Executes on slider movement.
 function slider2_Callback(hObject, eventdata, handles)
-% hObject    handle to slider2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-
-
-% --- Executes during object creation, after setting all properties.
 function slider2_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
-if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
-end
-
-
-% --- Executes on slider movement.
 function slider3_Callback(hObject, eventdata, handles)
-% hObject    handle to slider3 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-
-
-% --- Executes during object creation, after setting all properties.
 function slider3_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider3 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
-if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
-end
-
-
-% --- Executes on slider movement.
 function slider4_Callback(hObject, eventdata, handles)
-% hObject    handle to slider4 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-
-
-% --- Executes during object creation, after setting all properties.
 function slider4_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider4 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
-if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
-end
-
-
-% --- Executes on slider movement.
 function slider5_Callback(hObject, eventdata, handles)
-% hObject    handle to slider5 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-
-
-% --- Executes during object creation, after setting all properties.
 function slider5_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider5 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
-if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
-end
-
-
-% --- Executes on slider movement.
 function slider6_Callback(hObject, eventdata, handles)
-% hObject    handle to slider6 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-
-
-% --- Executes during object creation, after setting all properties.
 function slider6_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider6 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
-if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
-end
-
-

@@ -1,5 +1,6 @@
-function h = draw_cands_on_image(axeh,stats,img)
-	h = imagesc(img,'Parent',axeh); daspect(axeh,[1 1 1])
+function draw_cands_on_image(imh,axeh,stats,img)
+	set(imh,'CData',img);
+	delete(findobj(get(axeh,'Children'),'Type','Line')); 
 	if isempty(stats)
 		return
 	end
