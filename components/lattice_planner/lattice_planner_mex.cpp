@@ -69,7 +69,8 @@ char initialized = 0;
 
 bool OnMap(int x, int y) {
   // function to determine if a point is on the map
-  return ((x<size_x) && (x>=0) && (y<size_y) && (y >=0));
+  int border = 3;
+  return ((x<size_x-border) && (x>=border) && (y<size_y-border) && (y >=border));
 }
 
 
@@ -281,7 +282,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray*prhs[] ){
 
     if(env){
       int i;
-      for(i=min(6,num_pts); i<num_pts; i++){
+      for(i=1; i<num_pts; i++){
 
         //let it slide if the point in within our footprint
         float dx = explore_path[i] - global_start_x;
@@ -358,13 +359,32 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray*prhs[] ){
       printf("footprint count = %d\n",count2);
       planner->costs_changed();
       //planner->force_planning_from_scratch();
-      planner->set_start(env->SetStart(global_start_x-global_x_offset, 
-                                       global_start_y-global_y_offset, 
-                                       global_start_theta));
+      int ret;
+      ret = env->SetStart(global_start_x-global_x_offset, 
+                          global_start_y-global_y_offset, 
+                          global_start_theta);
+      if(ret == -1){
+        plhs[0] = mxCreateDoubleMatrix(0,1,mxREAL);
+        plhs[1] = mxCreateDoubleMatrix(0,1,mxREAL);
+        plhs[2] = mxCreateDoubleMatrix(0,1,mxREAL);
+        initialized = NEED_UPDATE;
+        initialized &= ~INIT_TRAJ;
+        return;
+      }
+      planner->set_start(ret);
 
-      planner->set_goal(env->SetGoal(global_goal_x-global_x_offset,
-                                     global_goal_y-global_y_offset,
-                                     global_goal_theta));
+      ret = env->SetGoal(global_goal_x-global_x_offset,
+                         global_goal_y-global_y_offset,
+                         global_goal_theta);
+      if(ret == -1){
+        plhs[0] = mxCreateDoubleMatrix(0,1,mxREAL);
+        plhs[1] = mxCreateDoubleMatrix(0,1,mxREAL);
+        plhs[2] = mxCreateDoubleMatrix(0,1,mxREAL);
+        initialized = NEED_UPDATE;
+        initialized &= ~INIT_TRAJ;
+        return;
+      }
+      planner->set_goal(ret);
       /*
       int goal_cell_x = (global_goal_x-global_x_offset)/resolution;
       int goal_cell_y = (global_goal_y-global_y_offset)/resolution;
