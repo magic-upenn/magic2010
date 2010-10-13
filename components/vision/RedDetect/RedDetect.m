@@ -27,7 +27,7 @@ function RedDetect
 		counter = counter + 1;
 		%Get Image Here
 		%Compute red here
-
+		quality = 50; 
 	    % Calculate details of each red box candidate
 
 	    %%%% send images and OOI to vision GUI console through IPC %%%%%
@@ -38,14 +38,14 @@ function RedDetect
 		imPacket.id = GetRobotId(); 
 		imPacket.type = 'Vision';  
 		imPacket.t  = GetUnixTime();
-		imPacket.omni = cjpeg(omni_sm);
-		imPacket.front = cjpeg(front_sm);
+		imPacket.omni = cjpeg(omni_sm,quality);
+		imPacket.front = cjpeg(front_sm,quality);
 		imPacket.front_angle = LIDAR.servo;
 		imPacket.scanH = LIDAR.scanH;
 		imPacket.scanV = LIDAR.scanV;
 		for im = 1:3
-			imPacket.omni_cands{im}  = cjpeg(omni_cands{im});
-			imPacket.front_cands{im} = cjpeg(front_cands{im});
+			imPacket.omni_cands{im}  = cjpeg(omni_cands{im},quality);
+			imPacket.front_cands{im} = cjpeg(front_cands{im},quality);
 		end 
 		imPacket.omni_stats = omni_stats;
 		imPacket.front_stats = front_stats;

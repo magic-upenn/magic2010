@@ -76,10 +76,6 @@ function VisionMsgHandler(imPacket);
 		IMAGES(imPacket.id).omni_cands{im}  = djpeg(imPacket.omni_cands{im});
 		IMAGES(imPacket.id).front_cands{im} = djpeg(imPacket.front_cands{im});
 	end 
-	omni = IMAGES(imPacket.id).omni; 
-	front = IMAGES(imPacket.id).front; 
-	omni_cand = IMAGES(imPacket.id).omni_cands{1}; 
-	front_cand = IMAGES(imPacket.id).front_cands{1}; 
 	IMAGES(imPacket.id).pose = imPacket.pose;
 	if ~isempty(imPacket.scanV)
 		IMAGES(imPacket.id).scanV =  imresize(fliplr(imPacket.scanV.ranges(445:628)),[1,15],'nearest'); 

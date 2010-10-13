@@ -22,7 +22,7 @@ function varargout = vision_gui(varargin)
 
 % Edit the above text to modify the response to help vision_gui
 
-% Last Modified by GUIDE v2.5 12-Oct-2010 18:39:05
+% Last Modified by GUIDE v2.5 13-Oct-2010 12:56:13
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -105,7 +105,6 @@ function updateHistoryFocus
 	handles = guidata(GLOBALS.vision_gui);
 %Updates the history for the currently focused robot	
 	id = GLOBALS.bids(GLOBALS.focus);
-	id 
 	for t = 1:5
 		history = GLOBALS.history(t); 
 		set(handles.ih_hist_front(t),'CData',history.front{id});
@@ -121,6 +120,21 @@ function updateBox(box)
 		updateFrontFocused(box); 	
 	end
 	updateOmni(box);
+
+function updateOOIHistory(id,ser)
+	global GLOBALS IMAGES;
+	handles = guidata(GLOBALS.vision_gui);
+	ooi.id = id; 
+	ooi.ser = ser; 
+	ooi.front = IMAGES(id).front; 
+	[GLOBALS.history(2:5).ooi] = GLOBALS.history(1:4).ooi;
+	GLOBALS.history(1).ooi = ooi; 
+	for t = 1:5
+		set(handles.ih_hist_ooi(t),'CData',GLOBALS.history(t).ooi.front);
+		imagesc(GLOBALS.history(t).ooi.front)
+	end
+	drawnow; 
+
 
 function updateOmni(box)
 	global GLOBALS IMAGES; 
@@ -376,6 +390,7 @@ function setup_global_vars(vision_gui)
 		history(t).omni = {IMAGES.omni};  
 		history(t).ooi.front = null_front;
 		history(t).ooi.id = 0; 
+		history(t).ooi.ser = 0; 
 	end 
 	GLOBALS.null_cand = null_cand; 
 	GLOBALS.history = history; 
@@ -417,6 +432,10 @@ function renounce_ooi_Callback(hObject, eventdata, handles)
 
 function announce_ooi_Callback(hObject, eventdata, handles)
 	global GLOBALS IMAGES;  
+	if strcmp(GLOBALS.current_label,'?')
+		'Label not set'
+		return
+	end
 	set_status('announced label'); 	
 	id = GLOBALS.bids(GLOBALS.focus); 
 	x = IMAGES(id).pose.x; 
@@ -426,6 +445,7 @@ function announce_ooi_Callback(hObject, eventdata, handles)
 	distance = GLOBALS.current_distance;   
 	x = x + distance * cos(yaw + servo_yaw);  
 	y = y + distance * sin(yaw + servo_yaw);  
+	updateOOIHistory(id,GLOBALS.current_ser); 
 	send_ooi_msg(id,GLOBALS.current_ser,x,y,GLOBALS.current_label)
 	GLOBALS.current_ser = GLOBALS.current_ser + 1;  
 	send_look_msg(id,0,0,'done');
@@ -478,8 +498,10 @@ function nudge_left_Callback(hObject, eventdata, handles)
 
 function neutralized_Callback(hObject, eventdata, handles)
 	global GLOBALS;
+	hid = eventdata; 
+	ser = GLOBALS.history(hid).ooi.ser
 	set_status('neutralized target'); 	
-	send_ooi_done_msg(GLOBALS.current_ser-1,'complete'); 
+	send_ooi_done_msg(ser,'complete'); 
 
 function explore_Callback(hObject, eventdata, handles)
 	global GLOBALS;
@@ -604,3 +626,18 @@ function slider5_Callback(hObject, eventdata, handles)
 function slider5_CreateFcn(hObject, eventdata, handles)
 function slider6_Callback(hObject, eventdata, handles)
 function slider6_CreateFcn(hObject, eventdata, handles)
+
+
+% --- Executes on button press in Suggest.
+function Suggest_Callback(hObject, eventdata, handles)
+	global GLOBALS IMAGES;  
+	set_status('suggested label'); 	
+	id = GLOBALS.bids(GLOBALS.focus); 
+	x = IMAGES(id).pose.x; 
+	y = IMAGES(id).pose.y;
+	yaw = IMAGES(id).pose.yaw;
+	servo_yaw = IMAGES(id).front_angle; ;
+	distance = GLOBALS.current_distance;   
+	x = x + distance * cos(yaw + servo_yaw);  
+	y = y + distance * sin(yaw + servo_yaw);  
+	send_ooi_msg(id,GLOBALS.current_ser,x,y,'CandOOI'); 
