@@ -42,16 +42,16 @@ function button_handler(chr,gui)
 		if num == 0
 			GLOBALS.focus = mod(GLOBALS.focus,2) + 1;
 			GLOBALS.vision_fns.set_status(sprintf('Toggled focus to: %d',GLOBALS.focus)); 
+			GLOBALS.vision_fns.updateBox(GLOBALS.focus);
 		else 
 			GLOBALS.vision_fns.set_focus(num); 
 		end
-		GLOBALS.vision_fns.updateGui();
 	elseif strcmp(chr, '.')
 		swap_out = GLOBALS.bids(GLOBALS.focus);  
 		GLOBALS.bids(GLOBALS.focus) = GLOBALS.bids(9); 
 		GLOBALS.bids(9) = swap_out;  
 		GLOBALS.vision_fns.set_status(sprintf('Gave focus to: %d',GLOBALS.bids(GLOBALS.focus))); 
-		GLOBALS.vision_fns.updateGui();
+		GLOBALS.vision_fns.updateFrontFocused(GLOBALS.focus);
 	elseif strcmp(chr, '*')
 		GLOBALS.vision_fns.explore_Callback();    
 	elseif strcmp(chr, '/')
