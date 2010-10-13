@@ -1,5 +1,5 @@
 function gcsRecvOOIDoneFcn(data, name)
-global OOI AVOID_REGIONS
+global GDISPLAY OOI AVOID_REGIONS
 
 if isempty(data)
   return
@@ -18,7 +18,7 @@ for i = 1:length(OOI)
         OOI(i).type = 4;
       end
       ooiOverlay();
-    else %canceled
+    else %cancel
       set(GDISPLAY.ooiList,'Value',i);
       ooiDelete();
     end

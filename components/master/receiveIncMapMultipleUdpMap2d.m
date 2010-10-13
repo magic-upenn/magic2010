@@ -22,7 +22,7 @@ POSE.cntr =1;
 USER_INPUT.freshClick =0;
 %id of the robot that maps should be received from
 
-addr = '192.168.10.19';
+addr = '192.168.10.220';
 port = 12346;
 
 UdpReceiveAPI('connect',addr,port);
@@ -53,7 +53,7 @@ if checkVis
 end
 
 nRobots = length(ROBOTS);
-for ii=1:nRobots
+for ii=1:10
   ROBOTS(ii).tr = eye(4);
   ipcAPI('define',sprintf('Robot%d/Pose',ii),MagicPoseSerializer('getFormat'));
 end

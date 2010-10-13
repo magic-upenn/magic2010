@@ -18,7 +18,7 @@ for id = ids,
     RPOSE{id}.y = 0;
     RPOSE{id}.yaw = 0;
     RPOSE{id}.heading = 0;
-    RMAP{id} = map2d(800,800,.10,'vlidar','hlidar','cost');
+    RMAP{id} = map2d(2000,2000,.10,'vlidar','hlidar','cost');
 
     GTRANSFORM{id}.init = 0;
     GPOSE{id} = [];
@@ -30,12 +30,13 @@ for id = ids,
 end
 
 if ~INIT_LOG
-  GMAP = map2d(800, 800, .10, 'hlidar', 'cost');
+  GMAP = map2d(2000, 2000, .10, 'hlidar', 'cost');
 end
 
 masterConnectRobots(ids);
 
 
+%{
 messages = {'PoseExternal', ...
             'IncMapUpdateH', ...
             'IncMapUpdateV', ...
@@ -49,6 +50,20 @@ handles  = {@gcsRecvPoseExternal, ...
             @gcsRecvFsmStatusFcn};
           
 queueLengths = [5 5 5 1 1];
+%}
+
+messages = {'Planner_Path', ...
+            'FSM_Status'};
+
+handles  = {@gcsRecvPlannerPathFcn, ...
+            @gcsRecvFsmStatusFcn};
+          
+queueLengths = [1 1];
+
+addr = '192.168.10.220';
+port = 12346;
+UdpReceiveAPI('connect',addr,port);
+
 
 %subscribe to messages
 masterSubscribeRobots(messages, handles, queueLengths);

@@ -1,4 +1,5 @@
 function h = plotRobot(x, y, heading, id, h)
+global GCS
 
 xFill = .3*[-1.0 2.5 -1.0 -1.0];
 yFill = .3*[-1.0 0  1.0 -1.0];
@@ -12,7 +13,11 @@ pFill = trans*[xFill; yFill; ones(size(xFill))];
 if nargin < 5,
   % Create new handles:
   hold on;
-  h.shape = fill(pFill(1,:), pFill(2,:), 'g');
+  if any(GCS.sensor_ids==id)
+    h.shape = fill(pFill(1,:), pFill(2,:), 'g');
+  else
+    h.shape = fill(pFill(1,:), pFill(2,:), 'm');
+  end
   h.text = text(x, y, num2str(id));
   set(h.text, 'HorizontalAlignment', 'center', 'FontSize', 14);
   hold off;

@@ -20,11 +20,11 @@ case 'MovingPOI'
 case 'StationaryPOI'
   msg.type = 5;
 case 'YellowBarrel'
-  msg.type = 5;
-case 'Doorway'
   msg.type = 6;
-case 'Car'
+case 'Doorway'
   msg.type = 7;
+case 'Car'
+  msg.type = 8;
 end
 
 msg.id = double(msg.id);

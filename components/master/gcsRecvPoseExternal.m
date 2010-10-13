@@ -6,7 +6,8 @@ if isempty(data)
 end
 
 id = GetIdFromName(name);
-RPOSE{id} = MagicPoseSerializer('deserialize',data);
+%RPOSE{id} = MagicPoseSerializer('deserialize',data);
+RPOSE{id} = deserialize(data);
 
 if isempty(GPOSE{id}),
   fprintf('Initializing pose of robot %d\n',id);

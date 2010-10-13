@@ -16,11 +16,12 @@ gcs_machine.ipcAPI('connect');
 ipcReceiveSetFcn('Global_Planner_TRAJ',@GPTRAJHandler,gcs_machine.ipcAPI,1);
 gcs_machine.ipcAPI('define','Global_Planner_DATA',  MagicGP_DATASerializer('getFormat'));
 ipcReceiveSetFcn('OOI_Msg',@gcsRecvOOIFcn,gcs_machine.ipcAPI,1);
+ipcReceiveSetFcn('OOI_Done_Msg',@gcsRecvOOIDoneFcn,gcs_machine.ipcAPI,1);
 
 tUpdate = 0.1;
 
-GCS.disruptor_ids = [4];
-GCS.sensor_ids = [6];
+GCS.disruptor_ids = [6];
+GCS.sensor_ids = [7];
 ids = [GCS.disruptor_ids GCS.sensor_ids];
 
 MAGIC_CONSTANTS.ooi_range = 3.5;

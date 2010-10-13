@@ -30,5 +30,7 @@ if ~isempty(xp),
     goToOOI(xp,yp,MAGIC_CONSTANTS.ooi_range,OOI_AVOID_MASKS.ooi,GCS.disruptor_ids(GCS.disruptor_ids~=id),serial);
   elseif OOI(end).type == 3
     goToOOI(xp,yp,MAGIC_CONSTANTS.poi_range,OOI_AVOID_MASKS.poi,GCS.sensor_ids(GCS.sensor_ids~=id),serial);
+  elseif OOI(end).type == 5
+    goToOOI(xp,yp,MAGIC_CONSTANTS.poi_range,OOI_AVOID_MASKS.poi,[],serial);
   end
 end

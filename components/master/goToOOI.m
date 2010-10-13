@@ -13,21 +13,6 @@ th = 0:0.1:2*pi;
 x_corners = (r*cos(th))+xg;
 y_corners = (r*sin(th))+yg;
 
-%{
-x_min = round((xg-UTM_x-r)/map_cell_size);
-x_max = round((xg-UTM_x+r)/map_cell_size);
-y_min = round((yg-UTM_y-r)/map_cell_size);
-y_max = round((yg-UTM_y+r)/map_cell_size);
-
-temp_x = x_min:x_max;
-temp_y = y_min:y_max;
-
-xs = repmat(temp_x,length(temp_y),1);
-xs = xs(:);
-
-ys = repmat(temp_y,1,length(temp_x))';
-%}
-
 %use the mask to get the cells in the avoid region and remove any that are off the map
 x_cells = (xg-UTM_x)/map_cell_size + avoid_mask.x;
 y_cells = (yg-UTM_y)/map_cell_size + avoid_mask.y;
@@ -54,7 +39,7 @@ for id = ids
 end
 
 if isempty(best_path)
-  disp('Could not dispatch robot to OOI!');
+  disp('Did not dispatch robot to OOI!');
   return;
 end
 

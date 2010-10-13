@@ -145,7 +145,7 @@ switch event
     end
 
     axis xy equal tight;
-    axis([-40 40 -40 40]);
+    axis([-100 100 -100 100]);
     GDISPLAY.hAxes = gca;
     set(gca,'Position', [.17 .025 .665 .95], 'XLimMode', 'manual', 'YLimMode', 'manual');
     set(gca,'CLim',[-100 100]); 
