@@ -1,4 +1,4 @@
-SUBDIRS = SerialDevice Hokuyo MicroGateway Logging
+SUBDIRS = SerialDevice Hokuyo MicroGateway Logging Udp
 
 all:
 	for i in $(SUBDIRS) ; do if (cd $$i && make -j 4); then :; else exit; fi ; done
