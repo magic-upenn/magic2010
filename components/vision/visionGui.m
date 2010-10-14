@@ -2,7 +2,11 @@ function visionGui
 	SetMagicPaths
 	addpath( [ getenv('MAGIC_DIR') '/trunk/components/vision/uvcCam' ] )
 	addpath( [ getenv('MAGIC_DIR') '/trunk/components/vision/RedDetect' ] )
-	visionGuiInit;
+	global NOSEND
+	if isempty(NOSEND)
+		visionGuiInit;
+	end
+	vision_gui
 	%Setting up icp'
 	%while(1)
 	%  fprintf(1,'.');
@@ -37,7 +41,7 @@ function visionGuiInit
 	visionConnectGCS('192.168.10.220'); 
 	nRobots = 10;
 	%ids = [4 6 7]; % list of ID's of available robots
-	ids = [4]; % list of ID's of available robots
+	ids = [2]; % list of ID's of available robots
 
 	ipcInit;
 %	masterConnectRobots(ids,'127.0.0.1');
@@ -58,7 +62,6 @@ function visionGuiInit
 	masterSubscribeRobots(messages,handles,[1]);
 	end
 
-	vision_gui
 % Set up the figure
 
 function ipcRecvImageFcn(msg,name)

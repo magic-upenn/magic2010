@@ -142,6 +142,7 @@ function updateOmni(box)
 	image = IMAGES(GLOBALS.bids(box));
 	cname = sprintf('cand%d',box);
 	oname = sprintf('omni%d',box);
+	delete(findobj(get(handles.(oname),'Children'),'Type','Text')); 
 	ih_oname = ['ih_',oname];
 	id = GLOBALS.bids(box); 
 	for sc = 1:3
