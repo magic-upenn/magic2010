@@ -66,6 +66,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
       mexErrMsgTxt("could not create a socked");
 
+    int i = 1;
+    if (setsockopt(fd, SOL_SOCKET, SO_BROADCAST,
+                   (const char *) &i, sizeof(i)) < 0)
+      mexErrMsgTxt("Could not set broadcast option");
+
     memset(&addr,0,sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = inet_addr(address);
