@@ -187,6 +187,7 @@ function updateFrontFocused(box)
 	set(handles.(sprintf('ih_ind%d',GLOBALS.focus)),'CData',uint8(cat(3,0,255,0)));
 	set(handles.(sprintf('ih_ind%d',mod(GLOBALS.focus,2)+1)),'CData',uint8(cat(3,0,0,255)));
 	draw_cands_on_image(handles.(ih_fname),handles.(fname),image.front_stats,image.front);
+	delete(findobj(get(handles.(fname),'Children'),'Type','Text')); 
 	if GLOBALS.bids(box) == GLOBALS.current_bb_id
 		draw_box_on_axes(GLOBALS.current_bb,'c',handles.(fname)); 
 	end

@@ -37,7 +37,7 @@ function visionGuiInit
 	visionConnectGCS('192.168.10.220'); 
 	nRobots = 10;
 	%ids = [4 6 7]; % list of ID's of available robots
-	ids = [2 5 6 7 ]; % list of ID's of available robots
+	ids = [4]; % list of ID's of available robots
 
 	ipcInit;
 %	masterConnectRobots(ids,'127.0.0.1');
@@ -90,6 +90,6 @@ function VisionMsgHandler(imPacket);
 	end
 %	IMAGES(imPacket.id).scanV = imPacket.scanV.ranges;%  imresize(imPacket.scanV.ranges(241:601+240),[1,15],'nearest'); 
 	global GLOBALS;
-	GLOBALS.vision_fns.updateGui();  
+	GLOBALS.vision_fns.updateGui(imPacket.id);  
 
 

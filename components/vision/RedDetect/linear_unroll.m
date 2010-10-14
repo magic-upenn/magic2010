@@ -22,8 +22,6 @@ if any([width height cxo cyo rmaxo] ~= [size(img,2) size(img,1) cx cy rmax]);
 	rmin = rmax*.40; 
 	rmax = rmax*.90;;
 	rrange = rmax - rmin; 
-	%cx = 400
-	%cy = 300 
 	[I,J] = meshgrid(1:uw,1:uh);
 	PI = I * (2*pi/uw) - pi/2; 
 	Uy = sin(PI); 
@@ -42,14 +40,16 @@ if any([width height cxo cyo rmaxo] ~= [size(img,2) size(img,1) cx cy rmax]);
 	RY = round(RY); 
 	RX = round(RX); 
 	IND = sub2ind([height,width],RY,RX);
+	IND(BAD) = 1; 
 end
 
-%RX(RX == 0) = 1;  
-%RY(RY == 0) = 1;
-R = img(:,:,1);   
+R = img(:,:,1);
 G = img(:,:,2);   
-B = img(:,:,3);   
-urimg = R(IND) .* uint8(~BAD); 
-urimg(:,:,2) = G(IND) .* uint8(~BAD); 
-urimg(:,:,3) = B(IND) .* uint8(~BAD); 
-urimg = imrotate(urimg,180); 
+B = img(:,:,3);
+R(1) = 0;    
+G(1) = 0;    
+B(1) = 0;    
+urimg = R(IND);
+urimg(:,:,2) = G(IND);; 
+urimg(:,:,3) = B(IND);; 
+urimg = imrotate(urimg,180);

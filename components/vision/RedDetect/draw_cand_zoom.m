@@ -8,8 +8,7 @@ function img = draw_cand_zoom(stats,rank,img)
 	bb(4) = min(bb(4),size(img,2));
 	width = abs(bb(1)-bb(2)); 
 	height = abs(bb(3)-bb(4));
-%	img = draw_box(img,bbtight,color); 	
 	img = img(bb(1):bb(2),bb(3):bb(4),:);
 	if(max(width,height) > 150)
-		img = imresize(img,150/max(width,height));
+		img = imresize(img,150/max(width,height),'nearest');
 	end
