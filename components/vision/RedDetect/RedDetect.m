@@ -27,7 +27,7 @@ function RedDetect
 		counter = counter + 1;
 		%Get Image Here
 		%Compute red here
-		quality = 50; 
+		quality = 80; 
 	    % Calculate details of each red box candidate
 
 	    %%%% send images and OOI to vision GUI console through IPC %%%%%
