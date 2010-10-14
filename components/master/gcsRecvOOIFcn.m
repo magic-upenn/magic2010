@@ -9,6 +9,7 @@ disp('got OOI message!');
 msg = deserialize(data);
 
 if ~any(GCS.ids == msg.id)
+  disp('unknown robot ID');
   return
 end
 
@@ -25,6 +26,11 @@ case 'Doorway'
   msg.type = 7;
 case 'Car'
   msg.type = 8;
+case 'CandOOI'
+  msg.type = 9;
+otherwise
+  disp('unknown OOI type');
+  return;
 end
 
 msg.id = double(msg.id);

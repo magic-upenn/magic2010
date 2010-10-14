@@ -1,6 +1,6 @@
 function globalMapOOI(msg)
 
-global GDISPLAY GMAP OOI GCS GPOSE MAGIC_CONSTANTS OOI_AVOID_MASKS
+global GDISPLAY GMAP OOI GCS GPOSE MAGIC_CONSTANTS OOI_AVOID_MASKS CAND_OOI
 
 if nargin > 0
   [xp yp] = rpos_to_gpos(msg.id, msg.x, msg.y);
@@ -17,20 +17,26 @@ else
 end
 
 if ~isempty(xp),
-  disp('adding ooi...');
-  OOI(end+1).type = type;
-  OOI(end).x = xp;
-  OOI(end).y = yp;
-  OOI(end).serial = serial;
+  if msg.type == 9 %Candidate OOI
+    CAND_OOI.x = xp;
+    CAND_OOI.y = yp;
+    candOOIOverlay();
+  else
+    disp('adding ooi...');
+    OOI(end+1).type = type;
+    OOI(end).x = xp;
+    OOI(end).y = yp;
+    OOI(end).serial = serial;
 
-  set(GDISPLAY.ooiList,'String',1:length(OOI));
-  ooiOverlay();
-  
-  if OOI(end).type == 1
-    goToOOI(xp,yp,MAGIC_CONSTANTS.ooi_range,OOI_AVOID_MASKS.ooi,GCS.disruptor_ids(GCS.disruptor_ids~=id),serial);
-  elseif OOI(end).type == 3
-    goToOOI(xp,yp,MAGIC_CONSTANTS.poi_range,OOI_AVOID_MASKS.poi,GCS.sensor_ids(GCS.sensor_ids~=id),serial);
-  elseif OOI(end).type == 5
-    goToOOI(xp,yp,MAGIC_CONSTANTS.poi_range,OOI_AVOID_MASKS.poi,[],serial);
+    set(GDISPLAY.ooiList,'String',1:length(OOI));
+    ooiOverlay();
+    
+    if OOI(end).type == 1
+      goToOOI(xp,yp,MAGIC_CONSTANTS.ooi_range,OOI_AVOID_MASKS.ooi,GCS.disruptor_ids(GCS.disruptor_ids~=id),serial);
+    elseif OOI(end).type == 3
+      goToOOI(xp,yp,MAGIC_CONSTANTS.poi_range,OOI_AVOID_MASKS.poi,GCS.sensor_ids(GCS.sensor_ids~=id),serial);
+    elseif OOI(end).type == 5
+      goToOOI(xp,yp,MAGIC_CONSTANTS.poi_range,OOI_AVOID_MASKS.poi,[],serial);
+    end
   end
 end

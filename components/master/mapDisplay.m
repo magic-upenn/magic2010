@@ -6,7 +6,7 @@ global GPOSE GMAP GPATH
 global RDISPLAY GDISPLAY
 global MAGIC_COLORMAP
 global INIT_LOG
-global EXPLORE_REGIONS AVOID_REGIONS OOI
+global EXPLORE_REGIONS AVOID_REGIONS OOI CAND_OOI
 global OOI_AVOID_MASKS MAGIC_CONSTANTS
 
 axlim = 10;
@@ -30,7 +30,8 @@ switch event
       RDISPLAY.hMap{id} = imagesc(x1, y1, ones(length(y1),length(x1)), [-100 100]);
 
       % Robot pose
-      RDISPLAY.hRobot{id} = plotRobot(0, 0, 0, id);
+      GDISPLAY.servo{id} = 0;
+      RDISPLAY.hRobot{id} = plotRobot(0, 0, 0, id, 0);
 
       % Robot path
       hold on;
@@ -55,6 +56,13 @@ switch event
                                          'Style', 'pushbutton', ...
                                          'String', 'Stop', ...
        'Callback', ['sendStateEvent(',num2str(id),',''stop'')'], ...
+                                         'Units', 'Normalized', ...
+                                         'Position', [.025 .91 .15 .07]);
+      RDISPLAY.forwardControl{id} = uicontrol(Std, ...
+                                         'Parent', hfig, ...
+                                         'Style', 'pushbutton', ...
+                                         'String', 'Forward', ...
+       'Callback', ['sendStateEvent(',num2str(id),',''forward'')'], ...
                                          'Units', 'Normalized', ...
                                          'Position', [.025 .82 .15 .07]);
       RDISPLAY.backupControl{id} = uicontrol(Std, ...
@@ -141,11 +149,11 @@ switch event
 
     % Robot poses
     for id = GCS.ids,
-      GDISPLAY.hRobot{id} = plotRobot(0, 0, 0, id);
+      GDISPLAY.hRobot{id} = plotRobot(0, 0, 0, id, 0);
     end
 
     axis xy equal tight;
-    axis([-100 100 -100 100]);
+    axis([-MAGIC_CONSTANTS.mapSizeX/2 MAGIC_CONSTANTS.mapSizeX/2 -MAGIC_CONSTANTS.mapSizeY/2 MAGIC_CONSTANTS.mapSizeY/2]);
     GDISPLAY.hAxes = gca;
     set(gca,'Position', [.17 .025 .665 .95], 'XLimMode', 'manual', 'YLimMode', 'manual');
     set(gca,'CLim',[-100 100]); 
@@ -157,6 +165,7 @@ switch event
     GDISPLAY.visualAvoidText = [];
     GDISPLAY.visualOOIOverlay = [];
     GDISPLAY.visualOOIText = [];
+    GDISPLAY.visualCandOOIOverlay = [];
     GDISPLAY.lastRegionSelection = -1;
     patch([0 1 1 0],[0 0 1 1],[0 1 0],'FaceAlpha',0.0,'EdgeAlpha',0.0);
     drawnow
@@ -618,6 +627,15 @@ switch event
                                         'Units', 'Normalized', ...
                                         'Position', [.845 .27 .10 .03]);
 
+    GDISPLAY.candOOIOverlay = uicontrol(Std, ...
+                                        'Parent', hfig, ...
+                                        'Style', 'checkbox', ...
+                                        'String', 'Candidate OOI Overlay', ...
+                                        'Callback', ['candOOIOverlay()'], ...
+                                        'KeyPressFcn', @keypress, ...
+                                        'Units', 'Normalized', ...
+                                        'Position', [.845 .24 .10 .03]);
+
     if ~INIT_LOG
       EXPLORE_REGIONS = [];
       AVOID_REGIONS = [];
@@ -627,6 +645,7 @@ switch event
       set(GDISPLAY.ooiList,'String',1:length(OOI));
       set(GDISPLAY.avoidRegionList,'String',1:length(AVOID_REGIONS));
     end
+    CAND_OOI = [];
 
     res = resolution(GMAP);
 
@@ -673,7 +692,7 @@ switch event
         xp = RPOSE{id}.x;
         yp = RPOSE{id}.y;
         ap = RPOSE{id}.yaw;
-        plotRobot(xp, yp, ap, id, RDISPLAY.hRobot{id});
+        plotRobot(xp, yp, ap, id, GDISPLAY.servo{id}, RDISPLAY.hRobot{id});
         shiftAxes(RDISPLAY.hAxes{id}, xp, yp);
       end
 
@@ -690,7 +709,7 @@ switch event
       end
         
       if ~isempty(GPOSE{id}),
-        plotRobot(GPOSE{id}.x, GPOSE{id}.y, GPOSE{id}.yaw, id, GDISPLAY.hRobot{id});
+        plotRobot(GPOSE{id}.x, GPOSE{id}.y, GPOSE{id}.yaw, id, GDISPLAY.servo{id}, GDISPLAY.hRobot{id});
       end
 
     end

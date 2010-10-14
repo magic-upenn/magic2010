@@ -1,6 +1,6 @@
 function goToOOI(xg,yg,r,avoid_mask,ids,serial)
 
-global GDISPLAY ROBOTS GMAP GPOSE AVOID_REGIONS
+global GDISPLAY ROBOTS GMAP GPOSE AVOID_REGIONS HAVE_ROBOTS
 
 map_cell_size = resolution(GMAP);
 [map_size_x, map_size_y] = size(GMAP);
@@ -53,6 +53,8 @@ else
   [xr yr] = gpos_to_rpos(best_id, best_path(1,:)', best_path(2,:)')
   PATH = [xr yr];
   msgName = ['Robot',num2str(best_id),'/Goal_Point'];
-  ROBOTS(best_id).ipcAPI('publish', msgName, serialize(PATH));
+  if HAVE_ROBOTS
+    ROBOTS(best_id).ipcAPI('publish', msgName, serialize(PATH));
+  end
 end
 

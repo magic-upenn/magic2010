@@ -1,9 +1,13 @@
 function nmsgs = masterReceiveFromRobots(dt)
-global ROBOTS
+global ROBOTS HAVE_ROBOTS
 global IPC
 
 if nargin <1
     dt=10;
+end
+
+if ~HAVE_ROBOTS
+  return;
 end
 
 nRobots = length(ROBOTS);

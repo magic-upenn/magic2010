@@ -7,5 +7,8 @@ if isempty(data)
 end
 
 id = GetIdFromName(name);
-status = deserialize(data);
+msg = deserialize(data);
+status = msg.status;
 set(GDISPLAY.robotStatusText{id},'String',status);
+
+GDISPLAY.servo{id} = msg.servo;

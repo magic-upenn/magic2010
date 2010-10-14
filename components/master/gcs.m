@@ -8,7 +8,7 @@ if INIT_LOG
 end
 
 %%%  gcs stuff
-global gcs_machine Robots GCS MAGIC_CONSTANTS
+global gcs_machine Robots GCS MAGIC_CONSTANTS HAVE_ROBOTS
 count =0;
 
 gcs_machine.ipcAPI = str2func('ipcAPI');
@@ -20,12 +20,22 @@ ipcReceiveSetFcn('OOI_Done_Msg',@gcsRecvOOIDoneFcn,gcs_machine.ipcAPI,1);
 
 tUpdate = 0.1;
 
-GCS.disruptor_ids = [6];
-GCS.sensor_ids = [7];
+%ROBOT IDs
+GCS.disruptor_ids = [];
+GCS.sensor_ids = [4];
 ids = [GCS.disruptor_ids GCS.sensor_ids];
 
+%OOI AVOID RANGES
 MAGIC_CONSTANTS.ooi_range = 3.5;
 MAGIC_CONSTANTS.poi_range = 6.0;
+
+%MAP SIZE
+MAGIC_CONSTANTS.mapSizeX = 80;
+MAGIC_CONSTANTS.mapSizeY = 80;
+MAGIC_CONSTANTS.mapRes = 0.1;
+
+%REAL ROBOTS? (or simulation?)
+HAVE_ROBOTS = false;
 
 for id = ids,
   Robots(id).traj.handle = -1;
@@ -34,17 +44,15 @@ end
 initExploreTemplates();
 gcsEntryIPC(ids)
 mapDisplay('entry');
-% GCS_GUI;
 
 while 1,
     count = count +1;
   pause(tUpdate);
   gcsUpdateIPC;
   mapDisplay('update');
-  if (mod(count, 30)==0)
+  if (mod(count, 30)==0 && HAVE_ROBOTS)
       sendMapToExploration;
   end
-% UpdateGoals;
 end
 
 end

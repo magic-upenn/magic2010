@@ -1,6 +1,6 @@
 function globalMapGoToPoint()
 
-global GDISPLAY ROBOTS GMAP GPOSE AVOID_REGIONS
+global GDISPLAY ROBOTS GMAP GPOSE AVOID_REGIONS HAVE_ROBOTS
 
 [xp, yp] = ginput(1);
 
@@ -32,7 +32,9 @@ if ~isempty(xp),
       %[xr yr] = gpos_to_rpos(id, xp(1), yp(1));
       PATH = [xr yr];
       msgName = ['Robot',num2str(id),'/Goal_Point'];
-      ROBOTS(id).ipcAPI('publish', msgName, serialize(PATH));
+      if HAVE_ROBOTS
+        ROBOTS(id).ipcAPI('publish', msgName, serialize(PATH));
+      end
     end
   end
 end
