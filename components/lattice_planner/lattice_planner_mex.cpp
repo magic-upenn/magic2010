@@ -33,10 +33,10 @@ vector<sbpl_2Dpt_t> perimeterptsV;
 float inner_radius = 0;
 float padding = 1.0;
 float padding_cost = 2;
-int exploration_obst_thresh = 250;
+int exploration_obst_thresh = 249;
 int obst_thresh = 254;
 int inner_obst_thresh = obst_thresh-1;
-float close_to_path = 6;
+float close_to_path = 20;
 
 double global_x_offset = 0;
 double global_y_offset = 0;
@@ -82,8 +82,10 @@ void makeTrajMap(){
 
   // copy path into new trajectory map
   for(int i=0; i<traj_length; i++){
-    int x = (int)(CONTXY2DISC(traj_path[i*traj_dim]-global_x_offset,resolution));
-    int y = (int)(CONTXY2DISC(traj_path[i*traj_dim+1]-global_y_offset,resolution));
+    int x = (int)(CONTXY2DISC(traj_path[i]-global_x_offset,resolution));
+    int y = (int)(CONTXY2DISC(traj_path[i+traj_length]-global_y_offset,resolution));
+    if(!OnMap(x, y))
+      break;
     rawtrajmap[x][y] = 1;
   }
 
@@ -94,7 +96,7 @@ void makeTrajMap(){
       if(trajmap[x][y] <= close_to_path)
         trajmap[x][y] = 0;
       else
-        trajmap[x][y] -= close_to_path;
+        trajmap[x][y] = 1;
     }
   }
   reset_traj_map = false;
@@ -218,7 +220,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray*prhs[] ){
         if(costmap[x][y] <= outer_radius)
           costmap[x][y] = 254;
         else if(costmap[x][y] <= cell_padding)
-          costmap[x][y] = max((cell_padding-costmap[x][y])*padding_cost/(cell_padding-outer_radius), rawcostmap[x][y]);
+          costmap[x][y] = max((cell_padding-costmap[x][y])*padding_cost/(cell_padding-outer_radius)+1, rawcostmap[x][y]);
         else
           costmap[x][y] = rawcostmap[x][y];
       }
@@ -328,7 +330,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray*prhs[] ){
     vector<EnvMAGICLAT3Dpt_t> sbpl_path;
     if(initialized == INIT_DONE){
       //if(reset_traj_map)
-        //makeTrajMap();
+      makeTrajMap();
 
       //copy data to map
       double temp_rad_sqr = (outer_radius+1)*(outer_radius+1);
@@ -341,17 +343,18 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray*prhs[] ){
           unsigned char c;
           double dist = (start_cell_x-x)*(start_cell_x-x) + (start_cell_y-y)*(start_cell_y-y);
           if(dist < temp_rad_sqr){
-            c = min(costmap[x][y], inner_obst_thresh-1);
+            c = min(costmap[x][y], 251);//inner_obst_thresh-1);
             env->UpdateCost(x,y,c);
             count2++;
           }
           else{
-            /*
-            if(shouldRun==2)
-              c = (unsigned char)min(max(costmap[x][y], trajmap[x][y]),251);
+            //if(shouldRun==2)
+            if(costmap[x][y] == 125 && trajmap[x][y] == 0)
+              c = 0;
             else
-            */
-            c = (unsigned char)min(costmap[x][y],251);
+              c = (unsigned char)min(max(costmap[x][y], trajmap[x][y]),251);
+            //else
+            //c = (unsigned char)min(costmap[x][y],251);
             env->UpdateCost(x, y, c);
           }
         }
@@ -418,6 +421,12 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray*prhs[] ){
         return_y[i] = sbpl_path[i].y+global_y_offset;
         return_yaw[i] = sbpl_path[i].theta;
       }
+
+      plhs[3] = mxCreateDoubleMatrix(size_x,size_y,mxREAL);
+      double* return_map = mxGetPr(plhs[3]);
+      for(int x=0; x < size_x; x++)
+        for(int y=0; y < size_y; y++)
+          return_map[x+size_x*y] = env->GetMapCost(x, y);
 
       initialized = NEED_UPDATE;
       initialized &= ~INIT_TRAJ;
