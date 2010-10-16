@@ -640,13 +640,15 @@ function send_look_msg(id,theta,phi,type);
 	msg.type = type; %'look', 'track', 'done'
 	msg.distance = GLOBALS.current_distance; 
 	GLOBALS.last_look = msg;
+	send_message_to_robot(id,name,msg); 
+
+function send_message_to_robot(id,name,msg);
 	global NOSEND
+	msg 
 	if ~isempty(NOSEND)
 		'NOT SENDING MESSAGES TODAY!!!'
-		msg 
 		return
 	end
-	msg
 	ROBOTS(id).ipcAPI('define',name);  
 	ROBOTS(id).ipcAPI('publish',name,serialize(msg));  
 	
@@ -690,8 +692,13 @@ function lookat_Callback(hObject, eventdata, handles)
 	theta = servo_yaw + theta; 
 	lookat(id,theta,phi,'look'); 
 
-
 function stop_Callback(hObject, eventdata, handles)
+	global GLOBALS; 
+	id = GLOBALS.bids(GLOBALS.focus); 
+	name = ['Robot',num2str(id),'/StateEvent'];
+	msg = 'stop'; 
+	send_message_to_robot(id,name,msg); 
+
 
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
