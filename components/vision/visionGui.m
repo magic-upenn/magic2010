@@ -41,7 +41,7 @@ function visionGuiInit
 	visionConnectGCS('192.168.10.220'); 
 	nRobots = 10;
 	%ids = [4 6 7]; % list of ID's of available robots
-	ids = [2]; % list of ID's of available robots
+	ids = [1 2]; % list of ID's of available robots
 
 	ipcInit;
 %	masterConnectRobots(ids,'127.0.0.1');

@@ -158,7 +158,6 @@ function updateOmni(box)
 	oh = GLOBALS.heartbeat(id);
 	nh = mod(GLOBALS.heartbeat(id),2) + 1;
 	GLOBALS.heartbeat(id) = nh;
-	[oh,nh] 
 	text(30,20,sprintf('%d',GLOBALS.bids(box)),'Parent',handles.(oname),...
 	'FontSize',30,'Color',colors(oh),...
 	'BackgroundColor',colors(nh)); 
@@ -230,11 +229,7 @@ function updateBB
 	 drawnow; 
 
 function updateGui(id)
-	if numel(id) > 1
-		id
-	end
 	global GLOBALS IMAGES; 
-	tic
 	updateHistory(id); 
 	updateHistoryFocus; 
 	handles = guidata(GLOBALS.vision_gui);
@@ -242,7 +237,6 @@ function updateGui(id)
 	if box ~= 9
 		updateBox(box)
 	end 
-	toc
 
 % --- Outputs from this function are returned to the command line.
 function varargout = vision_gui_OutputFcn(hObject, eventdata, handles) 

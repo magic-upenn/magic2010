@@ -18,7 +18,7 @@ endif
 MEX = mex
 CXXFLAGS = -O
 
-all: uvcCam cjpeg djpeg connected_regions
+all: cjpeg djpeg connected_regions
 
 uvcCam: uvcCam.cpp v4l2.cpp
 	$(MEX) $(CXXFLAGS) $^

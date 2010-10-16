@@ -1,18 +1,23 @@
-function img = draw_cands(stats,img) 
+function draw_cands(stats,img)
+	imagesc(img); 
+	if isempty(stats)
+		return
+	end
 	for i = 1:min(size(stats,1),25)
-		color = [0,0,255];
+		linecolor = 'blue';
 		if i == 3
-			color = [255,0,0];
 			linecolor = 'red';
 		end
 		if i == 2
-			color = [255,255,0];
 			linecolor = 'yellow';
 		end
 		if i == 1
-			color = [0,255,0];
+			linecolor = 'green';
 		end
-		bb = stats(i,2:end); 
-		bb = max(bb,1); 
-		img = draw_box(img,bb,color);  
+		bb = stats(i,2:end);
+		bb = max(bb,1);  
+		line([bb(3),bb(4)],[bb(1),bb(1)],'Color',linecolor,'LineWidth',2);
+		line([bb(3),bb(4)],[bb(2),bb(2)],'Color',linecolor,'LineWidth',2);
+		line([bb(3),bb(3)],[bb(1),bb(2)],'Color',linecolor,'LineWidth',2);
+		line([bb(4),bb(4)],[bb(1),bb(2)],'Color',linecolor,'LineWidth',2);
 	end

@@ -32,14 +32,14 @@ function RedDetect
 
 	    %%%% send images and OOI to vision GUI console through IPC %%%%%
 		ipcReceiveMessages;
-		[omni_sm, front_sm, omni_cands, front_cands, omni_stats, front_stats] = red_detect_cams();
+		[omni, front, omni_cands, front_cands, omni_stats, front_stats] = red_detect_cams();
 
 		%%%%% send compressed jpg image through IPC %%%%%
 		imPacket.id = GetRobotId(); 
 		imPacket.type = 'Vision';  
 		imPacket.t  = GetUnixTime();
-		imPacket.omni = cjpeg(omni_sm,quality);
-		imPacket.front = cjpeg(front_sm,quality);
+		imPacket.omni = cjpeg(omni,quality);
+		imPacket.front = cjpeg(front,quality);
 		imPacket.front_angle = LIDAR.servo;
 		imPacket.scanH = LIDAR.scanH;
 		imPacket.scanV = LIDAR.scanV;

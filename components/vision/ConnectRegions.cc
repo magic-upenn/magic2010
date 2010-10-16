@@ -2,6 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <math.h>
+#include <stdio.h>
 
 EquivalenceTable::EquivalenceTable() {}
 
@@ -55,13 +56,16 @@ int EquivalenceTable::numLabel() {
 int ConnectRegions(std::vector <RegionProps> &props,
 		    uint8* image, int m, int n, uint8 mask) {
 
-  const int NMAX = 256;
-  static int label_array[NMAX][NMAX];
+  const int MMAX = 1000;
+  const int NMAX = 1000; 
+  static int label_array[NMAX][MMAX];
   static EquivalenceTable equiv_table;
 
-  if ((m > NMAX) || (n > NMAX))
+  if ((m > MMAX) || (n > NMAX))
+  {
+	printf("Input too large, %d > %d or %d > %d\n",m,MMAX,n,NMAX); 
     return -1;
-
+  }
   int nlabel = 1;
   equiv_table.clear();
   equiv_table.ensureAllocated(nlabel);

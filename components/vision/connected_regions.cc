@@ -14,7 +14,7 @@
 #include "mex.h"
 
 typedef unsigned char uint8;
-const int nlabel_max = 16;
+const int nlabel_max = 150;
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
