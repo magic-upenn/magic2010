@@ -133,6 +133,12 @@ function updateOOIHistory(id,ser)
 		set(handles.ih_hist_ooi(t),'CData',GLOBALS.history(t).ooi.front);
 		imagesc(GLOBALS.history(t).ooi.front)
 	end
+	imwrite(ooi.front,sprintf('cands/robot_%d_ser_%d.png',id,ser));
+	fid = fopen('cands/last_ser','w' )
+	if fid ~= -1
+		fwrite(fid,ser); 
+		fclose(fid);
+	end 
 	drawnow; 
 
 
@@ -147,9 +153,10 @@ function updateOmni(box)
 	id = GLOBALS.bids(box); 
 	for sc = 1:3
 		scname = sprintf('%s_%d',cname,sc); 
-		imagesc(image.omni_cands{sc},'Parent',handles.(scname)); 
+		cand_h = imagesc(image.omni_cands{sc},'Parent',handles.(scname)); 
 		daspect(handles.(scname),[1 1 1]); 
 		axis(handles.(scname),'off'); 
+		set(cand_h,'ButtonDownFcn',{@ocand_ButtonDownFcn,[sc,box,GLOBALS.bids(box)]});
 	end 
 	draw_cands_on_image(handles.(ih_oname),handles.(oname),image.omni_stats,image.omni);
 	draw_center_line(handles.(oname),image.omni,image.front_angle,GLOBALS.req_angles(GLOBALS.bids(box))); 
@@ -238,6 +245,43 @@ function updateGui(id)
 		updateBox(box)
 	end 
 
+function updateWithPacket(imPacket)
+	global IMAGES GLOBALS;
+	stats = whos('imPacket'); 
+	stats.bytes
+	imPacket = deserialize(zlibUncompress(imPacket));
+	IMAGES(imPacket.id).t = imPacket.t; 
+	IMAGES(imPacket.id).pose = imPacket.pose;
+	IMAGES(imPacket.id).front_angle = imPacket.front_angle; 
+	if strcmp(imPacket.type,'FrontVision')
+		IMAGES(imPacket.id).front = djpeg(imPacket.front);
+		for im = 1:3
+			IMAGES(imPacket.id).front_cands{im} = djpeg(imPacket.front_cands{im});
+		end 
+		IMAGES(imPacket.id).front_stats = imPacket.front_stats; 
+		IMAGES(imPacket.id).scanH = imPacket.scanH; 
+		IMAGES(imPacket.id).scanV = imPacket.scanV; 
+		if ~isempty(imPacket.scanV)
+			IMAGES(imPacket.id).scanV =  imresize(fliplr(imPacket.scanV.ranges(445:628)),[1,15],'nearest'); 
+		else
+			IMAGES(imPacket.id).scanV = zeros([1,15]); 
+		end
+		%Hokuyu: step = 1081, step = 0.0044, fov = 270
+		if ~isempty(imPacket.scanH)
+			IMAGES(imPacket.id).scanH =  imresize(fliplr(imPacket.scanH.ranges(405:675)),[1,15],'nearest'); 
+		else
+			IMAGES(imPacket.id).scanH = zeros([1,15]); 
+		end
+	end
+	if strcmp(imPacket.type,'OmniVision')
+		IMAGES(imPacket.id).omni = djpeg(imPacket.omni);
+		for im = 1:3
+			IMAGES(imPacket.id).omni_cands{im}  = djpeg(imPacket.omni_cands{im});
+		end 
+		IMAGES(imPacket.id).omni_stats = imPacket.omni_stats; 
+	end
+	GLOBALS.vision_fns.updateGui(imPacket.id);  
+
 % --- Outputs from this function are returned to the command line.
 function varargout = vision_gui_OutputFcn(hObject, eventdata, handles) 
 	varargout{1} = handles.output;
@@ -267,6 +311,21 @@ function focus_ButtonDownFcn(hObject, eventdata, data)
 	GLOBALS.current_bb_id = id; 
 	updateFrontFocused(focus); 
 
+function ocand_ButtonDownFcn(hObject, eventdata, data)
+	global IMAGES GLOBALS 
+	cand = data(1);
+	focus = data(2);  
+	id = data(3); 
+	GLOBALS.focus = focus;  
+	bb = IMAGES(id).omni_stats(cand,2:end);
+	GLOBALS.focus = focus;
+	x = mean(bb(3:4)); 
+	y = mean(bb(1:2)); 
+	servo_yaw = IMAGES(id).front_angle; 
+	[theta] = pixel_to_angle(IMAGES(id).omni,x); 
+	lookat(id,theta,0,'look'); 
+	updateFrontFocused(focus); 
+
 function cand_ButtonDownFcn(hObject, eventdata, data)
 	global IMAGES GLOBALS 
 	cand = data(1);
@@ -275,7 +334,14 @@ function cand_ButtonDownFcn(hObject, eventdata, data)
 	GLOBALS.focus = focus;  
 	GLOBALS.current_bb_id = id; 
 	GLOBALS.current_bb = IMAGES(id).front_stats(cand,2:end);
-	GLOBALS.focus = focus;  
+	GLOBALS.focus = focus;
+
+	x = mean(GLOBALS.current_bb(3:4)); 
+	y = mean(GLOBALS.current_bb(1:2)); 
+	servo_yaw = IMAGES(id).front_angle; 
+	[theta,phi] = front_pixel_to_angle(IMAGES(id).front,x,y); 
+	theta = servo_yaw + theta; 
+	lookat(id,theta,phi,'look'); 
 	updateFrontFocused(focus); 
 
 function omni_ButtonDownFcn(hObject, eventdata, data)
@@ -333,7 +399,13 @@ function setup_global_vars(vision_gui)
 	GLOBALS.current_bb = []; 
 	GLOBALS.current_bb_id = []; 
 	GLOBALS.current_label = '?'; 
-	GLOBALS.current_ser = 1;
+	fid = fopen('cands/last_ser','r'); 
+	if fid ~= -1 
+		GLOBALS.current_ser = fread(fid) + 1;
+		fclose(fid); 
+	else
+		GLOBALS.current_ser = 1;
+	end
 	GLOBALS.current_distance = 0;
 	GLOBALS.last_look = []; 
 	GLOBALS.last_click = []; 
@@ -364,7 +436,8 @@ function setup_global_vars(vision_gui)
 	vision_fns.still_mobile_Callback   = @still_mobile_Callback;
 	vision_fns.nudge_right_Callback    = @nudge_right_Callback;
 	vision_fns.nudge_left_Callback     = @nudge_left_Callback; 
-	vision_fns.set_focus	           = @set_focus; 
+	vision_fns.set_focus	           = @set_focus;
+	GLOBALS.updateWithPacket 	   = @updateWithPacket; 
 	GLOBALS.vision_fns = vision_fns; 
 	null_front = null_image(320,240); 	
 	null_omni  = null_image(775,155);
