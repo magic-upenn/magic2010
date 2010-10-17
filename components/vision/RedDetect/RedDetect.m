@@ -6,7 +6,7 @@ function RedDetect
 	addpath( [ getenv('MAGIC_DIR') '/trunk/components/vision/uvcCam' ] )
 	addpath( [ getenv('MAGIC_DIR') '/trunk/components/vision/RedDetect' ] )
 	ipcInit;
-	ipcReceiveSetFcn(GetMsgName('CamParams'),@CamParamsMsgHander);
+	ipcReceiveSetFcn(GetMsgName('CamParams'),@CamParamsMsgHandler);
 	ipcReceiveSetFcn(GetMsgName('Pose'),     @PoseMsgHander);
 	ipcReceiveSetFcn(GetMsgName('Lidar0'),   @VisionLidarHHandler);
 	ipcReceiveSetFcn(GetMsgName('Lidar1'),   @VisionLidarVHandler);
@@ -95,17 +95,20 @@ function PoseMsgHander(data,name)
 	end
 	POSE.data = MagicPoseSerializer('deserialize',data);
 
-function CamParamsMsgHander(data,name)
+function CamParamsMsgHandler(data,name)
 	global PARAMS
-	if isempty(data)
+  'Changing params'
+  if isempty(data)
     		return;
 	end
 	params = deserialize(data);
-	if params.cam == 0
-		PARAMS.omni = params; 
+  if params.cam == 0
+		PARAMS.omni = params;
+    set_ctrl_values(0,params); 
 	end 
 	if params.cam == 1
 		PARAMS.front = params;
+    set_ctrl_values(1,params); 
 	end 
 
 function VisionLidarHHandler(data,name)

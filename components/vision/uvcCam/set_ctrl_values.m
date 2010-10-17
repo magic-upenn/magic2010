@@ -34,6 +34,6 @@ for f = 1:numel(field_names)
 	end
 end
 if changed
-	params.get_ctrl_values(camnum); 
+	params = get_ctrl_values(camnum); 
 end
 params.camnum = camnum; 	
