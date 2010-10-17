@@ -25,7 +25,7 @@ using namespace Magic;
 //#define PRINT_IMU_FILTERED
 //#define PRINT_IMU_RAW
 //#define PRINT_GPS
-//#define PRINT_ENCODERS
+#define PRINT_ENCODERS
 //#define PRINT_SERVO
 
 /////////////////////////////////////////////////////////////////////////
@@ -139,6 +139,32 @@ void MicroGateway::VelocityCmdMsgHandler(MSG_INSTANCE msgRef,
 
   //free memory
   IPC_freeData(IPC_msgInstanceFormatter(msgRef),callData);
+}
+
+void MicroGateway::Laser0CmdMsgHandler(MSG_INSTANCE msgRef, 
+                                  BYTE_ARRAY callData, void *clientData)
+{
+  
+  
+
+  MicroGateway * mg      = (MicroGateway *)clientData;
+  uint8_t cmd = *((uint8_t*)callData);
+  PRINT_INFO("got laser cmd! : "<<(int)cmd<<"\n");
+
+  uint8_t id   = MMC_MAIN_CONTROLLER_DEVICE_ID;
+  uint8_t type = MMC_MC_LASER0;
+
+  const int bufSize=256;
+  uint8_t tempBuf[bufSize];
+
+  int len = DynamixelPacketWrapData(id,type,&cmd,1,tempBuf,bufSize);
+  if (len < 0)
+    PRINT_ERROR("could not wrap data\n");
+
+  mg->SendSerialPacket(tempBuf,len);
+
+  //free memory
+  IPC_freeByteArray(callData);
 }
 
 
@@ -258,6 +284,14 @@ int MicroGateway::InitializeMessages()
 
   msgName = this->robotName + "/" + "Servo2Cmd";
   if (IPC_subscribeData(msgName.c_str(),this->ServoControllerCmdMsgHandler,this) != IPC_OK)
+  {
+    PRINT_ERROR("could not subscribe to IPC message\n");
+    exit(1);
+  }
+  PRINT_INFO("Subscribed to message "<<msgName<<"\n");
+
+  msgName = this->robotName + "/" + "Laser0Cmd";
+  if (IPC_subscribe(msgName.c_str(),this->Laser0CmdMsgHandler,this) != IPC_OK)
   {
     PRINT_ERROR("could not subscribe to IPC message\n");
     exit(1);
@@ -529,20 +563,29 @@ int MicroGateway::MotorControllerPacketHandler(DynamixelPacket * dpacket)
   int packetType = DynamixelPacketGetType(dpacket);
   //double motorDt = this->rs485timer.Toc();
   static Timer t0;
+  static int cntr=0,en0=0,en1=0,en2=0,en3=0;
 
   if (packetType == MMC_MOTOR_CONTROLLER_ENCODERS_RESPONSE)
   {
+    cntr++;
     int16_t * encData = (int16_t*)DynamixelPacketGetData(dpacket);
     //printf("got encoder packet (%f) : ",this->encoderTimer.Toc());
 #ifdef PRINT_ENCODERS
     //PRINT_INFO("GOT encoders");
-    double dt = t0.Toc(true); t0.Tic();
-    printf("encoders: %d %d %d %d %d\n",(uint16_t)encData[0],encData[1],encData[2],encData[3], encData[4]);
-    if (dt < 1 && dt > 0.03)
+
+    en0 += encData[1];
+    en1 += encData[2];
+    en2 += encData[3];
+    en3 += encData[4];
+
+    if (cntr%10 == 0)
     {
-      printf("!!!!!!!!!!!!!!!!!\n");
-      //exit(1);
+      double dt = t0.Toc(true); t0.Tic();
+      
+      printf("encoders: %d %d %d %d %d %d %d %d\n",en0,en1,en2,en3,encData[5],encData[6],encData[7],encData[8]);
+      en0 = en1 = en2 = en3 = 0;
     }
+
 #endif
     EncoderCounts encPacket(Upenn::Timer::GetAbsoluteTime(),
                            (uint16_t)encData[0],encData[1],encData[2],encData[3], encData[4]);
