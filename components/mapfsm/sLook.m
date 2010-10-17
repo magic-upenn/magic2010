@@ -1,6 +1,6 @@
 function ret = sLook(event, varargin);
 
-global MPOSE LOOK_ANGLE
+global MPOSE LOOK_ANGLE USE_SERVO BODY_FACE
 persistent DATA
 
 timeout = 5.0;
@@ -16,29 +16,20 @@ switch event
 
   DATA.state = 0;
   DATA.new_state = 1;
-%{
-  servoCmd.id           = 1;
-  servoCmd.mode         = 1; %0 for point mode (minAngle is the goal), 1 for servo mode
-  servoCmd.minAngle     = 0;
-  servoCmd.maxAngle     = 0;
-  servoCmd.speed        = 100;
-  servoCmd.acceleration = 300;
-
-  content = MagicServoControllerCmdSerializer('serialize',servoCmd);
-  ipcAPIPublishVC(servoMsgName,content);
-%}
 
  case 'exit'
-  servoCmd.id           = 1;
-  servoCmd.mode         = 3; %0 for point mode (minAngle is the goal), 1 for servo mode
-  servoCmd.minAngle     = -40;
-  servoCmd.maxAngle     = 40;
-  servoCmd.speed        = 70;
-  servoCmd.acceleration = 300;
+  if USE_SERVO
+    servoCmd.id           = 1;
+    servoCmd.mode         = 3;
+    servoCmd.minAngle     = -40;
+    servoCmd.maxAngle     = 40;
+    servoCmd.speed        = 70;
+    servoCmd.acceleration = 300;
 
-  content = MagicServoControllerCmdSerializer('serialize',servoCmd);
-  ipcAPIPublishVC(servoMsgName,content);
-  
+    content = MagicServoControllerCmdSerializer('serialize',servoCmd);
+    ipcAPIPublishVC(servoMsgName,content);
+  end
+
  case 'update'
    LOOK_ANGLE*180/pi
    MPOSE.heading*180/pi
@@ -49,14 +40,18 @@ switch event
    servoMsgName = GetMsgName('Servo1Cmd');
    servoCmd.id           = 1;
    servoCmd.mode         = 2; %0 for point mode (minAngle is the goal), 1 for servo mode
-   servoCmd.minAngle     = max(min(dHeading,big_angle_thresh),-big_angle_thresh)*180/pi
+   if BODY_FACE
+     servoCmd.minAngle   = 0;
+   else
+     servoCmd.minAngle   = max(min(dHeading,big_angle_thresh),-big_angle_thresh)*180/pi
+   end
    servoCmd.maxAngle     = 0;
-   servoCmd.speed        = 100;
+   servoCmd.speed        = 70;
    servoCmd.acceleration = 300;
    content = MagicServoControllerCmdSerializer('serialize',servoCmd);
    ipcAPIPublishVC(servoMsgName,content);
 
-   if abs(dHeading) > big_angle_thresh
+   if abs(dHeading) > big_angle_thresh || (abs(dHeading) > small_angle_thresh && BODY_FACE)
      if dHeading > 0
        if(DATA.state ~= 1)
          DATA.new_state = 1

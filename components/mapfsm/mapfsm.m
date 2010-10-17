@@ -291,7 +291,7 @@ mapfsmExit;
 %==========
 function mapfsmEntry
 
-global MP PATH_DATA AVOID_REGIONS LAST_STATE SERVO_ANGLE
+global MP PATH_DATA AVOID_REGIONS LAST_STATE SERVO_ANGLE USE_SERVO BODY_FACE
 
 MP.sm = entry(MP.sm);
 LAST_STATE = '';
@@ -311,6 +311,7 @@ ipcReceiveSetFcn(GetMsgName('Explore_Path'),@mapfsmRecvExplorePathFcn);
 ipcReceiveSetFcn(GetMsgName('Avoid_Regions'),@mapfsmRecvAvoidRegionsFcn);
 ipcReceiveSetFcn(GetMsgName('Look_Msg'),@mapfsmRecvLookMsgFcn);
 ipcReceiveSetFcn(GetMsgName('Servo1'), @mapfsmRecvServoFcn);
+ipcReceiveSetFcn(GetMsgName('Use_Servo'), @mapfsmRecvUseServoFcn);
 
 % Tracks from slam:
 ipcReceiveSetFcn(GetMsgName('VelTracks'), @mapfsmRecvVelTracksFcn);
@@ -327,6 +328,8 @@ PATH_DATA.newExplorePath = false;
 AVOID_REGIONS.x = [];
 AVOID_REGIONS.y = [];
 SERVO_ANGLE = 0;
+USE_SERVO = true;
+BODY_FACE = false;
 
 
 %==========
