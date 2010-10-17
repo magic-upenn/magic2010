@@ -1,5 +1,9 @@
 function visionGui(ids)
-	globals GLOBALS; 
+	if nargin < 1
+		'Need ids'
+		return
+	end
+	global GLOBALS; 
 	SetMagicPaths
 	addpath( [ getenv('MAGIC_DIR') '/trunk/components/vision/uvcCam' ] )
 	addpath( [ getenv('MAGIC_DIR') '/trunk/components/vision/RedDetect' ] )
@@ -12,7 +16,6 @@ function visionGui(ids)
 		  if n > 0
 			for ii=1:n
 				fprintf(1,'Got packet of size %d\n',length(packets(ii).data));
-				assert(strcmp(imPacket.type,'OmniVision') | strcmp(imPacket.type,'FrontVision')); 
 				GLOBALS.updateWithPacket(packets(ii).data); 
 			end
 		  end

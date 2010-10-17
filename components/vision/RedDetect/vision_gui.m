@@ -639,7 +639,7 @@ function send_lazer_msg(id,status)
 	msg
 
 function send_look_msg(id,theta,phi,type);
-	global GLOBALS ROBOTS; 
+	global GLOBALS; 
 	name = 'Look_Msg'; 
 	msg.theta = theta;  
 	msg.phi = phi; 
@@ -650,7 +650,7 @@ function send_look_msg(id,theta,phi,type);
 	send_message_to_robot(id,name,msg); 
 
 function send_message_to_robot(id,name,msg);
-	global NOSEND
+	global ROBOTS NOSEND
 	name = sprintf('Robot%d/%s',id,name); 
 	msg 
 	if ~isempty(NOSEND)
