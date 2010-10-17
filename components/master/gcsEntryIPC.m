@@ -104,5 +104,8 @@ if HAVE_ROBOTS
 
     msgNameLook = ['Robot',num2str(id),'/Look_Msg'];
     ROBOTS(id).ipcAPI('define', msgNameLook);
+
+    msgNameUseServo = ['Robot',num2str(id),'/Use_Servo'];
+    ROBOTS(id).ipcAPI('define', msgNameUseServo);
   end
 end

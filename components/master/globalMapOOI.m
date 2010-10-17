@@ -17,7 +17,7 @@ else
 end
 
 if ~isempty(xp),
-  if msg.type == 9 %Candidate OOI
+  if type == 9 %Candidate OOI
     CAND_OOI.x = xp;
     CAND_OOI.y = yp;
     candOOIOverlay();
