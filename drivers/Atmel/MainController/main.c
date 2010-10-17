@@ -51,11 +51,14 @@ volatile uint8_t mode = MMC_MC_MODE_RUN;
 
 float voltageBatt = 0;
 
+volatile uint8_t xbeeControl = 0;
+
 ParamTable EEMEM ptableE;
 ParamTable ptableR;
 uint8_t eepromTempData[sizeof(ParamTable)+4];
 
 volatile uint32_t globalTimer = 0;
+volatile uint32_t lastXbeeCmdTime = 0;
 
 int WriteParamTableBlock(uint16_t offset, uint8_t * data, uint16_t size)
 {
@@ -144,7 +147,7 @@ void InitLeds()
   LED_ESTOP_DDR     |= _BV(LED_ESTOP_PIN);
   LED_GPS_DDR       |= _BV(LED_GPS_PIN);
   LED_RC_DDR        |= _BV(LED_RC_PIN);
-  
+  LASER0_DDR        |= _BV(LASER0_PIN);
 }
 
 void SetBusBlocked()
@@ -197,8 +200,6 @@ void init(void)
 
   timer1_init();
   timer1_set_compa_callback(EncodersRequestFcn);
-  //timer1_set_compb_callback(MotorCmdSendFcn);
-  //timer1_set_overflow_callback(EncodersRequestFcn);
 
   //generate the request packets:
   encoderRequestRawPacketSize = DynamixelPacketWrapData(MMC_MOTOR_CONTROLLER_DEVICE_ID,
@@ -372,6 +373,14 @@ int HostPacketHandler(DynamixelPacket * dpacket)
           Servo1SetMode(*data);
           break;
 
+        case MMC_MC_LASER0:
+          data = DynamixelPacketGetData(dpacket);
+          if (*data == 0)
+            LASER0_OFF;
+          else
+            LASER0_ON;
+          break;
+
         default:
           break;
       }
@@ -389,6 +398,11 @@ int HostPacketHandler(DynamixelPacket * dpacket)
 
 
     case MMC_MOTOR_CONTROLLER_DEVICE_ID:
+      if ((GlobalTimerGetTime() - lastXbeeCmdTime) > 200000)   //200000*16uS per tic = 3.2 seconds time out
+        xbeeControl = 0;
+
+      if (xbeeControl == 1)    //if xbee control is enabled, don't send anything through to the motor controller
+        break;
       if ( (type == MMC_MOTOR_CONTROLLER_VELOCITY_SETTING) && (estop == MMC_ESTOP_STATE_RUN) )
       {
         if (rs485Blocked)
@@ -541,15 +555,6 @@ int main(void)
       servo1PacketOutBufSize = servo1PacketOutSize;
       needToSendServo1Packet = 1;
     }
-
-/*
-    if (Servo1IsFreshAngle())
-    {
-      servo1Angle = Servo1GetAngle();
-      servo1Time  = Servo1GetAngleTime();
-      SendServo1StateToHost(servo1Angle,servo1Time);
-    }
-*/     
       
     //receive a line from gps
     len=GpsReceiveLine(&buf);
@@ -566,6 +571,8 @@ int main(void)
         LED_RC_TOGGLE;
         if (DynamixelPacketGetId(&xbeePacketIn) == MMC_MOTOR_CONTROLLER_DEVICE_ID)
         {
+          lastXbeeCmdTime = GlobalTimerGetTime();
+          xbeeControl = 1;
           DynamixelPacketCopy(&motorCmdPacketOut,&xbeePacketIn);
           needToSendMotorCmd = 1;
         }

@@ -91,6 +91,10 @@
 #define LED_RC_DDR      DDRE
 #define LED_RC_PINN     PINE
 
+#define LASER0_PIN      PE4
+#define LASER0_PORT     PORTE
+#define LASER0_DDR      DDRE
+
 
 
 #define LED_ERROR_TOGGLE   LED_ERROR_PORT  ^= _BV(LED_ERROR_PIN)
@@ -103,7 +107,10 @@
 #define LED_ERROR_ON       LED_ERROR_PORT  |= _BV(LED_ERROR_PIN)
 #define LED_ERROR_OFF      LED_ERROR_PORT  &= ~(_BV(LED_ERROR_PIN))
 #define LED_ESTOP_ON       LED_ESTOP_PORT  |= _BV(LED_ESTOP_PIN)
-#define LED_ESTOP_OFF      LED_ESTOP_PORT  &= ~(_BV(LED_ESTOP_PIN))  
+#define LED_ESTOP_OFF      LED_ESTOP_PORT  &= ~(_BV(LED_ESTOP_PIN)) 
+#define LASER0_ON          LASER0_PORT     |= _BV(LASER0_PIN)
+#define LASER0_OFF         LASER0_PORT     &= ~(_BV(LASER0_PIN))
+
 
 /*
 #define LED_ERROR_TOGGLE   
