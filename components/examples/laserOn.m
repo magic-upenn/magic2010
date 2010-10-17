@@ -1,1 +1,10 @@
-unix('$MAGIC_DIR/drivers/Atmel/LaserPointer/testLaser /dev/laser 1000000 1');
+SetMagicPaths;
+
+servoMsgName = GetMsgName('Laser0Cmd');
+
+ipcAPIConnect()
+ipcAPIDefine(servoMsgName);
+
+val = uint8(1);
+
+ipcAPIPublish(servoMsgName,val);
