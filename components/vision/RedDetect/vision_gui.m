@@ -22,7 +22,7 @@ function varargout = vision_gui(varargin)
 
 % Edit the above text to modify the response to help vision_gui
 
-% Last Modified by GUIDE v2.5 13-Oct-2010 12:56:13
+% Last Modified by GUIDE v2.5 17-Oct-2010 15:21:40
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -247,8 +247,8 @@ function updateGui(id)
 
 function updateWithPacket(imPacket)
 	global IMAGES GLOBALS;
-	stats = whos('imPacket'); 
-	stats.bytes
+%	stats = whos('imPacket'); 
+%	stats.bytes
 	imPacket = deserialize(zlibUncompress(imPacket));
 	IMAGES(imPacket.id).t = imPacket.t; 
 	IMAGES(imPacket.id).pose = imPacket.pose;
@@ -272,6 +272,7 @@ function updateWithPacket(imPacket)
 		else
 			IMAGES(imPacket.id).scanH = zeros([1,15]); 
 		end
+		IMAGES(imPacket.id).front_params = imPacket.params; 
 	end
 	if strcmp(imPacket.type,'OmniVision')
 		IMAGES(imPacket.id).omni = djpeg(imPacket.omni);
@@ -279,7 +280,9 @@ function updateWithPacket(imPacket)
 			IMAGES(imPacket.id).omni_cands{im}  = djpeg(imPacket.omni_cands{im});
 		end 
 		IMAGES(imPacket.id).omni_stats = imPacket.omni_stats; 
+		IMAGES(imPacket.id).omni_params = imPacket.params; 
 	end
+	updateSettingsWithPacket(imPacket.id,imPacket.type,imPacket.params); 	
 	GLOBALS.vision_fns.updateGui(imPacket.id);  
 
 % --- Outputs from this function are returned to the command line.
@@ -448,9 +451,10 @@ function setup_global_vars(vision_gui)
 	null_pose.yaw = 0;  
 	null_stats = ones(3,5); 
 	null_stats(:,1) = 0;
+	null_params = get_ctrl_values(-1); 
 	for cand = 1:3
 		null_cands{cand} = null_cand;  
-	end  	
+	end
 	for id=1:9
 	    IMAGES(id).id = id;
 	    IMAGES(id).type = 'vision'; 
@@ -465,6 +469,8 @@ function setup_global_vars(vision_gui)
 	    IMAGES(id).omni_stats = null_stats;
 	    IMAGES(id).front_stats = null_stats;
 	    IMAGES(id).pose = null_pose;
+	    IMAGES(id).omni_params = null_params;
+	    IMAGES(id).front_params = null_params;
 	end
 	for t = 1:5
 		history(t).front = {IMAGES.front};  
@@ -634,16 +640,18 @@ function send_lazer_msg(id,status)
 
 function send_look_msg(id,theta,phi,type);
 	global GLOBALS ROBOTS; 
-	name = sprintf('Robot%d/Look_Msg',id); 
+	name = 'Look_Msg'; 
 	msg.theta = theta;  
 	msg.phi = phi; 
 	msg.type = type; %'look', 'track', 'done'
 	msg.distance = GLOBALS.current_distance; 
 	GLOBALS.last_look = msg;
+	set_status(type)
 	send_message_to_robot(id,name,msg); 
 
 function send_message_to_robot(id,name,msg);
 	global NOSEND
+	name = sprintf('Robot%d/%s',id,name); 
 	msg 
 	if ~isempty(NOSEND)
 		'NOT SENDING MESSAGES TODAY!!!'
@@ -692,29 +700,25 @@ function lookat_Callback(hObject, eventdata, handles)
 	theta = servo_yaw + theta; 
 	lookat(id,theta,phi,'look'); 
 
+function face_Callback(hObject, eventdata, handles)
+	global GLOBALS IMAGES;  
+	if isempty(GLOBALS.current_bb)
+		return
+	end
+	id = GLOBALS.bids(GLOBALS.focus); 
+	x = mean(GLOBALS.current_bb(3:4)); 
+	y = mean(GLOBALS.current_bb(1:2)); 
+	servo_yaw = IMAGES(id).front_angle; 
+	[theta,phi] = front_pixel_to_angle(IMAGES(id).front,x,y); 
+	theta = servo_yaw + theta; 
+	lookat(id,theta,phi,'face'); 
+
 function stop_Callback(hObject, eventdata, handles)
 	global GLOBALS; 
 	id = GLOBALS.bids(GLOBALS.focus); 
 	name = ['Robot',num2str(id),'/StateEvent'];
 	msg = 'stop'; 
 	send_message_to_robot(id,name,msg); 
-
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-function slider1_Callback(hObject, eventdata, handles)
-function slider1_CreateFcn(hObject, eventdata, handles)
-function slider2_Callback(hObject, eventdata, handles)
-function slider2_CreateFcn(hObject, eventdata, handles)
-function slider3_Callback(hObject, eventdata, handles)
-function slider3_CreateFcn(hObject, eventdata, handles)
-function slider4_Callback(hObject, eventdata, handles)
-function slider4_CreateFcn(hObject, eventdata, handles)
-function slider5_Callback(hObject, eventdata, handles)
-function slider5_CreateFcn(hObject, eventdata, handles)
-function slider6_Callback(hObject, eventdata, handles)
-function slider6_CreateFcn(hObject, eventdata, handles)
-
 
 % --- Executes on button press in Suggest.
 function Suggest_Callback(hObject, eventdata, handles)
@@ -729,3 +733,148 @@ function Suggest_Callback(hObject, eventdata, handles)
 	x = x + distance * cos(yaw + servo_yaw);  
 	y = y + distance * sin(yaw + servo_yaw);  
 	send_ooi_msg(id,GLOBALS.current_ser,x,y,'CandOOI'); 
+
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+function retval = updateSettings(sliders,values)
+	global GLOBALS IMAGES;  
+	handles = guidata(GLOBALS.vision_gui);
+	if isempty(sliders)
+		sliders = {'exp','sat','gn','foc','con','brt'}; 
+	end
+	for i = 1:numel(sliders)
+		slider = sliders{i};
+		if nargin == 1
+			val = round(get(handles.([slider,'slider']),'Value')); 
+			retval = val; 
+		else 
+			val = values(i); 
+			set(handles.([slider,'slider']),'Value',val);
+			retval = [];  
+		end
+		set(handles.([slider,'val']),'String',num2str(val)); 
+	end
+
+function long = pname_short_to_long(short)
+	switch (short)
+	case 'exp'
+		long = 'exposure_absolute';
+	case 'sat'
+		long = 'saturation';
+	case 'gn'
+		long = 'gain';
+	case 'foc'
+		long = 'focus'; 
+	case 'con'
+		long = 'contrast'; 
+	case 'brt'; 
+		long = 'brightness';
+	end
+
+function short = pname_long_to_short(long)
+	switch (long)
+	case 'exposure_absolute'
+		short = 'exp';
+	case 'saturation' 
+		short =  'sat';
+	case 'gain'
+		short =  'gn';
+	case 'focus' 
+		short =  'foc';
+	case 'contrast' 
+		short =  'con';
+	case 'brightness'
+		short =  'brt'; 
+	end
+
+function updateSettingsWithPacket(id,type,p)
+	global GLOBALS; 
+	handles = guidata(GLOBALS.vision_gui);
+	seltype = get(get(handles.camera_type,'SelectedObject'),'String');
+	selcam  = get(get(handles.camera,'SelectedObject'),'String');
+	switch(selcam)
+	case	'L'
+		box = 1; 
+	case  	'R'
+		box = 2;
+	otherwise
+		box = 1; 
+	end
+
+	if id ~= GLOBALS.bids(box)
+		return
+	end
+	
+	switch(type)
+	case 'OmniVision'
+		type = 'OM'; 
+	case 'FrontVision'
+		type = 'FR'; 
+	end
+
+	if strcmp(type,seltype) | strcmp(seltype,'ALL')
+		values = [p.exposure_absolute, p.saturation, p.gain, p.focus, p.contrast, p.brightness]; 
+		updateSettings([],values); 
+	end
+
+function send_cam_param_msg(id,msg)
+	name = 'CamParams'
+	send_message_to_robot(id,name,msg);
+
+function slider_Callback(hObject, eventdata, handles)
+	global GLOBALS ROBOTS IMAGES; 
+	short = eventdata; 
+	val = updateSettings({short}); 
+	seltype = get(get(handles.camera_type,'SelectedObject'),'String');
+	selcam  = get(get(handles.camera,'SelectedObject'),'String');
+	switch(selcam)
+	case	'L'
+		boxes = [1]; 
+	case  	'R'
+		boxes = [2];
+	case  	'L/R'
+		boxes = [1 2];
+	otherwise
+		boxes = [1 2 3 4 5 6 7 8 9]; 
+	end
+
+	send_om = false; 
+	send_fr = false; 
+	switch(seltype)
+	case 'OM'
+		send_om = true;  
+	case 'FR'
+		send_fr = true; 
+	otherwise
+		send_om = true;  
+		send_fr = true; 
+	end
+	for box = boxes
+		id = GLOBALS.bids(box);
+		if ~ROBOTS(id).connected 
+			continue
+		end
+		if send_om
+			IMAGES(id).omni_params.(pname_short_to_long(short)) = val; 
+			params = IMAGES(id).omni_params; 
+			send_cam_param_msg(id,params);
+		end
+		if send_fr
+			IMAGES(id).front_params.(pname_short_to_long(short)) = val; 
+			params = IMAGES(id).front_params; 
+			send_cam_param_msg(id,params);
+		end
+	end
+
+	
+
+function slider_CreateFcn(hObject, eventdata, handles)
+
+function reset_params_Callback(hObject, eventdata, handles)
+% hObject    handle to reset_params (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+
+

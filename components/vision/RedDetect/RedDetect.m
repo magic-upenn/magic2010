@@ -1,61 +1,91 @@
 function RedDetect
 %global VISION_IPC host
-	global POSE LIDAR; 
+	global POSE LIDAR PARAMS; 
 	POSE.data = [];
 	SetMagicPaths;
 	addpath( [ getenv('MAGIC_DIR') '/trunk/components/vision/uvcCam' ] )
 	addpath( [ getenv('MAGIC_DIR') '/trunk/components/vision/RedDetect' ] )
-%	global POSE targetY
-
 	ipcInit;
-	imageMsgName = GetMsgName('Image');
-	ipcAPIDefine(imageMsgName);
-	ipcReceiveSetFcn(GetMsgName('Pose'), @PoseMsgHander);
-	ipcReceiveSetFcn(GetMsgName('Lidar0'), @VisionLidarHHandler);
-	ipcReceiveSetFcn(GetMsgName('Lidar1'), @VisionLidarVHandler);
-	ipcReceiveSetFcn(GetMsgName('Servo1'), @VisionServoHandler);
+	ipcReceiveSetFcn(GetMsgName('CamParams'),@CamParamsMsgHander);
+	ipcReceiveSetFcn(GetMsgName('Pose'),     @PoseMsgHander);
+	ipcReceiveSetFcn(GetMsgName('Lidar0'),   @VisionLidarHHandler);
+	ipcReceiveSetFcn(GetMsgName('Lidar1'),   @VisionLidarVHandler);
+	ipcReceiveSetFcn(GetMsgName('Servo1'),   @VisionServoHandler);
 	LIDAR.scanH = [];
 	LIDAR.scanV = [];
 	LIDAR.servo = 0;
+	PARAMS.omni = []; 
+	PARAMS.front = []; 
 	masterIp = '192.168.10.221';
 	masterPort = 12345;
 	UdpSendAPI('connect',masterIp,masterPort);
 
 	%%%%%%%%%%%%%%%%%%
-	counter = 0; 
+	ftime = .25; 
+	otime = .25; 
+	ftic = tic;
+	otic = tic; 
 	while(1)
-		counter = counter + 1;
-		%Get Image Here
-		%Compute red here
-		quality = 80; 
-	    % Calculate details of each red box candidate
-
-	    %%%% send images and OOI to vision GUI console through IPC %%%%%
 		ipcReceiveMessages;
-		[omni, front, omni_cands, front_cands, omni_stats, front_stats] = red_detect_cams();
-
-		%%%%% send compressed jpg image through IPC %%%%%
-		imPacket.id = GetRobotId(); 
-		imPacket.type = 'Vision';  
-		imPacket.t  = GetUnixTime();
-		imPacket.omni = cjpeg(omni,quality);
-		imPacket.front = cjpeg(front,quality);
-		imPacket.front_angle = LIDAR.servo;
-		imPacket.scanH = LIDAR.scanH;
-		imPacket.scanV = LIDAR.scanV;
-		for im = 1:3
-			imPacket.omni_cands{im}  = cjpeg(omni_cands{im},quality);
-			imPacket.front_cands{im} = cjpeg(front_cands{im},quality);
-		end 
-		imPacket.omni_stats = omni_stats;
-		imPacket.front_stats = front_stats;
-		imPacket.pose = POSE.data; 
-		raw = serialize(imPacket);
-		zraw = zlibCompress(raw);
-		UdpSendAPI('send',zraw);
-		%Send message to vision gsc
-		%ipcAPIPublish(imageMsgName,serialize(imPacket));
+		if toc(ftic) >= ftime
+			'Get front_packet'
+			packet = front_packet(); 
+			UdpSendAPI('send',packet);
+			ftic = tic; 
+		end
+		if toc(otic) >= otime
+			'Get omni_packet'
+			packet = omni_packet(); 
+			UdpSendAPI('send',packet);
+			otic = tic; 
+		end
+		tic; 
+	end	
+	
+function imPacket = omni_packet()
+	global POSE LIDAR PARAMS; 
+	[omni, omni_cands, omni_stats] = red_detect_cams('omni');
+	if isempty(PARAMS.omni)
+		PARAMS.omni = get_ctrl_values(0); 
 	end
+	quality = 80;  
+	%%%%% send compressed jpg image through IPC %%%%%
+	imPacket.id = GetRobotId(); 
+	imPacket.type = 'OmniVision';  
+	imPacket.t  = GetUnixTime();
+	imPacket.omni = cjpeg(omni,quality);
+	imPacket.front_angle = LIDAR.servo;
+	for im = 1:3
+		imPacket.omni_cands{im}  = cjpeg(omni_cands{im},quality);
+	end 
+	imPacket.omni_stats = omni_stats;
+	imPacket.pose = POSE.data; 
+	imPacket.params = PARAMS.omni; 
+	imPacket = zlibCompress(serialize(imPacket));
+
+function imPacket = front_packet()
+	global POSE LIDAR PARAMS;  
+	[front, front_cands, front_stats] = red_detect_cams('front');
+	if isempty(PARAMS.front)
+		PARAMS.front = get_ctrl_values(1); 
+	end
+	quality = 80;  
+	%%%%% send compressed jpg image through IPC %%%%%
+	imPacket.id = GetRobotId(); 
+	imPacket.type = 'FrontVision';  
+	imPacket.t  = GetUnixTime();
+	imPacket.front = cjpeg(front,quality);
+	imPacket.front_angle = LIDAR.servo;
+	imPacket.scanH = LIDAR.scanH;
+	imPacket.scanV = LIDAR.scanV;
+	for im = 1:3
+		imPacket.front_cands{im} = cjpeg(front_cands{im},quality);
+	end 
+	imPacket.front_stats = front_stats;
+	imPacket.pose = POSE.data; 
+	imPacket.params = PARAMS.front; 
+	imPacket = zlibCompress(serialize(imPacket));
+
 
 function PoseMsgHander(data,name)
 	global POSE
@@ -65,13 +95,18 @@ function PoseMsgHander(data,name)
 	end
 	POSE.data = MagicPoseSerializer('deserialize',data);
 
-function CamParamMsgHander(data,name)
-global targetY
-if isempty(data)
-    return;
-end
-
-targetY = deserialize(data);
+function CamParamsMsgHander(data,name)
+	global PARAMS
+	if isempty(data)
+    		return;
+	end
+	params = deserialize(data);
+	if params.cam == 0
+		PARAMS.omni = params; 
+	end 
+	if params.cam == 1
+		PARAMS.front = params;
+	end 
 
 function VisionLidarHHandler(data,name)
 global LIDAR
