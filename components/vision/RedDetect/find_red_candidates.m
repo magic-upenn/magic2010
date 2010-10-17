@@ -24,13 +24,7 @@ function [stats] = find_red_candidates(red)
 			regs(r).width = (c2-c1); 
 			regs(r).height = (r2-r1); 
 			regs(r).fill = regs(r).area/(regs(r).width * regs(r).height); 
-			rat = regs(r).width/regs(r).width; 
-			if rat > 1
-				rat = ratio/rat; 
-			else
-				rat = rat/ratio * 2; 
-			end
-			regs(r).score = regs(r).fill * regs(r).mean * (5 - abs(rat)); 
+			regs(r).score = regs(r).fill * regs(r).mean; 
 		end
 		if numel(regs) == 0
 			continue
