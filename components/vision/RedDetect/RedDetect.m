@@ -11,6 +11,7 @@ function RedDetect
 	ipcReceiveSetFcn(GetMsgName('Lidar0'),   @VisionLidarHHandler);
 	ipcReceiveSetFcn(GetMsgName('Lidar1'),   @VisionLidarVHandler);
 	ipcReceiveSetFcn(GetMsgName('Servo1'),   @VisionServoHandler);
+	ipcReceiveSetFcn(GetMsgName('Lazer_Msg'),   @LazerMsgHandler);
 	LIDAR.scanH = [];
 	LIDAR.scanV = [];
 	LIDAR.servo = 0;
@@ -110,6 +111,17 @@ function CamParamsMsgHandler(data,name)
 		PARAMS.front = params;
     set_ctrl_values(1,params); 
 	end 
+
+function LazerMsgHandler(data,name)
+	msg = deserialize(data); 
+	switch (msg.status)
+	case 'on'
+		laserOn; 
+	case 'off'
+		laserOff; 
+	otherwise	
+		return
+	end
 
 function VisionLidarHHandler(data,name)
 global LIDAR

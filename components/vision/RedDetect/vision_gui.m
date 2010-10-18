@@ -633,17 +633,8 @@ function send_ooi_done_msg(ser,status)
 	send_message_to_gcs(name,msg); 
 
 function send_lazer_msg(id,status)
-	name = 'Laser0Msg'; 
-	switch(status)
-	case 'on' 
-		msg.status = uint8(1); %on, off, up, down
-	case 'off' 
-		msg.status = uint8(0); %on, off, up, down
-	otherwise
-		return
-	end
-	send_message_to_robot(id,name,msg,false); 
-	msg
+	name = 'Lazer_Msg'; 
+	send_message_to_robot(id,name,msg); 
 
 function send_look_msg(id,theta,phi,type);
 	global GLOBALS; 
@@ -656,23 +647,16 @@ function send_look_msg(id,theta,phi,type);
 	set_status(type)
 	send_message_to_robot(id,name,msg); 
 
-function send_message_to_robot(id,name,msg,doser);
+function send_message_to_robot(id,name,msg);
 	global ROBOTS NOSEND
 	name = sprintf('Robot%d/%s',id,name); 
 	msg 
 	if ~isempty(NOSEND)
 		'NOT SENDING MESSAGES TODAY!!!'
 		return
-	ene	
-	if nargin < 4
-		doser = true
-	end
-	if doser
-		msg = serialize(msg)
-	end
+	end	
 	ROBOTS(id).ipcAPI('define',name);  
-	ROBOTS(id).ipcAPI('publish',name,msg));  
-	
+	ROBOTS(id).ipcAPI('publish',name,serialize(msg)); 
 function send_message_to_gcs(name,msg);
 	global NOSEND
 	if ~isempty(NOSEND)
