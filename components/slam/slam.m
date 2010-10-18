@@ -39,7 +39,8 @@ if (SPREAD.useSpread)
 end
 
 if (SLAM.useUdpExternal)
-  masterIp = '192.168.10.220';
+%  masterIp = '192.168.10.220';
+  masterIp = '192.168.10.255';
   masterPort = 12346;
   UdpSendAPI('connect',masterIp,masterPort);
 end
