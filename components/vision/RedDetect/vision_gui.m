@@ -246,8 +246,8 @@ function updateGui(id)
 function updateWithPackets(imPackets)
 	global IMAGES GLOBALS;
 	for i = 1:numel(imPackets)
-		i
-		imPacket = deserialize(zlibUncompress(imPackets{i}));
+		[i,numel(imPackets)] 
+		imPacket = imPackets{i};
 		IMAGES(imPacket.id).t = imPacket.t; 
 		IMAGES(imPacket.id).pose = imPacket.pose;
 		IMAGES(imPacket.id).front_angle = imPacket.front_angle; 

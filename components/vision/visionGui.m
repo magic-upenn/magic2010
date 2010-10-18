@@ -20,13 +20,18 @@ function visionGui(ids)
 		  	%toc
 			for ii=1:n
 				fprintf(1,'Got packet of size %d\n',length(packets(ii).data));
-				last_packets{end+1} = packets(ii).data; 
+				imPacket = deserialize(zlibUncompress(packets(ii).data));
+				last_packets{end+1} = imPacket;
+				for r = [1 3 4 5 6 7 8 9]
+					imPacket.id = r; 
+					last_packets{end+1} = imPacket;
+				end
 			end
 			%tic
 		  end
 		if toc(guit) > utime
 			'Updating gui'
-			if numel(last_packets) > 0
+			if numel(last_packets) > 0 & numel(last_packets) < 35
 				GLOBALS.updateWithPackets(last_packets); 
 			end
 			last_packets = {};  
