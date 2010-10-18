@@ -5,22 +5,23 @@ function param = get_ctrl_values(camnum)
 	elseif camnum == 1
 		cam = @uvcCam1;
 	else
-		param.brightness         		= 0;
-		param.contrast           		= 0;
-		param.saturation         		= 0;
-		param.white              		= 0;
-		param.gain               		= 0;
-		param.power              		= 0;
-		param.sharpness          		= 0;
-		param.backlight          		= 0;
-		param.exposure_auto      		= 0;
-		param.exposure_absolute  		= 0;
-		param.exposure_auto_priority		= 0;
-		param.focus		  		= 0;
-		param.led1_mode          		= 0;
-		param.led1_frequency     		= 0;
-		param.disable_video_processing		= 0;
-		param.raw_bits_per_pixel 		= 0;
+		param.cam = 1;
+		param.brightness = 128;
+		param.contrast = 32;
+		param.saturation = 28;
+		param.white = 1;
+		param.gain = 238;
+		param.power = 2;
+		param.sharpness = 191;
+		param.backlight = 1;
+		param.exposure_auto = 3;
+		param.exposure_absolute = 55;
+		param.exposure_auto_priority = 1;
+		param.focus = 175 ;
+		param.led1_mode = 3;
+		param.led1_frequency = 0;
+		param.disable_video_processing = 0;
+		param.raw_bits_per_pixel = 0;
 		return; 	
 	end
 param.brightness         		= cam('get_ctrl','brightness'); 

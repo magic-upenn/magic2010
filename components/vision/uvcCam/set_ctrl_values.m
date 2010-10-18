@@ -5,6 +5,12 @@ function params = set_ctrl_values(camnum,params)
 		cam = @uvcCam1;
 	end
 old = get_ctrl_values(camnum);
+if params.exposure_absolute <= 1  
+	params.exposure_absolute == 1; 
+	params.exposure_auto = 3; 
+else
+	params.exposure_auto = 1; 
+end
 
 names.brightness         		= 'brightness'; 
 names.contrast           		= 'contrast'; 

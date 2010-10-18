@@ -30,7 +30,8 @@ function im = get_im(waste,camfn,dev,width,height)
 			end 
 		end
 		im = camfn('read');
-		while isempty(im) 
+		tic
+		while isempty(im) & toc < 1;  
 			im = camfn('read');
 		end
 	end

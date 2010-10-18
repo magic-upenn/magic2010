@@ -85,6 +85,8 @@ function setup_imgs(gui)
 			set(handles.(ih_fname),'ButtonDownFcn',{@focus_ButtonDownFcn,[handles.(fname),box]});
 		end
 		handles.(ih_oname) = image(img.omni,'Parent',handles.(oname)); 
+	%	set(handles.(oname),'Xlim',[0.5,500.5])
+	%	set(handles.(oname),'Ylim',[0.5,100.5])
 		set(handles.(ih_oname),'ButtonDownFcn',{@omni_ButtonDownFcn,[handles.(oname),box]});
 		axis(handles.(oname),'off')
 	end
@@ -443,7 +445,7 @@ function setup_global_vars(vision_gui)
 	GLOBALS.updateWithPackets 	   = @updateWithPackets; 
 	GLOBALS.vision_fns = vision_fns; 
 	null_front = null_image(320,240); 	
-	null_omni  = null_image(775,155);
+	null_omni  = null_image(500,100);
 	null_cand  = null_image(150,150);
 	null_cands = {}; 
 	null_pose.x = 0;  

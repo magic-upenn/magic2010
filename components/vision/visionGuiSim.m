@@ -15,10 +15,8 @@ function visionGuiSim(ids)
 	POSE.data.y = 10; 
 	POSE.data.yaw = 0; 
 	 
-	ftime = .25; 
-	otime = .25; 
-	ftic = tic;
-	otic = tic; 
+	gtime = .5; 
+	gtic = tic;
 	for i = 1:9
 		ROBOTS(i).connected = 0;
 	end
@@ -27,17 +25,16 @@ function visionGuiSim(ids)
 	end
 
 	while(1)
-		if toc(ftic) >= ftime
+		if toc(gtic) >= gtime
 			'Get front_packet';
+			packets = {}; 
 			packet = front_packet(); 
-			GLOBALS.updateWithPacket(packet); 
-			ftic = tic; 
-		end
-		if toc(otic) >= otime
+			packets{end+1} = deserialize(zlibUncompress(packet)); 
 			'Get omni_packet';
 			packet = omni_packet(); 
-			GLOBALS.updateWithPacket(packet); 
-			otic = tic; 
+			packets{end+1} = deserialize(zlibUncompress(packet)); 
+			GLOBALS.updateWithPackets(packets); 
+			gtic = tic; 
 		end
 		tic; 
 	end	
