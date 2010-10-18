@@ -1,5 +1,6 @@
 function draw_cands_on_image(imh,axeh,stats,img)
 	set(imh,'CData',img);
+	delete(findobj(get(axeh,'Children'),'Type','Rectangle')); 
 	delete(findobj(get(axeh,'Children'),'Type','Line')); 
 	if isempty(stats)
 		return
@@ -18,8 +19,12 @@ function draw_cands_on_image(imh,axeh,stats,img)
 		end
 		bb = stats(i,2:end);
 		bb = max(bb,1);  
-		line([bb(3),bb(4)],[bb(1),bb(1)],'Color',linecolor,'LineWidth',2,'Parent',axeh);
-		line([bb(3),bb(4)],[bb(2),bb(2)],'Color',linecolor,'LineWidth',2,'Parent',axeh);
-		line([bb(3),bb(3)],[bb(1),bb(2)],'Color',linecolor,'LineWidth',2,'Parent',axeh);
-		line([bb(4),bb(4)],[bb(1),bb(2)],'Color',linecolor,'LineWidth',2,'Parent',axeh);
+		if all(bb == 1) 
+			continue; 
+		end
+		rectangle('Position',[bb(3),bb(1),bb(4)-bb(3),bb(2)-bb(1)],'EdgeColor',linecolor,'LineWidth',2,'Parent',axeh); 
+%		line([bb(3),bb(4)],[bb(1),bb(1)],'Color',linecolor,'LineWidth',2,'Parent',axeh);
+%		line([bb(3),bb(4)],[bb(2),bb(2)],'Color',linecolor,'LineWidth',2,'Parent',axeh);
+%		line([bb(3),bb(3)],[bb(1),bb(2)],'Color',linecolor,'LineWidth',2,'Parent',axeh);
+%		line([bb(4),bb(4)],[bb(1),bb(2)],'Color',linecolor,'LineWidth',2,'Parent',axeh);
 	end

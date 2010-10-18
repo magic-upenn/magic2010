@@ -10,18 +10,28 @@ function visionGui(ids)
 	initComm(ids);
  	vision_gui
 	'Receiving upd'
-		 tic
+	guit = tic; 	
+	utime = .5;
+	last_packets = {};  
 	while(1)
 		  packets = UdpReceiveAPI('receive');
 		  n = length(packets);
 		  if n > 0
-		  	toc
+		  	%toc
 			for ii=1:n
 				fprintf(1,'Got packet of size %d\n',length(packets(ii).data));
-				GLOBALS.updateWithPacket(packets(ii).data); 
+				last_packets{end+1} = packets(ii).data; 
 			end
-			tic
+			%tic
 		  end
+		if toc(guit) > utime
+			'Updating gui'
+			if numel(last_packets) > 0
+				GLOBALS.updateWithPackets(last_packets); 
+			end
+			last_packets = {};  
+			guit = tic; 
+		end 
 	end
 
 %initialize the gui variables
