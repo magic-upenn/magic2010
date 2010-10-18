@@ -10,14 +10,17 @@ function visionGui(ids)
 	initComm(ids);
  	vision_gui
 	'Receiving upd'
+		 tic
 	while(1)
 		  packets = UdpReceiveAPI('receive');
 		  n = length(packets);
 		  if n > 0
+		  	toc
 			for ii=1:n
 				fprintf(1,'Got packet of size %d\n',length(packets(ii).data));
 				GLOBALS.updateWithPacket(packets(ii).data); 
 			end
+			tic
 		  end
 	end
 

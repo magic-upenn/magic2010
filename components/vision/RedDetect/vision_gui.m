@@ -633,7 +633,8 @@ function send_ooi_done_msg(ser,status)
 	send_message_to_gcs(name,msg); 
 
 function send_lazer_msg(id,status)
-	name = 'Lazer_Msg'; 
+	name = 'Lazer_Msg';
+	msg.status = status;  
 	send_message_to_robot(id,name,msg); 
 
 function send_look_msg(id,theta,phi,type);
