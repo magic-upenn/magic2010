@@ -22,8 +22,8 @@ function RedDetect
 	UdpSendAPI('connect',masterIp,masterPort);
 
 	%%%%%%%%%%%%%%%%%%
-	ftime = .25; 
-	otime = .25; 
+	ftime = 1; 
+	otime = 1; 
 	ftic = tic;
 	otic = tic; 
 	while(1)
@@ -49,12 +49,12 @@ function imPacket = omni_packet()
 	if isempty(PARAMS.omni)
 		PARAMS.omni = get_ctrl_values(0); 
 	end
-	quality = 80;  
+	quality = 70;  
 	%%%%% send compressed jpg image through IPC %%%%%
 	imPacket.id = GetRobotId(); 
 	imPacket.type = 'OmniVision';  
 	imPacket.t  = GetUnixTime();
-	imPacket.omni = cjpeg(omni,quality);
+  imPacket.omni = cjpeg(omni,quality);
 	imPacket.front_angle = LIDAR.servo;
 	for im = 1:3
 		imPacket.omni_cands{im}  = cjpeg(omni_cands{im},quality);
@@ -70,7 +70,7 @@ function imPacket = front_packet()
 	if isempty(PARAMS.front)
 		PARAMS.front = get_ctrl_values(1); 
 	end
-	quality = 80;  
+	quality = 70;  
 	%%%%% send compressed jpg image through IPC %%%%%
 	imPacket.id = GetRobotId(); 
 	imPacket.type = 'FrontVision';  
@@ -97,8 +97,9 @@ function PoseMsgHander(data,name)
 	POSE.data = MagicPoseSerializer('deserialize',data);
 
 function CamParamsMsgHandler(data,name)
-	global PARAMS
+ global PARAMS
   'Changing params'
+  return
   if isempty(data)
     		return;
 	end
