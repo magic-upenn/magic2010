@@ -22,8 +22,8 @@ function RedDetect
 	UdpSendAPI('connect',masterIp,masterPort);
 
 	%%%%%%%%%%%%%%%%%%
-	ftime = 1; 
-	otime = 1; 
+	ftime = 1.5; 
+	otime = 1.5; 
 	ftic = tic;
 	otic = tic; 
 	while(1)
@@ -49,7 +49,7 @@ function imPacket = omni_packet()
 	if isempty(PARAMS.omni)
 		PARAMS.omni = get_ctrl_values(0); 
 	end
-	quality = 70;  
+	quality = 50;  
 	%%%%% send compressed jpg image through IPC %%%%%
 	imPacket.id = GetRobotId(); 
 	imPacket.type = 'OmniVision';  
@@ -70,7 +70,7 @@ function imPacket = front_packet()
 	if isempty(PARAMS.front)
 		PARAMS.front = get_ctrl_values(1); 
 	end
-	quality = 70;  
+	quality = 60;  
 	%%%%% send compressed jpg image through IPC %%%%%
 	imPacket.id = GetRobotId(); 
 	imPacket.type = 'FrontVision';  
