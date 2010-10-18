@@ -7,9 +7,9 @@ persistent time_prev error_prev error_sum offset_prev offset_sum;
 %path_pts
 
 % gains
-Khp = 2.5/pi; 
-Khi = 0.2;
-Khd = 0.5;
+Khp = .5;%2.5/pi; 
+Khi = .4;
+Khd = .5;
 Kop = 0;%0.5;
 Koi = 0;%1;
 Kod = 0;%0.05;
