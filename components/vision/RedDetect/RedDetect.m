@@ -17,7 +17,7 @@ function RedDetect
 	LIDAR.servo = 0;
 	PARAMS.omni = []; 
 	PARAMS.front = []; 
-	masterIp = '192.168.10.255';
+	masterIp = '192.168.10.221';
 	masterPort = 12345;
 	UdpSendAPI('connect',masterIp,masterPort);
 
