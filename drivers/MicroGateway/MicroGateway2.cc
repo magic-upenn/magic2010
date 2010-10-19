@@ -530,10 +530,9 @@ int MicroGateway::GpsPacketHandler(DynamixelPacket * dpacket)
   int packetType = DynamixelPacketGetType(dpacket);
   if ( packetType == MMC_GPS_ASCII )
   {
+#ifdef PRINT_GPS
     double gpsDt = this->gpsTimer.Toc();
     this->gpsTimer.Tic();
-
-#ifdef PRINT_GPS
     printf("got gps packet (%f) : ",gpsDt);
     char *c = (char*)DynamixelPacketGetData(dpacket);
     while (*c != '\n')
@@ -580,9 +579,11 @@ int MicroGateway::MotorControllerPacketHandler(DynamixelPacket * dpacket)
 
     if (cntr%10 == 0)
     {
-      double dt = t0.Toc(true); t0.Tic();
+      //double dt = t0.Toc(true); t0.Tic();
       
-      printf("encoders: %d %d %d %d %d %d %d %d\n",en0,en1,en2,en3,encData[5],encData[6],encData[7],encData[8]);
+      printf("encoders: %d %d %d %d\n",en0,en1,en2,en3);
+      printf("current: %f %f\n",(double)encData[5],(double)encData[6]);
+      printf("temp: %f %f\n",(double)encData[7],(double)encData[8]);
       en0 = en1 = en2 = en3 = 0;
     }
 
@@ -706,7 +707,7 @@ int AngleVal2AngleDeg(uint16_t val, double &angle)
 int MicroGateway::ServoPacketHandler(DynamixelPacket * dpacket)
 {
   int id = DynamixelPacketGetId(dpacket);
-  int type = DynamixelPacketGetType(dpacket);
+  //int type = DynamixelPacketGetType(dpacket);
   int size = DynamixelPacketGetPayloadSize(dpacket);
 
   double angle;
@@ -777,7 +778,7 @@ int MicroGateway::Main()
   DynamixelPacketInit(&dpacket);
 
   uint16_t cnt =0;
-  uint16_t encoderCntr = 0;
+  //uint16_t encoderCntr = 0;
 
   this->ResetImu();
 
@@ -792,8 +793,7 @@ int MicroGateway::Main()
       //this->PrintSerialPacket(&dpacket);
 
       this->HandleSerialPacket(&dpacket);
-      
-      int deviceId = DynamixelPacketGetId(&dpacket);
+      //int deviceId = DynamixelPacketGetId(&dpacket);
     }
     else if (ret < 0)
       printf("serial error\n");
@@ -807,4 +807,233 @@ int MicroGateway::Main()
 
   return 0;
 }
+
+
+int MicroGateway::ReadConfig(uint16_t offset, uint8_t * data, uint16_t size)
+{
+  const int bufSize = 256;
+  uint8_t buf[bufSize];
+  uint8_t temp[256];
+  memcpy(temp,&offset,2);
+  memcpy(temp+2,&size,2);
+
+  int ret = DynamixelPacketWrapData(MMC_MAIN_CONTROLLER_DEVICE_ID,
+                                    MMC_MC_EEPROM_READ,temp,4,buf,bufSize);
+
+  if (ret < 1)
+  {
+    PRINT_ERROR("could not wrap packet\n");
+    return -1;
+  }
+
+  //write the mode switch request
+  sd->WriteChars((char*)buf,ret);
+
+  Timer t0; t0.Tic();
+
+  bool gotResp      = false;
+  bool readConfig = false;
+  char c;
+  DynamixelPacket dpacket;
+  DynamixelPacketInit(&dpacket);
+
+  while (!gotResp && (t0.Toc() < 5))
+  {
+    int nchars = sd->ReadChars(&c,1);
+    if (nchars==1)
+    {
+      int ret = DynamixelPacketProcessChar(c,&dpacket);
+      if (ret > 0)
+      {
+        int id = DynamixelPacketGetId(&dpacket);
+        int type = DynamixelPacketGetType(&dpacket);
+        uint8_t * pdata = DynamixelPacketGetData(&dpacket);
+
+        printf("got packet with id %d and type %d\n",id,type);
+
+        if (id != MMC_MAIN_CONTROLLER_DEVICE_ID)
+          continue;
+        if (type != MMC_MC_EEPROM_READ)
+          continue;
+
+        gotResp = true;  
+
+        uint16_t offset2;
+        uint16_t size2;
+
+        memcpy(&offset2,pdata,2);
+        memcpy(&size2,pdata+2,2);
+
+        if ((offset2 == offset) && (size2 == size))
+          readConfig = true;
+
+        memcpy(data,pdata+4,size);
+      }
+    }
+  }
+
+  if (readConfig)
+    return size;
+  else
+    return -1;
+}
+
+int MicroGateway::WriteConfig(uint16_t offset, uint8_t * data, uint16_t size)
+{
+  const int bufSize = 256;
+  uint8_t buf[bufSize];
+  uint8_t temp[256];
+  memcpy(temp,&offset,2);
+  memcpy(temp+2,&size,2);
+  memcpy(temp+4,data,size);
+
+  int ret = DynamixelPacketWrapData(MMC_MAIN_CONTROLLER_DEVICE_ID,
+                                    MMC_MC_EEPROM_WRITE,temp,size+4,buf,bufSize);
+
+  if (ret < 1)
+  {
+    PRINT_ERROR("could not wrap packet\n");
+    return -1;
+  }
+
+  //write the mode switch request
+  sd->WriteChars((char*)buf,ret);
+
+
+  Timer t0; t0.Tic();
+
+  bool gotResp      = false;
+  bool wroteConfig = false;
+  char c;
+  DynamixelPacket dpacket;
+  DynamixelPacketInit(&dpacket);
+
+  while (!gotResp && (t0.Toc() < 5))
+  {
+    int nchars = sd->ReadChars(&c,1);
+    if (nchars==1)
+    {
+      int ret = DynamixelPacketProcessChar(c,&dpacket);
+      if (ret > 0)
+      {
+        int id = DynamixelPacketGetId(&dpacket);
+        int type = DynamixelPacketGetType(&dpacket);
+        uint8_t * pdata = DynamixelPacketGetData(&dpacket);
+
+        printf("got packet with id %d and type %d\n",id,type);
+
+        if (id != MMC_MAIN_CONTROLLER_DEVICE_ID)
+          continue;
+        if (type != MMC_MC_EEPROM_WRITE)
+          continue;
+
+        gotResp = true;  
+
+        uint16_t offset2;
+        uint16_t size2;
+
+        memcpy(&offset2,pdata,2);
+        memcpy(&size2,pdata+2,2);
+
+        if ((offset2 == offset) && (size2 == size))
+          wroteConfig = true;
+      }
+    }
+  }
+
+  if (wroteConfig)
+    return 0;
+  else
+    return -1;
+}
+
+int MicroGateway::SwitchModeConfig()
+{
+  const int bufSize = 256;
+  uint8_t buf[bufSize];
+  uint8_t mode = MMC_MC_MODE_CONFIG;
+
+  int ret = DynamixelPacketWrapData(MMC_MAIN_CONTROLLER_DEVICE_ID,
+                                    MMC_MC_MODE_SWITCH,&mode,1,buf,bufSize);
+
+  if (ret < 1)
+  {
+    PRINT_ERROR("could not wrap packet\n");
+    return -1;
+  }
+
+  //write the mode switch request
+  sd->WriteChars((char*)buf,ret);
+  
+  Timer t0; t0.Tic();
+
+  bool gotResp      = false;
+  bool switchedMode = false;
+  char c;
+  DynamixelPacket dpacket;
+  DynamixelPacketInit(&dpacket);
+
+  while (!gotResp && (t0.Toc() < 5))
+  {
+    int nchars = sd->ReadChars(&c,1);
+    if (nchars==1)
+    {
+      int ret = DynamixelPacketProcessChar(c,&dpacket);
+      if (ret > 0)
+      {
+        int id = DynamixelPacketGetId(&dpacket);
+        int type = DynamixelPacketGetType(&dpacket);
+        uint8_t * data = DynamixelPacketGetData(&dpacket);
+
+        if (id != MMC_MAIN_CONTROLLER_DEVICE_ID)
+          continue;
+        if (type != MMC_MC_MODE_SWITCH)
+          continue;
+
+        gotResp = true;  
+
+        if (*data == mode)
+          switchedMode = true;
+      }
+    }
+  }
+
+  if (switchedMode)
+    return 0;
+  else
+    return -1;
+}
+
+int MicroGateway::SwitchModeRun()
+{
+
+  return -1;
+}
+
+int MicroGateway::ReadPacket(DynamixelPacket * dpacket, double timeout)
+{
+  char c;
+  int size;
+  Timer t0; t0.Tic();
+  DynamixelPacketInit(dpacket);
+
+  bool gotPacket = false;
+  while (!gotPacket && (t0.Toc() < timeout))
+  {
+    int nchars = sd->ReadChars(&c,1);
+    if (nchars==1)
+    {
+      int size = DynamixelPacketProcessChar(c,dpacket);
+      if (size > 0)
+        gotPacket = true;
+    }
+  }
+
+  if (gotPacket)
+    return size;
+  else
+    return -1;
+}
+
+
 

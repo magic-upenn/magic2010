@@ -64,6 +64,12 @@ namespace Upenn
     public: int ProcessSerialPacket(DynamixelPacket * dpacket);
 
     public: int Main();
+
+    public: int ReadPacket(DynamixelPacket * dpacket, double timeout);
+    public: int SwitchModeConfig();
+    public: int SwitchModeRun();
+    public: int WriteConfig(uint16_t offset, uint8_t * data, uint16_t size);
+    public: int ReadConfig(uint16_t offset, uint8_t * data, uint16_t size);
     
     private: string DefineMsg(string msgName, string format);
     private: int PublishMsg(string msgName, void * data);

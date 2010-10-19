@@ -1,6 +1,6 @@
 OBJECTS  = MicroGateway2.o ErrorMessage.o DynamixelController.o 
 
-TARGETS = runMicroGateway2 MicroConfig readIMU #runMicroGateway
+TARGETS = runMicroGateway2 MicroConfig readIMU GetMicroId #runMicroGateway
 
 include $(MAGIC_DIR)/Makefile.mk
 
@@ -11,6 +11,9 @@ runMicroGateway2: runMicroGateway2.cc $(OBJECTS)
 	g++ -Wall -o $@ $^ $(CPP_FLAGS) $(INCLUDES) $(LIB_DIRS) $(LIBS)
 
 MicroConfig: MicroConfig.cc $(OBJECTS)
+	g++ -Wall -o $@ $^ $(CPP_FLAGS) $(INCLUDES) $(LIB_DIRS) $(LIBS)
+
+GetMicroId : GetMicroId.cc $(OBJECTS)
 	g++ -Wall -o $@ $^ $(CPP_FLAGS) $(INCLUDES) $(LIB_DIRS) $(LIBS)
 
 
