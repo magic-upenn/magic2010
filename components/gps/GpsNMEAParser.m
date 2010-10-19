@@ -94,5 +94,5 @@ GPS.mslAlt  = dpacket(10); %meters
 GPS.geoidSep= dpacket(12); %meters
 
 %NAN checking
-if isnan(GPS.mslAlt), GPS.msl_alt = []; end
-if isnan(GPS.geoidSep), GPS.geoid_sep = []; end
+if isnan(GPS.mslAlt), GPS.mslAlt = []; end
+if isnan(GPS.geoidSep), GPS.geoidSep = []; end
