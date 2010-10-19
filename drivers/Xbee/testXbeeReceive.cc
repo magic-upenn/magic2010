@@ -30,8 +30,7 @@ int main()
   {
     len = xbee.ReceivePacket(&frame,1);
     uint8_t apiId = XbeeFrameGetApiId(&frame); 
-    printf("\ngot frame of size %d of type %x\n",len,
-              apiId);
+    printf("\ngot frame of size %d of type %x\n",len,apiId);
 
     if (apiId == XBEE_API_RX_PACKET_16)
     {
