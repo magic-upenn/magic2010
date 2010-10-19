@@ -591,8 +591,10 @@ int MicroGateway::MotorControllerPacketHandler(DynamixelPacket * dpacket)
       MotorStatus ms;
       ms.currentRR = (double)encData[5];
       ms.currentRL = (double)encData[6];
-      ms.tempRR = (double)encData[7];
-      ms.tempRL = (double)encData[8];
+
+      //temp sensor sould read 2.98V at 25C and 10mV/degree slope
+      ms.tempRR = 25.0 + ( (encData[7]/1023.0*5.0) - 2.98)*100.0;
+      ms.tempRL = 25.0 + ( (encData[8]/1023.0*5.0) - 2.98)*100.0;
       this->PublishMsg(this->motorStatusMsgName,&ms);
 #ifdef PRINT_ENCODERS
       printf("encoders: %d %d %d %d\n",en0,en1,en2,en3);
