@@ -1,6 +1,6 @@
 function [rgb_image, cands, stats] = red_detect_cams(cam)
 	if strcmp(cam,'omni'); 
-		omni  = get_image(0,1,'yuv'); 
+		omni  = get_image(0,1,'yuv');
 		circle = [600,800,650]/2;
 		omni_flat = linear_unroll(omni,circle(2),circle(1),circle(3));
 		[omni_stats] = find_red_candidates(omni_flat(:,:,3));

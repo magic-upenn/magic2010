@@ -97,9 +97,8 @@ function PoseMsgHander(data,name)
 	POSE.data = MagicPoseSerializer('deserialize',data);
 
 function CamParamsMsgHandler(data,name)
- global PARAMS
+  global PARAMS
   'Changing params'
-  return
   if isempty(data)
     		return;
 	end
