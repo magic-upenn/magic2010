@@ -22,7 +22,7 @@ function varargout = vision_gui(varargin)
 
 % Edit the above text to modify the response to help vision_gui
 
-% Last Modified by GUIDE v2.5 17-Oct-2010 15:21:40
+% Last Modified by GUIDE v2.5 19-Oct-2010 16:45:09
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -746,6 +746,7 @@ function retval = updateSettings(sliders,values)
 		slider = sliders{i};
 		if nargin == 1
 			val = round(get(handles.([slider,'slider']),'Value')); 
+			set(handles.([slider,'reqval']),'String',num2str(val)); 
 			retval = val; 
 		else 
 			val = values(i); 
