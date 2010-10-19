@@ -111,6 +111,7 @@ namespace Upenn
     private: int EstopPacketHandler(DynamixelPacket * dpacket);
     private: int MasterPacketHandler(DynamixelPacket * dpacket);
     private: int MainControllerPacketHandler(DynamixelPacket * dpacket);
+    private: int XbeePacketHandler(DynamixelPacket * dpacket);
     
     private: SerialDevice * sd;
     private: bool connectedSerial;
@@ -137,6 +138,7 @@ namespace Upenn
     private: string servo1StateMsgName;
     private: string batteryStatusMsgName;
     private: string motorStatusMsgName;
+    private: string xbeeMsgName;
   };
 }
 #endif

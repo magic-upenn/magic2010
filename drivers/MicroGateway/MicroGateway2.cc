@@ -291,6 +291,7 @@ int MicroGateway::InitializeMessages()
   this->servo1StateMsgName = this->DefineMsg("Servo1",ServoState::getIPCFormat());
   this->batteryStatusMsgName = this->DefineMsg("BatteryStatus",BatteryStatus::getIPCFormat());
   this->motorStatusMsgName   = this->DefineMsg("MotorStatus",MotorStatus::getIPCFormat());
+  this->xbeeMsgName  = this->DefineMsg("XbeeIncoming","");
 
 
   string msgName = this->robotName + "/" + "VelocityCmd";
@@ -527,9 +528,29 @@ int MicroGateway::HandleSerialPacket(DynamixelPacket * dpacket)
 
     case MMC_MASTER_DEVICE_ID:
       this->MasterPacketHandler(dpacket);
+
+    case MMC_XBEE_DEVICE_ID:
+      this->XbeePacketHandler(dpacket);
     default:
       break;
   }
+
+  return 0;
+}
+
+int MicroGateway::XbeePacketHandler(DynamixelPacket * dpacket)
+{
+  int packetType = DynamixelPacketGetType(dpacket);
+  uint8_t * data = DynamixelPacketGetData(dpacket);
+  int size       = DynamixelPacketGetPayloadSize(dpacket);
+  
+  printf("got xbee packet of size %d\n",size);
+
+  if (IPC_publish(this->xbeeMsgName.c_str(),size,data) != IPC_OK)
+  {
+    PRINT_ERROR("could not publish ipc message\n");
+    return -1;
+  }  
 
   return 0;
 }
