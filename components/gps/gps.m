@@ -21,7 +21,7 @@ function gpsStart
 global GPS
 addpath( [ getenv('VIS_DIR') '/ipc' ] )
 
-GPS.ipcMsgName = [GetRobotName  '/GPS'];
+GPS.ipcMsgName = GetMsgName('GPS');
 
 %connect to ipc
 ipcAPIConnect;
@@ -81,6 +81,7 @@ GPS.zone = [];
 GPS.traj = [];
 GPS.trajMap = [];
 
+%{
 figure(2)
 clf(gcf);
 im = imread('upenn_small.jpg');
@@ -88,22 +89,24 @@ GPS.hOverhead=image(im(end:-1:1,:,:)); hold on;
 set(gca,'ydir','normal');
 GPS.hTrajMap = plot3(0,0,0,'.');
 hold off;
-
+%}
 
 
 function gpsUpdate
 global GPS
-msgs = ipcAPI('listenClear',5);
+msgs = ipcAPI('listenClear',10);
 len = length(msgs);
 if len > 0
   for mi=1:len
     switch msgs(mi).name
       case GPS.ipcMsgName
         fprintf(1,'.');
+        
         gpsPacket   = MagicGpsASCIISerializer('deserialize',msgs(mi).data);
         gpsString = char(gpsPacket.data);
         checksumOk = nmeaChecksum(gpsString);
         if (checksumOk == 1)
+          fprintf(1,'%s',gpsString);
           GPS.numPackets =  GPS.numPackets + 1;
           GpsNMEAParser(gpsString);
         else
@@ -129,9 +132,39 @@ type = strtok(line,',');
 switch type
   case '$GPGGA'
     GpsNMEAParseGGA(line);
+  case '$GPRMC'
+    GpsNMEAParseRMC(line);
 end
 
 
+function GpsNMEAParseRMC(line)
+global GPS
+packet = textscan(line,'%s','delimiter',',*');
+packet = packet{1};
+
+%convert values to double (some will be NaN)
+dpacket = str2double(packet);
+
+GPS.utc_time  = dpacket(2);
+rmc_valid     = packet(3);
+if (strcmp(rmc_valid,'A') ==1) %A for valid, V for invalid
+  GPS.valid = 1;
+else
+  GPS.valid = 0;
+end
+
+GPS.lat       = floor(dpacket(4)/100) + rem(dpacket(4),100)/60;
+GPS.NS        = packet{5}; %north/south
+if (strcmp(GPS.NS,'S')) GPS.lat = -GPS.lat; end
+GPS.lon       = floor(dpacket(6)/100) + rem(dpacket(6),100)/60;
+GPS.EW        = packet{7}; %east/west
+if (strcmp(GPS.EW,'W')) GPS.lon = -GPS.lon; end
+GPS.speed     = dpacket(8) * 0.514444; %convert from knots to m/s
+GPS.heading   = dpacket(9);
+GPS.date      = dpacket(10);
+GPS.magVarDeg = dpacket(11);
+GPS.magVarDir = packet{12};
+GPS.mode      = packet{13};
 
 function GpsNMEAParseGGA(line)
 global GPS
@@ -141,48 +174,24 @@ packet = packet{1};
 %convert values to double (some will be NaN)
 dpacket = str2double(packet);
 
+%some of the below values will be used from RMC packet
+%{
 GPS.utc_time = dpacket(2);
 GPS.lat      = floor(dpacket(3)/100) + rem(dpacket(3),100)/60;
-GPS.NS       = packet(4); %north/south
+GPS.NS       = packet{4}; %north/south
 if (strcmp(GPS.NS,'S')) GPS.lat = -GPS.lat; end
 GPS.lon      = floor(dpacket(5)/100) + rem(dpacket(5),100)/60;
-GPS.EW       = packet(6); %east/west
+GPS.EW       = packet{6}; %east/west
 if (strcmp(GPS.EW,'W')) GPS.lon = -GPS.lon; end
+%}
 GPS.pos_fix  = dpacket(7);
 GPS.num_sat  = dpacket(8);
 GPS.hdop     = dpacket(9);
 GPS.msl_alt  = dpacket(10);
-%units for altitude
+%units for altitude ??
 GPS.geoid_sep= dpacket(12);
-%units for separation
+%units for separation ??
 GPS.age_diff = dpacket(14);
 GPS.diff_ref_id = dpacket(15);
-
-set(GPS.hNumPackets,'String',num2str(GPS.numPackets));
-set(GPS.hErrors,'String',num2str(GPS.numErrors));
-set(GPS.hNumSat,'String',num2str(GPS.num_sat));
-
-if (GPS.num_sat > 3)
-  [x,y,zone] = deg2utm(GPS.lat,GPS.lon);
-  GPS.x = x;
-  GPS.y = y;
-  GPS.zone = zone;
-  pos2pixel= 1/((483767.187537-483590.860505)/(7852-6318));
-  pixelx  = (GPS.x - 483767.187537)*pos2pixel + 7852;
-  pixely  = (GPS.y - 4422508.916057)*pos2pixel + 3116;
-  GPS.trajMap = [GPS.trajMap [pixelx;pixely;GPS.hdop]];
-  GPS.traj = [GPS.traj [GPS.x;GPS.y;GPS.hdop]];
-  set(GPS.hTrajMap,'xdata',GPS.traj(1,:),'ydata',GPS.traj(2,:),'zdata',GPS.traj(3,:));
-  GPS
-else
-  GPS.x = [];
-  GPS.y = [];
-  GPS.zone = [];
-end
-
-
-
-drawnow;
-
     
 
