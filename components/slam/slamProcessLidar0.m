@@ -3,7 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function slamProcessLidar0(data,name)
-global SLAM LIDAR0 OMAP EMAP POSE IMU CMAP DHMAP MAPS DVMAP SPREAD ENCODERS TRACK
+global SLAM LIDAR0 OMAP EMAP POSE IMU CMAP DHMAP MAPS DVMAP SPREAD ENCODERS TRACK GPS
 
 runTrackObs = 1;
 
@@ -105,6 +105,8 @@ end
   
 %publish pose message going out to outside world
 if mod(SLAM.lidar0Cntr,10) == 0
+    POSE.data.gps = GPS;
+  
     ipcAPIPublishVC(POSE.extMsgName,MagicPoseSerializer('serialize',POSE.data));
 
     if (SPREAD.useSpread)

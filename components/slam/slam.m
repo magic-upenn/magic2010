@@ -107,6 +107,7 @@ ipcReceiveSetFcn(GetMsgName('Lidar1'),      @slamProcessLidar1_2, ipcAPIHandle,5
 ipcReceiveSetFcn(GetMsgName('Servo1'),      @slamProcessServo1,   ipcAPIHandle,5);
 ipcReceiveSetFcn(GetMsgName('Encoders'),    @slamProcessEncoders, ipcAPIHandle,5);
 ipcReceiveSetFcn(GetMsgName('ImuFiltered'), @ipcRecvImuFcn,       ipcAPIHandle,5);
+ipcReceiveSetFcn(GetMsgName('GPS'),         @slamProcessGps,      ipcAPIHandle,5);
 
 %initialize scan matching function
 ScanMatch2D('setBoundaries',OMAP.xmin,OMAP.ymin,OMAP.xmax,OMAP.ymax);
