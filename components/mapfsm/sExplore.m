@@ -8,6 +8,7 @@ switch event
  case 'entry'
   disp('sExplore');
   DATA.waitForGoal = 3;
+  DATA.t0 = gettime;
 
   %{
   PATH_DATA.type = 2;
@@ -37,10 +38,15 @@ switch event
        ret = sGoToPoint('update');
        if strcmp(ret,'done')
          DATA.waitForGoal = 1;
+         SetVelocity(0,0);
+         DATA.t0 = gettime;
        end
      case 1
-       sSpinLeft('entry');
-       DATA.waitForGoal = 2;
+        if gettime-DATA.t0 > 2.0
+         DATA.waitForGoal = 2;
+         sSpinLeft('entry');
+         DATA.t0 = gettime;
+        end
      case 2
        ret = sSpinLeft('update');
        if strcmp(ret,'done') || strcmp(ret,'timeout')

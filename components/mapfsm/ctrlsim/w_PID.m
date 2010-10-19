@@ -8,7 +8,7 @@ persistent time_prev error_prev error_sum offset_prev offset_sum;
 
 % gains
 Khp = .5;%2.5/pi; 
-Khi = .4;
+Khi = 1.0;
 Khd = .5;
 Kop = 0;%0.5;
 Koi = 0;%1;

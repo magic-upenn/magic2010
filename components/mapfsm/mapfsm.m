@@ -291,7 +291,7 @@ mapfsmExit;
 %==========
 function mapfsmEntry
 
-global MP PATH_DATA AVOID_REGIONS LAST_STATE SERVO_ANGLE USE_SERVO BODY_FACE
+global MP PATH_DATA AVOID_REGIONS LAST_STATE SERVO_ANGLE USE_SERVO BODY_FACE LOOK_ANGLE
 
 MP.sm = entry(MP.sm);
 LAST_STATE = '';
@@ -328,6 +328,7 @@ PATH_DATA.newExplorePath = false;
 AVOID_REGIONS.x = [];
 AVOID_REGIONS.y = [];
 SERVO_ANGLE = 0;
+LOOK_ANGLE = 0;
 USE_SERVO = true;
 BODY_FACE = false;
 
