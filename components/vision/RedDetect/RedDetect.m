@@ -17,13 +17,13 @@ function RedDetect
 	LIDAR.servo = 0;
 	PARAMS.omni = []; 
 	PARAMS.front = []; 
-	masterIp = '192.168.10.221';
+	masterIp = '192.168.10.255';
 	masterPort = 12345;
 	UdpSendAPI('connect',masterIp,masterPort);
 
 	%%%%%%%%%%%%%%%%%%
-	ftime = 1.5; 
-	otime = 1.5; 
+	ftime = .5; 
+	otime = .5; 
 	ftic = tic;
 	otic = tic; 
 	while(1)
