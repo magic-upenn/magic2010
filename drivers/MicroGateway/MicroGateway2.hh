@@ -87,6 +87,9 @@ namespace Upenn
     private: void static Laser0CmdMsgHandler (MSG_INSTANCE msgRef, 
                                       BYTE_ARRAY callData, void *clientData);
 
+    private: void static XbeeForwardMsgHandler (MSG_INSTANCE msgRef, 
+                                      BYTE_ARRAY callData, void *clientData);
+
     private: void static ServoControllerCmdMsgHandler (MSG_INSTANCE msgRef, 
                                       BYTE_ARRAY callData, void *clientData);
                                       

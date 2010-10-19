@@ -167,6 +167,31 @@ void MicroGateway::Laser0CmdMsgHandler(MSG_INSTANCE msgRef,
   IPC_freeByteArray(callData);
 }
 
+void MicroGateway::XbeeForwardMsgHandler(MSG_INSTANCE msgRef, 
+                                  BYTE_ARRAY callData, void *clientData)
+{
+  MicroGateway * mg      = (MicroGateway *)clientData;
+  uint8_t *data = (uint8_t*)callData;
+  int msgLen  = IPC_dataLength(msgRef);
+
+  PRINT_INFO("got xbee forward packet of size "<<msgLen<<"\n");
+
+  uint8_t id   = MMC_XBEE_DEVICE_ID;
+  uint8_t type = MMC_XBEE_FORWARD;
+
+  const int bufSize=256;
+  uint8_t tempBuf[bufSize];
+
+  int len = DynamixelPacketWrapData(id,type,data,msgLen,tempBuf,bufSize);
+  if (len < 0)
+    PRINT_ERROR("could not wrap data\n");
+
+  mg->SendSerialPacket(tempBuf,len);
+
+  //free memory
+  IPC_freeByteArray(callData);
+}
+
 
 void MicroGateway::ServoControllerCmdMsgHandler (MSG_INSTANCE msgRef, 
                                       BYTE_ARRAY callData, void *clientData)
@@ -294,6 +319,14 @@ int MicroGateway::InitializeMessages()
 
   msgName = this->robotName + "/" + "Laser0Cmd";
   if (IPC_subscribe(msgName.c_str(),this->Laser0CmdMsgHandler,this) != IPC_OK)
+  {
+    PRINT_ERROR("could not subscribe to IPC message\n");
+    exit(1);
+  }
+  PRINT_INFO("Subscribed to message "<<msgName<<"\n");
+
+  msgName = this->robotName + "/" + "XbeeForward";
+  if (IPC_subscribe(msgName.c_str(),this->XbeeForwardMsgHandler,this) != IPC_OK)
   {
     PRINT_ERROR("could not subscribe to IPC message\n");
     exit(1);

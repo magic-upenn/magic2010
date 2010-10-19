@@ -119,6 +119,19 @@ int XbeeSendPacket(uint8_t id, uint8_t type, uint8_t * buf, uint8_t size)
   return 0;
 }
 
+int XbeeSendRawPacket(DynamixelPacket * packet)
+{
+  uint8_t * buf = packet->buffer;
+  uint8_t size  = packet->lenExpected;
+
+  uint8_t ii;
+  
+  for (ii=0; ii<size; ii++)
+    XBEE_COM_PORT_PUTCHAR(*buf++);
+    
+  return 0;
+}
+
 void globalTimerOverflow(void)
 {
   globalTimer += 0xFFFF; 
@@ -413,6 +426,11 @@ int HostPacketHandler(DynamixelPacket * dpacket)
         else
           BusSendRawPacket(dpacket);  //does not require a response, so bust won't be blocked
       }
+      break;
+
+    case MMC_XBEE_DEVICE_ID:
+      if (type == MMC_XBEE_FORWARD)
+        XbeeSendRawPacket(dpacket);
       break;
 
     default:

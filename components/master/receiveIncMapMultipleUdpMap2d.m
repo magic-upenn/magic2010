@@ -88,6 +88,8 @@ return;
 
 
 function PoseMsgHandler(packet)
+whos packet
+packet.gps
 id = packet.id;
 fprintf('got pose from robot %d\n',id);
 ROBOTS(id).pose.data = packet;
