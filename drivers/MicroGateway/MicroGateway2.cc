@@ -24,8 +24,8 @@ using namespace Magic;
 
 //#define PRINT_IMU_FILTERED
 //#define PRINT_IMU_RAW
-#define PRINT_GPS
-//#define PRINT_ENCODERS
+//#define PRINT_GPS
+#define PRINT_ENCODERS
 //#define PRINT_SERVO
 
 /////////////////////////////////////////////////////////////////////////
@@ -589,8 +589,11 @@ int MicroGateway::MotorControllerPacketHandler(DynamixelPacket * dpacket)
       //double dt = t0.Toc(true); t0.Tic();
       
       MotorStatus ms;
-      ms.currentRR = (double)encData[5];
-      ms.currentRL = (double)encData[6];
+
+      //conversion factor is with 0.008 ohm resistor, and 1/2 resistor divider on amplified signal
+      const double currentScale = 1.0/1023.0*5.0/0.008/50.0*2;
+      ms.currentRR = encData[5]*currentScale;
+      ms.currentRL = encData[6]*currentScale;
 
       //temp sensor sould read 2.98V at 25C and 10mV/degree slope
       ms.tempRR = 25.0 + ( (encData[7]/1023.0*5.0) - 2.98)*100.0;
@@ -598,8 +601,8 @@ int MicroGateway::MotorControllerPacketHandler(DynamixelPacket * dpacket)
       this->PublishMsg(this->motorStatusMsgName,&ms);
 #ifdef PRINT_ENCODERS
       printf("encoders: %d %d %d %d\n",en0,en1,en2,en3);
-      printf("current: %f %f\n",(double)encData[5],(double)encData[6]);
-      printf("temp: %f %f\n",(double)encData[7],(double)encData[8]);
+      printf("current: %f %f\n",ms.currentRR,ms.currentRL);
+      printf("temp: %f %f\n",ms.tempRR,ms.tempRL);
 #endif
       en0 = en1 = en2 = en3 = 0;
     }
