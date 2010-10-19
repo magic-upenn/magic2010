@@ -150,6 +150,40 @@ int IpcLoggerDB::Initialize(string xmlFileName, string logFileName)
   
     //load the configuration from xml
     gazebo::XMLConfigNode * node = this->conf->GetRootNode();
+
+    //get msgPrefix if any
+    gazebo::XMLConfigNode * msgPrefixNode = node->GetChild("msgPrefix");
+    if (msgPrefixNode)
+    {
+      string prefix = msgPrefixNode->GetValue();
+      if (prefix == "ENV_ROBOT_ID")
+      {
+        char * robotIdChar = getenv("ROBOT_ID");
+        if (!robotIdChar)
+        {
+          PRINT_ERROR("ROBOT_ID is not defined in ENV, but requested as the message prefix\n");
+          return -1;
+        }
+
+        int robotId = atoi(robotIdChar);
+        if (robotId < 1 || robotId > 255)
+        {
+          PRINT_ERROR("invalid robot id in ROBOT_ID env var: " <<robotId<<"\n");
+          return -1;
+        }
+
+        stringstream prefixStream;
+        prefixStream<<"Robot"<<robotId<<"/";
+        this->msgPrefix = prefixStream.str();
+        PRINT_INFO("added msg prefix "<<this->msgPrefix<<"\n");
+      }
+      else
+      {
+        PRINT_ERROR("only prefix of type ENV_ROBOT_ID is currently supported\n");
+        return -1;
+      }
+    }
+
     
     //get the first msgType xml node
     gazebo::XMLConfigNode * msgTypeNode = node->GetChild("msgType");
@@ -172,6 +206,29 @@ int IpcLoggerDB::Initialize(string xmlFileName, string logFileName)
       
       //get the next child
       msgTypeNode = msgTypeNode->GetNext("msgType");
+    }
+
+
+    msgTypeNode = node->GetChild("msgTypeP");
+    while(msgTypeNode)
+    {
+      string type = msgTypeNode->GetValue();
+      if (type.empty())
+      {
+        PRINT_WARNING("empty msgType");
+        continue;
+      }
+      
+      type = this->msgPrefix + type;
+
+      PRINT_INFO("adding type "<<type<<" to the list of messages to log\n");
+      logHeaderStream<<"MSG_TYPE "<<type<<"\n";
+    
+      //store the message type in the array
+      this->msgTypes.push_back(type);
+      
+      //get the next child
+      msgTypeNode = msgTypeNode->GetNext("msgTypeP");
     }
 
     //set the flush period for
@@ -269,4 +326,9 @@ int IpcLoggerDB::Receive(int timeoutMs)
   IPC_listenWait(timeoutMs);
 
   return 0;
+}
+
+void IpcLoggerDB::SetMsgPrefix(string prefix)
+{
+  this->msgPrefix = prefix;
 }

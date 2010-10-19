@@ -34,6 +34,8 @@ namespace Upenn
 
     //receive messages for a give duration
     public: int Receive(int timeoutMs);
+
+    public: void SetMsgPrefix(string prefix);
     
     //write to the logger (database)
     protected: int Write(QBData * qbd);
@@ -58,6 +60,8 @@ namespace Upenn
     protected: static void MsgHandler(MSG_INSTANCE msgInst,
                                       BYTE_ARRAY ipcDataPtr,
                                       void * classInstPtr);
+
+    protected: string msgPrefix;
   };
 }
 

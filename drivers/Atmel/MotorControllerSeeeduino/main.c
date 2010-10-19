@@ -18,6 +18,7 @@
 #include "DynamixelPacket.h"
 #include "timer1.h"
 #include "timer2.h"
+#include "adc.h"
 
 #define USE_H_BRIDGE
 #ifdef USE_H_BRIDGE
@@ -33,12 +34,20 @@
 #include "config.h"
 
 //store the encoder counts
-int16_t encCounts[4] = {0, 0, 0, 0};
+volatile int16_t encCounts[4] = {0, 0, 0, 0};
+volatile int8_t v=0, w=0;
+volatile uint16_t n2OVF = 0;
+volatile int8_t mode = MODE_MANUAL;
+volatile float vCl = 0, wCl = 0;
 
-int8_t v=0, w=0;
 
-uint16_t n2OVF = 0;
-int8_t mode = MODE_MANUAL;
+//imu data will come in over the rs485 bus
+volatile float roll   = 0;
+volatile float pitch  = 0;
+volatile float yaw    = 0;
+volatile float wroll  = 0;
+volatile float wpitch = 0;
+volatile float wyaw   = 0;
 
 
 uint8_t  rcPacketIn[16];
@@ -192,8 +201,13 @@ void init(void)
   STATUS_LED_DDR |= _BV(STATUS_LED_PIN);
   ACT_LED_DDR |= _BV(ACT_LED_PIN);
   
+  
   STATUS_LED_PORT |= _BV(STATUS_LED_PIN);
   ACT_LED_PORT |= _BV(ACT_LED_PIN);
+
+
+  //enable AD converter
+  adc_init();
 
   sei();
   
@@ -239,6 +253,7 @@ int SetVelocity(int8_t vNew, int8_t wNew)
   if (wNew<MIN_W && wNew>-MIN_W)
     wNew = 0;
   
+  //IIR filter
   v = vNew*0.3 + v*0.7;
   w = wNew*0.3 + w*0.7;
   //v=vtemp;
@@ -277,18 +292,19 @@ int ProcessIncomingRCPacket()
 }
 
 
-
-
 int main(void)
 {
-  int16_t c, ret;
+  int16_t c, ret,len;
   int8_t rcChannel=0;
   unsigned long count = 0;
-  uint16_t counts[5];    //packet counter and 4 encoder counts
+  uint16_t counts[9];    //packet counter and 4 encoder counts + 2 current measurements + 2 temp
+  uint16_t adcVals[NUM_ADC_CHANNELS];
+
   counts[0] = 0;
   uint8_t * dataPr;
-  
   uint8_t packetId;
+  float * imuData;
+  float * tempf;
   
   DynamixelPacket dpacket;
   DynamixelPacketInit(&dpacket);
@@ -305,6 +321,13 @@ int main(void)
   while (1) 
   {
     count++;
+
+    cli();
+    len = adc_get_data(adcVals);
+    sei();
+
+    if (len > 0)
+      memcpy(&(counts[5]),adcVals,4*sizeof(uint16_t));
     
     while ((c = rs485_getchar()) != EOF)
     {
@@ -336,7 +359,7 @@ int main(void)
           
             SendRS485Packet(MMC_MOTOR_CONTROLLER_DEVICE_ID,
                             MMC_MOTOR_CONTROLLER_ENCODERS_RESPONSE,
-                            (uint8_t*)counts,5*sizeof(uint16_t));
+                            (uint8_t*)counts,9*sizeof(uint16_t));
 
             break;
           case MMC_MOTOR_CONTROLLER_VELOCITY_SETTING:
@@ -351,6 +374,44 @@ int main(void)
                             MMC_MOTOR_CONTROLLER_VELOCITY_CONFIRMATION,
                             dataPr,sizeof(uint16_t));
   */
+            break;
+
+          case MMC_MOTOR_CONTROLLER_VELOCITY_SETTING_CLOSED_LOOP:
+            tempf = (float*)DynamixelPacketGetData(&dpacket);
+            if (mode == MODE_AUTONOMOUS)
+            {
+              vCl = *tempf++;
+              wCl = *tempf;
+            }
+            break;
+
+          case MMC_MOTOR_CONTROLLER_ENCODERS_REQUEST_AND_IMU_DATA:
+            cli();
+            memcpy(&(counts[1]),encCounts,4*sizeof(uint16_t));
+            ResetEncoderCounts();
+            sei();
+            
+            counts[1] = -counts[1];
+            counts[3] = -counts[3];
+
+            dataPr = DynamixelPacketGetData(&dpacket);
+          
+            //return back the counter
+            counts[0] = *(uint16_t*)(dataPr);
+          
+            SendRS485Packet(MMC_MOTOR_CONTROLLER_DEVICE_ID,
+                            MMC_MOTOR_CONTROLLER_ENCODERS_RESPONSE,
+                            (uint8_t*)counts,5*sizeof(uint16_t));
+
+
+            //store the imu data
+            imuData = (float*)(dataPr+2); //first two bytes are the uint16 counter
+            roll   = *imuData++;
+            pitch  = *imuData++;
+            yaw    = *imuData++;
+            wroll  = *imuData++;
+            wpitch = *imuData++;
+            wyaw   = *imuData;
             break;
             
           default:

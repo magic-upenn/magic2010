@@ -3,7 +3,7 @@
 
 //communications with host
 #include "uart0.h"
-#define HOST_BAUD_RATE 1000000
+#define HOST_BAUD_RATE 230400
 #define HOST_COM_PORT_INIT    uart0_init
 #define HOST_COM_PORT_SETBAUD uart0_setbaud
 #define HOST_COM_PORT_GETCHAR uart0_getchar
@@ -84,5 +84,13 @@ enum {MODE_MANUAL,MODE_AUTONOMOUS};
 #define RC_W_RANGE 230
 
 #define RC_MODE_THRESH 600
+
+#include "timer5.h"
+#define NUM_ADC_CHANNELS 4
+#define ADC_TIMER_PERIOD_TICS 25000 //25000 = 10Hz with 1/64 prescaler
+#define ADC_TIMER_RESET timer5_reset
+#define ADC_TIMER_INIT timer5_init
+#define ADC_TIMER_SET_COMPA_CALLBACK timer5_set_compa_callback
+#define ADC_TIMER_COMPA timer5_compa
 
 #endif //CONFIG_H

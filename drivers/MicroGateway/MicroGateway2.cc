@@ -24,8 +24,8 @@ using namespace Magic;
 
 //#define PRINT_IMU_FILTERED
 //#define PRINT_IMU_RAW
-//#define PRINT_GPS
-#define PRINT_ENCODERS
+#define PRINT_GPS
+//#define PRINT_ENCODERS
 //#define PRINT_SERVO
 
 /////////////////////////////////////////////////////////////////////////
@@ -533,7 +533,7 @@ int MicroGateway::GpsPacketHandler(DynamixelPacket * dpacket)
 #ifdef PRINT_GPS
     double gpsDt = this->gpsTimer.Toc();
     this->gpsTimer.Tic();
-    printf("got gps packet (%f) : ",gpsDt);
+    //printf("got gps packet (%f) : ",gpsDt);
     char *c = (char*)DynamixelPacketGetData(dpacket);
     while (*c != '\n')
     {

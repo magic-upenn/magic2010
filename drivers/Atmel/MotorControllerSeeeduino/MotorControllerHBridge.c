@@ -121,9 +121,14 @@ void MotorControllerHBridgeInit()
   //period = 2*0.2621s
   TCCR3B = _BV(CS30) | _BV(CS31) | _BV(WGM33);
   TCCR4B = _BV(CS40) | _BV(CS41) | _BV(WGM43);
+
+  //switching to 1/8 prescaler!!
+  //TCCR3B = _BV(CS31) | _BV(WGM33);
+  //TCCR4B = _BV(CS41) | _BV(WGM43);
   
   //set ICR3 and ICR4 to 0xFF to effectively make an 8 bit counter
   //now period is 2*0.001024s
+  //--- disabled : after switch to 1/8 prescaler, this is now around 4Khz
   ICR3   = 0xFF;
   ICR4   = 0xFF;
   
