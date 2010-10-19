@@ -15,7 +15,10 @@ function all_regs = filter_intersecting_boxes(all_regs)
 	Y = triu(min(max(Ah-squareform(pdist(Vr)),0),Bh));
 	Y(logical(eye(size(Y)))) = 0; 
 	[Ba,Bb,V] = find(Y); 
-	Y = Y(Iri,:); 
+	if isempty(Y)
+      return
+  end
+  Y = Y(Iri,:); 
 	Y = Y(:,Iri);
 	
 	[Vc,Ic] = sort(c1);
@@ -25,6 +28,9 @@ function all_regs = filter_intersecting_boxes(all_regs)
 	[Bw,Aw] = meshgrid(widthsr,widthsr); 
 	X = triu(min(max(Aw-squareform(pdist(Vc)),0),Bw));
 	[Ba,Bb,V] = find(X); 
+	if isempty(X)
+      return
+  end
 	X = X(Ici,:); 
 	X = X(:,Ici);
 	X(logical(eye(size(X)))) = 0; 
