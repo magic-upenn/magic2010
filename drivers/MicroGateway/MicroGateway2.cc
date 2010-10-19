@@ -576,7 +576,7 @@ int MicroGateway::MotorControllerPacketHandler(DynamixelPacket * dpacket)
     cntr++;
     int16_t * encData = (int16_t*)DynamixelPacketGetData(dpacket);
     //printf("got encoder packet (%f) : ",this->encoderTimer.Toc());
-#ifdef PRINT_ENCODERS
+
     //PRINT_INFO("GOT encoders");
 
     en0 += encData[1];
@@ -594,14 +594,15 @@ int MicroGateway::MotorControllerPacketHandler(DynamixelPacket * dpacket)
       ms.tempRR = (double)encData[7];
       ms.tempRL = (double)encData[8];
       this->PublishMsg(this->motorStatusMsgName,&ms);
-
+#ifdef PRINT_ENCODERS
       printf("encoders: %d %d %d %d\n",en0,en1,en2,en3);
       printf("current: %f %f\n",(double)encData[5],(double)encData[6]);
       printf("temp: %f %f\n",(double)encData[7],(double)encData[8]);
+#endif
       en0 = en1 = en2 = en3 = 0;
     }
 
-#endif
+
     EncoderCounts encPacket(Upenn::Timer::GetAbsoluteTime(),
                            (uint16_t)encData[0],encData[1],encData[2],encData[3], encData[4]);
     
