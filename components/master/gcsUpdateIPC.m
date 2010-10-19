@@ -9,6 +9,7 @@ global EXPLORE_REGIONS AVOID_REGIONS OOI
 masterReceiveFromRobots();
 
 packets = UdpReceiveAPI('receive');
+gcsLogPackets('UDP',packets);
 n = length(packets);
 if n > 0
     for ii=1:n
@@ -43,6 +44,7 @@ function GetLocalMsg
 global gcs_machine
 global IPC
 msgs = gcs_machine.ipcAPI('listen',50);
+gcsLogPackets('LocalIPC',msgs);
 nmsg = length(msgs);
 %process messages
 for mi=1:nmsg

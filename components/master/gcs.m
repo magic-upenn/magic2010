@@ -8,7 +8,7 @@ if INIT_LOG
 end
 
 %%%  gcs stuff
-global gcs_machine Robots GCS MAGIC_CONSTANTS HAVE_ROBOTS
+global gcs_machine Robots GCS MAGIC_CONSTANTS HAVE_ROBOTS LOG_PACKETS
 count =0;
 
 gcs_machine.ipcAPI = str2func('ipcAPI');
@@ -22,7 +22,7 @@ tUpdate = 0.1;
 
 %ROBOT IDs
 GCS.disruptor_ids = [];
-GCS.sensor_ids = [4];
+GCS.sensor_ids = [2];
 ids = [GCS.disruptor_ids GCS.sensor_ids];
 
 %OOI AVOID RANGES
@@ -35,7 +35,12 @@ MAGIC_CONSTANTS.mapSizeY = 80;
 MAGIC_CONSTANTS.mapRes = 0.1;
 
 %REAL ROBOTS? (or simulation?)
-HAVE_ROBOTS = false;
+HAVE_ROBOTS = true;
+
+%LOG PACKETS?
+LOG_PACKETS.enabled = true;
+
+gcsLogPackets('entry');
 
 for id = ids,
   Robots(id).traj.handle = -1;
