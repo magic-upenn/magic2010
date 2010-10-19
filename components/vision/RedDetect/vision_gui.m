@@ -820,6 +820,7 @@ function updateSettingsWithPacket(id,type,p)
 
 function send_cam_param_msg(id,msg)
 	name = 'CamParams'
+	return
 	send_message_to_robot(id,name,msg);
 
 function slider_Callback(hObject, eventdata, handles)

@@ -19,8 +19,8 @@ function draw_cands_on_image(imh,axeh,stats,img)
 		end
 		bb = stats(i,2:end);
 		bb = max(bb,1);  
-		if all(bb == 1) 
-			continue; 
+		if bb(4)-bb(3) == 0 || bb(2)-bb(1) == 0
+			continue
 		end
 		rectangle('Position',[bb(3),bb(1),bb(4)-bb(3),bb(2)-bb(1)],'EdgeColor',linecolor,'LineWidth',2,'Parent',axeh); 
 %		line([bb(3),bb(4)],[bb(1),bb(1)],'Color',linecolor,'LineWidth',2,'Parent',axeh);
