@@ -104,7 +104,7 @@ if mod(SLAM.lidar0Cntr,4) == 0
 end
   
 %publish pose message going out to outside world
-if mod(SLAM.lidar0Cntr,10) == 0
+if mod(SLAM.lidar0Cntr,20) == 0
     POSE.data.gps = GPS;
   
     ipcAPIPublishVC(POSE.extMsgName,MagicPoseSerializer('serialize',POSE.data));
