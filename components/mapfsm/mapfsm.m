@@ -357,6 +357,7 @@ MP.sm = update(MP.sm);
 if ~strcmp(currentState(MP.sm),LAST_STATE) || (gettime - lastStatusTime > 1.0)
   msg.status = currentState(MP.sm);
   msg.servo = SERVO_ANGLE;
+  msg.id = GetRobotId();
   ipcAPIPublish(GetMsgName('FSM_Status'), serialize(msg));
   lastStatusTime = gettime;
 end
