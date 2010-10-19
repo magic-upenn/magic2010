@@ -23,10 +23,11 @@ function RedDetect
 
 	%%%%%%%%%%%%%%%%%%
 	ftime = .5; 
-	otime = .5; 
+	otime = 1; 
 	ftic = tic;
 	otic = tic; 
 	while(1)
+		pause(.1)
 		ipcReceiveMessages;
 		if toc(ftic) >= ftime
 			'Get front_packet'
