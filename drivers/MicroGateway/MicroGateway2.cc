@@ -264,6 +264,8 @@ int MicroGateway::InitializeMessages()
   this->estopMsgName = this->DefineMsg("EstopState",EstopState::getIPCFormat());
   this->selectedIdMsgName  = this->DefineMsg("SelectedId","{byte}");
   this->servo1StateMsgName = this->DefineMsg("Servo1",ServoState::getIPCFormat());
+  this->batteryStatusMsgName = this->DefineMsg("BatteryStatus",BatteryStatus::getIPCFormat());
+  this->motorStatusMsgName   = this->DefineMsg("MotorStatus",MotorStatus::getIPCFormat());
 
 
   string msgName = this->robotName + "/" + "VelocityCmd";
@@ -505,7 +507,10 @@ int MicroGateway::MainControllerPacketHandler(DynamixelPacket * dpacket)
   uint8_t * data = DynamixelPacketGetData(dpacket);
   if (packetType == MMC_MC_VOLTAGE_BATT)
   {
-    printf("got battery voltage %f\n",*((float*)data)); 
+    printf("got battery voltage %f\n",*((float*)data));
+    BatteryStatus bs;
+    bs.voltage = (double)*((float*)data);
+    this->PublishMsg(this->batteryStatusMsgName,&bs);
   }
   return 0;
 }
@@ -566,6 +571,8 @@ int MicroGateway::MotorControllerPacketHandler(DynamixelPacket * dpacket)
 
   if (packetType == MMC_MOTOR_CONTROLLER_ENCODERS_RESPONSE)
   {
+    //this packet contains not only encoders, but also latest current for 2 hbridges
+    //and raw temperatures from the two temperature sensors.
     cntr++;
     int16_t * encData = (int16_t*)DynamixelPacketGetData(dpacket);
     //printf("got encoder packet (%f) : ",this->encoderTimer.Toc());
@@ -577,10 +584,17 @@ int MicroGateway::MotorControllerPacketHandler(DynamixelPacket * dpacket)
     en2 += encData[3];
     en3 += encData[4];
 
-    if (cntr%10 == 0)
+    if (cntr%40 == 0)
     {
       //double dt = t0.Toc(true); t0.Tic();
       
+      MotorStatus ms;
+      ms.currentRR = (double)encData[5];
+      ms.currentRL = (double)encData[6];
+      ms.tempRR = (double)encData[7];
+      ms.tempRL = (double)encData[8];
+      this->PublishMsg(this->motorStatusMsgName,&ms);
+
       printf("encoders: %d %d %d %d\n",en0,en1,en2,en3);
       printf("current: %f %f\n",(double)encData[5],(double)encData[6]);
       printf("temp: %f %f\n",(double)encData[7],(double)encData[8]);

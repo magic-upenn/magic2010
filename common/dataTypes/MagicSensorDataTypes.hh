@@ -181,6 +181,59 @@ namespace Magic
       INSERT_SERIALIZATION_DECLARATIONS
     #endif
   };
+
+  struct BatteryStatus
+  {
+    double voltage;
+    double current;
+    double age;
+    double chargeDrained;
+    double t;
+
+    BatteryStatus() : voltage(0), current(0), age(0), chargeDrained(0), t(0) {}
+
+    #define MagicBatteryStatus_FORMAT "{double,double,double,double,double}"
+
+    static const char *getIPCFormat(void)
+    {
+      return MagicBatteryStatus_FORMAT;
+    }
+/*
+    #ifdef MEX_IPC_SERIALIZATION
+      INSERT_SERIALIZATION_DECLARATIONS
+    #endif
+*/
+  };
+
+  struct MotorStatus
+  {
+    double currentFR;
+    double currentFL;
+    double currentRR;
+    double currentRL;
+
+    double tempFR;
+    double tempFL;
+    double tempRR;
+    double tempRL;
+
+    double t;
+
+    MotorStatus(): currentFR(0), currentFL(0), currentRR(0), currentRL(0), tempFR(0), tempFL(0), tempRR(0), tempRL(0), t(0) {}
+
+    #define MagicMotorStatus_FORMAT "{double,double,double,double,double,double,double,double,double}"
+
+    static const char *getIPCFormat(void)
+    {
+      return MagicMotorStatus_FORMAT;
+    }
+
+/*
+    #ifdef MEX_IPC_SERIALIZATION
+      INSERT_SERIALIZATION_DECLARATIONS
+    #endif
+*/
+  };
 }
 
 #endif //MAGIC_SENSOR_DATA_TYPES_HH

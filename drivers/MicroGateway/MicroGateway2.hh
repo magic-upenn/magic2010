@@ -132,6 +132,8 @@ namespace Upenn
     private: string estopMsgName;
     private: string selectedIdMsgName;
     private: string servo1StateMsgName;
+    private: string batteryStatusMsgName;
+    private: string motorStatusMsgName;
   };
 }
 #endif
