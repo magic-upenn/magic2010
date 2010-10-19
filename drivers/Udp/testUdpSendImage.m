@@ -14,7 +14,7 @@ UdpSendAPI('connect',addr,port);
 cntr = 1;
 
 
-uvcCam('init','/dev/video0',[800 600]);
+uvcCam('init','/dev/video0');
 uvcCam('stream_on');
 uvcCam('set_ctrl','contrast', 32);
 
@@ -39,13 +39,14 @@ while(1)
    jpgc     = cjpeg(imRgb);
    data.jpg = jpgc;
    data.t   = GetUnixTime();
+   data.robotId = id;
    data.id  = sprintf('Robot%d/FrontCam',id);
    data.cnt = cnt;
    payload  = serialize(data);
 
    UdpSendAPI('send',payload);
    fprintf(1,'send packet of size %d  ',length(payload));
-   image(imRgb); drawnow;
+   %image(imRgb); drawnow;
   end
   cntr = cntr +1;
 end

@@ -3,8 +3,8 @@ SetMagicPaths;
 mapMsgName  = 'Robot2/ObstacleMap2D_map2d';
 poseMsgName = 'Robot2/Pose';
 
-host = '192.168.10.164';
-ipcAPIConnect(host);
+% host = '192.168.10.102';
+ipcAPIConnect();
 ipcAPISubscribe(mapMsgName);
 ipcAPISubscribe(poseMsgName);
 

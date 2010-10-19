@@ -1,8 +1,8 @@
 SetMagicPaths;
-lidar0MsgName = GetMsgName('Lidar0');
+%lidar0MsgName = GetMsgName('Lidar0');
 
 ipcAPIConnect;
-ipcAPISubscribe(lidar0MsgName);
+ipcAPISubscribe('Robot2/Lidar0');
 
 tic
 while(1)

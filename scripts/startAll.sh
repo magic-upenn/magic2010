@@ -41,6 +41,7 @@ h1:$MAGIC_DIR/drivers/Hokuyo/runHokuyo /dev/ttyACM1
 mg:nice -n -5 $MAGIC_DIR/drivers/MicroGateway/runMicroGateway2 /dev/ttyUSB0
 slam:matlab -nodesktop -r startSlam
 mapfsm: matlab -nodesktop -r startMapfsm
+red: matlab -nodesktop -r startRed
 EOF
 
 exit

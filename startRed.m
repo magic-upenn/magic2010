@@ -1,0 +1,2 @@
+SetMagicPaths;
+RedDetect
