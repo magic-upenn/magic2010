@@ -59,6 +59,7 @@ GPS.date      = dpacket(10);
 GPS.magVarDeg = dpacket(11);
 GPS.magVarDir = packet{12};
 GPS.mode      = packet{13};
+GPS.t         = GetUnixTime();
 
 
 %NAN checking

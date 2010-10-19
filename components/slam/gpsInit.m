@@ -24,6 +24,7 @@ if isempty(GPS) || ~isfield(GPS,'initialized') ||(GPS.initialized ~= 1)
   GPS.magVarDeg  = [];
   GPS.magVarDir  = '';
   GPS.mode       = '';
+  GPS.t          = [];
   
  
   
