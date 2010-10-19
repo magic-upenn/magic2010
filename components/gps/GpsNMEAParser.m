@@ -39,9 +39,9 @@ packet = packet{1};
 %convert values to double (some will be NaN)
 dpacket = str2double(packet);
 
-GPS.utc_time  = dpacket(2);
-rmc_valid     = packet(3);
-if (strcmp(rmc_valid,'A') ==1) %A for valid, V for invalid
+GPS.utcTime  = dpacket(2);
+rmcValid     = packet(3);
+if (strcmp(rmcValid,'A') ==1) %A for valid, V for invalid
   GPS.valid = 1;
 else
   GPS.valid = 0;
@@ -87,12 +87,12 @@ GPS.lon      = floor(dpacket(5)/100) + rem(dpacket(5),100)/60;
 GPS.EW       = packet{6}; %east/west
 if (strcmp(GPS.EW,'W')) GPS.lon = -GPS.lon; end
 %}
-GPS.pos_fix  = dpacket(7); %0=no fix; 1= GPS SPS mode, valid fix; 2=DGPS, valid fix..
-GPS.num_sat  = dpacket(8);
+GPS.posFix  = dpacket(7); %0=no fix; 1= GPS SPS mode, valid fix; 2=DGPS, valid fix..
+GPS.numSat  = dpacket(8);
 GPS.hdop     = dpacket(9);  %units???
-GPS.msl_alt  = dpacket(10); %meters
-GPS.geoid_sep= dpacket(12); %meters
+GPS.mslAlt  = dpacket(10); %meters
+GPS.geoidSep= dpacket(12); %meters
 
 %NAN checking
-if isnan(GPS.msl_alt), GPS.msl_alt = []; end
-if isnan(GPS.geoid_sep), GPS.geoid_sep = []; end
+if isnan(GPS.mslAlt), GPS.msl_alt = []; end
+if isnan(GPS.geoidSep), GPS.geoid_sep = []; end
