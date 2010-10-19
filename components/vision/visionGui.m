@@ -22,10 +22,10 @@ function visionGui(ids)
 				fprintf(1,'Got packet of size %d\n',length(packets(ii).data));
 				imPacket = deserialize(zlibUncompress(packets(ii).data));
 				last_packets{end+1} = imPacket;
-				for r = [1 3 4 5 6 7 8 9]
-					imPacket.id = r; 
-					last_packets{end+1} = imPacket;
-				end
+%				for r = [1 3 4 5 6 7 8 9]
+%					imPacket.id = r; 
+%					last_packets{end+1} = imPacket;
+%				end
 			end
 			%tic
 		  end
