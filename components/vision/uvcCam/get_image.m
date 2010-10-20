@@ -29,8 +29,9 @@ function im = get_im(waste,camfn,dev,width,height)
 				camfn('set_ctrl','focus (absolute)',175); 	
 			end 
 		end
+		t = tic;
 		im = camfn('read');
-		while isempty(im)  
+		while isempty(im) & toc(t) < 20 
 			im = camfn('read');
 		end
 	end
