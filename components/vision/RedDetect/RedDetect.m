@@ -50,7 +50,7 @@ function imPacket = omni_packet()
 	if isempty(PARAMS.omni)
 		PARAMS.omni = get_ctrl_values(0); 
 	end
-	quality = 50;  
+	quality = 75;  
 	%%%%% send compressed jpg image through IPC %%%%%
 	imPacket.id = GetRobotId(); 
 	imPacket.type = 'OmniVision';  
@@ -71,7 +71,7 @@ function imPacket = front_packet()
 	if isempty(PARAMS.front)
 		PARAMS.front = get_ctrl_values(1); 
 	end
-	quality = 60;  
+	quality = 75;  
 	%%%%% send compressed jpg image through IPC %%%%%
 	imPacket.id = GetRobotId(); 
 	imPacket.type = 'FrontVision';  
