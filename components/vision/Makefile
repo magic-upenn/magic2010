@@ -16,7 +16,7 @@ ifeq ($(OSTYPE),darwin)
 endif
 
 MEX = mex
-CXXFLAGS = -O
+CXXFLAGS = -O 
 
 all: cjpeg djpeg connected_regions
 
@@ -30,7 +30,7 @@ djpeg: djpeg.cpp
 	$(MEX) $(CXXFLAGS) $^ -ljpeg
 
 connected_regions: connected_regions.cc RegionProps.o ConnectRegions.o
-	$(MEX) $(CXXFALGS) $^
+	$(MEX) $(CXXFALGS) $^ 
 
 clean:
 	rm -f *.$(MEXSUFFIX) *.o

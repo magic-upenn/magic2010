@@ -1,6 +1,7 @@
 function button_handler(chr,gui)
 	global GLOBALS IMAGES	
 	num = str2num(chr);
+	return
 %	if strcmp(gui,'track')
 %		if ~isempty(num)
 %			num

@@ -23,39 +23,75 @@ function visionGuiSim(ids)
 	for i = ids
 		ROBOTS(i).connected = 1;
 	end
-
+	cids = ids; 
+	guit = tic; 	
+	utime = .5;
+	last_packets = {};  
 	while(1)
-		if toc(gtic) >= gtime
-			'Get front_packet';
-			packets = {}; 
-			packet = front_packet(); 
-			packets{end+1} = deserialize(zlibUncompress(packet)); 
-			'Get omni_packet';
-			packet = omni_packet(); 
-			packets{end+1} = deserialize(zlibUncompress(packet)); 
-			GLOBALS.updateWithPackets(packets); 
-			gtic = tic; 
-		end
-		tic; 
-	end	
-
-	while(1)
-		for f = 1:9
-			A = SIMAGES{f}; 
-			for ii = randperm(9)
-				quality = 50; 
-				A(ii).omni  = cjpeg(A(ii).omni,quality);
-				A(ii).front = cjpeg(A(ii).front,quality);
-				for im = 1:3
-					A(ii).omni_cands{im}  = cjpeg(A(ii).omni_cands{im},quality);
-					A(ii).front_cands{im} = cjpeg(A(ii).front_cands{im},quality);
-				end 
-	      			packet = zlibCompress(serialize(A(ii)));
-				GLOBALS.updateWithPacket(packet); 
-			end 
-		end
-		pause(1.3)
+		cids = circshift(cids,[0,1]); 
+		last_packets{end+1} = front_packet_dummy(cids(1)); 
+		last_packets{end+1} = omni_packet_dummy(cids(1)); 
+		if toc(guit) > utime
+			'Updating gui'
+			if numel(last_packets) > 0 & numel(last_packets) < 35
+				GLOBALS.updateWithPackets(last_packets); 
+			end
+			last_packets = {};  
+			guit = tic; 
+		end 
 	end
+
+function imPacket = omni_packet_dummy(id)
+	global POSE LIDAR PARAMS;
+	global SIMAGES
+	IMGS = SIMAGES{floor(rand()*9)+1}; 
+	omni = IMGS(id).omni; 
+	omni_stats = IMGS(id).omni_stats; 
+	omni_cands = IMGS(id).omni_cands; 
+	if isempty(PARAMS.omni)
+		PARAMS.omni = get_ctrl_values(-1); 
+	end
+	quality = 80;  
+	%%%%% send compressed jpg image through IPC %%%%%
+	imPacket.id = id; 
+	imPacket.type = 'OmniVision';  
+	imPacket.t  = GetUnixTime();
+	imPacket.omni = cjpeg(omni,quality);
+	imPacket.front_angle = LIDAR.servo;
+	for im = 1:3
+		imPacket.omni_cands{im}  = cjpeg(omni_cands{im},quality);
+	end 
+	imPacket.omni_stats = omni_stats;
+	imPacket.pose = POSE.data; 
+	imPacket.params = PARAMS.omni; 
+	pause(.1)	
+
+function imPacket = front_packet_dummy(id)
+	global POSE LIDAR PARAMS;  
+	global SIMAGES
+	IMGS = SIMAGES{floor(rand()*9)+1}; 
+	front = IMGS(id).front; 
+	front_stats = IMGS(id).front_stats; 
+	front_cands = IMGS(id).front_cands; 
+	if isempty(PARAMS.front)
+		PARAMS.front = get_ctrl_values(-1); 
+	end
+	quality = 80;  
+	%%%%% send compressed jpg image through IPC %%%%%
+	imPacket.id = id; 
+	imPacket.type = 'FrontVision';  
+	imPacket.t  = GetUnixTime();
+	imPacket.front = cjpeg(front,quality);
+	imPacket.front_angle = LIDAR.servo;
+	imPacket.scanH = LIDAR.scanH;
+	imPacket.scanV = LIDAR.scanV;
+	for im = 1:3
+		imPacket.front_cands{im} = cjpeg(front_cands{im},quality);
+	end 
+	imPacket.front_stats = front_stats;
+	imPacket.pose = POSE.data; 
+	imPacket.params = PARAMS.front; 
+	pause(.1)	
 
 function imPacket = omni_packet()
 	global POSE LIDAR PARAMS; 
