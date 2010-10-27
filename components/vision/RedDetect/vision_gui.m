@@ -99,6 +99,10 @@ function setup_imgs(gui)
 function updateHistory(id)
 	%Updates the history on message receipt from robot 
 	global GLOBALS IMAGES; 
+	if toc(GLOBALS.last_update_tics(id) < 1)
+		return
+	end
+	GLOBALS.last_update_tics(id) = tic; 
 	for t = 5:-1:2
 	GLOBALS.history(t).front(id) = GLOBALS.history(t-1).front(id); 
 	GLOBALS.history(t).omni(id) = GLOBALS.history(t-1).omni(id); 
@@ -248,7 +252,7 @@ function updateGui(id)
 	handles = guidata(GLOBALS.vision_gui);
 	box = find(GLOBALS.bids == id); 
 	if box ~= 9
-updateBox(box)
+		updateBox(box)
 	end 
 
 function updateWithPackets(imPackets)
@@ -474,7 +478,8 @@ function setup_global_vars(vision_gui)
       	GLOBALS.angleStep = 0.004363323096186;
 	GLOBALS.scan_angles = GLOBALS.startAngle:GLOBALS.angleStep:GLOBALS.stopAngle; 
 	GLOBALS.tweekH = .2; 
-	GLOBALS.tweekV = .15; 
+	GLOBALS.tweekV = .15;
+	GLOBALS.last_update_tics = [tic,tic,tic,tic,tic,tic,tic,tic,tic];  
 	vision_fns.updateGui		   = @updateGui;  
 	vision_fns.updateFrontFocused	   = @updateFrontFocused;  
 	vision_fns.updateBox		   = @updateBox;  
