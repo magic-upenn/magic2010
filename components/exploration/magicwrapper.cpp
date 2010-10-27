@@ -92,7 +92,7 @@ static void DATAhandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientDa
 				maps.coverage_map[i+planner.map_size_x*j] = KNOWN; 
 				maps.cost_map[i+planner.map_size_x*j] = OBSTACLE;
 			}
-else if(data->map[i+planner.map_size_x*j] > 0.05)  {
+else if(data->map[i+planner.map_size_x*j] > 2.0)  {
 				maps.coverage_map[i+planner.map_size_x*j] = KNOWN; 
 				maps.cost_map[i+planner.map_size_x*j] = 0;
 			}
