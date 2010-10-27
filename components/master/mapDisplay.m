@@ -5,7 +5,7 @@ global RPOSE RMAP RPATH EXPLORE_PATH
 global GPOSE GMAP GPATH
 global RDISPLAY GDISPLAY
 global MAGIC_COLORMAP
-global INIT_LOG
+global INIT_LOG INIT_REGIONS
 global EXPLORE_REGIONS AVOID_REGIONS OOI CAND_OOI
 global OOI_AVOID_MASKS MAGIC_CONSTANTS
 
@@ -153,7 +153,10 @@ switch event
     end
 
     axis xy equal tight;
-    axis([-MAGIC_CONSTANTS.mapSizeX/2 MAGIC_CONSTANTS.mapSizeX/2 -MAGIC_CONSTANTS.mapSizeY/2 MAGIC_CONSTANTS.mapSizeY/2]);
+    axis([MAGIC_CONSTANTS.mapEastMin-MAGIC_CONSTANTS.mapEastOffset, ...
+          MAGIC_CONSTANTS.mapEastMax-MAGIC_CONSTANTS.mapEastOffset, ... 
+          MAGIC_CONSTANTS.mapNorthMin-MAGIC_CONSTANTS.mapNorthOffset, ... 
+          MAGIC_CONSTANTS.mapNorthMax-MAGIC_CONSTANTS.mapNorthOffset]);
     GDISPLAY.hAxes = gca;
     set(gca,'Position', [.17 .025 .665 .95], 'XLimMode', 'manual', 'YLimMode', 'manual');
     set(gca,'CLim',[-100 100]); 
@@ -165,6 +168,8 @@ switch event
     GDISPLAY.visualAvoidText = [];
     GDISPLAY.visualOOIOverlay = [];
     GDISPLAY.visualOOIText = [];
+    GDISPLAY.visualUAVOverlay = [];
+    GDISPLAY.visualUAVText = [];
     GDISPLAY.visualCandOOIOverlay = [];
     GDISPLAY.lastRegionSelection = -1;
     patch([0 1 1 0],[0 0 1 1],[0 1 0],'FaceAlpha',0.0,'EdgeAlpha',0.0);
@@ -718,14 +723,18 @@ switch event
                                         'Units', 'Normalized', ...
                                         'Position', [.845 .24 .10 .03]);
 
-    if ~INIT_LOG
-      EXPLORE_REGIONS = [];
-      AVOID_REGIONS = [];
-      OOI = [];
-    else
+    if INIT_LOG
       set(GDISPLAY.exploreRegionList,'String',1:length(EXPLORE_REGIONS));
       set(GDISPLAY.ooiList,'String',1:length(OOI));
       set(GDISPLAY.avoidRegionList,'String',1:length(AVOID_REGIONS));
+    elseif INIT_REGIONS
+      set(GDISPLAY.exploreRegionList,'String',1:length(EXPLORE_REGIONS));
+      set(GDISPLAY.avoidRegionList,'String',1:length(AVOID_REGIONS));
+      OOI = [];
+    else
+      EXPLORE_REGIONS = [];
+      AVOID_REGIONS = [];
+      OOI = [];
     end
     CAND_OOI = [];
 

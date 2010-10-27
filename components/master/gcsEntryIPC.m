@@ -1,10 +1,12 @@
 function gcsEntryIPC(ids)
 
-global GCS INIT_LOG
+global GCS INIT_LOG 
+global ROBOT_PATH OOI_PATH NC_PATh
 global ROBOTS
 global RPOSE RMAP RPATH EXPLORE_PATH
 global GTRANSFORM GPOSE GMAP GPATH
 global MAGIC_CONSTANTS HAVE_ROBOTS
+global UAV_MAP
 
 if nargin < 1,
   ids = [1:3];
@@ -15,6 +17,8 @@ GCS.tSave = gettime;
 
 xCells = round(MAGIC_CONSTANTS.mapSizeX/MAGIC_CONSTANTS.mapRes);
 yCells = round(MAGIC_CONSTANTS.mapSizeY/MAGIC_CONSTANTS.mapRes);
+xShift = (MAGIC_CONSTANTS.mapEastMax+MAGIC_CONSTANTS.mapEastMin)/2-MAGIC_CONSTANTS.mapEastOffset;
+yShift = (MAGIC_CONSTANTS.mapNorthMax+MAGIC_CONSTANTS.mapNorthMin)/2-MAGIC_CONSTANTS.mapNorthOffset;
 
 for id = ids,
   if ~INIT_LOG
@@ -23,6 +27,7 @@ for id = ids,
     RPOSE{id}.yaw = 0;
     RPOSE{id}.heading = 0;
     RMAP{id} = map2d(xCells, yCells, MAGIC_CONSTANTS.mapRes,'vlidar','hlidar','cost');
+    RMAP{id} = shift(RMAP{id},xShift,yShift);
 
     if HAVE_ROBOTS
       GTRANSFORM{id}.init = 0;
@@ -42,11 +47,31 @@ for id = ids,
   RPATH{id} = [];
   GPATH{id} = [];
   EXPLORE_PATH{id} = [];
+  ROBOT_PATH(id).x = [];
+  ROBOT_PATH(id).y = [];
 end
+OOI_PATH = [];
+NC_PATH = [];
 
 if ~INIT_LOG
   GMAP = map2d(xCells, yCells, MAGIC_CONSTANTS.mapRes, 'hlidar', 'cost');
+  GMAP = shift(GMAP,xShift,yShift);
+  if ~isempty(UAV_MAP)
+    size(UAV_MAP)
+    size(GMAP)
+    GMAP = setdata(GMAP, 'cost', UAV_MAP);
+  end
 end
+
+%HACK!!!!! REMOVE ME!!!!!
+%HACK!!!!! REMOVE ME!!!!!
+%HACK!!!!! REMOVE ME!!!!!
+%HACK!!!!! REMOVE ME!!!!!
+%ids = [1];
+%HACK!!!!! REMOVE ME!!!!!
+%HACK!!!!! REMOVE ME!!!!!
+%HACK!!!!! REMOVE ME!!!!!
+%HACK!!!!! REMOVE ME!!!!!
 
 if HAVE_ROBOTS
   masterConnectRobots(ids);

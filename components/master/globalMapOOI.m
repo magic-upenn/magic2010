@@ -9,11 +9,13 @@ if nargin > 0
   %yp = GPOSE{id}.y + msg.x*sin(GPOSE{id}.yaw) + msg.y*cos(GPOSE{id}.yaw);
   serial = msg.ser;
   type = msg.type;
+  shirtNumber = msg.shirtNumber;
 else
   [xp, yp] = ginput(1);
   id = -1;
   serial = -1;
   type = GDISPLAY.selectedOOI;
+  shirtNumber = -1;
 end
 
 if ~isempty(xp),
@@ -27,6 +29,7 @@ if ~isempty(xp),
     OOI(end).x = xp;
     OOI(end).y = yp;
     OOI(end).serial = serial;
+    OOI(end).shirtNumber = shirtNumber;
 
     set(GDISPLAY.ooiList,'String',1:length(OOI));
     ooiOverlay();

@@ -1,5 +1,5 @@
 function gcsRecvPoseExternal(data, name)
-global RPOSE GTRANSFORM GPOSE
+global RPOSE GTRANSFORM GPOSE ROBOT_PATH
 
 if isempty(data)
   return;
@@ -22,3 +22,6 @@ end
                                                   RPOSE{id}.y, ...
                                                   RPOSE{id}.yaw);
   
+ROBOT_PATH(id).x(end+1) = GPOSE{id}.x;
+ROBOT_PATH(id).y(end+1) = GPOSE{id}.y;
+
