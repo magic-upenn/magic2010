@@ -34,12 +34,28 @@ function RedDetect
 			packet = front_packet(); 
 			UdpSendAPI('send',packet);
 			ftic = tic; 
+			%DEBUG
+			packet = deserialize(zlibUncompress(packet);
+			for fid = 2:9
+				packet.id = fid; 	
+				packet = zlibCompress(serialize(imPacket));
+				UdpSendAPI('send',packet);
+			end
+			%DEBUG
 		end
 		if toc(otic) >= otime
 			'Get omni_packet'
 			packet = omni_packet(); 
 			UdpSendAPI('send',packet);
 			otic = tic; 
+			%DEBUG
+			packet = deserialize(zlibUncompress(packet);
+			for fid = 2:9
+				packet.id = fid; 	
+				packet = zlibCompress(serialize(imPacket));
+				UdpSendAPI('send',packet);
+			end
+			%DEBUG
 		end
 		tic; 
 	end	
