@@ -29,8 +29,10 @@ function visionGuiSim(ids)
 	last_packets = {};  
 	while(1)
 		cids = circshift(cids,[0,1]); 
-		last_packets{end+1} = front_packet_dummy(cids(1)); 
-		last_packets{end+1} = omni_packet_dummy(cids(1)); 
+		%last_packets{end+1} = front_packet_dummy(cids(1)); 
+		%last_packets{end+1} = omni_packet_dummy(cids(1));
+		last_packets{end+1} = get_packet_saved(cids(1));
+	 
 		if toc(guit) > utime
 			'Updating gui'
 			if numel(last_packets) > 0 & numel(last_packets) < 35
@@ -40,6 +42,11 @@ function visionGuiSim(ids)
 			guit = tic; 
 		end 
 	end
+
+function imPacket = get_packet_saved(id)
+	global last_packets
+	imPacket = last_packets{round(rand()*110) + 1};
+	pause(.25)
 
 function imPacket = omni_packet_dummy(id)
 	global POSE LIDAR PARAMS;

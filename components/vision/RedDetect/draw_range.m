@@ -1,14 +1,15 @@
-function draw_range(scanH,scanV,img,axeh)
+function draw_range(scanH,scanV,img,front_angle,axeh)
+	global GLOBALS
+	[rangeH,rangeV] = get_range_in_view(scanH,scanV,img,front_angle,30,30); 
 	mids = round(size(img)/2);
-	steps = size(img)/15; 
-	if isempty(scanH)
-		scanH = zeros(15,1);
-	end 
-	if isempty(scanV)
-		scanV = zeros(15,1);
-	end 
-	for txt = 1:15
-		text(mids(2),round(steps(1)*(txt-1)),sprintf('%.1f',scanV(txt)),'Parent',axeh,'FontSize',16); 
-		text(round(steps(2)*(txt-1)),mids(1),sprintf('%.1f',scanH(txt)),'Parent',axeh,'FontSize',16); 
+	steps = [size(img,1)/numel(rangeV),size(img,2)/numel(rangeH)]; 
+	for txt = 1:numel(rangeH)
+		if txt == round(numel(rangeH)/2) + 1
+			continue
+		end
+		text(round(steps(2)*(txt-1)),mids(1),sprintf('%.1f',rangeH(txt)),'Parent',axeh,'FontSize',16); 
+	end
+	for txt = 1:numel(rangeV)
+		text(mids(2),round(steps(1)*(txt-1)),sprintf('%.1f',rangeV(txt)),'Parent',axeh,'FontSize',16); 
 	end	  
 

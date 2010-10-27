@@ -1,4 +1,5 @@
-function [imgd,vsd,hsd] = get_dist_by_bb(img,bb,scanV,scanH)
+function [imgd,vsd,hsd] = get_dist_by_bb(img,bb,front_angle,scanV,scanH)
+	global GLOBALS; 
 	imgd = 0; vsd = 0; hsd = 0; 
 	height = abs(bb(2)-bb(1)); 
 	width  = abs(bb(4)-bb(3));
@@ -28,11 +29,23 @@ function [imgd,vsd,hsd] = get_dist_by_bb(img,bb,scanV,scanH)
 	if isempty(img)
 		return; 
 	end
-	sampH = numel(scanH); 
-	sampV = numel(scanV);
-	stepH = size(img,1)/sampH; 
-	stepV = size(img,2)/sampV;
-	pixelH = 1:stepH:size(img,1);  
-	pixelV = 1:stepV:size(img,2);  
-	hsd = interp1(pixelH,scanH,mean_y);
-	vsd = interp1(pixelV,scanV,mean_x);
+	sampH = 60; 
+	sampV = 60; 
+	[rangeH,rangeV] = get_range_in_view(scanH,scanV,img,front_angle,sampH,sampV); 
+	hsd = 0; 
+	vsd = 0; 
+	stepH = size(img,2)/numel(rangeH); 
+	stepV = size(img,1)/numel(rangeV);
+	pixelH = 1:stepH:size(img,2);  
+	pixelV = 1:stepV:size(img,1);
+	minH = min(bb(1:2)); 
+	maxH = max(bb(1:2)); 
+	minV = min(bb(3:4)); 
+	maxV = max(bb(3:4)); 
+	goodH = pixelH > minH & pixelH < maxH;
+	goodV = pixelV > minV & pixelV < maxV;
+	hsd = median(rangeH(goodH)); 
+	vsd = median(rangeV(goodV));
+	if isnan(hsd) || isnan(vsd)
+		pause
+	end

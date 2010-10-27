@@ -204,14 +204,14 @@ function updateFrontFocused(box)
 	if GLOBALS.bids(box) == GLOBALS.current_bb_id
 	draw_box_on_axes(GLOBALS.current_bb,'c',handles.(fname)); 
 	end
-	draw_range(img.scanH,img.scanV,img.front,handles.(fname));  
+	draw_range(img.scanH,img.scanV,img.front,img.front_angle,handles.(fname));  
 	for sc = 1:3
 	scname = sprintf('candf%d_%d',box,sc); 
 	cand_h = image(img.front_cands{sc},'Parent',handles.(scname)); 
 	daspect(handles.(scname),[1 1 1]); 
 	axis(handles.(scname),'off'); 
 	bb = img.front_stats(sc,2:end);
-	[dist,vsd,hsd] = get_dist_by_bb([],bb,[],[]); 
+	[dist,vsd,hsd] = get_dist_by_bb([],bb,[],[],[]); 
 	text(1,10,sprintf('%.1fm',dist),'Parent',handles.(scname),'FontSize',16,'BackgroundColor','y'); 
 	set(cand_h,'ButtonDownFcn',{@mouse_ButtonDownFcn,{'front_cand',handles.(scname),[box,sc]}});
 	set(cand_h,'Interruptible','off');
@@ -225,7 +225,7 @@ function updateFrontFocused(box)
 if ~isempty(GLOBALS.current_bb)
 	bb = GLOBALS.current_bb; 
 	img = IMAGES(GLOBALS.bids(GLOBALS.focus)); 
-	[imgd,vsd,hsd] = get_dist_by_bb(img.front,bb,img.scanV,img.scanH); 
+	[imgd,vsd,hsd] = get_dist_by_bb(img.front,bb,img.front_angle,img.scanV,img.scanH); 
 	auto = 0; 
 	selected = get(handles.dist_source,'SelectedObject'); 
 	selected = get(selected,'String'); 
@@ -253,42 +253,43 @@ updateBox(box)
 
 function updateWithPackets(imPackets)
 	global IMAGES GLOBALS;
-for i = 1:numel(imPackets)
-	imPacket = imPackets{i};
-IMAGES(imPacket.id).t = imPacket.t; 
-IMAGES(imPacket.id).pose = imPacket.pose;
-IMAGES(imPacket.id).front_angle = imPacket.front_angle; 
-if strcmp(imPacket.type,'FrontVision')
-IMAGES(imPacket.id).front = djpeg(imPacket.front);
-for im = 1:3
-IMAGES(imPacket.id).front_cands{im} = djpeg(imPacket.front_cands{im});
-end 
-IMAGES(imPacket.id).front_stats = imPacket.front_stats; 
-IMAGES(imPacket.id).scanH = imPacket.scanH; 
-IMAGES(imPacket.id).scanV = imPacket.scanV; 
-if ~isempty(imPacket.scanV)
-	IMAGES(imPacket.id).scanV =  imresize(fliplr(imPacket.scanV.ranges(445:628)),[1,15],'nearest'); 
-	else
-	IMAGES(imPacket.id).scanV = zeros([1,15]); 
-	end
-	%Hokuyu: step = 1081, step = 0.0044, fov = 270
-if ~isempty(imPacket.scanH)
-	IMAGES(imPacket.id).scanH =  imresize(fliplr(imPacket.scanH.ranges(405:675)),[1,15],'nearest'); 
-	else
-	IMAGES(imPacket.id).scanH = zeros([1,15]); 
-	end
-	IMAGES(imPacket.id).front_params = imPacket.params; 
-	end
-	if strcmp(imPacket.type,'OmniVision')
-	IMAGES(imPacket.id).omni = djpeg(imPacket.omni);
-	for im = 1:3
-	IMAGES(imPacket.id).omni_cands{im}  = djpeg(imPacket.omni_cands{im});
-	end 
-	IMAGES(imPacket.id).omni_stats = imPacket.omni_stats; 
-	IMAGES(imPacket.id).omni_params = imPacket.params; 
-	end
-	updateSettingsWithPacket(imPacket.id,imPacket.type,imPacket.params); 	
-	GLOBALS.vision_fns.updateGui(imPacket.id);  
+
+	for i = 1:numel(imPackets)
+		imPacket = imPackets{i};
+		IMAGES(imPacket.id).t = imPacket.t; 
+		IMAGES(imPacket.id).pose = imPacket.pose;
+		IMAGES(imPacket.id).front_angle = imPacket.front_angle; 
+		if strcmp(imPacket.type,'FrontVision')
+			IMAGES(imPacket.id).front = djpeg(imPacket.front);
+			for im = 1:3
+				IMAGES(imPacket.id).front_cands{im} = djpeg(imPacket.front_cands{im});
+			end 
+			IMAGES(imPacket.id).front_stats = imPacket.front_stats; 
+			IMAGES(imPacket.id).scanH = imPacket.scanH; 
+			IMAGES(imPacket.id).scanV = imPacket.scanV;
+			if ~isempty(imPacket.scanV)
+				IMAGES(imPacket.id).scanV =  fliplr(imPacket.scanV.ranges);
+			else
+				IMAGES(imPacket.id).scanV = zeros([1,1081]); 
+			end
+			%Hokuyu: step = 1081, step = 0.0044, fov = 270
+			if ~isempty(imPacket.scanH)
+				IMAGES(imPacket.id).scanH =  fliplr(imPacket.scanH.ranges);
+			else
+				IMAGES(imPacket.id).scanH = zeros([1,1081]); 
+			end
+				IMAGES(imPacket.id).front_params = imPacket.params; 
+		end
+		if strcmp(imPacket.type,'OmniVision')
+			IMAGES(imPacket.id).omni = djpeg(imPacket.omni);
+			for im = 1:3
+				IMAGES(imPacket.id).omni_cands{im}  = djpeg(imPacket.omni_cands{im});
+			end 
+				IMAGES(imPacket.id).omni_stats = imPacket.omni_stats; 
+				IMAGES(imPacket.id).omni_params = imPacket.params; 
+		end
+		updateSettingsWithPacket(imPacket.id,imPacket.type,imPacket.params); 	
+		GLOBALS.vision_fns.updateGui(imPacket.id);  
 	end
 	drawnow; 
 
@@ -356,7 +357,7 @@ function front_down(axeh,x,y,dclick,box)
 	else
 		set_status('Box point')
 		xp = GLOBALS.current_bb(4);    
-		yp = GLOBALS.current_bb(2);    
+		yp = GLOBALS.current_bb(2);   
 		GLOBALS.current_bb = round([yp,y,xp,x]);
 	end
 	GLOBALS.current_bb_id = id; 
@@ -468,6 +469,12 @@ function setup_global_vars(vision_gui)
 	GLOBALS.bids = [1 2 3 4 5 6 7 8 9];  
 	GLOBALS.track_mode = false; 
 	GLOBALS.heartbeat = ones(1,9); 
+     	GLOBALS.startAngle = -2.356194496154785;
+      	GLOBALS.stopAngle = 2.356194496154785;
+      	GLOBALS.angleStep = 0.004363323096186;
+	GLOBALS.scan_angles = GLOBALS.startAngle:GLOBALS.angleStep:GLOBALS.stopAngle; 
+	GLOBALS.tweekH = .2; 
+	GLOBALS.tweekV = .15; 
 	vision_fns.updateGui		   = @updateGui;  
 	vision_fns.updateFrontFocused	   = @updateFrontFocused;  
 	vision_fns.updateBox		   = @updateBox;  
@@ -499,41 +506,41 @@ function setup_global_vars(vision_gui)
 	null_omni  = null_image(500,100);
 	null_cand  = null_image(150,150);
 	null_cands = {}; 
-null_pose.x = 0;  
-null_pose.y = 0;  
-null_pose.yaw = 0;  
-null_stats = ones(3,5); 
-null_stats(:,1) = 0;
-null_params = get_ctrl_values(-1); 
-for cand = 1:3
-null_cands{cand} = null_cand;  
-end
-for id=1:9
-IMAGES(id).id = id;
-IMAGES(id).type = 'vision'; 
-IMAGES(id).t = [];
-IMAGES(id).omni = null_omni;
-IMAGES(id).front = null_front;
-IMAGES(id).front_angle = [];
-IMAGES(id).scanH = [];
-IMAGES(id).scanV = zeros(15,1); ;
-IMAGES(id).omni_cands = null_cands;
-IMAGES(id).front_cands = null_cands;
-IMAGES(id).omni_stats = null_stats;
-IMAGES(id).front_stats = null_stats;
-IMAGES(id).pose = null_pose;
-IMAGES(id).omni_params = null_params;
-IMAGES(id).front_params = null_params;
-end
-for t = 1:5
-history(t).front = {IMAGES.front};  
-history(t).omni = {IMAGES.omni};  
-history(t).ooi.front = null_front;
-history(t).ooi.id = 0; 
-history(t).ooi.ser = 0; 
-end 
-GLOBALS.null_cand = null_cand; 
-GLOBALS.history = history; 
+	null_pose.x = 0;  
+	null_pose.y = 0;  
+	null_pose.yaw = 0;  
+	null_stats = ones(3,5); 
+	null_stats(:,1) = 0;
+	null_params = get_ctrl_values(-1); 
+	for cand = 1:3
+	null_cands{cand} = null_cand;  
+	end
+	for id=1:9
+		IMAGES(id).id = id;
+		IMAGES(id).type = 'vision'; 
+		IMAGES(id).t = [];
+		IMAGES(id).omni = null_omni;
+		IMAGES(id).front = null_front;
+		IMAGES(id).front_angle = [];
+		IMAGES(id).scanV = zeros(1081,1);
+		IMAGES(id).scanH = zeros(1081,1);
+		IMAGES(id).omni_cands = null_cands;
+		IMAGES(id).front_cands = null_cands;
+		IMAGES(id).omni_stats = null_stats;
+		IMAGES(id).front_stats = null_stats;
+		IMAGES(id).pose = null_pose;
+		IMAGES(id).omni_params = null_params;
+		IMAGES(id).front_params = null_params;
+	end
+	for t = 1:5
+		history(t).front = {IMAGES.front};  
+		history(t).omni = {IMAGES.omni};  
+		history(t).ooi.front = null_front;
+		history(t).ooi.id = 0; 
+		history(t).ooi.ser = 0; 
+	end 
+	GLOBALS.null_cand = null_cand; 
+	GLOBALS.history = history; 
 %------------------------------------------------------------------------------------------
 
 function set_focus(new_fr)
