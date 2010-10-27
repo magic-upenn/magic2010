@@ -23,10 +23,11 @@ function RedDetect
 
 	%%%%%%%%%%%%%%%%%%
 	ftime = .5; 
-	otime = 1; 
+	otime = .5; 
 	ftic = tic;
 	otic = tic; 
-	while(1)
+  ghosts = [] %[2 3 4 5 6 7 8 9]
+  while(1)
 		pause(.1)
 		ipcReceiveMessages;
 		if toc(ftic) >= ftime
@@ -35,8 +36,10 @@ function RedDetect
 			UdpSendAPI('send',packet);
 			ftic = tic; 
 			%DEBUG
-			packet = deserialize(zlibUncompress(packet));
-			for fid = 2:9
+      if ~isempty(ghosts)
+			  packet = deserialize(zlibUncompress(packet));
+      end
+			for fid = ghosts
 				packet.id = fid; 	
 				fpacket = zlibCompress(serialize(packet));
 				UdpSendAPI('send',fpacket);
@@ -49,8 +52,10 @@ function RedDetect
 			UdpSendAPI('send',packet);
 			otic = tic; 
 			%DEBUG
-			packet = deserialize(zlibUncompress(packet));
-			for fid = 2:9
+      if ~isempty(ghosts)
+			  packet = deserialize(zlibUncompress(packet));
+      end
+      for fid = ghosts
 				packet.id = fid; 	
 				fpacket = zlibCompress(serialize(packet));
 				UdpSendAPI('send',fpacket);
