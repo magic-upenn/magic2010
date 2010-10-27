@@ -22,7 +22,7 @@ function varargout = vision_gui(varargin)
 
 % Edit the above text to modify the response to help vision_gui
 
-% Last Modified by GUIDE v2.5 27-Oct-2010 10:24:26
+% Last Modified by GUIDE v2.5 27-Oct-2010 15:04:47
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -104,7 +104,7 @@ function updateHistory(id)
 	GLOBALS.history(t).omni(id) = GLOBALS.history(t-1).omni(id); 
 	end
 	GLOBALS.history(1).front(id) = {IMAGES(id).front}; 
-GLOBALS.history(1).omni(id)  = {IMAGES(id).omni};
+	GLOBALS.history(1).omni(id)  = {IMAGES(id).omni};
 
 function updateHistoryFocus
 global GLOBALS IMAGES; 
@@ -572,9 +572,10 @@ function renounce_ooi_Callback(hObject, eventdata, handles)
 
 function announce_ooi_Callback(hObject, eventdata, handles)
 	global GLOBALS IMAGES;  
+	handles = guidata(GLOBALS.vision_gui);
 	if strcmp(GLOBALS.current_label,'?')
-	'Label not set'
-	return
+		'Label not set'
+		return
 	end
 	set_status('announced label'); 	
 	id = GLOBALS.bids(GLOBALS.focus); 
@@ -585,8 +586,17 @@ function announce_ooi_Callback(hObject, eventdata, handles)
 	distance = GLOBALS.current_distance;   
 	x = x + distance * cos(yaw + servo_yaw);  
 	y = y + distance * sin(yaw + servo_yaw);  
-	updateOOIHistory(id,GLOBALS.current_ser); 
-send_ooi_msg(id,GLOBALS.current_ser,x,y,GLOBALS.current_label)
+	if strcmp(GLOBALS.current_label,'StationaryPOI') || strcmp(GLOBALS.current_label,'MovingPOI') || strcmp(GLOBALS.current_label,'RedBarrel') 
+		updateOOIHistory(id,GLOBALS.current_ser);
+	end
+	shirt = -1; 
+	if strcmp(GLOBALS.current_label,'StationaryPOI') || strcmp(GLOBALS.current_label,'MovingPOI') 
+		shirt = str2num(get(handles.shirt,'String')); 
+		if isempty(shirt)
+			shirt = 0; 
+		end
+	end 
+	send_ooi_msg(id,GLOBALS.current_ser,shirt,x,y,GLOBALS.current_label)
 	GLOBALS.current_ser = GLOBALS.current_ser + 1;  
 	send_look_msg(id,0,0,'done');
 
@@ -670,9 +680,10 @@ function set_label(label)
 	set_status(strcat('label:',label)); 	
 	updateLabel;  
 
-function send_ooi_msg(id,ser,x,y,type)
+function send_ooi_msg(id,ser,shirt,x,y,type)
 	name = 'OOI_Msg'; 
 	msg.ser = ser;
+	msg.shirtNumber = shirt; 
 	msg.x = x; %in UTM coordinates (m)
 	msg.y = y; %in UTM coordinates (m)
 	msg.type = type;
@@ -783,7 +794,7 @@ function Suggest_Callback(hObject, eventdata, handles)
 	distance = GLOBALS.current_distance;   
 	x = x + distance * cos(yaw + servo_yaw);  
 	y = y + distance * sin(yaw + servo_yaw);  
-	send_ooi_msg(id,GLOBALS.current_ser,x,y,'CandOOI'); 
+	send_ooi_msg(id,GLOBALS.current_ser,-1,x,y,'CandOOI'); 
 
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
@@ -934,5 +945,10 @@ function omni1_ButtonDownFcn(hObject, eventdata, handles)
 % hObject    handle to omni1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+
+function shirt_Callback(hObject, eventdata, handles)
+function shirt_CreateFcn(hObject, eventdata, handles)
 
 
