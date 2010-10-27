@@ -99,7 +99,7 @@ function setup_imgs(gui)
 function updateHistory(id)
 	%Updates the history on message receipt from robot 
 	global GLOBALS IMAGES; 
-	if toc(GLOBALS.last_update_tics(id) < 1)
+	if toc(GLOBALS.last_update_tics(id)) < 1
 		return
 	end
 	GLOBALS.last_update_tics(id) = tic; 
