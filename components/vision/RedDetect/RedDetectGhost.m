@@ -1,5 +1,4 @@
-function RedDetect
-%global VISION_IPC host
+function RedDetectGhost
 	'Adding controls'
 	system('sh $MAGIC_DIR/components/vision/RedDetect/add_ctrls.sh&')
 	pause(1)
@@ -30,6 +29,7 @@ function RedDetect
 	OTIME = .5; 
 	ftic = tic;
 	otic = tic; 
+	ghosts = [2 3 4 5 6 7 8 9]
 	while(1)
 		pause(.1)
 		ipcReceiveMessages;
@@ -38,12 +38,32 @@ function RedDetect
 			packet = front_packet(); 
 			UdpSendAPI('send',packet);
 			ftic = tic; 
+			%DEBUG
+			if ~isempty(ghosts)
+				  packet = deserialize(zlibUncompress(packet));
+			end
+			for fid = ghosts
+				packet.id = fid; 	
+				fpacket = zlibCompress(serialize(packet));
+				UdpSendAPI('send',fpacket);
+			end
+			%DEBUG
 		end
 		if toc(otic) >= OTIME
 			'Get omni_packet'
 			packet = omni_packet(); 
 			UdpSendAPI('send',packet);
 			otic = tic; 
+			%DEBUG
+			if ~isempty(ghosts)
+				packet = deserialize(zlibUncompress(packet));
+			end
+			for fid = ghosts
+				packet.id = fid; 	
+				fpacket = zlibCompress(serialize(packet));
+				UdpSendAPI('send',fpacket);
+			end
+				%DEBUG
 		end
 		tic; 
 	end	
