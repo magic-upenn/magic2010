@@ -33,10 +33,16 @@ changed = false;
 field_names = fields(names); 
 for f = 1:numel(field_names)
 	field = field_names{f}; 
+	if strcmp(field,'exposure_auto')
+		params.(field) = min(10000,max(0,params.(field)));
+	else
+		params.(field) = min(255,max(0,params.(field)));
+	end
 	if old.(field) ~= params.(field)
-		'Setting param'
+		sprintf('Setting %s to %d',field,params.(field))
 		cam('set_ctrl',names.(field), params.(field));
 		changed = true; 
+		pause(.25); 
 	end
 end
 if changed

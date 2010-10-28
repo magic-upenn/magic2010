@@ -46,7 +46,8 @@ function visionGuiSim(ids)
 function imPacket = get_packet_saved(id)
 	global last_packets
 	imPacket = last_packets{round(rand()*110) + 1};
-	pause(.25)
+	imPacket.id = id; 
+	pause(.1)
 
 function imPacket = omni_packet_dummy(id)
 	global POSE LIDAR PARAMS;
