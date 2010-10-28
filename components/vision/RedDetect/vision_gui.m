@@ -50,6 +50,15 @@ function vision_gui_OpeningFcn(hObject, eventdata, handles, varargin)
 	guidata(hObject, handles);
 	setup_global_vars(hObject);
 	setup_imgs(hObject);   
+	msg.cam = 2; 
+	msg.otime = 0.5;
+	msg.ftime = 0.5;
+	send_cam_param_msg(1,msg)
+	send_cam_param_msg(2,msg)
+	msg.ftime = 2; 
+	for i = 3:9
+		send_cam_param_msg(i,msg)
+	end
 
 function setup_imgs(gui)
 	global GLOBALS IMAGES; 
@@ -175,12 +184,18 @@ function updateOmni(box)
 	draw_center_line(handles.(oname),img.omni,img.front_angle,GLOBALS.req_angles(GLOBALS.bids(box))); 
 	%Omni Focus
 	colors = 'ck';
+	speed_colors = 'ryg';
 	oh = GLOBALS.heartbeat(id);
 	nh = mod(GLOBALS.heartbeat(id),2) + 1;
 	GLOBALS.heartbeat(id) = nh;
 	text(30,20,sprintf('%d',GLOBALS.bids(box)),'Parent',handles.(oname),...
 			'FontSize',30,'Color',colors(oh),...
-			'BackgroundColor',colors(nh)); 
+			'BackgroundColor',colors(nh));
+
+ 
+	text(10,20,'.','Parent',handles.(oname),...
+			'FontSize',10,'Color','k',...
+			'BackgroundColor',speed_colors(GLOBALS.speeds(id))); 
 
 
 	function updateLabel
@@ -495,6 +510,7 @@ function setup_global_vars(vision_gui)
 	GLOBALS.scan_angles = GLOBALS.startAngle:GLOBALS.angleStep:GLOBALS.stopAngle; 
 	GLOBALS.tweekH = .2; 
 	GLOBALS.tweekV = .15;
+	GLOBALS.speeds = ones(1,9); 
 	GLOBALS.last_update_tics = [tic,tic,tic,tic,tic,tic,tic,tic,tic];  
 	vision_fns.front_cand_down	   = @front_cand_down;  
 	vision_fns.updateGui		   = @updateGui;  
@@ -575,8 +591,19 @@ function set_focus(new_fr)
 	GLOBALS.bids(new_fr_old_box) = old_fr; 
 	GLOBALS.bids(3:8) = sort(GLOBALS.bids(3:8));  
 	GLOBALS.vision_fns.set_status(sprintf('Gave focus to: %d',new_fr)); 
-	GLOBALS.vision_fns.updateBox(GLOBALS.focus); 	
-
+	GLOBALS.vision_fns.updateBox(GLOBALS.focus); 
+	%old_fr is in front focus, and is going fast	
+	%If new_fr was not in front focus, it needs to speed up, and the old_fr needs to slow down
+	if new_fr_old_box > 2
+		msg.cam = 2; 
+		msg.otime = 0.5;
+		msg.ftime = 0.5;
+		send_cam_param_msg(new_fr,msg)
+		msg.ftime = 2;
+		send_cam_param_msg(old_fr,msg)
+	end
+	%If new_fr was in front focus, nobody changes speed
+	
 
 function yellow_ooi_Callback(hObject, eventdata, handles)
 	set_label('YellowBarrel'); 
@@ -743,16 +770,21 @@ function send_lazer_msg(id,status)
 set_status(type)
 	send_message_to_robot(id,name,msg); 
 
-	function send_message_to_robot(id,name,msg);
+function send_message_to_robot(id,name,msg);
 	global ROBOTS NOSEND
 	name = sprintf('Robot%d/%s',id,name); 
 	msg 
-if ~isempty(NOSEND)
-	'NOT SENDING MESSAGES TODAY!!!'
-	return
-	end	
+	if ~isempty(NOSEND)
+		'NOT SENDING MESSAGES TODAY!!!'
+		return
+	end
+	if ~ROBOTS(id).connected
+		sprintf('ROBOT %d NOT CONNECTED!',id)
+		return
+	end
 	ROBOTS(id).ipcAPI('define',name);  
 	ROBOTS(id).ipcAPI('publish',name,serialize(msg)); 
+
 function send_message_to_gcs(name,msg);
 	global NOSEND
 	if ~isempty(NOSEND)
@@ -889,7 +921,12 @@ function short = pname_long_to_short(long)
 	end
 
 function updateSettingsWithPacket(id,type,p)
-	global GLOBALS; 
+	global GLOBALS;
+	if p.ftime == 0.5
+		GLOBALS.speeds(id) = 3; 
+	else 
+		GLOBALS.speeds(id) = 2;
+	end 
 	handles = guidata(GLOBALS.vision_gui);
 	seltype = get(get(handles.camera_type,'SelectedObject'),'String');
 	selcam  = get(get(handles.camera,'SelectedObject'),'String');

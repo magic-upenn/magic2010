@@ -11,9 +11,8 @@ function button_handler(chr,gui)
 			GLOBALS.vision_fns.set_focus(num); 
 		end
 	elseif strcmp(chr, '.')
-		swap_out = GLOBALS.bids(GLOBALS.focus);  
-		GLOBALS.bids(GLOBALS.focus) = GLOBALS.bids(9); 
-		GLOBALS.bids(9) = swap_out;  
+		swap_out = GLOBALS.bids(GLOBALS.focus); 
+		GLOBALS.vision_fns.set_focus(GLOBALS.bids(9));  
 		GLOBALS.vision_fns.set_status(sprintf('Gave focus to: %d',GLOBALS.bids(GLOBALS.focus))); 
 		GLOBALS.vision_fns.updateFrontFocused(GLOBALS.focus);
 	elseif strcmp(chr, '*')
