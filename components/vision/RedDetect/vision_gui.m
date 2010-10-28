@@ -140,15 +140,17 @@ function updateOOIHistory(id,ser)
 	[GLOBALS.history(2:5).ooi] = GLOBALS.history(1:4).ooi;
 	GLOBALS.history(1).ooi = ooi; 
 	for t = 1:5
-	set(handles.ih_hist_ooi(t),'CData',GLOBALS.history(t).ooi.front);
-image(GLOBALS.history(t).ooi.front)
+		set(handles.ih_hist_ooi(t),'CData',GLOBALS.history(t).ooi.front);
+		%image(GLOBALS.history(t).ooi.front)
 	end
 	imwrite(ooi.front,sprintf('cands/robot_%d_ser_%d.png',id,ser));
-	fid = fopen('cands/last_ser','w' )
-	if fid ~= -1
-	fwrite(fid,ser); 
-	fclose(fid);
-	end 
+	oois = [GLOBALS.history.ooi];
+	ids = [oois.id];
+	sers = [oois.ser];
+	last_five = [ids;sers];
+	current_ser = ser + 1; 
+	save('cands/last_five.mat','last_five'); 
+	save('cands/current_ser.mat','current_ser'); 
 
 
 
@@ -223,25 +225,25 @@ function updateFrontFocused(box)
 	updateLabel; 
 
 
-	function updateBB
+function updateBB
 	global GLOBALS IMAGES; 
 	handles = guidata(GLOBALS.vision_gui);
-if ~isempty(GLOBALS.current_bb)
-	bb = GLOBALS.current_bb; 
-	img = IMAGES(GLOBALS.bids(GLOBALS.focus)); 
-	[imgd,vsd,hsd] = get_dist_by_bb(img.front,bb,img.front_angle,img.scanV,img.scanH); 
-	auto = 0; 
-	selected = get(handles.dist_source,'SelectedObject'); 
-	selected = get(selected,'String'); 
-switch(selected)
+	if ~isempty(GLOBALS.current_bb)
+		bb = GLOBALS.current_bb; 
+		img = IMAGES(GLOBALS.bids(GLOBALS.focus)); 
+		[imgd,vsd,hsd] = get_dist_by_bb(img.front,bb,img.front_angle,img.scanV,img.scanH); 
+		auto = 0; 
+		selected = get(handles.dist_source,'SelectedObject'); 
+		selected = get(selected,'String'); 
+	switch(selected)
 	case 'IMG'
-	GLOBALS.current_distance = imgd; 
+		GLOBALS.current_distance = imgd; 
 	case 'HS'
-	GLOBALS.current_distance = hsd; 
+		GLOBALS.current_distance = hsd; 
 	case 'VS'
-	GLOBALS.current_distance = vsd; 
+		GLOBALS.current_distance = vsd; 
 	case 'AUTO'
-	GLOBALS.current_distance = imgd; 
+		GLOBALS.current_distance = imgd; 
 	end
 	set(handles.dists_display,'String',sprintf('%.1f | %.1f | %.1f | *%.1f*',vsd,hsd,imgd,GLOBALS.current_distance));    		end
 
@@ -449,6 +451,27 @@ function set_status(msg)
 	h = guidata(GLOBALS.vision_gui);
 	set(h.status_text,'String',sprintf('%s-%.1f',msg,toc(GLOBALS.clock)))
 
+function restoreOOIHistory()
+	global GLOBALS
+	try
+		load('cands/current_ser.mat'); 
+		GLOBALS.current_ser = current_ser; 
+	catch 
+		GLOBALS.current_ser = 1;
+	end
+	try	
+		load('cands/last_five.mat')
+		last_five
+		size(last_five,2)
+		for i = 1:size(last_five,2);
+			ooi.id  = last_five(1,i);  
+			ooi.ser = last_five(2,i); 
+			ooi.front = imread(sprintf('cands/robot_%d_ser_%d.png',ooi.id,ooi.ser));
+			GLOBALS.history(i).ooi = ooi;
+		end 
+	catch
+	end
+
 function setup_global_vars(vision_gui)
 	global GLOBALS IMAGES
 	GLOBALS.vision_gui = vision_gui; 
@@ -457,13 +480,6 @@ function setup_global_vars(vision_gui)
 	GLOBALS.current_bb = []; 
 	GLOBALS.current_bb_id = []; 
 	GLOBALS.current_label = '?'; 
-	fid = fopen('cands/last_ser','r'); 
-	if fid ~= -1 
-	GLOBALS.current_ser = fread(fid) + 1;
-	fclose(fid); 
-	else
-	GLOBALS.current_ser = 1;
-	end
 	GLOBALS.current_distance = 0;
 	GLOBALS.clock = tic; 
 	GLOBALS.last_look = []; 
@@ -546,6 +562,7 @@ function setup_global_vars(vision_gui)
 	end 
 	GLOBALS.null_cand = null_cand; 
 	GLOBALS.history = history; 
+	restoreOOIHistory(); 
 %------------------------------------------------------------------------------------------
 
 function set_focus(new_fr)
