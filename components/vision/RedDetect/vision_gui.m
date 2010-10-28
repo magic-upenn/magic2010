@@ -274,7 +274,7 @@ function updateGui(id)
 
 function updateWithPackets(imPackets)
 	global IMAGES GLOBALS;
-
+	[imPackets,ids] = filter_packets(imPackets); 
 	for i = 1:numel(imPackets)
 		imPacket = imPackets{i};
 		IMAGES(imPacket.id).t = imPacket.t; 
@@ -310,10 +310,12 @@ function updateWithPackets(imPackets)
 				IMAGES(imPacket.id).omni_params = imPacket.params; 
 		end
 		updateSettingsWithPacket(imPacket.id,imPacket.type,imPacket.params); 	
-		GLOBALS.vision_fns.updateGui(imPacket.id);  
+	end
+	for i = 1:numel(ids)
+		id = ids(i); 
+		GLOBALS.vision_fns.updateGui(id);  
 	end
 	drawnow; 
-
 	% --- Outputs from this function are returned to the command line.
 function varargout = vision_gui_OutputFcn(hObject, eventdata, handles) 
 	varargout{1} = handles.output;
