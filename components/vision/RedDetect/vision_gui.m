@@ -445,11 +445,11 @@ function figure1_KeyPressFcn(hObject, eventdata, handles)
 	chr = 'down';
 	end
 	button_handler(chr,'vision'); 
-
+	
 function set_status(msg)
 	global GLOBALS;
 	h = guidata(GLOBALS.vision_gui);
-	set(h.status_text,'String',sprintf('%s-%.1f',msg,toc(GLOBALS.clock)))
+	set(h.status_text,'String',sprintf('%s @ %.1f',msg,toc(GLOBALS.clock)))
 
 function restoreOOIHistory()
 	global GLOBALS
@@ -496,6 +496,7 @@ function setup_global_vars(vision_gui)
 	GLOBALS.tweekH = .2; 
 	GLOBALS.tweekV = .15;
 	GLOBALS.last_update_tics = [tic,tic,tic,tic,tic,tic,tic,tic,tic];  
+	vision_fns.front_cand_down	   = @front_cand_down;  
 	vision_fns.updateGui		   = @updateGui;  
 	vision_fns.updateFrontFocused	   = @updateFrontFocused;  
 	vision_fns.updateBox		   = @updateBox;  
@@ -503,12 +504,12 @@ function setup_global_vars(vision_gui)
 	vision_fns.lookat_Callback         = @lookat_Callback;
 	vision_fns.car_Callback            = @car_Callback;
 	vision_fns.door_Callback           = @door_Callback;
-	vision_fns.renounce_ooi_Callback   = @renounce_ooi_Callback;
-	vision_fns.cand_Callback	  =  @cand_ButtonDownFcn;
+	vision_fns.stop_Callback	  =  @stop_Callback
 	vision_fns.announce_ooi_Callback   = @announce_ooi_Callback;
+	vision_fns.face_Callback   	   = @face_Callback;
+	vision_fns.suggest_Callback   	   = @Suggest_Callback;
 	vision_fns.track_Callback   	   = @track_Callback;
 	vision_fns.lookat_Callback   	   = @lookat_Callback;
-	vision_fns.neutralized_Callback    = @neutralized_Callback;
 	vision_fns.explore_Callback        = @explore_Callback;
 	vision_fns.mobile_ooi_Callback     = @mobile_ooi_Callback;
 	vision_fns.lazer_up_Callback       = @lazer_up_Callback;
@@ -693,10 +694,10 @@ function explore_Callback(hObject, eventdata, handles)
 function lookat(id,theta,phi,type)
 	global GLOBALS IMAGES; 
 	GLOBALS.req_angles(id) = theta;
-if isempty(IMAGES(id).pose)
-	abs_angle = 0; 
+	if isempty(IMAGES(id).pose)
+		abs_angle = 0; 
 	else 
-	abs_angle = IMAGES(id).pose.yaw;   
+		abs_angle = IMAGES(id).pose.yaw;   
 	end
 	set_status(type);
 	updateOmni(find(GLOBALS.bids == id)); ; 
@@ -768,8 +769,10 @@ function send_message_to_gcs(name,msg);
 function track_Callback(hObject, eventdata, handles)
 	global GLOBALS IMAGES;  
 	if isempty(GLOBALS.current_bb)
+		set_status('No BB to track')
 		return
 	end
+	set_status('Track BB'); 
 	id = GLOBALS.bids(GLOBALS.focus); 
 	x = mean(GLOBALS.current_bb(3:4)); 
 	y = mean(GLOBALS.current_bb(1:2)); 
@@ -781,8 +784,10 @@ function track_Callback(hObject, eventdata, handles)
 function lookat_Callback(hObject, eventdata, handles)
 	global GLOBALS IMAGES;  
 	if isempty(GLOBALS.current_bb)
+		set_status('No BB to lookat')
 		return
 	end
+	set_status('Lookat BB'); 
 	id = GLOBALS.bids(GLOBALS.focus); 
 	x = mean(GLOBALS.current_bb(3:4)); 
 	y = mean(GLOBALS.current_bb(1:2)); 
@@ -794,8 +799,10 @@ function lookat_Callback(hObject, eventdata, handles)
 function face_Callback(hObject, eventdata, handles)
 	global GLOBALS IMAGES;  
 	if isempty(GLOBALS.current_bb)
+		set_status('No BB to face')
 		return
 	end
+	set_status('Face BB'); 
 	id = GLOBALS.bids(GLOBALS.focus); 
 	x = mean(GLOBALS.current_bb(3:4)); 
 	y = mean(GLOBALS.current_bb(1:2)); 
@@ -809,6 +816,7 @@ function stop_Callback(hObject, eventdata, handles)
 	id = GLOBALS.bids(GLOBALS.focus); 
 	name = 'StateEvent';
 	msg = 'stop'; 
+	set_status('Sending stop')
 	send_message_to_robot(id,name,msg); 
 
 % --- Executes on button press in Suggest.
@@ -911,7 +919,6 @@ function updateSettingsWithPacket(id,type,p)
 
 function send_cam_param_msg(id,msg)
 	name = 'CamParams'
-	return
 	send_message_to_robot(id,name,msg);
 
 function slider_Callback(hObject, eventdata, handles)

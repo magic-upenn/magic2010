@@ -119,19 +119,19 @@ function PoseMsgHander(data,name)
 	POSE.data = MagicPoseSerializer('deserialize',data);
 
 function CamParamsMsgHandler(data,name)
-  global PARAMS
-  'Changing params'
-  if isempty(data)
-    		return;
+	global PARAMS
+  	'Changing params'
+	if isempty(data)
+		return;
 	end
 	params = deserialize(data);
-  if params.cam == 0
+	if params.cam == 0
 		PARAMS.omni = params;
-    set_ctrl_values(0,params); 
+		set_ctrl_values(0,params); 
 	end 
 	if params.cam == 1
 		PARAMS.front = params;
-    set_ctrl_values(1,params); 
+		set_ctrl_values(1,params); 
 	end 
 
 function LazerMsgHandler(data,name)
