@@ -534,6 +534,7 @@ function setup_global_vars(vision_gui)
 	null_stats = ones(3,5); 
 	null_stats(:,1) = 0;
 	null_params = get_ctrl_values(-1); 
+	GLOBALS.default_params = null_params; 
 	for cand = 1:3
 	null_cands{cand} = null_cand;  
 	end
@@ -971,12 +972,18 @@ function slider_Callback(hObject, eventdata, handles)
 function slider_CreateFcn(hObject, eventdata, handles)
 
 function reset_params_Callback(hObject, eventdata, handles)
-% hObject    handle to reset_params (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+	global GLOBALS
+	handles = guidata(GLOBALS.vision_gui);
+	p = GLOBALS.default_params; 
+	values = [p.exposure_absolute, p.saturation, p.gain, p.focus, p.contrast,p.brightness]
+	updateSettings([],values); 
+	slider_Callback([], 'exp', handles);
+	slider_Callback([], 'sat', handles);
+	slider_Callback([], 'gn',  handles);
+	slider_Callback([], 'foc', handles);
+	slider_Callback([], 'con', handles);
+	slider_Callback([], 'brt', handles);
 
-
-% --- Executes on mouse press over axes background.
 function omni1_ButtonDownFcn(hObject, eventdata, handles)
 % hObject    handle to omni1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
