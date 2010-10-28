@@ -1,5 +1,7 @@
 function RedDetect
 %global VISION_IPC host
+	'Added controls'
+	system('sh $MAGIC_DIR/components/vision/RedDetect/add_ctrls.sh')
 	global POSE LIDAR PARAMS; 
 	POSE.data = [];
 	SetMagicPaths;
