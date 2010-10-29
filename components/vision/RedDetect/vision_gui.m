@@ -596,12 +596,16 @@ function set_focus(new_fr)
 	GLOBALS.vision_fns.updateBox(GLOBALS.focus); 
 	%old_fr is in front focus, and is going fast	
 	%If new_fr was not in front focus, it needs to speed up, and the old_fr needs to slow down
+	msg.id = new_fr; 
 	if new_fr_old_box > 2
 		msg.cam = 2; 
 		msg.otime = 0.5;
 		msg.ftime = 0.5;
 		send_cam_param_msg(new_fr,msg)
 		msg.ftime = 2;
+		if new_fr_old_box == 9 
+			msg.otime = 1.5;
+		end
 		send_cam_param_msg(old_fr,msg)
 	end
 	%If new_fr was in front focus, nobody changes speed
