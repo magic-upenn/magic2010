@@ -1,0 +1,15 @@
+function recvMapUpdateH(data, name)
+
+global RMAP
+
+if isempty(data)
+  return
+end
+
+fprintf(1,'got MapUpdateH of size %d from %s\n',length(data),name);
+id = sscanf(name, 'robot%d_');
+
+update = deserialize(data);
+
+accum(RMAP{id}, 'hlidar', ...
+      double(update.xs), double(update.ys), double(update.cs)./256);
