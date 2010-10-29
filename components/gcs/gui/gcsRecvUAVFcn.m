@@ -10,3 +10,4 @@ msg = deserialize(data);
 fprintf(1,'got UAV feed\n');
 
 UAV_FEED = msg;
+UAVOverlay;

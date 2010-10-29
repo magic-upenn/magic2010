@@ -17,7 +17,7 @@ else
 end
 
 
-global gcs_machine GCS HAVE_ROBOTS
+global gcs_machine GCS HAVE_ROBOTS UAV_MAP
 
 tUpdate = 0.1;
 
