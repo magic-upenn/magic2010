@@ -71,12 +71,12 @@ mapEoffset = MAGIC_CONSTANTS.mapEastOffset - MAGIC_CONSTANTS.mapEastMin;
 mapNoffset = MAGIC_CONSTANTS.mapNorthOffset - MAGIC_CONSTANTS.mapNorthMin;
 
 % pre screen paths
-RPATH.x=[];
-RPATH.y=[];
-NPATH.x=[];
-NPATH.y=[];
-OPATH.x=[];
-OPATH.y=[];
+ RPATH=[];
+% RPATH.y=[];
+ NPATH=[];
+% NPATH.y=[];
+ OPATH=[];
+% OPATH.y=[];
 
 %convert paths to cell indices
 for ID = 1:size(ROBOT_PATH,2)
@@ -84,8 +84,8 @@ for ID = 1:size(ROBOT_PATH,2)
         RPATH(ID).x = floor((ROBOT_PATH(ID).x + mapEoffset)/res);
         RPATH(ID).y = floor((ROBOT_PATH(ID).y + mapNoffset)/res);
     else
-        RPATH(ID).x = [];
-        RPATH(ID).y = [];
+        RPATH(ID) = [];
+%         RPATH(ID).y = [];
     end
 end
 
@@ -94,8 +94,8 @@ for ID = 1:size(OOI_PATH,2)
         OPATH(ID).x = floor((OOI_PATH(ID).x + mapEoffset)/res);
         OPATH(ID).y = floor((OOI_PATH(ID).y + mapNoffset)/res);
     else
-        OPATH(ID).x = [];
-        OPATH(ID).y = [];
+        OPATH(ID) = [];
+%         OPATH(ID).y = [];
     end
 end
 
@@ -104,8 +104,8 @@ for ID =1:size(NC_PATH, 2)
         NPATH(ID).x = floor((NC_PATH(ID).x + mapEoffset)/res);
         NPATH(ID).y = floor((NC_PATH(ID).y + mapNoffset)/res);
     else
-        NPATH(ID).x = [];
-        NPATH(ID).y = [];
+        NPATH(ID) = [];
+%         NPATH(ID).y = [];
     end
 end
 
@@ -177,9 +177,11 @@ end
         
         % robot start
         for ID = 1:size(RPATH,2)
+           if ~isempty(RPATH(ID))
             if((RPATH(ID).x(1)>=minx) && (RPATH(ID).x(1) <= maxx) && (RPATH(ID).y(1) >=miny) && (RPATH(ID).y(1) <= maxy))
                 patch(RPATH(ID).y(1)+[-1 0 1]-miny, RPATH(ID).x(1)+[1 -2 1]-minx+HEADERSPACE, CSTART);
             end
+           end
         end
         
         % plot the robot, OOI and NC paths
