@@ -22,7 +22,7 @@ function varargout = vision_gui(varargin)
 
 % Edit the above text to modify the response to help vision_gui
 
-% Last Modified by GUIDE v2.5 27-Oct-2010 15:04:47
+% Last Modified by GUIDE v2.5 30-Oct-2010 13:21:44
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -84,7 +84,7 @@ function setup_imgs(gui)
 		axis(handles.(ooiname),'off'); 
 	end
 		
-	for box = 1:8
+	for box = 1:9
 		img = IMAGES(GLOBALS.bids(box));
 		cname = sprintf('cand%d',box);
 		oname = sprintf('omni%d',box);
@@ -189,9 +189,8 @@ function updateOmni(box)
 	nh = mod(GLOBALS.heartbeat(id),2) + 1;
 	GLOBALS.heartbeat(id) = nh;
 	text(30,20,sprintf('%d',GLOBALS.bids(box)),'Parent',handles.(oname),...
-			'FontSize',30,'Color',colors(oh),...
-			'BackgroundColor',colors(nh));
-
+			'FontSize',30,'Color',colors(oh));
+%			'BackgroundColor',colors(nh));
  
 	text(10,20,'.','Parent',handles.(oname),...
 			'FontSize',10,'Color','k',...
@@ -268,9 +267,7 @@ function updateGui(id)
 	updateHistory(id); 
 	handles = guidata(GLOBALS.vision_gui);
 	box = find(GLOBALS.bids == id); 
-	if box ~= 9
-		updateBox(box)
-	end 
+	updateBox(box)
 
 function updateWithPackets(imPackets)
 	global IMAGES GLOBALS;
@@ -603,9 +600,6 @@ function set_focus(new_fr)
 		msg.ftime = 0.5;
 		send_cam_param_msg(new_fr,msg)
 		msg.ftime = 2;
-		if new_fr_old_box == 9 
-			msg.otime = 1.5;
-		end
 		send_cam_param_msg(old_fr,msg)
 	end
 	%If new_fr was in front focus, nobody changes speed
