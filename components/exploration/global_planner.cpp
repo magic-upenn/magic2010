@@ -1076,6 +1076,12 @@ for (int j = 0; j < num_regions; j++) {
         POSEX[idx] = (int)(gp_position_update_p->x[idx] / map_cell_size);
         POSEY[idx] = (int)(gp_position_update_p->y[idx] / map_cell_size);
         POSETHETA[idx] = gp_position_update_p->theta[idx];
+        // free 9 cells in vicinity of robot start position
+        for(int i=-1; i<2; i++) {
+            for(int j=-1; j<2; j++) {
+                cover_map[POSEX[idx]+i+(POSEY[idx]+j)*map_size_x] = KNOWN;
+            }
+        }
         traj[idx].reserve(300); 
         printf("robot %d is at (%.0f,%.0f)\n", idx, POSEX[idx]*map_cell_size, POSEY[idx]*map_cell_size);
     }
