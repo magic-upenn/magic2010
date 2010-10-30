@@ -232,7 +232,7 @@ function updateFrontFocused(box)
 	axis(handles.(scname),'off'); 
 	bb = img.front_stats(sc,2:end);
 	[dist,vsd,hsd] = get_dist_by_bb([],bb,[],[],[]); 
-	text(1,10,sprintf('%.1fm',dist),'Parent',handles.(scname),'FontSize',16,'BackgroundColor','y'); 
+	text(1,10,sprintf('%.1fm',dist),'Parent',handles.(scname),'FontSize',16,'BackgroundColor','y','HitTest','off'); 
 	set(cand_h,'ButtonDownFcn',{@mouse_ButtonDownFcn,{'front_cand',handles.(scname),[box,sc]}});
 	set(cand_h,'Interruptible','off');
 	end 

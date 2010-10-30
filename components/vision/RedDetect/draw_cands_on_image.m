@@ -6,7 +6,7 @@ function draw_cands_on_image(imh,axeh,stats,img)
 		return
 	end
 	stats = flipud(sortrows(stats,1));  
-	for i = 1:min(size(stats,1),25)
+	for i = 1:min(size(stats,1),3)
 		linecolor = 'blue';
 		if i == 3
 			linecolor = 'red';
@@ -22,7 +22,7 @@ function draw_cands_on_image(imh,axeh,stats,img)
 		if bb(4)-bb(3) == 0 || bb(2)-bb(1) == 0
 			continue
 		end
-		rectangle('Position',[bb(3),bb(1),bb(4)-bb(3),bb(2)-bb(1)],'EdgeColor',linecolor,'LineWidth',2,'Parent',axeh); 
+		rectangle('Position',[bb(3),bb(1),bb(4)-bb(3),bb(2)-bb(1)],'EdgeColor',linecolor,'LineWidth',2,'Parent',axeh,'HitTest','off'); 
 %		line([bb(3),bb(4)],[bb(1),bb(1)],'Color',linecolor,'LineWidth',2,'Parent',axeh);
 %		line([bb(3),bb(4)],[bb(2),bb(2)],'Color',linecolor,'LineWidth',2,'Parent',axeh);
 %		line([bb(3),bb(3)],[bb(1),bb(2)],'Color',linecolor,'LineWidth',2,'Parent',axeh);

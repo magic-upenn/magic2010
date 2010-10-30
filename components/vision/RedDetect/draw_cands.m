@@ -3,7 +3,7 @@ function draw_cands(stats,img)
 	if isempty(stats)
 		return
 	end
-	for i = 1:min(size(stats,1),25)
+	for i = 1:min(size(stats,1),3)
 		linecolor = 'blue';
 		if i == 3
 			linecolor = 'red';
@@ -16,8 +16,8 @@ function draw_cands(stats,img)
 		end
 		bb = stats(i,2:end);
 		bb = max(bb,1);  
-		line([bb(3),bb(4)],[bb(1),bb(1)],'Color',linecolor,'LineWidth',2);
-		line([bb(3),bb(4)],[bb(2),bb(2)],'Color',linecolor,'LineWidth',2);
-		line([bb(3),bb(3)],[bb(1),bb(2)],'Color',linecolor,'LineWidth',2);
-		line([bb(4),bb(4)],[bb(1),bb(2)],'Color',linecolor,'LineWidth',2);
+		line([bb(3),bb(4)],[bb(1),bb(1)],'Color',linecolor,'LineWidth',2,'HitTest','off');
+		line([bb(3),bb(4)],[bb(2),bb(2)],'Color',linecolor,'LineWidth',2,'HitTest','off');
+		line([bb(3),bb(3)],[bb(1),bb(2)],'Color',linecolor,'LineWidth',2,'HitTest','off');
+		line([bb(4),bb(4)],[bb(1),bb(2)],'Color',linecolor,'LineWidth',2,'HitTest','off');
 	end

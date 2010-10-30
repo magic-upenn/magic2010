@@ -7,9 +7,9 @@ function draw_range(scanH,scanV,img,front_angle,axeh)
 		if txt == round(numel(rangeH)/2) + 1
 			continue
 		end
-		text(round(steps(2)*(txt-1)),mids(1),sprintf('%.1f',rangeH(txt)),'Parent',axeh,'FontSize',16); 
+		text(round(steps(2)*(txt-1)),mids(1),sprintf('%.1f',rangeH(txt)),'Parent',axeh,'FontSize',16,'HitTest','off'); 
 	end
 	for txt = 1:numel(rangeV)
-		text(mids(2),round(steps(1)*(txt-1)),sprintf('%.1f',rangeV(txt)),'Parent',axeh,'FontSize',16); 
+		text(mids(2),round(steps(1)*(txt-1)),sprintf('%.1f',rangeV(txt)),'Parent',axeh,'FontSize',16,'HitTest','off'); 
 	end	  
 
