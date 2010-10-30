@@ -44,8 +44,12 @@ function [imgd,vsd,hsd] = get_dist_by_bb(img,bb,front_angle,scanV,scanH)
 	maxV = max(bb(3:4)); 
 	goodH = pixelH > minH & pixelH < maxH;
 	goodV = pixelV > minV & pixelV < maxV;
-	hsd = median(rangeH(goodH)); 
-	vsd = median(rangeV(goodV));
+	rangeH = rangeH(goodH); 
+	rangeV = rangeV(goodV);
+	rangeH = rangeH(rangeH > 0);
+	rangeV = rangeV(rangeV > 0);  
+	hsd = median(rangeH); 
+	vsd = median(rangeV);
 	if isnan(hsd) || isnan(vsd)
 		'Hsd or Vsd is NaN!'
 	end

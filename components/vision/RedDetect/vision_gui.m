@@ -656,7 +656,6 @@ function announce_ooi_Callback(hObject, eventdata, handles)
 	end 
 	send_ooi_msg(id,GLOBALS.current_ser,shirt,x,y,GLOBALS.current_label)
 	GLOBALS.current_ser = GLOBALS.current_ser + 1;  
-	send_look_msg(id,0,0,'done');
 
 function lazer_up_Callback(hObject, eventdata, handles)
 	global GLOBALS; 
