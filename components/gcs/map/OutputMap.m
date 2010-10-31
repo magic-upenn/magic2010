@@ -39,7 +39,7 @@ HEADERSPACE = 20; % number of pixels of space at the top of the map
 MAPSIZE = 20; % size in meters of each small map
 
 % serialize all OOI's
-% 1 = red barrel 
+% 1 = red barrel
 % 2 = red barrel neutralized
 % 3 = moving POI
 % 4 = neutralized moving POI
@@ -51,10 +51,10 @@ mOOI = 1;
 sOOI = 1;
 for idx = 1:size(OOI,2)
     if ((OOI(idx).type == 3) || (OOI(idx).type == 4)||(OOI(idx).type == 5))
-        OOI(idx).serial = ['m' num2str(mOOI)];
+        OOI(idx).serial = ['M' num2str(mOOI)];
         mOOI = mOOI + 1;
     else
-        OOI(idx).serial = ['s' num2str(sOOI)];
+        OOI(idx).serial = ['S' num2str(sOOI)];
         sOOI = sOOI + 1;
     end
 end
@@ -71,11 +71,11 @@ mapEoffset = MAGIC_CONSTANTS.mapEastOffset - MAGIC_CONSTANTS.mapEastMin;
 mapNoffset = MAGIC_CONSTANTS.mapNorthOffset - MAGIC_CONSTANTS.mapNorthMin;
 
 % pre screen paths
- RPATH(1).x=[];
- RPATH.y=[];
- NPATH=[];
+RPATH(1).x=[];
+RPATH.y=[];
+NPATH=[];
 % NPATH.y=[];
- OPATH=[];
+OPATH=[];
 % OPATH.y=[];
 
 %convert paths to cell indices
@@ -95,7 +95,7 @@ for ID = 1:size(OOI_PATH,2)
         OPATH(ID).y = floor((OOI_PATH(ID).y -MAGIC_CONSTANTS.mapNorthMin)/res);
     else
         OPATH(ID) = [];
-%         OPATH(ID).y = [];
+        %         OPATH(ID).y = [];
     end
 end
 
@@ -105,7 +105,7 @@ for ID =1:size(NC_PATH, 2)
         NPATH(ID).y = floor((NC_PATH(ID).y -MAGIC_CONSTANTS.mapNorthMin)/res);
     else
         NPATH(ID) = [];
-%         NPATH(ID).y = [];
+        %         NPATH(ID).y = [];
     end
 end
 
@@ -114,119 +114,116 @@ end
 minx = 1; miny =1;
 maxx = xdim; maxy = ydim;
 
-  % setup the plot map
-        plot_map = map(minx:maxx, miny:maxy);
-        plot_map = vertcat(zeros(HEADERSPACE,ydim), plot_map);
-        
-        %setup the output map
-        out_map1(:,:) = repmat(CDUNK(1), xdim+HEADERSPACE, ydim);
-        out_map2(:,:) = repmat(CDUNK(2), xdim+HEADERSPACE, ydim);
-        out_map3(:,:) = repmat(CDUNK(3), xdim+HEADERSPACE, ydim);
-        
-        %make grid background
-        for gx= 0:(xdim*res -1)
-            for gy=0:(ydim*res -1)
-                if (mod(gx+gy, 2))
-                    out_map1((gx/res)+1:((gx+1)/res), (gy/res)+1:((gy+1)/res)) = CLUNK(1);
-                    out_map2((gx/res)+1:((gx+1)/res), (gy/res)+1:((gy+1)/res)) = CLUNK(2);
-                    out_map3((gx/res)+1:((gx+1)/res), (gy/res)+1:((gy+1)/res)) = CLUNK(3);
-                end
-            end
+% setup the plot map
+plot_map = map(minx:maxx, miny:maxy);
+plot_map = vertcat(zeros(HEADERSPACE,ydim), plot_map);
+
+%setup the output map
+out_map1(:,:) = repmat(CDUNK(1), xdim+HEADERSPACE, ydim);
+out_map2(:,:) = repmat(CDUNK(2), xdim+HEADERSPACE, ydim);
+out_map3(:,:) = repmat(CDUNK(3), xdim+HEADERSPACE, ydim);
+
+%make grid background
+for gx= 0:(xdim*res -1)
+    for gy=0:(ydim*res -1)
+        if (mod(gx+gy, 2))
+            out_map1((gx/res)+1:((gx+1)/res), (gy/res)+1:((gy+1)/res)) = CLUNK(1);
+            out_map2((gx/res)+1:((gx+1)/res), (gy/res)+1:((gy+1)/res)) = CLUNK(2);
+            out_map3((gx/res)+1:((gx+1)/res), (gy/res)+1:((gy+1)/res)) = CLUNK(3);
         end
-        
-        % plot the known
-        pmidx = plot_map < 0;
-        out_map1(pmidx) = (-CFREEDEL(1).*plot_map(pmidx)/100)+CFREEMIN(1);
-        out_map2(pmidx) = (-CFREEDEL(2).*plot_map(pmidx)/100)+CFREEMIN(2);
-        out_map3(pmidx) = (-CFREEDEL(3).*plot_map(pmidx)/100)+CFREEMIN(3);
-        
-        %plot the presumed free by movement
-        pmidx = plot_map > 2;
-        out_map1(pmidx) = (CFREEDEL(1).*plot_map(pmidx)/100)+CFREEMIN(1);
-        out_map2(pmidx) = (CFREEDEL(2).*plot_map(pmidx)/100)+CFREEMIN(2);
-        out_map3(pmidx) = (CFREEDEL(3).*plot_map(pmidx)/100)+CFREEMIN(3);
-        
-        %plot the walls
-        pmidx = plot_map >=90;
-        out_map1(pmidx) = CWALL(1);
-        out_map2(pmidx) = CWALL(2);
-        out_map3(pmidx) = CWALL(3);
-        
-        out_map = cat(3, out_map1, out_map2, out_map3);
-        
-        clf(h); hold off; image(out_map); hold on; axis equal; axis tight;
-        
-        %add the filename
-        text(10, 5, [printname '\_full'], 'Color', CFILE, 'FontSize', 8);
-        
-        % scale
-        plot([10 10], [20.5 30.5], 'Color', CSCALE);
-        plot([9 11], [20.5 20.5], 'Color', CSCALE);
-        plot([9 11], [30.5 30.5], 'Color', CSCALE);
-        text(12, 30, '1m', 'Color', CSCALE, 'FontSize', 6);
-        
-        % orientation
-        plot([55 55 50], [23 28 28], 'Color', CSCALE);
-        text(61, 21, 'x', 'Color', CSCALE, 'FontSize', 4);
-        text(47, 31, 'y', 'Color', CSCALE, 'FontSize', 4);
-        
-        % robot start
-        for ID = 1:size(RPATH,2)
-           if ~isempty(RPATH(ID).x)
-                            patch(RPATH(ID).y(1)+[-1 0 1]-miny, RPATH(ID).x(1)+[1 -2 1]-minx+HEADERSPACE, CSTART);
-                       end
-        end
-        
-        % plot the robot, OOI and NC paths
-        for ID =1:size(RPATH,2)
-            if ~isempty(RPATH(ID).x)
-                    plot(RPATH(ID).y-miny, RPATH(ID).x- minx+HEADERSPACE, 'Color', CRPATH, 'LineWidth', .02);
-            end
-        end
-        
-        for ID = 1:size(OPATH,2)
-            if ~isempty(OPATH(ID))
-                    plot(OPATH(ID).y-miny, OPATH(ID).x- minx +HEADERSPACE, 'Color', COOIPATH, 'LineWidth', .02);
-            end
-        end
-        
-        for ID =1:size(NPATH,2)
-            if ~isempty(NPATH(ID))
-                    plot(NPATH(ID).y-miny, NPATH(ID).x - minx +HEADERSPACE, 'Color', CNCPATH, 'LineWidth', .02);
-            end
-            end
-        
-        % OOI info
-        for oidx=1: size(OOI,2)
-            xx = (OOI(oidx).x + mapEoffset)/res;
-            yy = (OOI(oidx).y + mapNoffset)/res;
-            if ((xx>=minx) && (xx <=maxx) && (yy>=miny) && (yy<=maxy))
-                patch(circ_y+yy-miny, circ_x+xx-minx, COOI);
-                text(yy-miny-.4, xx-minx, OOI(oidx).serial, 'Color', COOITEXT, 'FontSize', 6);
-            end
-        end
-                
-         
-        
-        
-        set(gca, 'Position', [.01 .01 .98 .98], 'Visible', 'off', 'ActivePositionProperty', 'Position');
-        orient tall
-        drawnow;
-        %output the file
-        print(h, '-dtiff','-r300',  [filename '_full.tif']);
+    end
+end
+
+% plot the known
+pmidx = plot_map < 0;
+out_map1(pmidx) = (-CFREEDEL(1).*plot_map(pmidx)/100)+CFREEMIN(1);
+out_map2(pmidx) = (-CFREEDEL(2).*plot_map(pmidx)/100)+CFREEMIN(2);
+out_map3(pmidx) = (-CFREEDEL(3).*plot_map(pmidx)/100)+CFREEMIN(3);
+
+%plot the presumed free by movement
+pmidx = plot_map > 2;
+out_map1(pmidx) = (CFREEDEL(1).*plot_map(pmidx)/100)+CFREEMIN(1);
+out_map2(pmidx) = (CFREEDEL(2).*plot_map(pmidx)/100)+CFREEMIN(2);
+out_map3(pmidx) = (CFREEDEL(3).*plot_map(pmidx)/100)+CFREEMIN(3);
+
+%plot the walls
+pmidx = plot_map >=90;
+out_map1(pmidx) = CWALL(1);
+out_map2(pmidx) = CWALL(2);
+out_map3(pmidx) = CWALL(3);
+
+out_map = cat(3, out_map1, out_map2, out_map3);
+
+clf(h); hold off; image(out_map); hold on; axis equal; axis tight;
+
+%add the filename
+text(10, 5, [printname '\_full'], 'Color', CFILE, 'FontSize', 8);
+
+% scale
+plot([10 10], [20.5 30.5], 'Color', CSCALE);
+plot([9 11], [20.5 20.5], 'Color', CSCALE);
+plot([9 11], [30.5 30.5], 'Color', CSCALE);
+text(12, 30, '1m', 'Color', CSCALE, 'FontSize', 6);
+
+% orientation
+plot([55 55 50], [23 28 28], 'Color', CSCALE);
+text(61, 21, 'x', 'Color', CSCALE, 'FontSize', 4);
+text(47, 31, 'y', 'Color', CSCALE, 'FontSize', 4);
+
+% robot start
+for ID = 1:size(RPATH,2)
+    if ~isempty(RPATH(ID).x)
+        patch(RPATH(ID).y(1)+[-1 0 1]-miny, RPATH(ID).x(1)+[1 -2 1]-minx+HEADERSPACE, CSTART);
+    end
+end
+
+% plot the robot, OOI and NC paths
+for ID =1:size(RPATH,2)
+    if ~isempty(RPATH(ID).x)
+        plot(RPATH(ID).y-miny, RPATH(ID).x- minx+HEADERSPACE, 'Color', CRPATH, 'LineWidth', .02);
+    end
+end
+
+for ID = 1:size(OPATH,2)
+    if ~isempty(OPATH(ID))
+        plot(OPATH(ID).y-miny, OPATH(ID).x- minx +HEADERSPACE, 'Color', COOIPATH, 'LineWidth', .02);
+    end
+end
+
+for ID =1:size(NPATH,2)
+    if ~isempty(NPATH(ID))
+        plot(NPATH(ID).y-miny, NPATH(ID).x - minx +HEADERSPACE, 'Color', CNCPATH, 'LineWidth', .02);
+    end
+end
+
+% OOI info
+for oidx=1: size(OOI,2)
+    xx = (OOI(oidx).x + mapEoffset)/res;
+    yy = (OOI(oidx).y + mapNoffset)/res;
+    if ((xx>=minx) && (xx <=maxx) && (yy>=miny) && (yy<=maxy))
+        patch(circ_y+yy-miny, circ_x+xx-minx, COOI);
+        text(yy-miny-.4, xx-minx, OOI(oidx).serial, 'Color', COOITEXT, 'FontSize', 6);
+    end
+end
 
 
 
 
+set(gca, 'Position', [.01 .01 .98 .98], 'Visible', 'off', 'ActivePositionProperty', 'Position');
+orient tall
+drawnow;
+%output the file
+print(h, '-dtiff','-r300',  [filename '_full.tif']);
 
- for x=1:num_x
-     for y=1:num_y
-%x =3; y=8;
-% out_map1 = [];
-% out_map2 = [];
-% out_map3 = [];
-% calc endpoints of map
-                minx = (x-1)*MAPSIZE/res +1;
+
+
+% make small maps
+% 
+for x=1:num_x
+    for y=1:num_y
+%         x =3; y=8;
+     % calc endpoints of map
+        minx = (x-1)*MAPSIZE/res +1;
         maxx = (x*MAPSIZE)/res;
         miny = (y-1)*MAPSIZE/res +1;
         maxy = (y*MAPSIZE)/res;
@@ -289,11 +286,11 @@ maxx = xdim; maxy = ydim;
         
         % robot start
         for ID = 1:size(RPATH,2)
-           if ~isempty(RPATH(ID).x)
-            if((RPATH(ID).x(1)>=minx) && (RPATH(ID).x(1) <= maxx) && (RPATH(ID).y(1) >=miny) && (RPATH(ID).y(1) <= maxy))
-                patch(RPATH(ID).y(1)+[-1 0 1]-miny, RPATH(ID).x(1)+[1 -2 1]-minx+HEADERSPACE, CSTART);
+            if ~isempty(RPATH(ID).x)
+                if((RPATH(ID).x(1)>=minx) && (RPATH(ID).x(1) <= maxx) && (RPATH(ID).y(1) >=miny) && (RPATH(ID).y(1) <= maxy))
+                    patch(RPATH(ID).y(1)+[-1 0 1]-miny, RPATH(ID).x(1)+[1 -2 1]-minx+HEADERSPACE, CSTART);
+                end
             end
-           end
         end
         
         % plot the robot, OOI and NC paths
@@ -330,11 +327,11 @@ maxx = xdim; maxy = ydim;
             yy = (OOI(oidx).y + mapNoffset)/res;
             if ((xx>=minx) && (xx <=maxx) && (yy>=miny) && (yy<=maxy))
                 patch(circ_y+yy-miny, circ_x+xx-minx, COOI);
-                text(yy-miny-.4, xx-minx, OOI(oidx).serial, 'Color', COOITEXT, 'FontSize', 8);
+                text(yy-miny-.4, xx-minx, OOI(oidx).serial, 'Color', 'white', 'FontSize', 8);
             end
         end
-                
-         
+        
+        
         
         
         set(gca, 'Position', [.01 .01 .98 .98], 'Visible', 'off', 'ActivePositionProperty', 'Position');
