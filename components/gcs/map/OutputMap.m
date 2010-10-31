@@ -157,18 +157,18 @@ maxx = xdim; maxy = ydim;
         clf(h); hold off; image(out_map); hold on; axis equal; axis tight;
         
         %add the filename
-        text(10, 5, [printname '\_full'], 'Color', CFILE, 'FontSize', 10);
+        text(10, 5, [printname '\_full'], 'Color', CFILE, 'FontSize', 8);
         
         % scale
-        plot([10 10], [10.5 20.5], 'Color', CSCALE);
-        plot([9 11], [10.5 10.5], 'Color', CSCALE);
+        plot([10 10], [20.5 30.5], 'Color', CSCALE);
         plot([9 11], [20.5 20.5], 'Color', CSCALE);
-        text(12, 15, '1m', 'Color', CSCALE, 'FontSize', 8);
+        plot([9 11], [30.5 30.5], 'Color', CSCALE);
+        text(12, 30, '1m', 'Color', CSCALE, 'FontSize', 6);
         
         % orientation
-        plot([35 35 30], [13 18 18], 'Color', CSCALE);
-        text(36, 13, 'x', 'Color', CSCALE, 'FontSize', 6);
-        text(30, 16, 'y', 'Color', CSCALE, 'FontSize', 6);
+        plot([55 55 50], [23 28 28], 'Color', CSCALE);
+        text(61, 21, 'x', 'Color', CSCALE, 'FontSize', 4);
+        text(47, 31, 'y', 'Color', CSCALE, 'FontSize', 4);
         
         % robot start
         for ID = 1:size(RPATH,2)
@@ -202,7 +202,7 @@ maxx = xdim; maxy = ydim;
             yy = (OOI(oidx).y + mapNoffset)/res;
             if ((xx>=minx) && (xx <=maxx) && (yy>=miny) && (yy<=maxy))
                 patch(circ_y+yy-miny, circ_x+xx-minx, COOI);
-                text(yy-miny-.4, xx-minx, OOI(oidx).serial, 'Color', COOITEXT, 'FontSize', 8);
+                text(yy-miny-.4, xx-minx, OOI(oidx).serial, 'Color', COOITEXT, 'FontSize', 6);
             end
         end
                 
@@ -213,7 +213,7 @@ maxx = xdim; maxy = ydim;
         orient tall
         drawnow;
         %output the file
-        print(h, '-dtiff',  [filename '_full.tif']);
+        print(h, '-dtiff','-r300',  [filename '_full.tif']);
 
 
 
