@@ -24,7 +24,10 @@ int UncompressData( const BYTE* abSrc, int nLenSrc, BYTE* abDst, int nLenDst )
     int nErr, nRet= -1;
     nErr= inflateInit( &zInfo );
     if (nErr != Z_OK)
-      mexErrMsgTxt("could not initialized inflate");
+    {
+      printf("zlibUncompress: could not initialized inflate\n");
+      return -1;
+    }
 
     
     nErr= inflate( &zInfo, Z_FINISH );
@@ -32,7 +35,10 @@ int UncompressData( const BYTE* abSrc, int nLenSrc, BYTE* abDst, int nLenDst )
         nRet= zInfo.total_out;
     }
     else
-      mexErrMsgTxt("could not inflate");
+    {
+      printf("zlibUncompress: could not inflate\n");
+      return -1;
+    }
     
     inflateEnd( &zInfo );
     return( nRet ); // -1 or len of output
@@ -41,7 +47,12 @@ int UncompressData( const BYTE* abSrc, int nLenSrc, BYTE* abDst, int nLenDst )
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-  if (nrhs != 1) mexErrMsgTxt("need exactly one argument");
+  if (nrhs != 1)
+  {
+    printf("zlibUncompress: need exactly one argument\n");
+    plhs[0] = mxCreateDoubleMatrix(0,0,mxREAL);
+    return;
+  }
 
   int lenSrc = mxGetNumberOfElements(prhs[0])*mxGetElementSize(prhs[0]);
   uint8_t * dataSrc = (uint8_t*)mxGetData(prhs[0]);

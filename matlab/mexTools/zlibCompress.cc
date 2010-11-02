@@ -23,7 +23,10 @@ int CompressData( const BYTE* abSrc, int nLenSrc, BYTE* abDst, int nLenDst )
     int nErr, nRet= -1;
     nErr= deflateInit( &zInfo, Z_BEST_SPEED);
     if (nErr != Z_OK)
-      mexErrMsgTxt("could not initialized deflate");
+    {
+      printf("zlibCompress: could not initialized deflate\n");
+      return -1;
+    }
 
     zInfo.total_in=  zInfo.avail_in=  nLenSrc;
     zInfo.total_out=0;
@@ -36,7 +39,10 @@ int CompressData( const BYTE* abSrc, int nLenSrc, BYTE* abDst, int nLenDst )
         nRet= zInfo.total_out;
     }
     else
-      mexErrMsgTxt("could not deflate");
+    {
+      printf("zlibCompress: could not deflate\n");
+      return -1;
+    }
     
     deflateEnd( &zInfo );    
 
@@ -48,7 +54,12 @@ int CompressData( const BYTE* abSrc, int nLenSrc, BYTE* abDst, int nLenDst )
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-  if (nrhs != 1) mexErrMsgTxt("need exactly one argument");
+  if (nrhs != 1)
+  {
+    printf("zlibCompress: need exactly one argument\n");
+    plhs[0] = mxCreateDoubleMatrix(0,0,mxREAL);
+    return;
+  }
 
   int lenSrc = mxGetNumberOfElements(prhs[0])*mxGetElementSize(prhs[0]);
   uint8_t * dataSrc = (uint8_t*)mxGetData(prhs[0]);
