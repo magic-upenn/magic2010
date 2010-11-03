@@ -9,7 +9,7 @@ all: $(TARGETS)
 	mex -O $^
 
 %.$(MEXEXT): %.cc
-	mex -O $^
+	mex -O $^ -lz
 
 clean:
 	rm -f $(TARGETS)
