@@ -72,7 +72,7 @@ enum { MMC_ESTOP_STATE
      };
 
 enum { MMC_ESTOP_STATE_RUN,
-       MMC_ESTOP_STATE_PAUSE,
+       MMC_ESTOP_STATE_FREEZE,
        MMC_ESTOP_STATE_DISABLE
      };
 

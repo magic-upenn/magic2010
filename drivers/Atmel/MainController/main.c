@@ -40,25 +40,27 @@ float imuOutVals[7];
 uint16_t adcCntr = 0;
 uint16_t imuPacket[NUM_ADC_CHANNELS+1];
 
-volatile uint8_t rs485Blocked = 0;
-volatile uint8_t needToSendMotorCmd = 0;
-volatile uint8_t needToRequestFb = 0;
+volatile uint8_t rs485Blocked           = 0;
+volatile uint8_t needToSendMotorCmd     = 0;
+volatile uint8_t needToRequestFb        = 0;
 volatile uint8_t needToSendServo1Packet = 0;
 
-uint8_t estop = 0;
-volatile uint8_t freshMotorCmd = 0;
-volatile uint8_t mode = MMC_MC_MODE_RUN;
+uint8_t estopState                      = MMC_ESTOP_STATE_RUN;
+volatile uint8_t freshMotorCmd          = 0;
+volatile uint8_t mode                   = MMC_MC_MODE_RUN;
 
-float voltageBatt = 0;
 
-volatile uint8_t xbeeControl = 0;
 
 ParamTable EEMEM ptableE;
 ParamTable ptableR;
 uint8_t eepromTempData[sizeof(ParamTable)+4];
 
-volatile uint32_t globalTimer = 0;
-volatile uint32_t lastXbeeCmdTime = 0;
+float voltageBatt                   = 0;
+volatile uint8_t xbeeControl        = 0;
+volatile uint32_t globalTimer       = 0;
+volatile uint32_t lastXbeeCmdTime   = 0;
+volatile uint32_t estopPublishTimer = 0;
+volatile uint32_t estopTimeout      = 0;
 
 int WriteParamTableBlock(uint16_t offset, uint8_t * data, uint16_t size)
 {
@@ -85,52 +87,11 @@ inline void PutUInt16(uint16_t val)
 
 void SendEstopStatus(void)
 {
-  //HostSendPacket(MMC_ESTOP_DEVICE_ID,MMC_ESTOP_STATE,
-  //               (uint8_t*)&estop,1);
+  HostSendPacket(MMC_ESTOP_DEVICE_ID,MMC_ESTOP_STATE,
+                 (uint8_t*)&estopState,1);
 }
 
 
-int XbeeSendPacket(uint8_t id, uint8_t type, uint8_t * buf, uint8_t size)
-{
-  if (size > 254)
-    return -1;
-
-  uint8_t size2 = size+2;
-  uint8_t ii;
-  uint8_t checksum=0;
-
-  XBEE_COM_PORT_PUTCHAR(0xFF);   //two header bytes
-  XBEE_COM_PORT_PUTCHAR(0xFF);
-  XBEE_COM_PORT_PUTCHAR(id);
-  XBEE_COM_PORT_PUTCHAR(size2);  //length
-  XBEE_COM_PORT_PUTCHAR(type);
-  
-  checksum += id + size2 + type;
-  
-  //payload
-  for (ii=0; ii<size; ii++)
-  {
-    XBEE_COM_PORT_PUTCHAR(*buf);
-    checksum += *buf++;
-  }
-  
-  XBEE_COM_PORT_PUTCHAR(~checksum);
-  
-  return 0;
-}
-
-int XbeeSendRawPacket(DynamixelPacket * packet)
-{
-  uint8_t * buf = packet->buffer;
-  uint8_t size  = packet->lenExpected;
-
-  uint8_t ii;
-  
-  for (ii=0; ii<size; ii++)
-    XBEE_COM_PORT_PUTCHAR(*buf++);
-    
-  return 0;
-}
 
 void globalTimerOverflow(void)
 {
@@ -162,6 +123,7 @@ void InitLeds()
   LED_RC_DDR        |= _BV(LED_RC_PIN);
   LASER0_DDR        |= _BV(LASER0_PIN);
 }
+
 
 void SetBusBlocked()
 {
@@ -199,8 +161,7 @@ void init(void)
   
   InitLeds();
   
-  XBEE_COM_PORT_INIT();
-  XBEE_COM_PORT_SETBAUD(XBEE_BAUD_RATE);
+  XbeeInit();
 
   //timer for sending out estop status
   timer3_init();
@@ -416,7 +377,7 @@ int HostPacketHandler(DynamixelPacket * dpacket)
 
       if (xbeeControl == 1)    //if xbee control is enabled, don't send anything through to the motor controller
         break;
-      if ( (type == MMC_MOTOR_CONTROLLER_VELOCITY_SETTING) && (estop == MMC_ESTOP_STATE_RUN) )
+      if ( (type == MMC_MOTOR_CONTROLLER_VELOCITY_SETTING) && (estopState == MMC_ESTOP_STATE_RUN) )
       {
         if (rs485Blocked)
         {
@@ -473,27 +434,83 @@ int GpsPacketHandler(uint8_t * buf, uint8_t len)
   return 0;
 }
 
+int DisableVehicle()
+{
+  LED_ESTOP_OFF;
+  HostSendPacket(MMC_ESTOP_DEVICE_ID,MMC_ESTOP_STATE,
+                 (uint8_t*)&estopState,1);
+          
+  //disable all interrupts and enter endless loop
+  cli();
+  while(1) { _delay_ms(100); }
+
+  return 0;
+}
+
+
+int XbeePacketHandler(DynamixelPacket * dpacket)
+{
+  uint8_t id   = DynamixelPacketGetId(dpacket);
+  uint8_t type = DynamixelPacketGetType(dpacket);
+  uint8_t size = DynamixelPacketGetPayloadSize(dpacket);
+  uint8_t * data;
+  uint8_t newEstopState;
+  
+  LED_RC_TOGGLE;
+  
+  if ( (id == MMC_ESTOP_DEVICE_ID) && (type == MMC_ESTOP_STATE))
+  {
+    if (size < ptableR.id)
+      return -1;
+      
+    newEstopState = data[ptableR.id];
+      
+      
+    if ( !(newEstopState == MMC_ESTOP_STATE_RUN ||
+           newEstopState == MMC_ESTOP_STATE_FREEZE ||
+           newEstopState == MMC_ESTOP_STATE_DISABLE) )
+      return -1;
+  
+    estopState   = newEstopState;
+    estopTimeout = GlobalTimerGetTime();
+    
+    switch (estopState)
+    {
+      case MMC_ESTOP_STATE_RUN:
+        LED_ESTOP_ON;
+        break;
+      case MMC_ESTOP_STATE_FREEZE:
+        LED_ESTOP_OFF;
+        break;
+      case MMC_ESTOP_STATE_DISABLE:
+        DisableVehicle();
+        break;
+      default:
+        break;
+    }
+  }
+  
+  /*
+  //XbeeSendPacket(0,0,NULL,0);
+  
+  XbeePacketHandler(&dpacket);
+  if (DynamixelPacketGetId(&dpacket) == MMC_MOTOR_CONTROLLER_DEVICE_ID)
+  {
+    lastXbeeCmdTime = GlobalTimerGetTime();
+    xbeeControl = 1;
+    DynamixelPacketCopy(&motorCmdPacketOut,&xbeePacketIn);
+    needToSendMotorCmd = 1;
+  }
+  else
+    HostSendRawPacket(&xbeePacketIn);
+  */
+}
+
+
 int LoadAndSetEepromParams()
 {
   ReadParamTableBlock(0,&ptableR,sizeof(ParamTable));
   SetImuAccBiases(ptableR.accBiasX,ptableR.accBiasY,ptableR.accBiasZ);
-  return 0;
-}
-
-int SendServo1StateToHost(float angle, uint32_t cntr)
-{
-  const uint8_t bufSize = 20;
-  uint8_t buf[bufSize];
-  uint8_t tempBuf[8];
-  uint8_t size;
-
-  memcpy(tempBuf,&cntr,sizeof(uint32_t));
-  memcpy(tempBuf+sizeof(uint32_t),&angle,sizeof(float));
-
-  size = DynamixelPacketWrapData(0,4,tempBuf,8,buf,bufSize);
-  if (size > 0)
-    HostSendRawData(buf,size);
-
   return 0;
 }
 
@@ -510,6 +527,13 @@ int main(void)
   uint8_t servo1PacketOutSize      = 0;
   float servo1Angle;
   uint32_t servo1Time;
+  uint32_t newEstopTime;
+  
+  estopState = MMC_ESTOP_STATE_RUN;
+  LED_ESTOP_ON;
+  
+  estopPublishTimer  = GlobalTimerGetTime();
+  estopTimeout       = GlobalTimerGetTime();
   
   DynamixelPacketInit(&hostPacketIn);
   DynamixelPacketInit(&busPacketIn);
@@ -533,25 +557,43 @@ int main(void)
   {
     //receive packet from host
     len=HostReceivePacket(&hostPacketIn);
-    if (len>0)
+    if ( (len>0) && (estopState == MMC_ESTOP_STATE_RUN) )
       HostPacketHandler(&hostPacketIn);
 
     if (mode == MMC_MC_MODE_CONFIG)
       continue;
 
-    //check the state of the estop input
-    if (ESTOP_PORT & _BV(ESTOP_PIN))
-    {
-      estop = MMC_ESTOP_STATE_RUN;
-      LED_ESTOP_ON;
-    }
-    else
-    {
-      estop = MMC_ESTOP_STATE_PAUSE;
-      LED_ESTOP_OFF;
-    }
 
+//--------------------------------------------------------------------
+//                      Estop Stuff
+//--------------------------------------------------------------------
+
+    //check the state of the estop input
+    if (ESTOP_PORT & _BV(ESTOP_PIN))   //input high means disabled
+    {
+      estopState = MMC_ESTOP_STATE_DISABLE;
+      DisableVehicle();
+    }
+    
+    //see if we need to send out estop status
+    newEstopTime = GlobalTimerGetTime();
+    if (newEstopTime > (estopPublishTimer+50000))   //0.8 seconds
+    {
+      HostSendPacket(MMC_ESTOP_DEVICE_ID,MMC_ESTOP_STATE,
+                     (uint8_t*)&estopState,1);
+      estopPublishTimer = newEstopTime;
+    }
+    
+    if (newEstopTime > (estopTimout + 625000))     //10 seconds
+    {
+      estopState = MMC_ESTOP_STATE_FREEZE;
+    }
      
+
+//--------------------------------------------------------------------
+//                        RS-485 Bus
+//--------------------------------------------------------------------
+
     //receive packet from RS485 bus
     servo1PacketIn = NULL;
     len=BusReceivePacket(&busPacketIn);
@@ -564,43 +606,44 @@ int main(void)
     }
 
 
+//--------------------------------------------------------------------
+//                      Servo Controller
+//--------------------------------------------------------------------
+    
     Servo1UpdateTime(GlobalTimerGetTime());
     Servo1Update(servo1PacketIn,&servo1PacketOut,&servo1PacketOutSize);
     
-    if (servo1PacketOut && (servo1PacketOutSize > 0))
+    if (servo1PacketOut && (servo1PacketOutSize > 0) && (estopState == MMC_ESTOP_STATE_RUN) )
     {
       memcpy(servo1PacketOutBuf,servo1PacketOut,servo1PacketOutSize);
       servo1PacketOutBufSize = servo1PacketOutSize;
+    
       needToSendServo1Packet = 1;
     }
-      
+
+
+//--------------------------------------------------------------------
+//                              Xbee
+//--------------------------------------------------------------------
+
+    len = XbeeReceivePacket(&xbeePacketIn);
+    if (len > 0)
+      XbeePacketHandler(&xbeePacketIn);
+    
+    
+//--------------------------------------------------------------------
+//                              GPS
+//--------------------------------------------------------------------    
     //receive a line from gps
     len=GpsReceiveLine(&buf);
     if (len>0)
       GpsPacketHandler(buf,len);
-
-    c = XBEE_COM_PORT_GETCHAR();
-    while (c != EOF)
-    {
-      ret = DynamixelPacketProcessChar(c,&xbeePacketIn);
-      if (ret > 0)
-      {
-        //XbeeSendPacket(0,0,NULL,0);
-        LED_RC_TOGGLE;
-        if (DynamixelPacketGetId(&xbeePacketIn) == MMC_MOTOR_CONTROLLER_DEVICE_ID)
-        {
-          lastXbeeCmdTime = GlobalTimerGetTime();
-          xbeeControl = 1;
-          DynamixelPacketCopy(&motorCmdPacketOut,&xbeePacketIn);
-          needToSendMotorCmd = 1;
-        }
-        else
-          HostSendRawPacket(&xbeePacketIn);
-        
-        break;
-      }
-      c = XBEE_COM_PORT_GETCHAR();
-    }
+      
+      
+      
+//--------------------------------------------------------------------
+//                              ADC
+//--------------------------------------------------------------------
 
     cli();
     len = adc_get_data(adcVals);
@@ -635,7 +678,7 @@ int main(void)
       {
         voltageBatt = adcVals[6]/1024.0*2.56*(11.0);
         HostSendPacket(MMC_MAIN_CONTROLLER_DEVICE_ID,MMC_MC_VOLTAGE_BATT,
-	   (uint8_t*)(&voltageBatt),sizeof(float));
+	                     (uint8_t*)(&voltageBatt),sizeof(float));
 
         if (voltageBatt < 21.0)
         {
@@ -649,7 +692,9 @@ int main(void)
     }
 
 
-
+//--------------------------------------------------------------------
+//                       RS485 Bus Handling
+//--------------------------------------------------------------------
 
     if ( (needToSendServo1Packet == 1) && (rs485Blocked == 0))
     {

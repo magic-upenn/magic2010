@@ -23,7 +23,7 @@ ifeq ($(OSTYPE),linux)
   USBDEVICE = /dev/ttyUSB0
 endif
 ifeq ($(OSTYPE),darwin)
-  USBDEVICE = /dev/cu.usbserial-A700dBil
+  USBDEVICE = /dev/cu.usbserial-A700dzq2
 endif
 
 DEVICE     = atmega1280
@@ -31,7 +31,7 @@ CLOCK      = 16000000
 
 PROGRAMMER = -c stk500v1 -P $(USBDEVICE) -b 57600 -D
 
-OBJECTS    = uart0.o rs485.o timer2.o timer1.o timer5.o uart3.o MotorControllerHBridge.o MotorControllerPwm.o DynamixelPacket.o adc.o main.o
+OBJECTS    = uart0.o rs485.o timer2.o timer1.o timer5.o uart3.o MotorControllerHBridge.o MotorControllerPwm.o DynamixelPacket.o adc.o HostInterface.o main.o
 FUSES      = -U hfuse:w:0xdf:m -U lfuse:w:0x62:m
 
 # ATMega8 fuse bits (fuse bits for other devices are different!):

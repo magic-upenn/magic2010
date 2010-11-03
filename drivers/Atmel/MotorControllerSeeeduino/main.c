@@ -16,6 +16,7 @@
 #include <string.h>
 #include "MagicMicroCom.h"
 #include "DynamixelPacket.h"
+#include "HostInterface.h"
 #include "timer1.h"
 #include "timer2.h"
 #include "adc.h"
@@ -33,11 +34,21 @@
 
 #include "config.h"
 
+typedef struct
+{
+  uint8_t id;
+} ParamTable;
+
+ParamTable EEMEM ptableE;
+ParamTable ptableR;
+uint8_t eepromTempData[sizeof(ParamTable)+4];
+
+
 //store the encoder counts
 volatile int16_t encCounts[4] = {0, 0, 0, 0};
 volatile int8_t v=0, w=0;
 volatile uint16_t n2OVF = 0;
-volatile int8_t mode = MODE_MANUAL;
+volatile int8_t runMode = MODE_MANUAL;
 volatile float vCl = 0, wCl = 0;
 
 
@@ -55,6 +66,9 @@ uint16_t rcValsIn[7];
 volatile uint8_t rclen =0;
 volatile int8_t nRCOvf =0;
 volatile uint8_t rcInitialized = 0;
+
+volatile uint8_t myId = 0;
+volatile uint8_t configMode = MMC_MC_MODE_RUN;
 
 void ResetEncoderCounts()
 {
@@ -185,6 +199,7 @@ void init(void)
   MOTOR_CONTROLLER_INIT(); 
   
   //initialize the communications ports
+  //HostInit();
   uart0_init();
   uart0_setbaud(HOST_BAUD_RATE);
   
@@ -214,6 +229,22 @@ void init(void)
   // uart0_printf("hello!\r\n");
 }
 
+
+int WriteParamTableBlock(uint16_t offset, uint8_t * data, uint16_t size)
+{
+  eeprom_write_block(data,((uint8_t*)&(ptableE))+offset,size);
+  //eeprom_write_block((uint8_t*)0,data,1);
+  //eeprom_write_byte((uint8_t*)offset,*data);
+  return size;
+}
+
+int ReadParamTableBlock(uint16_t offset, uint8_t * data, uint16_t size)
+{
+  eeprom_read_block(data,((uint8_t*)&(ptableE))+offset,size);
+  //eeprom_read_block(data,0,1);
+  //*data = eeprom_read_byte((uint8_t*)offset);
+  return size;
+}
 
 int SendRS485Packet(uint8_t id, uint8_t type, uint8_t * buf, uint8_t size)
 {
@@ -270,13 +301,26 @@ int SetVelocity(int8_t vNew, int8_t wNew)
 
 int ProcessIncomingRCPacket()
 {
+  uint16_t targetIdVal = rcValsIn[RC_SELECT_IND];
+  uint8_t targetId;
+  
+  if (targetIdVal < 300)
+    targetId = 1;
+  else if (targetIdVal < 600)
+    targetId = 2;
+  else
+    targetId = 3;
+    
+  if (targetId != myId)
+    return 0;
+
 
   uint16_t newMode = rcValsIn[RC_MODE_IND];
-  if (newMode < RC_MODE_THRESH)
-    mode = MODE_AUTONOMOUS;
+  if (newMode > RC_MODE_THRESH)
+    runMode = MODE_AUTONOMOUS;
   else
   {
-    mode = MODE_MANUAL;
+    runMode = MODE_MANUAL;
     int16_t vtemp = (((int16_t)rcValsIn[RC_V_IND]) - RC_V_BIAS)/2;
     int16_t wtemp = (((int16_t)rcValsIn[RC_W_IND]) - RC_W_BIAS)/2;
     
@@ -288,6 +332,10 @@ int ProcessIncomingRCPacket()
   
     SetVelocity((int8_t)vtemp,(int8_t)wtemp);
   }
+  
+  //uart0_printf("%d %d %d %d %d %d %d \r\n",rcValsIn[0],rcValsIn[1],rcValsIn[2],
+  //          rcValsIn[3],rcValsIn[4],rcValsIn[5],rcValsIn[6]);
+            
   return 0;
 }
 
@@ -307,7 +355,9 @@ int main(void)
   float * tempf;
   
   DynamixelPacket dpacket;
+  DynamixelPacket hostPacketIn;
   DynamixelPacketInit(&dpacket);
+  DynamixelPacketInit(&hostPacketIn);
 
   init();
 
@@ -317,6 +367,10 @@ int main(void)
   SetVelocity(-5,0);
   _delay_ms(100);
   SetVelocity(0,0);
+  
+  
+  //read the id
+  ReadParamTableBlock(0, &myId, sizeof(uint8_t));
 
   while (1) 
   {
@@ -328,6 +382,28 @@ int main(void)
 
     if (len > 0)
       memcpy(&(counts[5]),adcVals,4*sizeof(uint16_t));
+      
+    c = uart0_getchar();
+    if (c != EOF && c == 'i')
+    {
+      while(1)
+      {
+        c = uart0_getchar();
+        if (c != EOF)
+        {
+          myId = c - '0';
+          if (myId > 0 && myId < 4)
+          {
+            WriteParamTableBlock(0, &myId, sizeof(uint8_t));
+            uart0_printf("changed id to %d\r\n",myId);
+          }
+          else
+            uart0_printf("invalid id : %d\r\n",myId);
+
+          break;
+        }
+      }
+    }
     
     while ((c = rs485_getchar()) != EOF)
     {
@@ -365,7 +441,7 @@ int main(void)
           case MMC_MOTOR_CONTROLLER_VELOCITY_SETTING:
             dataPr = DynamixelPacketGetData(&dpacket);
             
-            if (mode == MODE_AUTONOMOUS)
+            if (runMode == MODE_AUTONOMOUS)
               SetVelocity((int8_t)dataPr[0],(int8_t)dataPr[1]);
 
   /*
@@ -378,7 +454,7 @@ int main(void)
 
           case MMC_MOTOR_CONTROLLER_VELOCITY_SETTING_CLOSED_LOOP:
             tempf = (float*)DynamixelPacketGetData(&dpacket);
-            if (mode == MODE_AUTONOMOUS)
+            if (runMode == MODE_AUTONOMOUS)
             {
               vCl = *tempf++;
               wCl = *tempf;

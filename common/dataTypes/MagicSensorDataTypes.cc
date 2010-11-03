@@ -271,5 +271,77 @@ int EstopState::WriteToMatlab(mxArray * mxArr, int index)
   MEX_WRITE_FIELD(mxArr,index,state);
   MEX_WRITE_FIELD(mxArr,index,t);
   return 0;
-} 
+}
+
+//BatteryStatus
+int BatteryStatus::ReadFromMatlab(mxArray * mxArr, int index)
+{
+  int numFieldsRead = 0;
+
+  MEX_READ_FIELD(mxArr,index,voltage,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,current,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,age,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,charge,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,t,numFieldsRead);
+  
+  return numFieldsRead;
+}
+int BatteryStatus::CreateMatlabStructMatrix(mxArray ** mxArrPP,int m, int n)
+{
+  const char * fields[]= {"voltage","current","age","charge","t"};
+  const int nfields = sizeof(fields)/sizeof(*fields);
+  *mxArrPP = mxCreateStructMatrix(m,n,nfields,fields);
+  return 0;
+}
+
+int BatteryStatus::WriteToMatlab(mxArray * mxArr, int index)
+{
+  MEX_WRITE_FIELD(mxArr,index,voltage);
+  MEX_WRITE_FIELD(mxArr,index,current);
+  MEX_WRITE_FIELD(mxArr,index,age);
+  MEX_WRITE_FIELD(mxArr,index,charge);
+  MEX_WRITE_FIELD(mxArr,index,t);
+  return 0;
+}
+
+//Motor Status
+int MotorStatus::ReadFromMatlab(mxArray * mxArr, int index)
+{
+  int numFieldsRead = 0;
+
+  MEX_READ_FIELD(mxArr,index,currentFR,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,currentFL,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,currentRR,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,currentRL,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,tempFR,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,tempFL,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,tempRR,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,tempRL,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,t,numFieldsRead);
+  
+  return numFieldsRead;
+}
+int MotorStatus::CreateMatlabStructMatrix(mxArray ** mxArrPP,int m, int n)
+{
+  const char * fields[]= {"currentFR","currentFL","currentRR","currentRL",
+                          "tempFR","tempFL","tempRR","tempRL","t"};
+  const int nfields = sizeof(fields)/sizeof(*fields);
+  *mxArrPP = mxCreateStructMatrix(m,n,nfields,fields);
+  return 0;
+}
+
+int MotorStatus::WriteToMatlab(mxArray * mxArr, int index)
+{
+  MEX_WRITE_FIELD(mxArr,index,currentFR);
+  MEX_WRITE_FIELD(mxArr,index,currentFL);
+  MEX_WRITE_FIELD(mxArr,index,currentRR);
+  MEX_WRITE_FIELD(mxArr,index,currentRL);
+  MEX_WRITE_FIELD(mxArr,index,tempFR);
+  MEX_WRITE_FIELD(mxArr,index,tempFL);
+  MEX_WRITE_FIELD(mxArr,index,tempRR);
+  MEX_WRITE_FIELD(mxArr,index,tempRL);
+  MEX_WRITE_FIELD(mxArr,index,t);
+  return 0;
+}
+
 

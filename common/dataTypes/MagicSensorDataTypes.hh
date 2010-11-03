@@ -164,7 +164,7 @@ namespace Magic
 
   struct EstopState
   {
-    int state;
+    int state;   //0=run, 1= freeze, 2=disable
     double t;
 
     EstopState(): state(-1),t(0) {}
@@ -187,10 +187,10 @@ namespace Magic
     double voltage;
     double current;
     double age;
-    double chargeDrained;
+    double charge;
     double t;
 
-    BatteryStatus() : voltage(0), current(0), age(0), chargeDrained(0), t(0) {}
+    BatteryStatus() : voltage(0), current(0), age(0), charge(0), t(0) {}
 
     #define MagicBatteryStatus_FORMAT "{double,double,double,double,double}"
 
@@ -198,11 +198,11 @@ namespace Magic
     {
       return MagicBatteryStatus_FORMAT;
     }
-/*
+
     #ifdef MEX_IPC_SERIALIZATION
       INSERT_SERIALIZATION_DECLARATIONS
     #endif
-*/
+
   };
 
   struct MotorStatus
@@ -228,11 +228,11 @@ namespace Magic
       return MagicMotorStatus_FORMAT;
     }
 
-/*
+
     #ifdef MEX_IPC_SERIALIZATION
       INSERT_SERIALIZATION_DECLARATIONS
     #endif
-*/
+
   };
 }
 

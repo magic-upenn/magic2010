@@ -73,7 +73,8 @@
 //index of each control in the array of RC channels
 #define RC_V_IND 2
 #define RC_W_IND 1
-#define RC_MODE_IND 5
+#define RC_SELECT_IND 5
+#define RC_MODE_IND 6
 
 enum {MODE_MANUAL,MODE_AUTONOMOUS};
 
