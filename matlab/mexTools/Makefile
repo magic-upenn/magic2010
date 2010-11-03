@@ -1,6 +1,6 @@
 MEXEXT = $(shell mexext)
 
-TARGETS = getch.$(MEXEXT) serialize.$(MEXEXT) deserialize.$(MEXEXT) GetUnixTime.$(MEXEXT) nmeaChecksum.$(MEXEXT) zlibCompress.$(MEXEXT) zlibUncompress.$(MEXEXT)
+TARGETS = getch.$(MEXEXT) serialize.$(MEXEXT) deserialize.$(MEXEXT) GetUnixTime.$(MEXEXT) nmeaChecksum.$(MEXEXT)
 
 all: $(TARGETS)
 
@@ -9,7 +9,7 @@ all: $(TARGETS)
 	mex -O $^
 
 %.$(MEXEXT): %.cc
-	mex -O $^ -lz
+	mex -O $^
 
 clean:
 	rm -f $(TARGETS)
