@@ -10,6 +10,7 @@
 #include "GpsInterface.h"
 #include "HostInterface.h"
 #include "BusInterface.h"
+#include "XbeeInterface.h"
 #include "adc.h"
 #include "uart3.h"
 #include "timer1.h"
@@ -24,6 +25,7 @@ DynamixelPacket hostPacketIn;
 DynamixelPacket busPacketIn;
 DynamixelPacket motorCmdPacketOut;
 DynamixelPacket xbeePacketIn;
+DynamixelPacket passThroughPacketOut;
 
 #define encoderRequestRawPacketMaxSize 32
 volatile uint8_t encoderRequestRawPacket[encoderRequestRawPacketMaxSize];
@@ -44,8 +46,10 @@ volatile uint8_t rs485Blocked           = 0;
 volatile uint8_t needToSendMotorCmd     = 0;
 volatile uint8_t needToRequestFb        = 0;
 volatile uint8_t needToSendServo1Packet = 0;
+volatile uint8_t needToSendPassThroughPacket = 0;
 
 uint8_t estopState                      = MMC_ESTOP_STATE_RUN;
+uint8_t estopStateDataOut[2];
 volatile uint8_t freshMotorCmd          = 0;
 volatile uint8_t mode                   = MMC_MC_MODE_RUN;
 
@@ -56,11 +60,13 @@ ParamTable ptableR;
 uint8_t eepromTempData[sizeof(ParamTable)+4];
 
 float voltageBatt                   = 0;
-volatile uint8_t xbeeControl        = 0;
+volatile uint8_t  xbeeControl       = 0;
 volatile uint32_t globalTimer       = 0;
 volatile uint32_t lastXbeeCmdTime   = 0;
 volatile uint32_t estopPublishTimer = 0;
 volatile uint32_t estopTimeout      = 0;
+uint8_t  estopPublishCntr           = 0;
+#define ESTOP_PUBLISH_MOD             3
 
 int WriteParamTableBlock(uint16_t offset, uint8_t * data, uint16_t size)
 {
@@ -394,6 +400,12 @@ int HostPacketHandler(DynamixelPacket * dpacket)
         XbeeSendRawPacket(dpacket);
       break;
 
+    case MMC_DYNAMIXEL1_DEVICE_ID:
+      DynamixelPacketCopy(&passThroughPacketOut,dpacket);
+      needToSendPassThroughPacket = 1;
+      break;
+    
+
     default:
       break;
   }
@@ -414,10 +426,19 @@ int BusPacketHandler(DynamixelPacket * packet)
   HostSendRawPacket(packet);
 
   
-  if ( (id == MMC_MOTOR_CONTROLLER_DEVICE_ID) && (needToSendMotorCmd == 1))
+  if (id == MMC_MOTOR_CONTROLLER_DEVICE_ID)
   {
-    BusSendRawPacket(&motorCmdPacketOut);
-    needToSendMotorCmd = 0;
+    if ( needToSendMotorCmd == 1)
+    {
+      BusSendRawPacket(&motorCmdPacketOut);
+      needToSendMotorCmd = 0;
+    }
+    
+    if (needToSendPassThroughPacket == 1)
+    {
+      BusSendRawPacket(&passThroughPacketOut);
+      needToSendPassThroughPacket = 0;
+    }
   }
   
   
@@ -437,12 +458,27 @@ int GpsPacketHandler(uint8_t * buf, uint8_t len)
 int DisableVehicle()
 {
   LED_ESTOP_OFF;
+  LED_ERROR_ON;
   HostSendPacket(MMC_ESTOP_DEVICE_ID,MMC_ESTOP_STATE,
                  (uint8_t*)&estopState,1);
+                 
           
-  //disable all interrupts and enter endless loop
-  cli();
-  while(1) { _delay_ms(100); }
+  //enter endless loop
+  while(1) 
+  { 
+    estopPublishCntr++;
+    HostSendPacket(MMC_ESTOP_DEVICE_ID,MMC_ESTOP_STATE,
+                 (uint8_t*)&estopState,1);
+                 
+    if ((estopPublishCntr % ESTOP_PUBLISH_MOD) == 0)
+    {
+      estopStateDataOut[0] = ptableR.id;
+      estopStateDataOut[1] = estopState;
+      XbeeSendPacket(MMC_ESTOP_DEVICE_ID,MMC_ESTOP_STATE,
+                       estopStateDataOut,2);
+    }
+    _delay_ms(1000);
+  }
 
   return 0;
 }
@@ -450,10 +486,10 @@ int DisableVehicle()
 
 int XbeePacketHandler(DynamixelPacket * dpacket)
 {
-  uint8_t id   = DynamixelPacketGetId(dpacket);
-  uint8_t type = DynamixelPacketGetType(dpacket);
-  uint8_t size = DynamixelPacketGetPayloadSize(dpacket);
-  uint8_t * data;
+  uint8_t id     = DynamixelPacketGetId(dpacket);
+  uint8_t type   = DynamixelPacketGetType(dpacket);
+  uint8_t size   = DynamixelPacketGetPayloadSize(dpacket);
+  uint8_t * data = DynamixelPacketGetData(dpacket);
   uint8_t newEstopState;
   
   LED_RC_TOGGLE;
@@ -473,25 +509,9 @@ int XbeePacketHandler(DynamixelPacket * dpacket)
   
     estopState   = newEstopState;
     estopTimeout = GlobalTimerGetTime();
-    
-    switch (estopState)
-    {
-      case MMC_ESTOP_STATE_RUN:
-        LED_ESTOP_ON;
-        break;
-      case MMC_ESTOP_STATE_FREEZE:
-        LED_ESTOP_OFF;
-        break;
-      case MMC_ESTOP_STATE_DISABLE:
-        DisableVehicle();
-        break;
-      default:
-        break;
-    }
   }
   
   /*
-  //XbeeSendPacket(0,0,NULL,0);
   
   XbeePacketHandler(&dpacket);
   if (DynamixelPacketGetId(&dpacket) == MMC_MOTOR_CONTROLLER_DEVICE_ID)
@@ -504,6 +524,8 @@ int XbeePacketHandler(DynamixelPacket * dpacket)
   else
     HostSendRawPacket(&xbeePacketIn);
   */
+  
+  return 0;
 }
 
 
@@ -557,7 +579,7 @@ int main(void)
   {
     //receive packet from host
     len=HostReceivePacket(&hostPacketIn);
-    if ( (len>0) && (estopState == MMC_ESTOP_STATE_RUN) )
+    if (len>0)
       HostPacketHandler(&hostPacketIn);
 
     if (mode == MMC_MC_MODE_CONFIG)
@@ -577,14 +599,40 @@ int main(void)
     
     //see if we need to send out estop status
     newEstopTime = GlobalTimerGetTime();
-    if (newEstopTime > (estopPublishTimer+50000))   //0.8 seconds
+    if (newEstopTime > (estopPublishTimer+62500))   //1.0 seconds
     {
+      estopPublishCntr++;
       HostSendPacket(MMC_ESTOP_DEVICE_ID,MMC_ESTOP_STATE,
                      (uint8_t*)&estopState,1);
+                     
+                     
+      if ((estopPublishCntr % ESTOP_PUBLISH_MOD) == 0)
+      {
+        estopStateDataOut[0] = ptableR.id;
+        estopStateDataOut[1] = estopState;
+        XbeeSendPacket(MMC_ESTOP_DEVICE_ID,MMC_ESTOP_STATE,
+                         estopStateDataOut,2);
+      }
+                   
       estopPublishTimer = newEstopTime;
+      
+      switch (estopState)
+      {
+        case MMC_ESTOP_STATE_RUN:
+          LED_ESTOP_TOGGLE;
+          break;
+        case MMC_ESTOP_STATE_FREEZE:
+          LED_ESTOP_OFF;
+          break;
+        case MMC_ESTOP_STATE_DISABLE:
+          DisableVehicle();
+          break;
+        default:
+          break;
+      }
     }
     
-    if (newEstopTime > (estopTimout + 625000))     //10 seconds
+    if (newEstopTime > (estopTimeout + 625000))     //10 seconds
     {
       estopState = MMC_ESTOP_STATE_FREEZE;
     }
