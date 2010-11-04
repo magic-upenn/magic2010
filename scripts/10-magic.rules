@@ -6,7 +6,7 @@
 SUBSYSTEM=="video4linux", ATTRS{serial}=="062370AB", SYMLINK+="cam_front", mode="0777"
 SUBSYSTEM=="video4linux", ATTRS{serial}=="B88980AC", SYMLINK+="cam_front", mode="0777"
 SUBSYSTEM=="video4linux", ATTRS{serial}=="52B980A3", SYMLINK+="cam_front", mode="0777"
-SUBSYSTEM=="video4linux", ATTRS{serial}=="1EA431AF" SYMLINK+="cam_front", mode="0777"
+SUBSYSTEM=="video4linux", ATTRS{serial}=="D99631AA" SYMLINK+="cam_front", mode="0777"
 SUBSYSTEM=="video4linux", ATTRS{serial}=="704231A2", SYMLINK+="cam_front", mode="0777"
 SUBSYSTEM=="video4linux", ATTRS{serial}=="D81270A3", SYMLINK+="cam_front", mode="0777"
 SUBSYSTEM=="video4linux", ATTRS{serial}=="3C8170A3", SYMLINK+="cam_front", mode="0777"
@@ -30,3 +30,5 @@ SUBSYSTEM=="video4linux", ATTRS{serial}=="C64A80AC", SYMLINK+="cam_omni", mode="
 %SUBSYSTEM=="video4linux", ATTRS{serial}=="675980A7", SYMLINK+="cam_front", mode="0777"
 %Spare cam 2
 %SUBSYSTEM=="video4linux", ATTRS{serial}=="FD7080AE", SYMLINK+="cam_front", mode="0777"
+%Spare cam 3
+%SUBSYSTEM=="video4linux", ATTRS{serial}=="1EA431AF" SYMLINK+="cam_front", mode="0777"
