@@ -82,6 +82,12 @@ if (1)
   slamScanMatchPass1;
   
   slamScanMatchPass2;
+  
+  if (hmax < 500)
+    SLAM.x = SLAM.xOdom;
+    SLAM.y = SLAM.yOdom;
+    SLAM.yaw = SLAM.yawOdom;
+  end
  
 else
   %fprintf(1,'not moving\n');
