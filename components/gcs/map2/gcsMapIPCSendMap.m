@@ -10,7 +10,7 @@ for id = 1:9,
     GPOSE{id}.y = pF1(2);
     GPOSE{id}.yaw = pF1(3);
 
-    o1 = o_p1p2(RNODE{id}.pL(:,end), pF1);
+    o1 = o_mult(RNODE{id}.pL(:,end), o_inv(pF1));
     GTRANSFORM{id}.dx = o1(1);
     GTRANSFORM{id}.dy = o1(2);
     GTRANSFORM{id}.dyaw = o1(3);
