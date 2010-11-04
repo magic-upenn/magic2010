@@ -29,8 +29,8 @@ while iterFit < iterMax,
   if (ifit == 1), continue; end;
   
   oL1 = oL(:,ifit);
-  oL1min = oL1 - [.01 .01 5*pi/180]';
-  oL1max = oL1 + [.01 .01 5*pi/180]';
+  oL1min = oL1 - [.01 .01 3*pi/180]';
+  oL1max = oL1 + [.01 .01 3*pi/180]';
   %  oL1min = oL1 - [.01 .01 1*pi/180]';
   %  oL1max = oL1 + [.01 .01 1*pi/180]';
   

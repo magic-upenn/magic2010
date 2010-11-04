@@ -48,20 +48,21 @@ function run_udp
       case 'MapUpdateH'
 
         id = pkt.id;
-        forwardIncH(pkt,id);
+        if isempty(RNODE{id}), break, end
+        
         gcsMapUpdateH(id, pkt);
         gcsMapFitPose(id);
  
-        if (RNODE{id}.gpsInitialized),
+        if isfield(RNODE{id}, 'pF'),
           gdispRobot(id, RNODE{id}.pF(:,end));
         end
           
       case 'MapUpdateV'
 
         id = pkt.id;
-        forwardIncV(pkt,id);
-        gcsMapUpdateV(id, pkt);
+        if isempty(RNODE{id}), break, end
 
+        gcsMapUpdateV(id, pkt);
         gmapAdd(id, RNODE{id}.n);
 
       otherwise
