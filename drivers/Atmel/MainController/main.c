@@ -48,7 +48,7 @@ volatile uint8_t needToRequestFb        = 0;
 volatile uint8_t needToSendServo1Packet = 0;
 volatile uint8_t needToSendPassThroughPacket = 0;
 
-uint8_t estopState                      = MMC_ESTOP_STATE_RUN;
+volatile uint8_t estopState             = MMC_ESTOP_STATE_RUN;
 uint8_t estopStateDataOut[2];
 volatile uint8_t freshMotorCmd          = 0;
 volatile uint8_t mode                   = MMC_MC_MODE_RUN;
@@ -356,9 +356,9 @@ int HostPacketHandler(DynamixelPacket * dpacket)
         case MMC_MC_LASER0:
           data = DynamixelPacketGetData(dpacket);
           if (*data == 0)
-            LASER0_OFF;
+            LASER0_OFF
           else
-            LASER0_ON;
+            LASER0_ON
           break;
 
         default:
@@ -378,20 +378,22 @@ int HostPacketHandler(DynamixelPacket * dpacket)
 
 
     case MMC_MOTOR_CONTROLLER_DEVICE_ID:
+    
       if ((GlobalTimerGetTime() - lastXbeeCmdTime) > 200000)   //200000*16uS per tic = 3.2 seconds time out
         xbeeControl = 0;
 
       if (xbeeControl == 1)    //if xbee control is enabled, don't send anything through to the motor controller
         break;
+    
       if ( (type == MMC_MOTOR_CONTROLLER_VELOCITY_SETTING) && (estopState == MMC_ESTOP_STATE_RUN) )
       {
-        if (rs485Blocked)
-        {
+        //if (rs485Blocked)
+        //{
           DynamixelPacketCopy(&motorCmdPacketOut,dpacket);
           needToSendMotorCmd = 1;
-        }
-        else
-          BusSendRawPacket(dpacket);  //does not require a response, so bust won't be blocked
+        //}
+        //else
+        //  BusSendRawPacket(dpacket);  //does not require a response, so bust won't be blocked
       }
       break;
 
@@ -410,9 +412,7 @@ int HostPacketHandler(DynamixelPacket * dpacket)
       break;
   }
 
-  cli();
   LED_PC_ACT_TOGGLE;
-  sei();   
 
   return 0;
 }

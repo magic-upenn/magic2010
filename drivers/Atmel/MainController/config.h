@@ -97,19 +97,19 @@
 
 
 
-#define LED_ERROR_TOGGLE   LED_ERROR_PORT  ^= _BV(LED_ERROR_PIN)
-#define LED_PC_ACT_TOGGLE  LED_PC_ACT_PORT ^= _BV(LED_PC_ACT_PIN)
-#define LED_ESTOP_TOGGLE   LED_ESTOP_PORT  ^= _BV(LED_ESTOP_PIN)
-#define LED_GPS_TOGGLE     LED_GPS_PORT    ^= _BV(LED_GPS_PIN)
-#define LED_RC_TOGGLE      LED_RC_PORT     ^= _BV(LED_RC_PIN)
+#define LED_ERROR_TOGGLE   { cli(); LED_ERROR_PORT  ^= _BV(LED_ERROR_PIN); sei(); }
+#define LED_PC_ACT_TOGGLE  { cli(); LED_PC_ACT_PORT ^= _BV(LED_PC_ACT_PIN); sei(); }
+#define LED_ESTOP_TOGGLE   { cli(); LED_ESTOP_PORT  ^= _BV(LED_ESTOP_PIN); sei(); }
+#define LED_GPS_TOGGLE     { cli(); LED_GPS_PORT    ^= _BV(LED_GPS_PIN); sei(); }
+#define LED_RC_TOGGLE      { cli(); LED_RC_PORT     ^= _BV(LED_RC_PIN); sei(); }
 
 
-#define LED_ERROR_ON       LED_ERROR_PORT  |= _BV(LED_ERROR_PIN)
-#define LED_ERROR_OFF      LED_ERROR_PORT  &= ~(_BV(LED_ERROR_PIN))
-#define LED_ESTOP_ON       LED_ESTOP_PORT  |= _BV(LED_ESTOP_PIN)
-#define LED_ESTOP_OFF      LED_ESTOP_PORT  &= ~(_BV(LED_ESTOP_PIN)) 
-#define LASER0_ON          LASER0_PORT     |= _BV(LASER0_PIN)
-#define LASER0_OFF         LASER0_PORT     &= ~(_BV(LASER0_PIN))
+#define LED_ERROR_ON       { cli(); LED_ERROR_PORT  |= _BV(LED_ERROR_PIN); sei(); }
+#define LED_ERROR_OFF      { cli(); LED_ERROR_PORT  &= ~(_BV(LED_ERROR_PIN)); sei(); }
+#define LED_ESTOP_ON       { cli(); LED_ESTOP_PORT  |= _BV(LED_ESTOP_PIN); sei(); }
+#define LED_ESTOP_OFF      { cli(); LED_ESTOP_PORT  &= ~(_BV(LED_ESTOP_PIN)); sei(); }
+#define LASER0_ON          { cli(); LASER0_PORT     |= _BV(LASER0_PIN); sei(); }
+#define LASER0_OFF         { cli(); LASER0_PORT     &= ~(_BV(LASER0_PIN)); sei(); }
 
 
 /*
