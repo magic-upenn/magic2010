@@ -36,13 +36,13 @@ function button_handler(chr,gui)
 	elseif strcmp(chr, 'a') 
 		GLOBALS.vision_fns.car_Callback();            
 	elseif strcmp(chr, 's') 
-		GLOBALS.vision_fns.red_ooi_Callback();     
+		GLOBALS.vision_fns.yellow_ooi_Callback();     
 	elseif strcmp(chr, 'd') 
 		GLOBALS.vision_fns.door_Callback();          
 	elseif strcmp(chr, 'z')
 		GLOBALS.vision_fns.still_mobile_Callback();     
 	elseif strcmp(chr, 'x')
-		GLOBALS.vision_fns.yellow_ooi_Callback(); 
+		GLOBALS.vision_fns.red_ooi_Callback(); 
 	elseif strcmp(chr, 'c') 
 		GLOBALS.vision_fns.mobile_ooi_Callback();     
 	elseif strcmp(chr, 'left') 

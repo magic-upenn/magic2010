@@ -22,7 +22,7 @@ function varargout = vision_gui(varargin)
 
 % Edit the above text to modify the response to help vision_gui
 
-% Last Modified by GUIDE v2.5 30-Oct-2010 13:21:44
+% Last Modified by GUIDE v2.5 04-Nov-2010 08:14:41
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -252,6 +252,7 @@ function updateBB
 		auto = 0; 
 		selected = get(handles.dist_source,'SelectedObject'); 
 		selected = get(selected,'String'); 
+	mand = str2num(get(handles.manual_dist,'String')); 
 	switch(selected)
 	case 'IMG'
 		GLOBALS.current_distance = imgd; 
@@ -259,10 +260,10 @@ function updateBB
 		GLOBALS.current_distance = hsd; 
 	case 'VS'
 		GLOBALS.current_distance = vsd; 
-	case 'AUTO'
-		GLOBALS.current_distance = imgd; 
+	case '->'
+		GLOBALS.current_distance = mand; 
 	end
-	set(handles.dists_display,'String',sprintf('%.1f | %.1f | %.1f | *%.1f*',vsd,hsd,imgd,GLOBALS.current_distance));    		end
+	set(handles.dists_display,'String',sprintf('%.1f | %.1f | %.1f | %.1f | *%.1f*',vsd,hsd,imgd,mand,GLOBALS.current_distance));    		end
 
 
 function updateGui(id)
@@ -1032,5 +1033,51 @@ function omni1_ButtonDownFcn(hObject, eventdata, handles)
 
 function shirt_Callback(hObject, eventdata, handles)
 function shirt_CreateFcn(hObject, eventdata, handles)
+
+
+
+function man_dist_Callback(hObject, eventdata, handles)
+% hObject    handle to man_dist (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of man_dist as text
+%        str2double(get(hObject,'String')) returns contents of man_dist as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function man_dist_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to man_dist (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function manual_dist_Callback(hObject, eventdata, handles)
+% hObject    handle to manual_dist (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of manual_dist as text
+%        str2double(get(hObject,'String')) returns contents of manual_dist as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function manual_dist_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to manual_dist (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
 
 
