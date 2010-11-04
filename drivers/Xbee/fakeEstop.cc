@@ -30,7 +30,7 @@ int main(int argc, char * argv[])
   uint8_t buf[bufSize];
   
   const int nRobots = 9;
-  uint8_t mode[nRobots+1] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0};
+  uint8_t mode[nRobots+1] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   
   //for (int ii=0; ii<nRobots+1; ii++)
   //  mode[ii] = 0;
