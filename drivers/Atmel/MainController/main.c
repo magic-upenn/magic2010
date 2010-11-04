@@ -619,10 +619,12 @@ int main(void)
       switch (estopState)
       {
         case MMC_ESTOP_STATE_RUN:
-          LED_ESTOP_TOGGLE;
+          LED_ESTOP_ON;
+          LED_ERROR_OFF;
           break;
         case MMC_ESTOP_STATE_FREEZE:
           LED_ESTOP_OFF;
+          LED_ERROR_TOGGLE;
           break;
         case MMC_ESTOP_STATE_DISABLE:
           DisableVehicle();
