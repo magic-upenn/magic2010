@@ -16,7 +16,11 @@ if ~isempty(data)
         EXPLORE_PATH{i}.y = yr;
         msgName = ['Robot',num2str(i),'/Explore_Path'];
         path = [xr yr ar];
-        ROBOTS(i).ipcAPI('publish', msgName, serialize(path));
+        try
+          ROBOTS(i).ipcAPI('publish', msgName, serialize(path));
+        catch
+          continue;
+        end
       end
     end
 
@@ -30,7 +34,10 @@ if ~isempty(data)
       EXPLORE_PATH{i}.y = yr;
       msgName = ['Robot',num2str(i),'/Explore_Path'];
       path = [xr yr ar];
-      ROBOTS(i).ipcAPI('publish', msgName, serialize(path));
+      try
+        ROBOTS(i).ipcAPI('publish', msgName, serialize(path));
+      catch
+      end
     end
 
     %{

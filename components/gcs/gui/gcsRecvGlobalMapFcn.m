@@ -6,11 +6,17 @@ if isempty(data)
   return
 end
 
-msg = deserialize(data);
+try
+  msg = deserialize(data);
+catch
+  disp('ERROR: map update fail!');
+  return;
+end
 
 fprintf(1,'got global map\n');
+%y=double(msg.mapData)
 
-GMAP = setdata(GMAP,'cost',msg.mapData);
+GMAP = setdata(GMAP,'cost',double(msg.mapData));
 GTRANSFORM = msg.GTRANSFORM;
 GPOSE = msg.GPOSE;
 %for id=GCS.ids

@@ -13,6 +13,10 @@ if HAVE_ROBOTS
   for id = GCS.ids
     msgName = ['Robot',num2str(id),'/Avoid_Regions'];
     [msg.x msg.y] = gpos_to_rpos(id, msg.x, msg.y);
-    ROBOTS(id).ipcAPI('publish', msgName, serialize(msg));
+    try
+      ROBOTS(id).ipcAPI('publish', msgName, serialize(msg));
+    catch
+      continue;
+    end
   end
 end

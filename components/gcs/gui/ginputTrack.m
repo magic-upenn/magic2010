@@ -11,5 +11,8 @@ if ~isempty(xp) && HAVE_ROBOTS,
   ooi.theta = atan2(yp(1),xp(1));
   ooi.distance = sqrt(xp(1)^2+yp(1)^2);
   ooi.type = 'track';
-  ROBOTS(id).ipcAPI('publish', msgName, serialize(ooi));
+  try
+    ROBOTS(id).ipcAPI('publish', msgName, serialize(ooi));
+  catch
+  end
 end

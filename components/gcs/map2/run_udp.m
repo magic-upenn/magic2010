@@ -11,7 +11,7 @@ function run_udp
   % Setup IPC output
   gcsMapIPCInit(true);
   
-  global GMAP RNODE
+  global GMAP RPOSE RNODE
   gdispInit;
 
   gcsLogPackets('entry');
@@ -32,14 +32,17 @@ function run_udp
       try
         pkt = deserialize(zlibUncompress(packets(ii).data));
       catch
+        disp('error');
         continue;
       end
+      
 
       if ~isfield(pkt, 'type'), continue, end
       
       switch (pkt.type)
       case 'Pose'
       % Pose packet:
+        disp('got P');
 
         id = pkt.id;
         forwardPose(pkt,id);
@@ -48,8 +51,11 @@ function run_udp
       case 'MapUpdateH'
 
         id = pkt.id;
-        if isempty(RNODE{id}), break, end
+        % Need pose first for MapUpdateH
+        if isempty(RPOSE{id}), break, end
         
+        disp('got H');
+	forwardIncH(pkt,id);
         gcsMapUpdateH(id, pkt);
         gcsMapFitPose(id);
  
@@ -60,8 +66,11 @@ function run_udp
       case 'MapUpdateV'
 
         id = pkt.id;
+	% Need MapUpdateH to update RNODE first
         if isempty(RNODE{id}), break, end
 
+        disp('got V');
+	forwardIncV(pkt,id);
         gcsMapUpdateV(id, pkt);
         gmapAdd(id, RNODE{id}.n);
 

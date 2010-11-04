@@ -54,7 +54,10 @@ else
   PATH = [xr yr];
   msgName = ['Robot',num2str(best_id),'/Goal_Point'];
   if HAVE_ROBOTS
-    ROBOTS(best_id).ipcAPI('publish', msgName, serialize(PATH));
+    try
+      ROBOTS(best_id).ipcAPI('publish', msgName, serialize(PATH));
+    catch
+    end
   end
 end
 

@@ -33,7 +33,11 @@ if ~isempty(xp),
       PATH = [xr yr];
       msgName = ['Robot',num2str(id),'/Goal_Point'];
       if HAVE_ROBOTS
-        ROBOTS(id).ipcAPI('publish', msgName, serialize(PATH));
+        try
+          ROBOTS(id).ipcAPI('publish', msgName, serialize(PATH));
+        catch
+          continue;
+        end
       end
     end
   end

@@ -59,5 +59,8 @@ for id = GCS.ids
   end
 end
 
-gcs_machine.ipcAPI('publishVC','Global_Planner_DATA',MagicGP_DATASerializer('serialize',data));
+try
+  gcs_machine.ipcAPI('publishVC','Global_Planner_DATA',MagicGP_DATASerializer('serialize',data));
+catch
+end
 

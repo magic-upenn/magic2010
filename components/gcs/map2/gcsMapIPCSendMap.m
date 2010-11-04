@@ -31,6 +31,6 @@ if ~isempty(IPC_OUTPUT),
   msg.GPOSE = GPOSE;
   msg.GTRANSFORM = GTRANSFORM;
 
-  disp('sent map!');
-  IPC_OUTPUT.ipcAPI('publish', 'Global_Map', zlibCompress(serialize(msg)));
+  disp('sent map...');
+  IPC_OUTPUT.ipcAPI('publish', 'Global_Map', serialize(msg));
 end
