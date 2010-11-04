@@ -58,7 +58,7 @@ int Xbee::WritePacket(uint8_t * data, int size, int addr)
 
   int packetSize = size+XBEE_API_PACKET_OVERHEAD_BYTES;
 
-  printf("packet size = %d\n",packetSize);
+  //printf("packet size = %d\n",packetSize);
 
   vector<uint8_t> buf(packetSize);
   uint8_t * pbuf8 = &(buf[0]);
@@ -86,10 +86,12 @@ int Xbee::WritePacket(uint8_t * data, int size, int addr)
 
   *pbuf8 = sum;
   
+  /*
   printf("sending chars: ");
   for (int ii=0; ii<packetSize; ii++)
     printf("%X ",buf[ii]);
   printf("\n");
+  */
 
   this->sd.WriteChars((char*)&(buf[0]),packetSize);
 
@@ -118,6 +120,8 @@ int Xbee::ReceivePacket(XbeeFrame * frame, double timeout)
         return frame->lenExpected;
       }
     }
+    else
+      break;
   }
 
 

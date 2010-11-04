@@ -1,8 +1,11 @@
 OBJECTS  = Xbee.o XbeeFrame.o ErrorMessage.o
 
-TARGETS = testXbeeSend testXbeeReceive XbeeAPI.$(MEXEXT) uvcCam cjpeg djpeg
+TARGETS = fakeEstop testXbeeSend testXbeeReceive XbeeAPI.$(MEXEXT) uvcCam cjpeg djpeg
 
 include $(MAGIC_DIR)/Makefile.mk
+
+fakeEstop: fakeEstop.cc $(OBJECTS)
+	g++ -Wall -o $@ $^ $(CPP_FLAGS) $(INCLUDES) $(LIB_DIRS) $(LIBS)
 
 XbeeAPI.$(MEXEXT): XbeeAPI.cc Xbee.o XbeeFrame.o ErrorMessage.o
 	mex -O $^ $(INCLUDES) $(LIB_DIRS) $(LIBS)
