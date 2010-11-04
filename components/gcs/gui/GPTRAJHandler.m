@@ -1,6 +1,6 @@
 
 function GPTRAJHandler(data,name)
-global Robots ROBOTS EXPLORE_PATH
+global Robots ROBOTS EXPLORE_PATH GTRANSFORM
 fprintf('got GPTRAJ message\n');
 
 if ~isempty(data)
@@ -10,7 +10,7 @@ if ~isempty(data)
     for i=1:msg.NR-1
       t_start = msg.traj_size(i);
       t_end = msg.traj_size(i+1);
-      if t_start ~= t_end
+      if t_start ~= t_end && ~isempty(GTRANSFORM{i})
         [xr, yr, ar] = gpos_to_rpos(i, msg.POSEX(t_start+1:t_end), msg.POSEY(t_start+1:t_end), msg.POSETHETA(t_start+1:t_end));
         EXPLORE_PATH{i}.x = xr;
         EXPLORE_PATH{i}.y = yr;
@@ -24,7 +24,7 @@ if ~isempty(data)
     i = msg.NR;
     t_start = msg.traj_size(i);
     t_end = msg.total_size;
-    if t_start ~= t_end
+    if t_start ~= t_end && ~isempty(GTRANSFORM{i})
       [xr, yr, ar] = gpos_to_rpos(i, msg.POSEX(t_start+1:t_end), msg.POSEY(t_start+1:t_end), msg.POSETHETA(t_start+1:t_end));
       EXPLORE_PATH{i}.x = xr;
       EXPLORE_PATH{i}.y = yr;

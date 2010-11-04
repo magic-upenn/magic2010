@@ -71,7 +71,7 @@ RNODE{id}.pF(:,n) = o_mult(pFPrev, oL1);
 
 if (~RNODE{id}.gpsInitialized) && ...
     pose.gpsValid && ...
-    (pose.gps.speed > 0.5),
+    (pose.gps.speed > 0.1),
   % Use initial gps pose for fitted pose
   dp = o_p1p2(RNODE{id}.pL(:,n), RNODE{id}.pL(:,1:n));
   RNODE{id}.pF(:,1:n) = o_mult(RNODE{id}.pGps(:,n), dp);

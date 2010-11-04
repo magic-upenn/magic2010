@@ -9,10 +9,12 @@ function run_udp
   gcsMapInit;
   
   % Setup IPC output
-  gcsMapIPCInit(false);
+  gcsMapIPCInit(true);
   
   global GMAP RNODE
   gdispInit;
+
+  gcsLogPackets('entry');
 
   % Connect to UDP
   addr = '192.168.10.220';
@@ -24,7 +26,7 @@ function run_udp
     pause(.05);
 
     packets = UdpReceiveAPI('receive');
-    %gcsLogPackets('UDP', packets);
+    gcsLogPackets('UDP', packets);
     n = length(packets);
     for ii = 1:n,
       try
@@ -40,11 +42,13 @@ function run_udp
       % Pose packet:
 
         id = pkt.id;
+        forwardPose(pkt,id);
         gcsMapPoseExternal(id, pkt);
 
       case 'MapUpdateH'
 
         id = pkt.id;
+        forwardIncH(pkt,id);
         gcsMapUpdateH(id, pkt);
         gcsMapFitPose(id);
  
@@ -55,6 +59,7 @@ function run_udp
       case 'MapUpdateV'
 
         id = pkt.id;
+        forwardIncV(pkt,id);
         gcsMapUpdateV(id, pkt);
 
         gmapAdd(id, RNODE{id}.n);
@@ -75,3 +80,35 @@ function run_udp
       
     end
   end
+
+
+function forwardPose(data,id)
+global IPC_OUTPUT
+
+if ~isempty(IPC_OUTPUT),
+  guiMsg.update = data;
+  guiMsg.id = id;
+  IPC_OUTPUT.ipcAPI('publish','RPose',serialize(guiMsg));
+end
+
+
+function forwardIncH(update, id)
+global IPC_OUTPUT
+
+if ~isempty(IPC_OUTPUT),
+  guiMsg.update = update;
+  guiMsg.id = id;
+  IPC_OUTPUT.ipcAPI('publish','IncH',serialize(guiMsg));
+end
+
+
+function forwardIncV(update,id)
+global IPC_OUTPUT
+
+if ~isempty(IPC_OUTPUT),
+  guiMsg.update = update;
+  guiMsg.id = id;
+  IPC_OUTPUT.ipcAPI('publish','IncV',serialize(guiMsg));
+end
+
+

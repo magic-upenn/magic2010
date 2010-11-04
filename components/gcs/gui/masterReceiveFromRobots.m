@@ -26,7 +26,7 @@ for ii=1:nRobots
     % listenClear: wait until no messages come within the specified period
     % listenWait:  like usleep, but will receive messages for specified time            
     msgs = ROBOTS(ii).ipcAPI('listen',dt);
-    gcsLogPackets('RobotIPC',msgs);
+    %gcsLogPackets('RobotIPC',msgs);
     nmsg = length(msgs);
     
     %process messages

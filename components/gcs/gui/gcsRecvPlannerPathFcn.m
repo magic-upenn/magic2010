@@ -23,5 +23,5 @@ for i=1:size(GPATH{id},1)
   [GPATH{id}.x(i), GPATH{id}.y(i), dummy] = rpos_to_gpos(id, RPATH{id}.x(i), RPATH{id}.y(i));
 end
 %}
-[GPATH{id}.x, GPATH{id}.y, dummy] = rpos_to_gpos(id, RPATH{id}.x, RPATH{id}.y);
+%[GPATH{id}.x, GPATH{id}.y, dummy] = rpos_to_gpos(id, RPATH{id}.x, RPATH{id}.y);
 

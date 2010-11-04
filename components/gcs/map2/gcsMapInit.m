@@ -38,7 +38,7 @@ GMAP.x = [mapEastMin mapEastMax];
 GMAP.y = [mapNorthMin mapNorthMax];
 
 resolution = 0.10;
-nx = (GMAP.x(end)-GMAP.x(1))/resolution + 1;
-ny = (GMAP.y(end)-GMAP.y(1))/resolution + 1;
+nx = (GMAP.x(end)-GMAP.x(1))/resolution + 0;
+ny = (GMAP.y(end)-GMAP.y(1))/resolution + 0;
 
 GMAP.im = zeros(nx, ny);

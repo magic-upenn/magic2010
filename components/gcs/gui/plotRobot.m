@@ -24,7 +24,7 @@ if nargin < 6,
     h.shape = fill(pFill(1,:), pFill(2,:), 'm');
   end
   h.text = text(x, y, num2str(id));
-  set(h.text, 'HorizontalAlignment', 'center', 'FontSize', 14);
+  set(h.text, 'HorizontalAlignment', 'center', 'FontSize', 24);
   h.fov = line(pLine(1,:),pLine(2,:),'LineWidth',2.0);
   hold off;
 else

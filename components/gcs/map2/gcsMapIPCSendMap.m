@@ -3,9 +3,16 @@ function gcsMapIPCSendMap
 global GMAP GTRANSFORM GPOSE
 global RNODE
 
+global MAGIC_CONSTANTS
+
 for id = 1:9,
   if ~isempty(RNODE{id}),
     pF1 = RNODE{id}.pF(:,end);
+    
+    % Hack to shift for gcs gui:
+    pF1(1) = pF1(1) - MAGIC_CONSTANTS.mapEastOffset;
+    pF1(2) = pF1(2) - MAGIC_CONSTANTS.mapNorthOffset;
+
     GPOSE{id}.x = pF1(1);
     GPOSE{id}.y = pF1(2);
     GPOSE{id}.yaw = pF1(3);
@@ -24,5 +31,6 @@ if ~isempty(IPC_OUTPUT),
   msg.GPOSE = GPOSE;
   msg.GTRANSFORM = GTRANSFORM;
 
-  gcs_machine.ipcAPI('publish', 'Global_Map', serialize(msg));
+  disp('sent map!');
+  IPC_OUTPUT.ipcAPI('publish', 'Global_Map', serialize(msg));
 end
