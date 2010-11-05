@@ -1,11 +1,12 @@
 function gcsMapInit(arg)
 
-global RPOSE RNODE
+global RPOSE RNODE RCLUSTER
 
 nRobot = 9;
 
 RPOSE = cell(nRobot,1);
 RNODE = cell(nRobot,1);
+RCLUSTER = cell(nRobot,1);
 
 global GPOSE
 
@@ -37,9 +38,15 @@ end
 
 GMAP.x = [mapEastMin mapEastMax];
 GMAP.y = [mapNorthMin mapNorthMax];
+GMAP.x0 = mapEastOffset;
+GMAP.y0 = mapNorthOffset;
 
 resolution = 0.10;
 nx = (GMAP.x(end)-GMAP.x(1))/resolution + 0;
 ny = (GMAP.y(end)-GMAP.y(1))/resolution + 0;
 
-GMAP.im = zeros(nx, ny);
+GMAP.im = zeros(nx, ny, 'int8');
+
+GMAP.im0 = zeros(nx, ny, 'int8');
+GMAP.rnodeN0 = cell(nRobot,1);
+GMAP.rnodeN = cell(nRobot,1);

@@ -2,17 +2,18 @@ function run_udp
 
   more off
 
+  global GMAP RPOSE RNODE
+
   % Load scenario parameters
   gcsParams;
   
   % Initialize global variables
   gcsMapInit;
+  gdispInit;
   
   % Setup IPC output
-  gcsMapIPCInit(true);
-  
-  global GMAP RPOSE RNODE
-  gdispInit;
+    gcsMapIPCInit(false);
+  %gcsMapIPCInit(true);
 
   gcsLogPackets('entry');
 
@@ -32,17 +33,15 @@ function run_udp
       try
         pkt = deserialize(zlibUncompress(packets(ii).data));
       catch
-        disp('error');
+        disp('Error in deserialize/uncompress packet!');
         continue;
       end
-      
 
       if ~isfield(pkt, 'type'), continue, end
-      
+
       switch (pkt.type)
       case 'Pose'
       % Pose packet:
-        disp('got P');
 
         id = pkt.id;
         forwardPose(pkt,id);
@@ -51,11 +50,16 @@ function run_udp
       case 'MapUpdateH'
 
         id = pkt.id;
-        % Need pose first for MapUpdateH
-        if isempty(RPOSE{id}), break, end
-        
-        disp('got H');
+
 	forwardIncH(pkt,id);
+        %{
+        % Need pose first for MapUpdateH
+        if isempty(RPOSE{id}),
+          disp('MapUpdateH: waiting for pose on robot %d', id);
+          break;
+        end
+        %}
+
         gcsMapUpdateH(id, pkt);
         gcsMapFitPose(id);
  
@@ -66,11 +70,15 @@ function run_udp
       case 'MapUpdateV'
 
         id = pkt.id;
-	% Need MapUpdateH to update RNODE first
-        if isempty(RNODE{id}), break, end
 
-        disp('got V');
 	forwardIncV(pkt,id);
+
+        % Need MapUpdateH to first initialize RNODE
+        if isempty(RNODE{id}),
+          disp('MapUpdateV: waiting for RNODE on robot %d', id);
+          break;
+        end
+
         gcsMapUpdateV(id, pkt);
         gmapAdd(id, RNODE{id}.n);
 
@@ -80,7 +88,7 @@ function run_udp
       
       end
 
-      if (etime(clock, tmap) > 1),
+      if (etime(clock, tmap) > 1.0),
         gcsMapIPCSendMap;
 
         tmap = clock;
@@ -120,5 +128,3 @@ if ~isempty(IPC_OUTPUT),
   guiMsg.id = id;
   IPC_OUTPUT.ipcAPI('publish','IncV',serialize(guiMsg));
 end
-
-

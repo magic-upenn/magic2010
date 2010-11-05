@@ -5,7 +5,7 @@ global RPOSE RNODE
 pose = RPOSE{id};
 
 if isempty(pose),
-  disp(sprintf('Waiting for robot %d pose message...', id));
+  disp(sprintf('gcsMapUpdateH: waiting for robot %d pose...', id));
   return;
 end
 
@@ -58,20 +58,13 @@ RNODE{id}.hlidarConf(n) = scanCounts(3)/(max(scanCounts(1:2))+100);
 
 % Compute incremental pose
 oL1 = o_p1p2(pLPrev, RNODE{id}.pL(:,n));
-% Hack to fix angles:
-if (scanCounts(3) == 0),
-  oL1(3) = 0;
-end
-if (scanCounts(3) <= .3*min(scanCounts(1:2))),
-  oL1(3) = .3*tanh(oL1(3)/.3);
-end
 
 RNODE{id}.oL(:,n) = oL1;
 RNODE{id}.pF(:,n) = o_mult(pFPrev, oL1); 
 
 if (~RNODE{id}.gpsInitialized) && ...
     pose.gpsValid && ...
-    (pose.gps.speed > 0.1),
+    (pose.gps.speed > 0.2),
   % Use initial gps pose for fitted pose
   dp = o_p1p2(RNODE{id}.pL(:,n), RNODE{id}.pL(:,1:n));
   RNODE{id}.pF(:,1:n) = o_mult(RNODE{id}.pGps(:,n), dp);

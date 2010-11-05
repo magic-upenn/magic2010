@@ -7,7 +7,7 @@ gpsErrMax = 5.0;
 
 node = RNODE{id};
 if (~isfield(node,'gpsInitialized') || ~node.gpsInitialized),
-  disp(sprintf('Cannot fit robot %d: GPS not initialized', id));
+  disp(sprintf('gcsMapFitPose: cannot fit robot %d: GPS not initialized', id));
   return;
 end
 
