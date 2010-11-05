@@ -12,8 +12,7 @@ function run_udp
   gdispInit;
   
   % Setup IPC output
-    gcsMapIPCInit(false);
-  %gcsMapIPCInit(true);
+  gcsMapIPCInit(true);
 
   gcsLogPackets('entry');
 

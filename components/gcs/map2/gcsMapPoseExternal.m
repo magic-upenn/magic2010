@@ -20,8 +20,8 @@ pose.gps = gps;
 
 % Check number of satellites, HDOP, and heading for validity
 if (~isempty(gps.heading) && ...
-    (gps.numSat >= 8) && ...
-    (gps.hdop < 1.3))
+    (gps.numSat >= 7) && ...
+    (gps.hdop < 1.6))
   pose.gpsValid = 1;
 else
   pose.gpsValid = 0;

@@ -42,10 +42,16 @@ GMAP.x0 = mapEastOffset;
 GMAP.y0 = mapNorthOffset;
 
 resolution = 0.10;
-nx = (GMAP.x(end)-GMAP.x(1))/resolution + 0;
-ny = (GMAP.y(end)-GMAP.y(1))/resolution + 0;
+nx = ceil((GMAP.x(end)-GMAP.x(1))/resolution);
+ny = ceil((GMAP.y(end)-GMAP.y(1))/resolution);
 
-GMAP.im = zeros(nx, ny, 'int8');
+global UAV_MAP
+if MAGIC_CONSTANTS.scenario > 0 && MAGIC_CONSTANTS.scenario < 5
+  gcsLoadUAVMap;
+  GMAP.im = int8(UAV_MAP);
+else
+  GMAP.im = zeros(nx, ny, 'int8');
+end
 
 GMAP.im0 = zeros(nx, ny, 'int8');
 GMAP.rnodeN0 = cell(nRobot,1);
