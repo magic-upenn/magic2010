@@ -11,7 +11,7 @@
 #define NOMINAL_GYRO_BIAS 485
 #define GYRO_BIAS_MARGIN 30
 
-#define MAX_GYRO_CALIB_NOSE 10
+#define MAX_GYRO_CALIB_NOSE 20
 
 //accelerometer sensitivities (g/bit)
 #define SENS_ACC_X 1.0/139.0
@@ -25,7 +25,7 @@
 
 
 //number of calibration samples for rate gyros
-#define NUM_GYRO_CALIB_SAMPLES 300
+#define NUM_GYRO_CALIB_SAMPLES 100
 
 //mapping of the ADC measurements to appropriate values
 #define ADC_AX_IND 0
