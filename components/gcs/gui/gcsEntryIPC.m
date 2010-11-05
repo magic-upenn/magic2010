@@ -22,6 +22,7 @@ for id = GCS.ids,
     RPOSE{id}.heading = 0;
     RMAP{id} = map2d(xCells, yCells, MAGIC_CONSTANTS.mapRes,'vlidar','hlidar','cost');
     RMAP{id} = shift(RMAP{id},xShift,yShift);
+    %RMAP{id} = map2d(600,600,.10,'vlidar','hlidar','cost');
 
     if HAVE_ROBOTS
       GTRANSFORM{id}.init = 0;

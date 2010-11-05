@@ -19,6 +19,22 @@ if (gettime - GCS.tSave > 60)
   GCS.tSave = gettime;
 end
 
+% See if map needs to be shifted:
+%{
+for id = GCS.ids,
+  [mx0, my0] = origin(RMAP{id});
+  if (abs(RPOSE{id}.x - mx0) > 15.0) || ...
+    (abs(RPOSE{id}.y - my0) > 15.0),
+    RMAP{id} = shift(RMAP{id}, RPOSE{id}.x, RPOSE{id}.y);
+    disp('shift');
+    disp('shift');
+    id
+    disp('shift');
+    disp('shift');
+  end
+end
+%}
+
 end
 
 function GetLocalMsg

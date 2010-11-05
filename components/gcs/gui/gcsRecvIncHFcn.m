@@ -1,6 +1,6 @@
 function gcsRecvIncHFcn(data, name)
 
-global RMAP
+global RMAP GCS
 
 if isempty(data)
   return
@@ -8,6 +8,9 @@ end
 
 msg = deserialize(data);
 id = msg.id;
+if ~any(id==GCS.ids)
+  return;
+end
 
 fprintf(1,'got horizontal map update from %d\n',id);
 

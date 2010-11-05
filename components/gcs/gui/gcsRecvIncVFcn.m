@@ -9,6 +9,9 @@ end
 
 msg = deserialize(data);
 id = msg.id;
+if ~any(id==GCS.ids)
+  return;
+end
 fprintf(1,'got vertical map update from %d\n',id);
 
 update = msg.update;

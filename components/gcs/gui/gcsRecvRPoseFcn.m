@@ -1,5 +1,5 @@
 function gcsRecvRPoseFcn(data, name)
-global RPOSE GTRANSFORM GPOSE ROBOT_PATH
+global RPOSE GTRANSFORM GPOSE ROBOT_PATH GCS
 
 if isempty(data)
   return;
@@ -8,6 +8,9 @@ end
 msg = deserialize(data);
 
 id = msg.id;
+if ~any(id==GCS.ids)
+  return;
+end
 %RPOSE{id} = MagicPoseSerializer('deserialize',data);
 RPOSE{id} = msg.update;
 

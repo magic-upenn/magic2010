@@ -48,8 +48,16 @@ data.theta = zeros(data.NR,1);
 
 for id = GCS.sensor_ids
   %if strcmp(get(GDISPLAY.robotStatusText{id},'String'),'sExplore')
-  data.avail(id) = 1;
-  %end
+  if isempty(GPOSE{id})
+    continue;
+  end
+  mapX = (GPOSE{id}.x -data.UTM_x)/data.map_cell_size;
+  mapY = (GPOSE{id}.y -data.UTM_y)/data.map_cell_size;
+  if mapX > 0 && mapX < data.map_size_x && mapY > 0 && mapY < data.map_size_y
+    data.avail(id) = 1;
+  else
+    fprintf('Robot %d is not exploring\n',id);
+  end
 end
 for id = GCS.ids
   if ~isempty(GPOSE{id})
