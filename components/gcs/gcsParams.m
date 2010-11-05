@@ -16,7 +16,7 @@ HAVE_ROBOTS = true;
 LOG_PACKETS.enabled = true;
 
 %MAP
-MAGIC_CONSTANTS.scenario = 6;
+MAGIC_CONSTANTS.scenario = 4;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -25,6 +25,12 @@ MAGIC_CONSTANTS.scenario = 6;
 
 %ids
 GCS.ids = [GCS.disruptor_ids GCS.sensor_ids];
+
+%UAV Map UTM offsets (lower left corner of the UAV map)
+MAGIC_CONSTANTS.uavShiftEast = 0;
+MAGIC_CONSTANTS.uavShiftNorth = 0;
+MAGIC_CONSTANTS.uavMapEast = 279108-MAGIC_CONSTANTS.uavShiftEast;
+MAGIC_CONSTANTS.uavMapNorth = 6129894-MAGIC_CONSTANTS.uavShiftNorth;
 
 %map params based on scenario
 switch MAGIC_CONSTANTS.scenario
@@ -53,6 +59,32 @@ case 3
   MAGIC_CONSTANTS.mapEastOffset = 279438;
   MAGIC_CONSTANTS.mapNorthOffset = 6130046;
 case 4
+  disp('starting hotel test');
+  MAGIC_CONSTANTS.mapEastMin = 272823;
+  MAGIC_CONSTANTS.mapEastMax = 273056;
+  MAGIC_CONSTANTS.mapNorthMin = 6126719;
+  MAGIC_CONSTANTS.mapNorthMax = 6126861;
+  MAGIC_CONSTANTS.mapEastOffset = 272900;
+  MAGIC_CONSTANTS.mapNorthOffset = 6126780;
+
+  %MAGIC_CONSTANTS.mapEastMin = 272900-100;
+  %MAGIC_CONSTANTS.mapEastMax = 272900+130;
+  %MAGIC_CONSTANTS.mapNorthMin = 6126746-100;
+  %MAGIC_CONSTANTS.mapNorthMax = 6126746+140;
+  %MAGIC_CONSTANTS.mapEastOffset = 272900;
+  %MAGIC_CONSTANTS.mapNorthOffset = 6126746;
+
+  %hotel lower left corner
+  MAGIC_CONSTANTS.uavShiftEast = 0;
+  MAGIC_CONSTANTS.uavShiftNorth = 0;
+  MAGIC_CONSTANTS.uavMapEast = 272811-MAGIC_CONSTANTS.uavShiftEast;
+  MAGIC_CONSTANTS.uavMapNorth = 6126671-MAGIC_CONSTANTS.uavShiftNorth;
+  %MAGIC_CONSTANTS.uavMapEast = 272823-MAGIC_CONSTANTS.uavShiftEast;
+  %MAGIC_CONSTANTS.uavMapNorth = 6126719-MAGIC_CONSTANTS.uavShiftNorth;
+
+  %MAGIC_CONSTANTS.uavMapEast = 272800;
+  %MAGIC_CONSTANTS.uavMapNorth = 6126646;
+case 5
   disp('starting uav feed test');
   MAGIC_CONSTANTS.mapEastMin = 308000;
   MAGIC_CONSTANTS.mapEastMax = 308200;
@@ -60,14 +92,6 @@ case 4
   MAGIC_CONSTANTS.mapNorthMax = 4332200;
   MAGIC_CONSTANTS.mapEastOffset = 308100;
   MAGIC_CONSTANTS.mapNorthOffset = 4332100;
-case 5
-  disp('starting hotel test');
-  MAGIC_CONSTANTS.mapEastMin = 272900-100;
-  MAGIC_CONSTANTS.mapEastMax = 272900+100;
-  MAGIC_CONSTANTS.mapNorthMin = 6126746-100;
-  MAGIC_CONSTANTS.mapNorthMax = 6126746+100;
-  MAGIC_CONSTANTS.mapEastOffset = 272900;
-  MAGIC_CONSTANTS.mapNorthOffset = 6126746;
 otherwise
   disp('starting custom map');
   MAGIC_CONSTANTS.mapEastMin = -100;
@@ -77,10 +101,6 @@ otherwise
   MAGIC_CONSTANTS.mapEastOffset = 0;
   MAGIC_CONSTANTS.mapNorthOffset = 0;
 end
-
-%UAV Map UTM offsets (lower left corner of the UAV map)
-MAGIC_CONSTANTS.uavMapEast = 279108;
-MAGIC_CONSTANTS.uavMapNorth = 6129894;
 
 MAGIC_CONSTANTS.mapSizeX = MAGIC_CONSTANTS.mapEastMax - MAGIC_CONSTANTS.mapEastMin;
 MAGIC_CONSTANTS.mapSizeY = MAGIC_CONSTANTS.mapNorthMax - MAGIC_CONSTANTS.mapNorthMin;

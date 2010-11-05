@@ -9,8 +9,8 @@ global MAGIC_CONSTANTS HAVE_ROBOTS
 
 GCS.tSave = gettime;
 
-xCells = round(MAGIC_CONSTANTS.mapSizeX/MAGIC_CONSTANTS.mapRes);
-yCells = round(MAGIC_CONSTANTS.mapSizeY/MAGIC_CONSTANTS.mapRes);
+xCells = ceil(MAGIC_CONSTANTS.mapSizeX/MAGIC_CONSTANTS.mapRes);
+yCells = ceil(MAGIC_CONSTANTS.mapSizeY/MAGIC_CONSTANTS.mapRes);
 xShift = (MAGIC_CONSTANTS.mapEastMax+MAGIC_CONSTANTS.mapEastMin)/2-MAGIC_CONSTANTS.mapEastOffset;
 yShift = (MAGIC_CONSTANTS.mapNorthMax+MAGIC_CONSTANTS.mapNorthMin)/2-MAGIC_CONSTANTS.mapNorthOffset;
 
