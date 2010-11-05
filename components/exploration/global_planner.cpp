@@ -1076,10 +1076,13 @@ for (int j = 0; j < num_regions; j++) {
         POSEX[idx] = (int)(gp_position_update_p->x[idx] / map_cell_size);
         POSEY[idx] = (int)(gp_position_update_p->y[idx] / map_cell_size);
         POSETHETA[idx] = gp_position_update_p->theta[idx];
+if (~OnMap(POSEX[idx], POSEY[idx])) { POSEX[idx] = 0; POSEY[idx]=0; }
         // free 9 cells in vicinity of robot start position
         for(int i=-4; i<=4; i++) {
             for(int j=-4; j<=4; j++) {
+if (OnMap(POSEX[idx]+i, POSEY[idx]+j)) {
                 cover_map[POSEX[idx]+i+(POSEY[idx]+j)*map_size_x] = KNOWN;
+}
             }
         }
         traj[idx].reserve(300); 
