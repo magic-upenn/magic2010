@@ -28,6 +28,7 @@ while loop,
     loop = true;
 
     inode = RCLUSTER{id}.iNode(i)+RCLUSTER_INFO.nCluster/2; 
+    inode = min(inode, RNODE{id}.n);
     oF1 = o_mult(RNODE{id}.pF(:,inode), ...
                  o_inv(RNODE{id}.pL(:,inode)));
     pm = o_mult(oF1, RCLUSTER{id}.pMap{i});

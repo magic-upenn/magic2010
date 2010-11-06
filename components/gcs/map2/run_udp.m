@@ -55,13 +55,11 @@ function run_udp
         id = pkt.id;
 
 	forwardIncH(pkt,id);
-        %{
         % Need pose first for MapUpdateH
         if isempty(RPOSE{id}),
-          disp('MapUpdateH: waiting for pose on robot %d', id);
+          disp(sprintf('MapUpdateH: waiting for pose on robot %d', id));
           break;
         end
-        %}
 
         gcsMapUpdateH(id, pkt);
         gcsMapFitPose(id);
@@ -77,12 +75,10 @@ function run_udp
 	forwardIncV(pkt,id);
 
         % Need MapUpdateH to first initialize RNODE
-        %{
         if isempty(RNODE{id}),
-          disp('MapUpdateV: waiting for RNODE on robot %d', id);
+          disp(sprintf('MapUpdateV: waiting for RNODE on robot %d', id));
           break;
         end
-        %}
 
         gcsMapUpdateV(id, pkt);
         gmapAdd(id, RNODE{id}.n);
