@@ -1,6 +1,6 @@
 function ret = sLook(event, varargin);
 
-global MPOSE LOOK_ANGLE USE_SERVO BODY_FACE
+global MPOSE LOOK_ANGLE USE_SERVO BODY_FACE TILT_ANGLE
 persistent DATA
 
 timeout = 5.0;
@@ -8,6 +8,7 @@ ret = [];
 
 small_angle_thresh = 10*pi/180;
 big_angle_thresh = 40*pi/180;
+max_tilt = 10*pi/180;
 servoMsgName = GetMsgName('Servo1Cmd');
 
 switch event
@@ -50,6 +51,19 @@ switch event
    servoCmd.acceleration = 300;
    content = MagicServoControllerCmdSerializer('serialize',servoCmd);
    ipcAPIPublishVC(servoMsgName,content);
+
+
+   %Tilt servo
+   servoMsgName = GetMsgName('Servo1Cmd');
+   servoCmd.id           = 2;
+   servoCmd.mode         = 0;
+   servoCmd.minAngle     = max(min(TILT_ANGLE, max_tilt), -max_tilt);
+   servoCmd.maxAngle     = 0;
+   servoCmd.speed        = 100;
+   servoCmd.acceleration = 300;
+   content = MagicServoControllerCmdSerializer('serialize',servoCmd);
+   ipcAPIPublishVC(servoMsgName,content);
+
 
    if abs(dHeading) > big_angle_thresh || (abs(dHeading) > small_angle_thresh && BODY_FACE)
      if dHeading > 0

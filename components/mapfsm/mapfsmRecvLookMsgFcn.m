@@ -1,5 +1,5 @@
 function mapfsmRecvLookMsgFcn(data, name)
-global LOOK_ANGLE MP MPOSE OOI_DYNAMIC BODY_FACE
+global LOOK_ANGLE MP MPOSE OOI_DYNAMIC BODY_FACE TILT_ANGLE
 
 if ~isempty(data)
   disp('got look msg');
@@ -10,6 +10,7 @@ if ~isempty(data)
     MP.sm = setEvent(MP.sm, 'done_looking');
   case 'look'
     LOOK_ANGLE = msg.theta;
+    TILT_ANGLE = msg.phi;
     BODY_FACE = false;
     MP.sm = setEvent(MP.sm, 'look');
   case 'face'
