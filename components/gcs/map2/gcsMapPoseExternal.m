@@ -20,7 +20,7 @@ pose.gps = gps;
 
 % Check number of satellites, HDOP, and heading for validity
 if (~isempty(gps.heading) && ...
-    (gps.numSat >= 7) && ...
+    (gps.numSat >= 6) && ...
     (gps.hdop < 1.6))
   pose.gpsValid = 1;
 else
@@ -28,3 +28,14 @@ else
 end
 
 RPOSE{id} = pose;
+
+global GTRANSFORM
+if isempty(GTRANSFORM{id}),
+  GTRANSFORM{id} = zeros(3,1);
+end
+
+
+global GPOSE
+if isempty(GPOSE{id}),
+  GPOSE{id} = zeros(3,1);
+end

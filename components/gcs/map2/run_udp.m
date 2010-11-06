@@ -22,8 +22,10 @@ function run_udp
   UdpReceiveAPI('connect', addr, port);
 
   tmap = clock;
+  tIpc = clock;
+
   while 1,
-    pause(.05);
+    pause(.02);
 
     packets = UdpReceiveAPI('receive');
     gcsLogPackets('UDP', packets);
@@ -62,9 +64,9 @@ function run_udp
         gcsMapUpdateH(id, pkt);
         gcsMapFitPose(id);
  
-        if isfield(RNODE{id}, 'pF'),
-          gdispRobot(id, RNODE{id}.pF(:,end));
-        end
+        %gdispRobot(id, RNODE{id}.pF(:,end));
+        gdispRobot(id, GPOSE{id});
+
           
       case 'MapUpdateV'
 
@@ -73,10 +75,12 @@ function run_udp
 	forwardIncV(pkt,id);
 
         % Need MapUpdateH to first initialize RNODE
+        %{
         if isempty(RNODE{id}),
           disp('MapUpdateV: waiting for RNODE on robot %d', id);
           break;
         end
+        %}
 
         gcsMapUpdateV(id, pkt);
         gmapAdd(id, RNODE{id}.n);
@@ -87,10 +91,15 @@ function run_udp
       
       end
 
-      if (etime(clock, tmap) > 1.0),
+      if (etime(clock, tmap) > 5.0),
+        tmap = clock;
+        gmapRecalc;
+      end
+
+      if (etime(clock, tIpc) > 1.0),
+        tIpc = clock;
         gcsMapIPCSendMap;
 
-        tmap = clock;
         gdispMap(GMAP.im, GMAP.x, GMAP.y);
         drawnow;
       end

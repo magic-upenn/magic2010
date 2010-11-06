@@ -1,22 +1,30 @@
 function run_logs_map(logdir)
 
-  global GMAP RPOSE RNODE RCLUSTER
-
+  global GMAP
+  global GPOSE
+  global RPOSE RNODE RCLUSTER
+  
   more off
 
-  gcsMapInit;  % Initialize global variables!
+  % Load scenario parameters
+  gcsParams;
+
+  % Initialize global variables
+  gcsMapInit;
   gdispInit;
   
   if nargin < 1,
-    logdir = '~/MAGIC2010/Logs/master/log2';
+    %logdir = '~/MAGIC2010/Logs/master/log2';
     %logdir = '~/MAGIC2010/Logs/master/hill_field2';
-    logdir = '~/MAGIC2010/Logs/TowerField1a';
+    logdir = '~/MAGIC2010/Logs/TowerField1';
   end
 
   logname = '*_log_*.mat';
   dirList = dir([logdir '/' logname]);
 
   tmap = clock;
+  tdisp = clock;
+
   for iLog = 1:length(dirList),
     logFile = [logdir '/' dirList(iLog).name];
     fprintf(1, 'Processing log file: %s\n', logFile);
@@ -42,7 +50,8 @@ function run_logs_map(logdir)
         gcsMapUpdateH(id, pkt);
       
         gcsMapFitPose(id);
-        gdispRobot(id, RNODE{id}.pF(:,end));
+        %        gdispRobot(id, RNODE{id}.pF(:,end));
+        gdispRobot(id, GPOSE{id});
           
       case 'MapUpdateV'
         id = pkt.id;
@@ -56,16 +65,23 @@ function run_logs_map(logdir)
       
       end
 
-      if (etime(clock, tmap) > .2),
+      if (etime(clock, tmap) > 5),
         tmap = clock;
+        gmapRecalc;
+      end
+
+      if (etime(clock, tdisp) > .5),
+        tdisp = clock;
         gdispMap(GMAP.im, GMAP.x, GMAP.y);
 
-        id = 2;
+        %{
+        id = 1;
         if ~isempty(RPOSE{id}),
           gps = RPOSE{id}.gps;
           disp(sprintf('Robot %d pose: sv=%d, hdop=%.2f, posFix=%d', ...
                        id, gps.numSat, gps.hdop,gps.posFix));
         end
+        %}
 
         %{
         hold on;

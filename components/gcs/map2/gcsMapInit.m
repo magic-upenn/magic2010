@@ -1,11 +1,17 @@
 function gcsMapInit(arg)
 
-global RPOSE RNODE RCLUSTER
+global RPOSE RNODE
 
 nRobot = 9;
 
 RPOSE = cell(nRobot,1);
 RNODE = cell(nRobot,1);
+
+global RCLUSTER RCLUSTER_INFO
+RCLUSTER_INFO.nCluster = 30;
+resolution = 0.05;  % smaller to prevent map pixelation
+RCLUSTER_INFO.dxMap = [-60:resolution:60];
+RCLUSTER_INFO.dyMap = [-60:resolution:60];
 RCLUSTER = cell(nRobot,1);
 
 global GPOSE
@@ -28,10 +34,10 @@ if ~isempty(MAGIC_CONSTANTS),
 else
   [utmE, utmN, utmZone] = deg2utm(39.9524, -75.1915);
   [utmE, utmN, utmZone] = deg2utm(-34.9764, 138.5123);
-  mapEastMin = utmE-100.0;
+  mapEastMin = utmE-150.0;
   mapEastMax = utmE+100.0;
-  mapNorthMin = utmN-100.0;
-  mapNorthMax = utmN+100.0;  
+  mapNorthMin = utmN-120.0;
+  mapNorthMax = utmN+150.0;  
   mapEastOffset = utmE;
   mapNorthOffset = utmN;
 end
@@ -45,14 +51,12 @@ resolution = 0.10;
 nx = ceil((GMAP.x(end)-GMAP.x(1))/resolution);
 ny = ceil((GMAP.y(end)-GMAP.y(1))/resolution);
 
+GMAP.im0 = zeros(nx, ny, 'int8');
+
 global UAV_MAP
 if MAGIC_CONSTANTS.scenario > 0 && MAGIC_CONSTANTS.scenario < 5
   gcsLoadUAVMap;
-  GMAP.im = int8(UAV_MAP);
-else
-  GMAP.im = zeros(nx, ny, 'int8');
 end
 
-GMAP.im0 = zeros(nx, ny, 'int8');
-GMAP.rnodeN0 = cell(nRobot,1);
-GMAP.rnodeN = cell(nRobot,1);
+% Force making copy of array:
+GMAP.im = GMAP.im0 + 0;

@@ -1,6 +1,7 @@
 function gcsMapUpdateH(id, pkt)
 
 global RPOSE RNODE
+global GTRANSFORM GPOSE
 
 pose = RPOSE{id};
 
@@ -65,9 +66,12 @@ RNODE{id}.pF(:,n) = o_mult(pFPrev, oL1);
 if (~RNODE{id}.gpsInitialized) && ...
     pose.gpsValid && ...
     (pose.gps.speed > 0.2),
+
   % Use initial gps pose for fitted pose
-  dp = o_p1p2(RNODE{id}.pL(:,n), RNODE{id}.pL(:,1:n));
-  RNODE{id}.pF(:,1:n) = o_mult(RNODE{id}.pGps(:,n), dp);
-  
+  GTRANSFORM{id} = o_mult(RNODE{id}.pGps(:,n), o_inv(RNODE{id}.pL(:,n)));
+  RNODE{id}.pF(:,1:n) = o_mult(GTRANSFORM{id}, RNODE{id}.pL(:,1:n));
+
   RNODE{id}.gpsInitialized = 1;
 end
+
+GPOSE{id} = o_mult(GTRANSFORM{id}, RNODE{id}.pL(:,n));
