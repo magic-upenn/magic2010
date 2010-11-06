@@ -1,16 +1,23 @@
-function run_udp
+function run_udp(log_file)
 
   more off
 
-  global GMAP
-  global GPOSE
-  global RPOSE RNODE RCLUSTER
-
   % Load scenario parameters
   gcsParams;
+
+  global GMAP GPOSE GTRANSFORM GDISP RPOSE RNODE RCLUSTER RCLUSTER_INFO IPC_OUTPUT 
+
+  %load up from a log file (possibly)
+  if nargin > 0
+    disp('Starting GCS Map from LOG');
+    load(log_file);
+  else
+    disp('Starting GCS Map from scratch');
+
+    % Initialize global variables
+    gcsMapInit;
+  end
   
-  % Initialize global variables
-  gcsMapInit;
   gdispInit;
   
   % Setup IPC output
@@ -28,6 +35,8 @@ function run_udp
 
   while 1,
     pause(.02);
+
+    saveLog;
 
     packets = UdpReceiveAPI('receive');
     gcsLogPackets('UDP', packets);
@@ -54,7 +63,7 @@ function run_udp
 
         id = pkt.id;
 
-	forwardIncH(pkt,id);
+        forwardIncH(pkt,id);
         % Need pose first for MapUpdateH
         if isempty(RPOSE{id}),
           disp(sprintf('MapUpdateH: waiting for pose on robot %d', id));
@@ -72,7 +81,7 @@ function run_udp
 
         id = pkt.id;
 
-	forwardIncV(pkt,id);
+        forwardIncV(pkt,id);
 
         % Need MapUpdateH to first initialize RNODE
         if isempty(RNODE{id}),
@@ -134,3 +143,20 @@ if ~isempty(IPC_OUTPUT),
   guiMsg.id = id;
   IPC_OUTPUT.ipcAPI('publish','IncV',serialize(guiMsg));
 end
+
+function saveLog()
+global GMAP GPOSE GTRANSFORM GDISP RPOSE RNODE RCLUSTER RCLUSTER_INFO IPC_OUTPUT
+persistent lastSave
+
+if isempty(lastSave)
+  lastSave = gettime;
+end
+
+if (gettime - lastSave > 60)
+  savefile = ['/tmp/gcs_map_', datestr(clock,30)];
+  disp(sprintf('Saving map log file: %s', savefile));
+  eval(['save ' savefile ' GMAP GPOSE GTRANSFORM GDISP RPOSE RNODE RCLUSTER RCLUSTER_INFO IPC_OUTPUT']);
+  lastSave = gettime;
+end
+
+
