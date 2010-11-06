@@ -1,6 +1,7 @@
-function draw_range(scanH,scanV,img,front_angle,axeh)
+function draw_range(scanH,scanV,img,axeh)
 	global GLOBALS
-	[rangeH,rangeV] = get_range_in_view(scanH,scanV,img,front_angle,30,30); 
+	rangeH = rangeH(1:2:end); 
+	rangeV = rangeV(1:2:end); 
 	mids = round(size(img)/2);
 	steps = [size(img,1)/numel(rangeV),size(img,2)/numel(rangeH)]; 
 	for txt = 1:numel(rangeH)

@@ -54,14 +54,14 @@ function imPacket = omni_packet()
 	if isempty(PARAMS.omni)
 		PARAMS.omni = get_ctrl_values(0); 
 	end
-  PARAMS.omni.otime = OTIME; 
-  PARAMS.omni.ftime = FTIME; 
+	PARAMS.omni.otime = OTIME; 
+	PARAMS.omni.ftime = FTIME; 
 	quality = 75;  
 	%%%%% send compressed jpg image through IPC %%%%%
 	imPacket.id = GetRobotId(); 
 	imPacket.type = 'OmniVision';  
 	imPacket.t  = GetUnixTime();
-  imPacket.omni = cjpeg(omni,quality);
+	imPacket.omni = cjpeg(omni,quality);
 	imPacket.front_angle = LIDAR.servo;
 	for im = 1:3
 		imPacket.omni_cands{im}  = cjpeg(omni_cands{im},quality);
@@ -77,8 +77,8 @@ function imPacket = front_packet()
 	if isempty(PARAMS.front)
 		PARAMS.front = get_ctrl_values(1); 
 	end
-  PARAMS.front.otime = OTIME; 
-  PARAMS.front.ftime = FTIME; 
+	PARAMS.front.otime = OTIME; 
+	PARAMS.front.ftime = FTIME; 
 	quality = 75;  
 	%%%%% send compressed jpg image through IPC %%%%%
 	imPacket.id = GetRobotId(); 
@@ -86,8 +86,11 @@ function imPacket = front_packet()
 	imPacket.t  = GetUnixTime();
 	imPacket.front = cjpeg(front,quality);
 	imPacket.front_angle = LIDAR.servo;
-	imPacket.scanH = LIDAR.scanH;
-	imPacket.scanV = LIDAR.scanV;
+	scanH =  fliplr(LIDAR.scanH.ranges);
+	scanV =  fliplr(LIDAR.scanV.ranges);
+	[rangeH,rangeV] = get_range_in_view(scanH,scanV,imPacket.front,imPacket.front_angle,60,60); 
+	imPacket.rangeH = uint8(rangeH*10); 
+	imPacket.rangeV = uint8(rangeV*10); 
 	for im = 1:3
 		imPacket.front_cands{im} = cjpeg(front_cands{im},quality);
 	end 

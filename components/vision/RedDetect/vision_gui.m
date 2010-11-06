@@ -227,7 +227,7 @@ function updateFrontFocused(box)
 	if GLOBALS.bids(box) == GLOBALS.current_bb_id
 	draw_box_on_axes(GLOBALS.current_bb,'c',handles.(fname)); 
 	end
-	draw_range(img.scanH,img.scanV,img.front,img.front_angle,handles.(fname));  
+	draw_range(img.rangeH,img.rangeV,img.front,handles.(fname));  
 	for sc = 1:3
 	scname = sprintf('candf%d_%d',box,sc); 
 	cand_h = image(img.front_cands{sc},'Parent',handles.(scname)); 
@@ -248,7 +248,7 @@ function updateBB
 	if ~isempty(GLOBALS.current_bb)
 		bb = GLOBALS.current_bb; 
 		img = IMAGES(GLOBALS.bids(GLOBALS.focus)); 
-		[imgd,vsd,hsd] = get_dist_by_bb(img.front,bb,img.front_angle,img.scanV,img.scanH); 
+		[imgd,vsd,hsd] = get_dist_by_bb(img.front,bb,img.rangeV,img.rangeH); 
 		auto = 0; 
 		selected = get(handles.dist_source,'SelectedObject'); 
 		selected = get(selected,'String'); 
@@ -287,20 +287,16 @@ function updateWithPackets(imPackets)
 				IMAGES(imPacket.id).front_cands{im} = djpeg(imPacket.front_cands{im});
 			end 
 			IMAGES(imPacket.id).front_stats = imPacket.front_stats; 
-			IMAGES(imPacket.id).scanH = imPacket.scanH; 
-			IMAGES(imPacket.id).scanV = imPacket.scanV;
-			if ~isempty(imPacket.scanV)
-				IMAGES(imPacket.id).scanV =  fliplr(imPacket.scanV.ranges);
-			else
-				IMAGES(imPacket.id).scanV = zeros([1,1081]); 
+			IMAGES(imPacket.id).rangeH = single(imPacket.rangeH) / 10.0; 
+			IMAGES(imPacket.id).rangeV = single(imPacket.rangeV) / 10.0;
+			if isempty(imPacket.rangeV)
+				IMAGES(imPacket.id).rangeV = zeros([1,60]); 
 			end
 			%Hokuyu: step = 1081, step = 0.0044, fov = 270
-			if ~isempty(imPacket.scanH)
-				IMAGES(imPacket.id).scanH =  fliplr(imPacket.scanH.ranges);
-			else
-				IMAGES(imPacket.id).scanH = zeros([1,1081]); 
+			if isempty(imPacket.rangeH)
+				IMAGES(imPacket.id).rangeH = zeros([1,60]); 
 			end
-				IMAGES(imPacket.id).front_params = imPacket.params; 
+			IMAGES(imPacket.id).front_params = imPacket.params; 
 		end
 		if strcmp(imPacket.type,'OmniVision')
 			IMAGES(imPacket.id).omni = djpeg(imPacket.omni);
@@ -564,8 +560,8 @@ function setup_global_vars(vision_gui)
 		IMAGES(id).omni = null_omni;
 		IMAGES(id).front = null_front;
 		IMAGES(id).front_angle = [];
-		IMAGES(id).scanV = zeros(1081,1);
-		IMAGES(id).scanH = zeros(1081,1);
+		IMAGES(id).rangeV = zeros(1,60);
+		IMAGES(id).rangeH = zeros(1,60);
 		IMAGES(id).omni_cands = null_cands;
 		IMAGES(id).front_cands = null_cands;
 		IMAGES(id).omni_stats = null_stats;

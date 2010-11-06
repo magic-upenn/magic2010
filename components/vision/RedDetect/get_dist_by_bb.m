@@ -1,4 +1,4 @@
-function [imgd,vsd,hsd] = get_dist_by_bb(img,bb,front_angle,scanV,scanH)
+function [imgd,vsd,hsd] = get_dist_by_bb(img,bb,rangeV,rangeH)
 	global GLOBALS; 
 	imgd = 0; vsd = 0; hsd = 0; 
 	height = abs(bb(2)-bb(1)); 
@@ -31,7 +31,6 @@ function [imgd,vsd,hsd] = get_dist_by_bb(img,bb,front_angle,scanV,scanH)
 	end
 	sampH = 60; 
 	sampV = 60; 
-	[rangeH,rangeV] = get_range_in_view(scanH,scanV,img,front_angle,sampH,sampV); 
 	hsd = 0; 
 	vsd = 0; 
 	stepH = size(img,2)/numel(rangeH); 
