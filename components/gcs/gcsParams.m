@@ -16,7 +16,7 @@ HAVE_ROBOTS = true;
 LOG_PACKETS.enabled = true;
 
 %MAP
-MAGIC_CONSTANTS.scenario = 4;
+MAGIC_CONSTANTS.scenario = 5;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -85,6 +85,20 @@ case 4
   %MAGIC_CONSTANTS.uavMapEast = 272800;
   %MAGIC_CONSTANTS.uavMapNorth = 6126646;
 case 5
+  disp('starting test site (Hamstead Barracks)');
+  MAGIC_CONSTANTS.mapEastMin = 282404;
+  MAGIC_CONSTANTS.mapEastMax = 282731;
+  MAGIC_CONSTANTS.mapNorthMin = 6138571;
+  MAGIC_CONSTANTS.mapNorthMax = 6138927;
+  MAGIC_CONSTANTS.mapEastOffset = 282550;
+  MAGIC_CONSTANTS.mapNorthOffset = 6138770;
+
+  %hamstead lower left corner
+  MAGIC_CONSTANTS.uavShiftEast = 0;
+  MAGIC_CONSTANTS.uavShiftNorth = 0;
+  MAGIC_CONSTANTS.uavMapEast = 282288-MAGIC_CONSTANTS.uavShiftEast;
+  MAGIC_CONSTANTS.uavMapNorth = 6138563-MAGIC_CONSTANTS.uavShiftNorth;
+case 6
   disp('starting uav feed test');
   MAGIC_CONSTANTS.mapEastMin = 308000;
   MAGIC_CONSTANTS.mapEastMax = 308200;
