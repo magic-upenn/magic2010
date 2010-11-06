@@ -16,11 +16,11 @@ timeval tv_start, tv_stop, tv_prev;
 double time_ms, elap_time_ms;
 
 GPLAN::GPLAN() {
-    map_sizex_m = 0;
-    map_sizey_m = 0;
-    map_cell_size = 0;
-    map_size_x = 0;
-    map_size_y = 0;
+	map_sizex_m = 0;
+	map_sizey_m = 0;
+	map_cell_size = 0;
+	map_size_x = 0;
+	map_size_y = 0;
 
     //map variables
     int NUMROBOTS = 1;
@@ -1058,40 +1058,42 @@ vector < vector<Traj_pt_s> > GPLAN::gplan_plan(GP_POSITION_UPDATE * gp_position_
     num_regions = gp_full_update_p->num_regions;
     memcpy((void *) bias_table, (void *) gp_full_update_p->bias_table, num_regions * (NUMROBOTS+2) * sizeof(double));
 
-    printf("printing bias table %d %d\n", num_regions, gp_full_update_p->num_states);
-for (int j = 0; j < num_regions; j++) {
-    for (int i =0; i < (NUMROBOTS+2); i++) {
-        printf(" %f ", bias_table[i+j*(NUMROBOTS+2)]);
-    }
-    printf("\n");
-}
+	if (DISPLAY_OUTPUT) {
+		printf("printing bias table %d %d\n", num_regions, gp_full_update_p->num_states);
+		for (int j = 0; j < num_regions; j++) {
+			for (int i =0; i < (NUMROBOTS+2); i++) {
+				printf(" %f ", bias_table[i+j*(NUMROBOTS+2)]);
+			}
+			printf("\n");
+		}
+	}
+	//	cout << "prepping other variables" << endl;
 
-    //	cout << "prepping other variables" << endl;
-
-    //map variables
-    for (int idx=0; idx < NUMROBOTS; idx++) { ROBOTAVAIL[idx]= (bool)gp_position_update_p->avail[idx];}
+	//map variables
+	for (int idx=0; idx < NUMROBOTS; idx++) { ROBOTAVAIL[idx]= (bool)gp_position_update_p->avail[idx];}
 
     //updates the stored robot position
     for (int idx = 0; idx < NUMROBOTS; idx++) {
-        POSEX[idx] = (int)(gp_position_update_p->x[idx] / map_cell_size);
-        POSEY[idx] = (int)(gp_position_update_p->y[idx] / map_cell_size);
-        POSETHETA[idx] = gp_position_update_p->theta[idx];
-if (~OnMap(POSEX[idx], POSEY[idx])) { POSEX[idx] = 0; POSEY[idx]=0; }
-        // free 9 cells in vicinity of robot start position
-        for(int i=-4; i<=4; i++) {
-            for(int j=-4; j<=4; j++) {
-if (OnMap(POSEX[idx]+i, POSEY[idx]+j)) {
-                cover_map[POSEX[idx]+i+(POSEY[idx]+j)*map_size_x] = KNOWN;
-}
-            }
-        }
-        traj[idx].reserve(300); 
-        printf("robot %d is at (%.0f,%.0f)\n", idx, POSEX[idx]*map_cell_size, POSEY[idx]*map_cell_size);
-    }
+		POSEX[idx] = (int)(gp_position_update_p->x[idx] / map_cell_size);
+		POSEY[idx] = (int)(gp_position_update_p->y[idx] / map_cell_size);
+		POSETHETA[idx] = gp_position_update_p->theta[idx];
+		printf("incoming robot %i pose is (%i, %i)\n", idx, POSEX[idx], POSEY[idx]);
+		if (!OnMap(POSEX[idx], POSEY[idx])) { POSEX[idx] = 0; POSEY[idx]=0; }
+		// free 9 cells in vicinity of robot start position
+		for(int i=-4; i<=4; i++) {
+			for(int j=-4; j<=4; j++) {
+				if (OnMap(POSEX[idx]+i, POSEY[idx]+j)) {
+					cover_map[POSEX[idx]+i+(POSEY[idx]+j)*map_size_x] = KNOWN;
+				}
+			}
+		}
+		traj[idx].reserve(300); 
+		printf("robot %d is at (%.0f,%.0f)\n", idx, POSEX[idx]*map_cell_size, POSEY[idx]*map_cell_size);
+	}
 
-    //	cout << "starting actual planner" << endl;
-    global_planner(-1, -1, -1);
-    for (int idx = 0; idx < NUMROBOTS; idx++) {
+//	cout << "starting actual planner" << endl;
+global_planner(-1, -1, -1);
+for (int idx = 0; idx < NUMROBOTS; idx++) {
         cout << " " << idx << "-" << traj[idx].size();
     }
     cout << endl;  
