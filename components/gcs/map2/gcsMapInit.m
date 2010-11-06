@@ -55,7 +55,7 @@ GMAP.im0 = zeros(nx, ny, 'int8');
 
 global UAV_MAP
 if ~isempty(MAGIC_CONSTANTS) && ...
-    MAGIC_CONSTANTS.scenario > 0 && MAGIC_CONSTANTS.scenario < 5
+    MAGIC_CONSTANTS.scenario > 0 && MAGIC_CONSTANTS.scenario < 6
   gcsLoadUAVMap;
 end
 

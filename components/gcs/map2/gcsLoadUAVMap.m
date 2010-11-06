@@ -5,6 +5,10 @@ if MAGIC_CONSTANTS.scenario == 4
   %hotel map
   disp('loading UAV hotel map');
   img = imread('bigHotelEdgeMap2.jpg');
+elseif MAGIC_CONSTANTS.scenario == 5
+  %hamstead map
+  disp('loading UAV Hamstead map');
+  img = imread('hamsteadEdgeMap.jpg');
 else
   %Magic 2010 map
   disp('loading UAV MAGIC map');
@@ -30,7 +34,7 @@ xuav = xuav + xshift;
 yuav = yuav + yshift;
 
 global GMAP
-map_assign(GMAP.im0, GMAP.x, GMAP.y, [xuav; yuav; -20*ones(size(xuav))]);
+map_assign(GMAP.im0, GMAP.x, GMAP.y, [xuav; yuav; ones(size(xuav))]);
 
 
 %{
