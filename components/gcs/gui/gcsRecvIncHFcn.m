@@ -22,4 +22,4 @@ cm = double(update.cs);
 
 xlim = RMAP{id}.x0+RMAP{id}.dx;
 ylim = RMAP{id}.y0+RMAP{id}.dy;
-map_filter(RMAP{id}.cost, [xm(:) ym(:) cm(:)]', 0.3);
+map_filter(RMAP{id}.cost, xlim, ylim, [xm(:) ym(:) cm(:)]', 0.3);
