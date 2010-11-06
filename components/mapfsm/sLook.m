@@ -32,11 +32,11 @@ switch event
   end
 
  case 'update'
-   LOOK_ANGLE*180/pi
-   MPOSE.heading*180/pi
+   LOOK_ANGLE*180/pi;
+   MPOSE.heading*180/pi;
 
    dHeading = modAngle(LOOK_ANGLE-MPOSE.heading);
-   dHeading*180/pi
+   dHeading*180/pi;
 
    servoMsgName = GetMsgName('Servo1Cmd');
    servoCmd.id           = 1;
@@ -44,7 +44,7 @@ switch event
    if BODY_FACE
      servoCmd.minAngle   = 0;
    else
-     servoCmd.minAngle   = max(min(dHeading,big_angle_thresh),-big_angle_thresh)*180/pi
+     servoCmd.minAngle   = max(min(dHeading,big_angle_thresh),-big_angle_thresh)*180/pi;
    end
    servoCmd.maxAngle     = 0;
    servoCmd.speed        = 70;

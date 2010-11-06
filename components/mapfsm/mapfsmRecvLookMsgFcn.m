@@ -20,6 +20,7 @@ if ~isempty(data)
   case 'track'
     OOI_DYNAMIC(1) = MPOSE.x + msg.distance*cos(msg.theta);
     OOI_DYNAMIC(2) = MPOSE.y + msg.distance*sin(msg.theta);
+    BODY_FACE = false;
     MP.sm = setEvent(MP.sm, 'track');
   end
 end
