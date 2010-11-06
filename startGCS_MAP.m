@@ -1,2 +1,3 @@
 SetMagicPaths;
-gcsMap;
+%gcsMap;
+run_udp;
