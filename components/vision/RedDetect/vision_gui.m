@@ -434,9 +434,6 @@ function omni_down(axeh,x,y,dclick,box)
 	x = cp(1,1);
 	y = cp(1,2); 
 	[x,y]
-	if x < 30 && y < 30 
-		return
-	end
 	theta = pixel_to_angle(IMAGES(id).omni,x) 
 	lookat(id,theta,0,'look'); 
 
