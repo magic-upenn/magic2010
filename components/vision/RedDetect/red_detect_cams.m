@@ -1,4 +1,4 @@
-function [rgb_image, cands, stats] = red_detect_cams(cam)
+function [rgb_image,stats] = red_detect_cams(cam)
 	persistent circle
 	if isempty(circle)
 		try
@@ -13,10 +13,10 @@ function [rgb_image, cands, stats] = red_detect_cams(cam)
 		omni_flat = linear_unroll(omni,circle(2),circle(1),circle(3));
 		[omni_stats] = find_red_candidates(omni_flat(:,:,3));
 		omni_flat = ycbcr2rgb(omni_flat); 	
-		omni_stats(:,2:end) = round(omni_stats(1:3,2:end)/2); 
+    omni_stats = omni_stats(1:3,:); 
+		omni_stats(:,2:end) = round(omni_stats(:,2:end)/2); 
 		omni_flat = omni_flat(1:2:end,1:2:end,:); 	
 		rgb_image = omni_flat; 
-		cands = omni_cands; 
 		stats = omni_stats;  
 	end
 	if strcmp(cam,'front'); 
@@ -24,8 +24,8 @@ function [rgb_image, cands, stats] = red_detect_cams(cam)
 		front = imrotate(front,180); 
 		[front_stats] = find_red_candidates(front(:,:,3));
 		front = ycbcr2rgb(front); 
-		front_stats(:,2:end) = round(front_stats(1:3,2:end));
+    front_stats = front_stats(1:3,:); 
+		front_stats(:,2:end) = round(front_stats(:,2:end));
 		rgb_image = front; 
-		cands = front_cands; 
 		stats = front_stats;  
 	end

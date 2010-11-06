@@ -41,15 +41,16 @@ function RedDetect
 		pause(.1)
 		ipcReceiveMessages;
 		if toc(ftic) >= FTIME
-			'Get front_packet'
 			packet = front_packet(); 
-			UdpSendAPI('send',packet);
-			ftic = tic; 
+			UdpSendAPI('send',packet); 
+      stat = whos('packet'); 
+			sprintf('Sent front_packet, size %d', stat.bytes)
+      ftic = tic; 
 		end
 		if toc(otic) >= OTIME
-			'Get omni_packet'
 			packet = omni_packet(); 
 			UdpSendAPI('send',packet);
+			sprintf('Sent omni_packet, size %d', stat.bytes)
 			otic = tic; 
 		end
 		tic; 
@@ -57,7 +58,7 @@ function RedDetect
 	
 function imPacket = omni_packet()
 	global POSE LIDAR PARAMS OTIME FTIME GLOBALS; 
-	[omni, omni_cands, omni_stats] = red_detect_cams('omni');
+	[omni, omni_stats] = red_detect_cams('omni');
 	if isempty(PARAMS.omni)
 		PARAMS.omni = get_ctrl_values(0); 
 	end
@@ -70,9 +71,6 @@ function imPacket = omni_packet()
 	imPacket.t  = GetUnixTime();
 	imPacket.omni = cjpeg(omni,quality);
 	imPacket.front_angle = LIDAR.servo;
-	for im = 1:3
-		imPacket.omni_cands{im}  = cjpeg(omni_cands{im},quality);
-	end 
 	imPacket.omni_stats = omni_stats;
 	imPacket.pose = POSE.data; 
 	imPacket.params = PARAMS.omni; 
@@ -80,7 +78,7 @@ function imPacket = omni_packet()
 
 function imPacket = front_packet()
 	global POSE LIDAR PARAMS OTIME FTIME;  
-	[front, front_cands, front_stats] = red_detect_cams('front');
+	[front, front_stats] = red_detect_cams('front');
 	if isempty(PARAMS.front)
 		PARAMS.front = get_ctrl_values(1); 
 	end
@@ -98,12 +96,9 @@ function imPacket = front_packet()
 	[rangeH,rangeV] = get_range_in_view(scanH,scanV,imPacket.front,imPacket.front_angle,60,60); 
 	imPacket.rangeH = uint8(rangeH*10); 
 	imPacket.rangeV = uint8(rangeV*10); 
-	for im = 1:3
-		imPacket.front_cands{im} = cjpeg(front_cands{im},quality);
-	end 
 	imPacket.front_stats = front_stats;
 	imPacket.pose = POSE.data; 
-	imPacket.params = PARAMS.front; 
+	imPacket.params = PARAMS.front;
 	imPacket = zlibCompress(serialize(imPacket));
 
 
