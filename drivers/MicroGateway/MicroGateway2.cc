@@ -214,6 +214,9 @@ void MicroGateway::ServoControllerCmdMsgHandler (MSG_INSTANCE msgRef,
   memcpy(tempBuf1+1+2*sizeof(float),&(speed),sizeof(float));
 
   int size;
+  uint16_t a;
+  uint16_t s;
+  float angle;
 
   switch (scmd->id)
   {
@@ -233,6 +236,40 @@ void MicroGateway::ServoControllerCmdMsgHandler (MSG_INSTANCE msgRef,
         PRINT_ERROR("could not wrap packet\n");
 
       break;
+      
+    case 2:
+      tempBuf1[0] = 0x1E;
+      angle = minAngle;
+      
+      if ( (angle < -20 ) || (angle > 20 ) )
+        angle = 0.0;
+      #define DYNAMIXEL_MIN_ANGLE                -150
+      #define DYNAMIXEL_MAX_ANGLE                 150
+      #define DYNAMIXEL_AX12_MAX_RPM              114
+      #define DYNAMIXEL_AX12_MAX_SPEED            (DYNAMIXEL_AX12_MAX_RPM/60.0*360.0)
+      if ( (speed < 0) || (speed > DYNAMIXEL_AX12_MAX_SPEED) )
+        speed = DYNAMIXEL_AX12_MAX_SPEED*0.5;
+
+      a = ((angle-DYNAMIXEL_MIN_ANGLE)/(DYNAMIXEL_MAX_ANGLE-DYNAMIXEL_MIN_ANGLE)*1023.0);
+      s = (speed/DYNAMIXEL_AX12_MAX_SPEED*1023.0);
+  
+      //write the values into the packet
+      memcpy(tempBuf1+1,&a,sizeof(uint16_t));
+      memcpy(tempBuf1+3,&s,sizeof(uint16_t));
+      
+      
+      
+      size = DynamixelPacketWrapData(MMC_DYNAMIXEL1_DEVICE_ID,0x03,tempBuf1,5,tempBuf2,bufSize);
+      
+      if (size > 0)
+      {
+        mg->SendSerialPacket(tempBuf2,size);
+        printf("sent laser servo command id=%d, angle =%f, speed=%f\n",
+                MMC_DYNAMIXEL1_DEVICE_ID,angle,speed);
+      }
+      else
+        PRINT_ERROR("could not wrap packet\n");
+
 
     default:
       PRINT_ERROR("invalid servo id\n");
@@ -283,15 +320,15 @@ string MicroGateway::DefineMsg(string msgName, string format)
 int MicroGateway::InitializeMessages()
 {
   //define regular messages
-  this->gpsMsgName   = this->DefineMsg("GPS",GpsASCII::getIPCFormat());
-  this->encMsgName   = this->DefineMsg("Encoders",EncoderCounts::getIPCFormat());
-  this->imuMsgName   = this->DefineMsg("ImuFiltered",ImuFiltered::getIPCFormat());
-  this->estopMsgName = this->DefineMsg("EstopState",EstopState::getIPCFormat());
-  this->selectedIdMsgName  = this->DefineMsg("SelectedId","{byte}");
-  this->servo1StateMsgName = this->DefineMsg("Servo1",ServoState::getIPCFormat());
+  this->gpsMsgName           = this->DefineMsg("GPS",GpsASCII::getIPCFormat());
+  this->encMsgName           = this->DefineMsg("Encoders",EncoderCounts::getIPCFormat());
+  this->imuMsgName           = this->DefineMsg("ImuFiltered",ImuFiltered::getIPCFormat());
+  this->estopMsgName         = this->DefineMsg("EstopState",EstopState::getIPCFormat());
+  this->selectedIdMsgName    = this->DefineMsg("SelectedId","{byte}");
+  this->servo1StateMsgName   = this->DefineMsg("Servo1",ServoState::getIPCFormat());
   this->batteryStatusMsgName = this->DefineMsg("BatteryStatus",BatteryStatus::getIPCFormat());
   this->motorStatusMsgName   = this->DefineMsg("MotorStatus",MotorStatus::getIPCFormat());
-  this->xbeeMsgName  = this->DefineMsg("XbeeIncoming","");
+  this->xbeeMsgName          = this->DefineMsg("XbeeIncoming","");
 
 
   string msgName = this->robotName + "/" + "VelocityCmd";
