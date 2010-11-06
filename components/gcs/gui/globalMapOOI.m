@@ -30,6 +30,16 @@ if ~isempty(xp),
     OOI(end).y = yp;
     OOI(end).serial = serial;
     OOI(end).shirtNumber = shirtNumber;
+    OOI(end).ts = gettime;
+    if nargin > 0
+      OOI(end).rel_x = msg.x;
+      OOI(end).rel_y = msg.y;
+      OOI(end).robot_id = id;
+    else
+      OOI(end).rel_x = [];
+      OOI(end).rel_y = [];
+      OOI(end).robot_id = [];
+    end
 
     set(GDISPLAY.ooiList,'String',1:length(OOI));
     ooiOverlay();

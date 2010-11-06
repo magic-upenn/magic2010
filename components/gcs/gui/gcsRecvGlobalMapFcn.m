@@ -20,7 +20,9 @@ GTRANSFORM = msg.GTRANSFORM;
 GPOSE = msg.GPOSE;
 
 for id=GCS.ids
-  ROBOT_PATH(id).x(end+1) = GPOSE{id}.x;
-  ROBOT_PATH(id).y(end+1) = GPOSE{id}.y;
+  if ~isempty(GPOSE) && ~isempty(GPOSE{id}) && ~isempty(GPOSE{id}.x)
+    ROBOT_PATH(id).x(end+1) = GPOSE{id}.x;
+    ROBOT_PATH(id).y(end+1) = GPOSE{id}.y;
+  end
 end
 
