@@ -25,10 +25,11 @@ switch event
       set(gcf,'NumberTitle', 'off', 'Name',sprintf('Map: Robot %d',id));
       
       % Individual map
-      x1 = x(RMAP{id});
-      y1 = y(RMAP{id});
-      RDISPLAY.hMap{id} = imagesc(x1, y1, ones(length(y1),length(x1)), [-100 100]);
 
+      RDISPLAY.hMap{id} = ...
+          imagesc(RMAP{id}.x0+RMAP{id}.dx, RMAP{id}.y0+RMAP{id}.dy, ...
+                  RMAP{id}.cost, [-100 100]);
+      
       % Robot pose
       GDISPLAY.servo{id} = 0;
       RDISPLAY.hRobot{id} = plotRobot(0, 0, 0, id, 0);
@@ -775,9 +776,10 @@ switch event
     RDISPLAY.iframe = RDISPLAY.iframe + 1;
 
     for id = GCS.ids,
-      map1 = RMAP{id};
-      cost = getdata(map1, 'cost');
-      set(RDISPLAY.hMap{id}, 'CData', cost');
+      x1 = RMAP{id}.x0+RMAP{id}.dx;
+      y1 = RMAP{id}.y0+RMAP{id}.dy;
+      set(RDISPLAY.hMap{id}, 'XData', x1, 'YData', y1, ...
+                        'CData', RMAP{id}.cost');
 
       if ~isempty(RPOSE{id}),
         xp = RPOSE{id}.x;

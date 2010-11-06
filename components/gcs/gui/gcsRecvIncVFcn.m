@@ -20,6 +20,7 @@ xm = double(update.xs);
 ym = double(update.ys);
 cm = double(update.cs);
 
-asgn(RMAP{id}, 'vlidar', xm, ym, cm);
-asgn(RMAP{id}, 'cost', xm, ym, cm);
+xlim = RMAP{id}.x0+RMAP{id}.dx;
+ylim = RMAP{id}.y0+RMAP{id}.dy;
+map_filter(RMAP{id}.cost, xlim, ylim, [xm(:) ym(:) cm(:)]', 0.3);
 

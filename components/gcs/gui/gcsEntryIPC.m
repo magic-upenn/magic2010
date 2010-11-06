@@ -20,8 +20,18 @@ for id = GCS.ids,
     RPOSE{id}.y = 0;
     RPOSE{id}.yaw = 0;
     RPOSE{id}.heading = 0;
-    RMAP{id} = map2d(xCells, yCells, MAGIC_CONSTANTS.mapRes,'vlidar','hlidar','cost');
-    RMAP{id} = shift(RMAP{id},xShift,yShift);
+
+    RMAP{id}.x0 = 0;
+    RMAP{id}.y0 = 0;
+    RMAP{id}.dx = [-50.0 50.0];
+    RMAP{id}.dy = [-50.0 50.0];
+    resolution = 0.10;
+    nx = round((RMAP{id}.dx(end)-RMAP{id}.dx(1))/resolution);
+    ny = round((RMAP{id}.dy(end)-RMAP{id}.dy(1))/resolution);
+    RMAP{id}.cost = zeros(nx, ny, 'int8');
+
+    %RMAP{id} = map2d(xCells, yCells, MAGIC_CONSTANTS.mapRes,'vlidar','hlidar','cost');
+    %RMAP{id} = shift(RMAP{id},xShift,yShift);
     %RMAP{id} = map2d(600,600,.10,'vlidar','hlidar','cost');
 
     if HAVE_ROBOTS

@@ -20,20 +20,34 @@ if (gettime - GCS.tSave > 60)
 end
 
 % See if map needs to be shifted:
-%{
 for id = GCS.ids,
-  [mx0, my0] = origin(RMAP{id});
+  mx0 = RMAP{id}.x0;
+  my0 = RMAP{id}.y0;
   if (abs(RPOSE{id}.x - mx0) > 15.0) || ...
     (abs(RPOSE{id}.y - my0) > 15.0),
-    RMAP{id} = shift(RMAP{id}, RPOSE{id}.x, RPOSE{id}.y);
-    disp('shift');
-    disp('shift');
-    id
-    disp('shift');
-    disp('shift');
+
+    % Current limits:
+    xlim = RMAP{id}.x0+RMAP{id}.dx;
+    ylim = RMAP{id}.y0+RMAP{id}.dy;
+    [nx, ny] = size(RMAP{id}.cost);
+    x1 = [xlim(1): (xlim(end)-xlim(1))/(nx-1): xlim(end)];
+    y1 = [ylim(1): (ylim(end)-ylim(1))/(ny-1): ylim(end)];
+
+    % Points array:
+    [xc, yc, sc] = find(RMAP{id}.cost);
+    pc = [x1(xc); y1(yc); double(sc)'];
+
+    % New limits:
+    RMAP{id}.x0 = RPOSE{id}.x;
+    RMAP{id}.y0 = RPOSE{id}.y;
+    RMAP{id}.cost = zeros(nx, ny, 'int8');
+    map_assign(RMAP{id}.cost, ...
+               RMAP{id}.x0+RMAP{id}.dx, RMAP{id}.y0+RMAP{id}.dy, ...
+               pc);
+    
+    disp(sprintf('rmap %d shift', id));
   end
 end
-%}
 
 end
 
