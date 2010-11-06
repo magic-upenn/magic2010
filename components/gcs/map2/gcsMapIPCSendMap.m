@@ -23,7 +23,7 @@ for id = 1:9,
     gpIPC{id}.y = pFshift(2);
     gpIPC{id}.yaw = pFshift(3);
 
-    o1 = o_mult(pl1, o_inv(pFshift));
+    o1 = o_mult(pL1, o_inv(pFshift));
     gtIPC{id}.dx = o1(1);
     gtIPC{id}.dy = o1(2);
     gtIPC{id}.dyaw = o1(3);    
