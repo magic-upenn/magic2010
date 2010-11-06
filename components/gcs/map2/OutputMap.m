@@ -15,13 +15,13 @@ CFREEMIN = [128 128 128]/255;
 CFREEMAX = [255 255 255]/255;
 CFREEDEL = CFREEMAX - CFREEMIN;
 COOI = [240 10 10]/255;
-COOITEXT = [255 255 255]/255;
+COOITEXT = [25 250 25]/255;
 CRPATH = [120 0 140]/255;
 COOIPATH = [240 10 10]/255;
 CNCPATH = [0 255 0]/255;
 
-circ_x = 3*cos([0:.1:2*pi]);
-circ_y = 3*sin([0:.1:2*pi]);
+circ_x = 1.5*cos([0:.1:2*pi]);
+circ_y = 1.5*sin([0:.1:2*pi]);
 
 % add text for filename and scale marks
 printname = ['MAGIC2010\_UPENN\_Mission' num2str(phase)];
@@ -50,12 +50,18 @@ MAPSIZE = 20; % size in meters of each small map
 mOOI = 1;
 sOOI = 1;
 for idx = 1:size(OOI,2)
-    if ((OOI(idx).type == 3) || (OOI(idx).type == 4)||(OOI(idx).type == 5))
-        OOI(idx).serial = ['M' num2str(mOOI)];
-        mOOI = mOOI + 1;
-    else
+    if ((OOI(idx).type == 1) || (OOI(idx).type == 2))
         OOI(idx).serial = ['S' num2str(sOOI)];
         sOOI = sOOI + 1;
+    elseif ((OOI(idx).type == 3) || (OOI(idx).type == 4)||(OOI(idx).type == 5))
+        OOI(idx).serial = ['M' num2str(mOOI)];
+        mOOI = mOOI + 1;
+    elseif (OOI(idx).type == 6)
+        OOI(idx).serial = ['TW'];
+    elseif (OOI(idx).type == 7)
+        OOI(idx).serial = ['AX'];
+    elseif (OOI(idx).type == 8)
+        OOI(idx).serial = ['PV'];
     end
 end
 
@@ -201,8 +207,8 @@ for oidx=1: size(OOI,2)
     xx = (OOI(oidx).x + mapEoffset)/res;
     yy = (OOI(oidx).y + mapNoffset)/res;
     if ((xx>=minx) && (xx <=maxx) && (yy>=miny) && (yy<=maxy))
-        patch(circ_y+yy-miny, circ_x+xx-minx, COOI);
-        text(yy-miny-.4, xx-minx, OOI(oidx).serial, 'Color', COOITEXT, 'FontSize', 6);
+        patch(circ_y+yy-miny, circ_x+xx-minx, COOI, 'EdgeColor', 'none');
+        text(yy-miny+.4, xx-minx, OOI(oidx).serial, 'Color', COOITEXT, 'FontSize', 8);
     end
 end
 
@@ -218,11 +224,11 @@ print(h, '-dtiff','-r300',  [filename '_full.tif']);
 
 
 % make small maps
-% 
+%
 for x=1:num_x
     for y=1:num_y
-%         x =3; y=8;
-     % calc endpoints of map
+        %         x =3; y=8;
+        % calc endpoints of map
         minx = (x-1)*MAPSIZE/res +1;
         maxx = (x*MAPSIZE)/res;
         miny = (y-1)*MAPSIZE/res +1;
@@ -326,8 +332,8 @@ for x=1:num_x
             xx = (OOI(oidx).x + mapEoffset)/res;
             yy = (OOI(oidx).y + mapNoffset)/res;
             if ((xx>=minx) && (xx <=maxx) && (yy>=miny) && (yy<=maxy))
-                patch(circ_y+yy-miny, circ_x+xx-minx, COOI);
-                text(yy-miny-.4, xx-minx, OOI(oidx).serial, 'Color', 'white', 'FontSize', 8);
+                patch(circ_y+yy-miny, circ_x+xx-minx, COOI, 'EdgeColor', 'none');
+                text(yy-miny+3, xx-minx, OOI(oidx).serial, 'Color', COOITEXT, 'FontSize', 12);
             end
         end
         
