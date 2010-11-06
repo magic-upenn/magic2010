@@ -99,7 +99,7 @@ int ProcessPacket(DynamixelPacket * packet)
 
 int main(int argc, char * argv[])
 {
-  string dev = string("/dev/microGateway");
+  string dev = string("/dev/ttyUSB0");
   if (argc >=2)
     dev = string(argv[1]);
   
