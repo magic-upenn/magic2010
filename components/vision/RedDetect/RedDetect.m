@@ -1,8 +1,8 @@
 function RedDetect
 %global VISION_IPC host
 	global GLOBALS; 
-	GLOBALS.tweekH = .2; 
-	GLOBALS.tweekV = .15;
+	GLOBALS.tweekH = 0; 
+	GLOBALS.tweekV = 0; %.15;
      	GLOBALS.startAngle = -2.356194496154785;
       	GLOBALS.stopAngle = 2.356194496154785;
       	GLOBALS.angleStep = 0.004363323096186;
@@ -93,7 +93,7 @@ function imPacket = front_packet()
 	imPacket.front_angle = LIDAR.servo;
 	scanH =  fliplr(LIDAR.scanH.ranges);
 	scanV =  fliplr(LIDAR.scanV.ranges);
-	[rangeH,rangeV] = get_range_in_view(scanH,scanV,imPacket.front,imPacket.front_angle,60,60); 
+	[rangeH,rangeV] = get_range_in_view(scanH,scanV,front,imPacket.front_angle,60,60); 
 	imPacket.rangeH = uint8(rangeH*10); 
 	imPacket.rangeV = uint8(rangeV*10); 
 	imPacket.front_stats = front_stats;
