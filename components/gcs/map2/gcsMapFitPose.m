@@ -16,8 +16,9 @@ pF = node.pF;
 pGps = node.pGps;
 oL = node.oL;
 gpsValid = node.gpsValid;
+speed = node.speed;
 iBad = find(node.hlidarConf < 0.25);
-iBad = [iBad 2:min(node.n,30)];  % also fit initial points
+iBad = [iBad 2:min(node.n,10)];  % also fit initial points
 
 nBad = length(iBad);
 
@@ -61,8 +62,9 @@ while iterFit < iterMax,
   xgps = o_p1p2(pFprev,pGps(:,ifuture));
 
   dx = sqrt(sum((xf(1:2,:)-xgps(1:2,:)).^2, 1));
-  wfit = 1./(max(dx,4.0).^0.5);
+  wfit = 1./(max(dx, 3.0).^0.5);
 
+  %wheading = 2*speed(ifuture);
   wheading = 2;
 
   ofit = o_fit(xf, xgps, wfit, wheading, ...

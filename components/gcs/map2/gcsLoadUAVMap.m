@@ -24,7 +24,7 @@ xuav = x1uav(juav);
 yuav = y1uav(iuav);
 
 xshift = 0;
-yshift = +5;
+yshift = 0;
 
 xuav = xuav + xshift;
 yuav = yuav + yshift;

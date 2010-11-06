@@ -9,7 +9,7 @@ if nargin < 5,
   omin = [-inf; -inf; -inf];
 end
 if nargin < 4,
-  wheading = 0;
+  wheading = zeros(1,size(x1,2));
 end
 if nargin < 3,
   w = ones(1,size(x1,2));
@@ -24,13 +24,13 @@ wv1 = ww.*x1(1:2,:);
 wv2 = ww.*x2(1:2,:);
 
 % Statistics for heading fit
-whx = sum(w.*cos(x2(3,:)-x1(3,:)));
-why = sum(w.*sin(x2(3,:)-x1(3,:)));
+whx = sum(wheading.*(w.*cos(x2(3,:)-x1(3,:))));
+why = sum(wheading.*(w.*sin(x2(3,:)-x1(3,:))));
 
 % First fit optimal rotation with no translation:
 wv21 = wv2*x1(1:2,:)';
-ay = wv21(1,2) - wv21(2,1) - wheading*why;
-ax = wv21(1,1) + wv21(2,2) + wheading*whx;
+ay = wv21(1,2) - wv21(2,1) - why;
+ax = wv21(1,1) + wv21(2,2) + whx;
 a = -atan2(ay, ax);
 
 % Limit rotation angle:

@@ -1,5 +1,5 @@
 /*
-  [o, op1] = scan_icp(p1, p2, o, rmatch);
+  [o, op1] = scan_icp_irls(p1, p2, o, rmatch);
 
   Returns transformation parameters to match points p1 to p2 using ICP.
 
@@ -13,7 +13,8 @@
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
   const int na = 100; // Size of correlation array side
-  const int maxIter = 10; // Max number of iterations for ICP
+  //  const int maxIter = 10; // Max number of iterations for ICP
+  const int maxIter = 100; // Max number of iterations for ICP
 
   std::vector< std::vector<int> > a(na*na); // Correlation array
 
@@ -87,13 +88,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   // Fit statistics
   int nf0 = 3; // Minimum number of points to fit
   int nf;
-  double s1[2], s2[2], s21[2][2];
+  double sw, s1[2], s2[2], s21[2][2];
 
   // Loop to iterate fits
   for (int ifit = 0; ifit < maxIter; ifit++) {
     
     // Clear fit statistics
     nf = 0;
+    sw = 0.0;
     for (int is = 0; is < 2; is++) {
       s1[is] = 0;
       s2[is] = 0;
@@ -135,19 +137,26 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
       // If there is a nearest point
       if (k2icp >= 0) {
+	double w = 1.0;
+	dicp = sqrt(dicp);
+	if (dicp > 1.0) {
+	  w = 1/dicp;
+	}
+
 	// Add to fit statistics
 	double x2 = p2[m2*k2icp];
 	double y2 = p2[m2*k2icp+1];
 
 	nf++;
-	s1[0] += x1;
-	s1[1] += y1;
-	s2[0] += x2;
-	s2[1] += y2;
-	s21[0][0] += x2*x1;
-	s21[0][1] += x2*y1;
-	s21[1][0] += y2*x1;
-	s21[1][1] += y2*y1;
+	sw += w;
+	s1[0] += w*x1;
+	s1[1] += w*y1;
+	s2[0] += w*x2;
+	s2[1] += w*y2;
+	s21[0][0] += w*x2*x1;
+	s21[0][1] += w*x2*y1;
+	s21[1][0] += w*y2*x1;
+	s21[1][1] += w*y2*y1;
 
 	//printf("%d->%d: (%.2f,%.2f)->(%.2f,%.2f)\n",k,k2icp,x1,y1,x2,y2);
       }
@@ -160,10 +169,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       nf0 = nf;
 
     // Compute transformation parameters
-    s21[0][0] -= s2[0]*s1[0]/nf;
-    s21[0][1] -= s2[0]*s1[1]/nf;
-    s21[1][0] -= s2[1]*s1[0]/nf;
-    s21[1][1] -= s2[1]*s1[1]/nf;
+    s21[0][0] -= s2[0]*s1[0]/sw;
+    s21[0][1] -= s2[0]*s1[1]/sw;
+    s21[1][0] -= s2[1]*s1[0]/sw;
+    s21[1][1] -= s2[1]*s1[1]/sw;
 
     // Fit rotation angle
     double ay = s21[0][1] - s21[1][0];
@@ -173,8 +182,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     // Fit translation
     double cafit = cos(afit);
     double safit = sin(afit);
-    double oxfit = (s2[0]-(cafit*s1[0] - safit*s1[1]))/nf;
-    double oyfit = (s2[1]-(safit*s1[0] + cafit*s1[1]))/nf;
+    double oxfit = (s2[0]-(cafit*s1[0] - safit*s1[1]))/sw;
+    double oyfit = (s2[1]-(safit*s1[0] + cafit*s1[1]))/sw;
 
     double dx = oxfit - o[0];
     double dy = oyfit - o[1];
@@ -184,8 +193,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     o[1] = oyfit;
     o[2] = afit;
 
+    /*
     printf("Fit: %d pts, %.2f(%.2f) %.2f(%.2f) %.2f(%.2f)\n",
 	   nf, o[0],dx,o[1],dy,o[2],da);
+    */
 
     // Fit is consistent
     if ((fabs(dx) < 0.01) && (fabs(dy) < 0.01) && (fabs(da) < 0.01))

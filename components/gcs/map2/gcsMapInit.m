@@ -54,7 +54,8 @@ ny = ceil((GMAP.y(end)-GMAP.y(1))/resolution);
 GMAP.im0 = zeros(nx, ny, 'int8');
 
 global UAV_MAP
-if MAGIC_CONSTANTS.scenario > 0 && MAGIC_CONSTANTS.scenario < 5
+if ~isempty(MAGIC_CONSTANTS) && ...
+    MAGIC_CONSTANTS.scenario > 0 && MAGIC_CONSTANTS.scenario < 5
   gcsLoadUAVMap;
 end
 

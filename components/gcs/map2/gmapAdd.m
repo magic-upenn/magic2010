@@ -25,6 +25,13 @@ for i = index,
     phF(3,:) = ph(3,:);
     %    disp(sprintf('gmapAdd: %.3f ',GMAP.x(1:end),phF(1,1)));
 
+    % Try to fit into current map:
+    %{
+    oICP = gmapICP(GMAP.im, GMAP.x, GMAP.y, phF);
+    phF2 = o_mult(oICP, phF);
+    phF2(3,:) = phF(3,:);
+    %}
+
     map_filter(GMAP.im, GMAP.x, GMAP.y, phF, hfilter);  
   end
   pv = node.vlidar{i};

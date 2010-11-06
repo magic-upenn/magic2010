@@ -47,14 +47,26 @@ function run_logs_map(logdir)
       case 'MapUpdateH'
         id = pkt.id;
 
+        % Need pose first for MapUpdateH
+        if isempty(RPOSE{id}),
+          disp(sprintf('MapUpdateH: waiting for pose on robot %d', id));
+          break;
+        end
+
         gcsMapUpdateH(id, pkt);
-      
         gcsMapFitPose(id);
-        %        gdispRobot(id, RNODE{id}.pF(:,end));
+
+        %gdispRobot(id, RNODE{id}.pF(:,end));
         gdispRobot(id, GPOSE{id});
           
       case 'MapUpdateV'
         id = pkt.id;
+
+        % Need MapUpdateH to first initialize RNODE
+        if isempty(RNODE{id}),
+          disp(sprintf('MapUpdateV: waiting for RNODE on robot %d', id));
+          break;
+        end
 
         gcsMapUpdateV(id, pkt);
         gmapAdd(id, RNODE{id}.n);
