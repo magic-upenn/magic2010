@@ -2,7 +2,9 @@ function run_udp
 
   more off
 
-  global GMAP RPOSE RNODE
+  global GMAP
+  global GPOSE
+  global RPOSE RNODE RCLUSTER
 
   % Load scenario parameters
   gcsParams;
