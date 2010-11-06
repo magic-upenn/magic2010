@@ -3,7 +3,7 @@ function OutputMap(phase)
 % current phase
 
 global GMAP OOI ROBOT_PATH OOI_PATH NC_PATH MAGIC_CONSTANTS;
-
+load geotiff_option;
 %color definitions:
 CFILE = [0 44 207]/255;
 CSCALE = [0 50 140]/255;
@@ -38,6 +38,8 @@ res = GMAP.resolution;
 HEADERSPACE = 20; % number of pixels of space at the top of the map
 MAPSIZE = 20; % size in meters of each small map
 
+fid = fopen([filename '.txt'], 'w');
+fprintf(fid, 'Serial\tType\t\tUTM N\t\tUTM E\t\tShirt #\n');
 % serialize all OOI's
 % 1 = red barrel
 % 2 = red barrel neutralized
@@ -53,19 +55,24 @@ for idx = 1:size(OOI,2)
     if ((OOI(idx).type == 1) || (OOI(idx).type == 2))
         OOI(idx).serial = ['S' num2str(sOOI)];
         sOOI = sOOI + 1;
+        fprintf(fid, '%s \tStatic OOI \t% 7.1f \t% 6.1f\n', OOI(idx).serial, OOI(idx).x, OOI(idx).y);
     elseif ((OOI(idx).type == 3) || (OOI(idx).type == 4)||(OOI(idx).type == 5))
         OOI(idx).serial = ['M' num2str(mOOI)];
         mOOI = mOOI + 1;
+                fprintf(fid, '%s \tMobile OOI \t% 7.1f \t% 6.1f \t%i\n', OOI(idx).serial, OOI(idx).x, OOI(idx).y, OOI(idx).shirtNumber);
     elseif (OOI(idx).type == 6)
         OOI(idx).serial = ['TW'];
+                fprintf(fid, '%s \t\t\t% 7.1f \t% 6.1f\n', OOI(idx).serial, OOI(idx).x, OOI(idx).y);
     elseif (OOI(idx).type == 7)
         OOI(idx).serial = ['AX'];
+                fprintf(fid, '%s \t\t\t% 7.1f \t% 6.1f\n', OOI(idx).serial, OOI(idx).x, OOI(idx).y);
     elseif (OOI(idx).type == 8)
         OOI(idx).serial = ['PV'];
+                fprintf(fid, '%s \t\t\t% 7.1f \t% 6.1f\n', OOI(idx).serial, OOI(idx).x, OOI(idx).y);
     end
 end
 
-
+fclose(fid);
 % number of 20m sections in each direction
 num_x = floor(xdim*res/MAPSIZE) + 1;
 num_y = floor(ydim*res/MAPSIZE) + 1;
@@ -142,15 +149,15 @@ end
 
 % plot the known
 pmidx = plot_map < 0;
-out_map1(pmidx) = (-CFREEDEL(1).*plot_map(pmidx)/100)+CFREEMIN(1);
-out_map2(pmidx) = (-CFREEDEL(2).*plot_map(pmidx)/100)+CFREEMIN(2);
-out_map3(pmidx) = (-CFREEDEL(3).*plot_map(pmidx)/100)+CFREEMIN(3);
+out_map1(pmidx) = CFREEMAX(1) - (CFREEDEL(1).*(plot_map(pmidx)+100)/200);
+out_map2(pmidx) = CFREEMAX(2) - (CFREEDEL(2).*(plot_map(pmidx)+100)/200);
+out_map3(pmidx) = CFREEMAX(3) - (CFREEDEL(3).*(plot_map(pmidx)+100)/200);
 
 %plot the presumed free by movement
 pmidx = plot_map > 2;
-out_map1(pmidx) = (CFREEDEL(1).*plot_map(pmidx)/100)+CFREEMIN(1);
-out_map2(pmidx) = (CFREEDEL(2).*plot_map(pmidx)/100)+CFREEMIN(2);
-out_map3(pmidx) = (CFREEDEL(3).*plot_map(pmidx)/100)+CFREEMIN(3);
+out_map1(pmidx) = CFREEMAX(1) - (CFREEDEL(1).*(plot_map(pmidx)+100)/200);
+out_map2(pmidx) = CFREEMAX(2) - (CFREEDEL(2).*(plot_map(pmidx)+100)/200);
+out_map3(pmidx) = CFREEMAX(3) - (CFREEDEL(3).*(plot_map(pmidx)+100)/200);
 
 %plot the walls
 pmidx = plot_map >=90;
@@ -166,13 +173,13 @@ clf(h); hold off; image(out_map); hold on; axis equal; axis tight;
 text(10, 5, [printname '\_full'], 'Color', CFILE, 'FontSize', 8);
 
 % scale
-plot([10 10], [20.5 30.5], 'Color', CSCALE);
-plot([9 11], [20.5 20.5], 'Color', CSCALE);
-plot([9 11], [30.5 30.5], 'Color', CSCALE);
+plot([10 10], [20.5 30.5], 'Color', CSCALE, 'LineWidth', .2);
+plot([9 11], [20.5 20.5], 'Color', CSCALE, 'LineWidth', .2);
+plot([9 11], [30.5 30.5], 'Color', CSCALE, 'LineWidth', .2);
 text(12, 30, '1m', 'Color', CSCALE, 'FontSize', 6);
 
 % orientation
-plot([55 55 50], [23 28 28], 'Color', CSCALE);
+plot([55 55 50], [23 28 28], 'Color', CSCALE, 'LineWidth', .2);
 text(61, 21, 'x', 'Color', CSCALE, 'FontSize', 4);
 text(47, 31, 'y', 'Color', CSCALE, 'FontSize', 4);
 
@@ -208,19 +215,25 @@ for oidx=1: size(OOI,2)
     yy = (OOI(oidx).y + mapNoffset)/res;
     if ((xx>=minx) && (xx <=maxx) && (yy>=miny) && (yy<=maxy))
         patch(circ_y+yy-miny, circ_x+xx-minx, COOI, 'EdgeColor', 'none');
-        text(yy-miny+.4, xx-minx, OOI(oidx).serial, 'Color', COOITEXT, 'FontSize', 8);
+        text(yy-miny+.4, xx-minx, OOI(oidx).serial, 'Color', COOITEXT, 'FontSize', 4);
     end
 end
 
 
 
 
-set(gca, 'Position', [.01 .01 .98 .98], 'Visible', 'off', 'ActivePositionProperty', 'Position');
+set(gca, 'Position', [.0 .0 1,1], 'Visible', 'off', 'ActivePositionProperty', 'Position');
 orient tall
 drawnow;
 %output the file
-print(h, '-dtiff','-r300',  [filename '_full.tif']);
+% print(h, '-dtiff','-r300',  [filename '_full.tif']);
+%img = get( 99,'Cdata');
+print(h, '-dtiff','-r600',  [filename '_full.tif']);
+[img] = imread([filename '_full.tif']);
+option.ModelTiepointTag(4) = MAGIC_CONSTANTS.mapEastMin;
+option.ModelTiepointTag(5) = MAGIC_CONSTANTS.mapNorthMax + HEADERSPACE;
 
+geotiffwrite([filename '_full.tif'],[],img,8,option);
 
 
 % make small maps
@@ -254,17 +267,17 @@ for x=1:num_x
             end
         end
         
-        % plot the known
-        pmidx = plot_map < 0;
-        out_map1(pmidx) = (-CFREEDEL(1).*plot_map(pmidx)/100)+CFREEMIN(1);
-        out_map2(pmidx) = (-CFREEDEL(2).*plot_map(pmidx)/100)+CFREEMIN(2);
-        out_map3(pmidx) = (-CFREEDEL(3).*plot_map(pmidx)/100)+CFREEMIN(3);
-        
-        %plot the presumed free by movement
-        pmidx = plot_map > 2;
-        out_map1(pmidx) = (CFREEDEL(1).*plot_map(pmidx)/100)+CFREEMIN(1);
-        out_map2(pmidx) = (CFREEDEL(2).*plot_map(pmidx)/100)+CFREEMIN(2);
-        out_map3(pmidx) = (CFREEDEL(3).*plot_map(pmidx)/100)+CFREEMIN(3);
+   % plot the known
+pmidx = plot_map < 0;
+out_map1(pmidx) = CFREEMAX(1) - (CFREEDEL(1).*(plot_map(pmidx)+100)/200);
+out_map2(pmidx) = CFREEMAX(2) - (CFREEDEL(2).*(plot_map(pmidx)+100)/200);
+out_map3(pmidx) = CFREEMAX(3) - (CFREEDEL(3).*(plot_map(pmidx)+100)/200);
+
+%plot the presumed free by movement
+pmidx = plot_map > 2;
+out_map1(pmidx) = CFREEMAX(1) - (CFREEDEL(1).*(plot_map(pmidx)+100)/200);
+out_map2(pmidx) = CFREEMAX(2) - (CFREEDEL(2).*(plot_map(pmidx)+100)/200);
+out_map3(pmidx) = CFREEMAX(3) - (CFREEDEL(3).*(plot_map(pmidx)+100)/200);
         
         %plot the walls
         pmidx = plot_map >=90;
@@ -344,7 +357,13 @@ for x=1:num_x
         orient tall
         drawnow;
         %output the file
-        print(h, '-dtiff',  [filename '_' num2str(x) '_' num2str(y) '.tif']);
+        print(h, '-dtiff', '-r300', [filename '_' num2str(x) '_' num2str(y) '.tif']);
+%         print(h, '-dtiff','-r600',  [filename '_full.tif']);
+[img] = imread([filename '_' num2str(x) '_' num2str(y) '.tif']);
+option.ModelTiepointTag(4) = MAGIC_CONSTANTS.mapEastMin + 20*y;
+option.ModelTiepointTag(5) = MAGIC_CONSTANTS.mapNorthMax - 20*x + HEADERSPACE;
+
+geotiffwrite([filename '_' num2str(x) '_' num2str(y) '.tif'],[],img,8,option);
         
     end
 end
