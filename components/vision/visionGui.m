@@ -19,9 +19,11 @@ function visionGui(ids)
 		  if n > 0
 		  	%toc
 			for ii=1:n
-				fprintf(1,'Got packet of size %d\n',length(packets(ii).data));
+				data = packets(ii).data; 
+				stat = whos('data'); 
 				imPacket = deserialize(zlibUncompress(packets(ii).data));
 				last_packets{end+1} = imPacket;
+				fprintf(1,'Got %s packet of size %d\n',imPacket.type,stat.bytes);
 %				for r = [1 3 4 5 6 7 8 9]
 %					imPacket.id = r; 
 %					last_packets{end+1} = imPacket;
