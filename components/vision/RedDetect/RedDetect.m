@@ -1,10 +1,17 @@
 function RedDetect
 %global VISION_IPC host
+	global GLOBALS; 
+	GLOBALS.tweekH = .2; 
+	GLOBALS.tweekV = .15;
+     	GLOBALS.startAngle = -2.356194496154785;
+      	GLOBALS.stopAngle = 2.356194496154785;
+      	GLOBALS.angleStep = 0.004363323096186;
+	GLOBALS.scan_angles = GLOBALS.startAngle:GLOBALS.angleStep:GLOBALS.stopAngle; 
 	'Adding controls'
 	system('sh $MAGIC_DIR/components/vision/RedDetect/add_ctrls.sh&')
 	pause(1)
 	'Added controls'
-  global POSE LIDAR PARAMS FTIME OTIME; 
+	global POSE LIDAR PARAMS FTIME OTIME; 
 	POSE.data = [];
 	SetMagicPaths;
 	addpath( [ getenv('MAGIC_DIR') '/trunk/components/vision/uvcCam' ] )
@@ -49,7 +56,7 @@ function RedDetect
 	end	
 	
 function imPacket = omni_packet()
-	global POSE LIDAR PARAMS OTIME FTIME; 
+	global POSE LIDAR PARAMS OTIME FTIME GLOBALS; 
 	[omni, omni_cands, omni_stats] = red_detect_cams('omni');
 	if isempty(PARAMS.omni)
 		PARAMS.omni = get_ctrl_values(0); 

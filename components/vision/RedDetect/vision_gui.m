@@ -234,7 +234,7 @@ function updateFrontFocused(box)
 	daspect(handles.(scname),[1 1 1]); 
 	axis(handles.(scname),'off'); 
 	bb = img.front_stats(sc,2:end);
-	[dist,vsd,hsd] = get_dist_by_bb([],bb,[],[],[]); 
+	[dist,vsd,hsd] = get_dist_by_bb([],bb,[],[]); 
 	text(1,10,sprintf('%.1fm',dist),'Parent',handles.(scname),'FontSize',16,'BackgroundColor','y','HitTest','off'); 
 	set(cand_h,'ButtonDownFcn',{@mouse_ButtonDownFcn,{'front_cand',handles.(scname),[box,sc]}});
 	set(cand_h,'Interruptible','off');
@@ -282,9 +282,10 @@ function updateWithPackets(imPackets)
 		IMAGES(imPacket.id).pose = imPacket.pose;
 		IMAGES(imPacket.id).front_angle = imPacket.front_angle; 
 		if strcmp(imPacket.type,'FrontVision')
-			IMAGES(imPacket.id).front = djpeg(imPacket.front);
+ 			front = djpeg(imPacket.front);
+			IMAGES(imPacket.id).front = front; 
 			for im = 1:3
-				IMAGES(imPacket.id).front_cands{im} = djpeg(imPacket.front_cands{im});
+				IMAGES(imPacket.id).front_cands{im} = draw_cand_zoom(imPacket.front_stats,im,front); 
 			end 
 			IMAGES(imPacket.id).front_stats = imPacket.front_stats; 
 			IMAGES(imPacket.id).rangeH = single(imPacket.rangeH) / 10.0; 
@@ -299,9 +300,10 @@ function updateWithPackets(imPackets)
 			IMAGES(imPacket.id).front_params = imPacket.params; 
 		end
 		if strcmp(imPacket.type,'OmniVision')
-			IMAGES(imPacket.id).omni = djpeg(imPacket.omni);
+			omni = djpeg(imPacket.omni);
+			IMAGES(imPacket.id).omni = omni; 
 			for im = 1:3
-				IMAGES(imPacket.id).omni_cands{im}  = djpeg(imPacket.omni_cands{im});
+				IMAGES(imPacket.id).omni_cands{im}  = draw_cand_zoom(imPacket.omni_stats,im,omni);
 			end 
 				IMAGES(imPacket.id).omni_stats = imPacket.omni_stats; 
 				IMAGES(imPacket.id).omni_params = imPacket.params; 

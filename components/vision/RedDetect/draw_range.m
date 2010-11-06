@@ -1,4 +1,4 @@
-function draw_range(scanH,scanV,img,axeh)
+function draw_range(rangeH,rangeV,img,axeh)
 	global GLOBALS
 	rangeH = rangeH(1:2:end); 
 	rangeV = rangeV(1:2:end); 
