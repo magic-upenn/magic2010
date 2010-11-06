@@ -13,6 +13,11 @@ else
   return;
 end
 
+if ~CheckImu()
+    disp('ignoring lidar0 because imu data is invalid');
+    return;
+end
+
 %wait for an initial imu message
 if isempty(IMU.data)
   disp('waiting for initial imu message');
@@ -24,6 +29,8 @@ if isempty(ENCODERS.counts)
     disp('waiting for initial encoder message..');
     return;
 end
+
+
 
 SLAM.lidar0Cntr = SLAM.lidar0Cntr+1;
 if isempty(LIDAR0.lastTime)
@@ -172,6 +179,8 @@ if (mod(SLAM.lidar0Cntr,40) == 0)
   MapUpdateH.ys = single(ydi * MAPS.res + OMAP.ymin);
   MapUpdateH.cs = OMAP.map.data(sub2ind(size(OMAP.map.data),xdi,ydi));
   ipcAPIPublish(SLAM.IncMapUpdateHMsgName,serialize(MapUpdateH));
+  
+  %imagesc(CMAP.map.data); axis(800+[-5 5 -5 5]/0.05); drawnow;
 
   if (SPREAD.useSpread)
     spreadSendUnreliable('MapUpdateH', serialize(MapUpdateH));

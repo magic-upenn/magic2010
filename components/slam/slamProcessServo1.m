@@ -10,3 +10,5 @@ SERVO1.hist(:,end+1) = [SERVO1.data.position; SERVO1.data.t];
 if length(SERVO1.hist) > 10
   SERVO1.hist = SERVO1.hist(:,2:end);
 end
+
+SERVO1.tLastArrival = GetUnixTime();

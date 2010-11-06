@@ -16,8 +16,15 @@ xBinMax = round((25.0)/xBinLength);
 xBin = xBinLength*[1:xBinMax];
 
 %make sure we have fresh data
-if (CheckImu() ~= 1), return; end
-if (CheckServo1() ~= 1), return; end
+if ~CheckServo1()
+  disp('ignoring lidar1 because servo data is invalid');
+  return;
+end
+
+if ~CheckImu()
+    disp('ignoring lidar1 because imu data is invalid');
+    return;
+end
 
 
 
