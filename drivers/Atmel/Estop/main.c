@@ -103,12 +103,13 @@
 #define SET_OUTPUT( port , pin )  port |= _BV(pin)
 
 
-uint8_t volatile estopState[11]   = {1,1,1,1,1,1,1,1,1,1,1};
+uint8_t volatile commandedState[11]   = {1,1,1,1,1,1,1,1,1,1,1};  //initialize to pause
+int8_t volatile actualState[11]       = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}; //initialize to unknown
 uint8_t volatile debounceCntr[11] = {0,0,0,0,0,0,0,0,0,0,0};
 #define DEBOUNCE_DELAY 100
 
 /*
-#define CHECK_PAUSE( num ) { if ( READ_VAL(RP_IN ## num ## _PORT,RP_IN ## num ## _PIN) ) \
+#define READ_ESTOP_STATE( num ) { if ( READ_VAL(RP_IN ## num ## _PORT,RP_IN ## num ## _PIN) ) \
                                { SET_PIN(LED_OUT ## num ## _PORT,LED_OUT ## num ## _PIN); } \
                              else \
                              { CLEAR_PIN(LED_OUT ## num ## _PORT,LED_OUT ## num ## _PIN); } \
@@ -116,37 +117,65 @@ uint8_t volatile debounceCntr[11] = {0,0,0,0,0,0,0,0,0,0,0};
 */
 
 
-#define UPDATE_PAUSE_LED( num ) { if ( estopState[num] == 0 ) \
-                               { SET_OUTPUT(LED_OUT ## num ## _DDR, LED_OUT ## num ## _PIN); \
-                               CLEAR_PIN(LED_OUT ## num ## _PORT,LED_OUT ## num ## _PIN); } \
-                             else if (estopState[num] == 1 )\
-                             { SET_INPUT(LED_OUT ## num ## _DDR, LED_OUT ## num ## _PIN); } \
-                            }
+#define SHOW_COMMANDED_STATE( num ) { \
+                                       switch (commandedState[num]) \
+                                       { \
+                                         case 0: \
+                                           SET_OUTPUT(LED_OUT ## num ## _DDR, LED_OUT ## num ## _PIN); \
+                                           CLEAR_PIN(LED_OUT ## num ## _PORT,LED_OUT ## num ## _PIN); \
+                                           break; \
+                                         case 1: \
+                                           SET_INPUT(LED_OUT ## num ## _DDR, LED_OUT ## num ## _PIN); \
+                                           break; \
+                                         case 2: \
+                                           SET_OUTPUT(LED_OUT ## num ## _DDR, LED_OUT ## num ## _PIN); \
+                                           SET_PIN(LED_OUT ## num ## _PORT,LED_OUT ## num ## _PIN);  \
+                                           break; \
+                                         default: \
+                                           break; \
+                                       } \
+                                    }
+                                
+                            
+#define SHOW_ACTUAL_STATE( num ) { \
+                                   switch (actualState[num]) \
+                                   { \
+                                     case 0: \
+                                       SET_OUTPUT(LED_OUT ## num ## _DDR, LED_OUT ## num ## _PIN); \
+                                       CLEAR_PIN(LED_OUT ## num ## _PORT,LED_OUT ## num ## _PIN); \
+                                       break; \
+                                     case 1: \
+                                       SET_INPUT(LED_OUT ## num ## _DDR, LED_OUT ## num ## _PIN); \
+                                       break; \
+                                     case -1: \
+                                     case 2: \
+                                       SET_OUTPUT(LED_OUT ## num ## _DDR, LED_OUT ## num ## _PIN); \
+                                       SET_PIN(LED_OUT ## num ## _PORT,LED_OUT ## num ## _PIN);  \
+                                  } \
+                                }
+                               
 
 
-#define CHECK_DISABLE( num ) { if ( (READ_VAL(D_IN ## num ## _PORT,D_IN ## num ## _PIN)) ) \
+#define CHECK_DISABLE_INPUT( num ) { if ( (READ_VAL(D_IN ## num ## _PORT,D_IN ## num ## _PIN)) ) \
                                { \
-                                 SET_OUTPUT(LED_OUT ## num ## _DDR, LED_OUT ## num ## _PIN); \
-                                 SET_PIN(LED_OUT ## num ## _PORT,LED_OUT ## num ## _PIN);  \
-                                 estopState[num] = 2; \
+                                 commandedState[num] = 2; \
                                } \
-                               else if (estopState[num] == 2) \
+                               else if (commandedState[num] == 2) \
                                { \
-                                 estopState[num] = 1; \
+                                 commandedState[num] = 1; \
                                }\
                              }
 
-#define CHECK_PAUSE( num ) { if ( (READ_VAL(RP_IN ## num ## _PORT,RP_IN ## num ## _PIN)) && debounceCntr[num] == DEBOUNCE_DELAY ) \
+#define READ_ESTOP_STATE( num ) { if ( (READ_VAL(RP_IN ## num ## _PORT,RP_IN ## num ## _PIN)) && debounceCntr[num] == DEBOUNCE_DELAY ) \
                              { \
-                               if ( estopState[num] == 1 )\
-                                 estopState[num] = 0; \
-                               else if (estopState[num]==0)\
-                                 estopState[num] = 1; \
+                               if ( commandedState[num] == 1 )\
+                                 commandedState[num] = 0; \
+                               else if (commandedState[num]==0)\
+                                 commandedState[num] = 1; \
                                debounceCntr[num] = 0; \
                              } \
                              if (debounceCntr[num] < DEBOUNCE_DELAY) debounceCntr[num]++; \
-                             CHECK_DISABLE(num); \
-                             UPDATE_PAUSE_LED(num);\
+                             CHECK_DISABLE_INPUT(num); \
                            }
 
 
@@ -166,6 +195,35 @@ int init()
   sei ();
 
   return 0;
+}
+
+
+void ShowCommandedStateAll()
+{
+  SHOW_COMMANDED_STATE(1);
+  SHOW_COMMANDED_STATE(2);
+  SHOW_COMMANDED_STATE(3);
+  SHOW_COMMANDED_STATE(4);
+  SHOW_COMMANDED_STATE(5);
+  SHOW_COMMANDED_STATE(6);
+  SHOW_COMMANDED_STATE(7);
+  SHOW_COMMANDED_STATE(8);
+  SHOW_COMMANDED_STATE(9);
+  SHOW_COMMANDED_STATE(10);
+}
+
+void ShowActualStateAll()
+{
+  SHOW_ACTUAL_STATE(1);
+  SHOW_ACTUAL_STATE(2);
+  SHOW_ACTUAL_STATE(3);
+  SHOW_ACTUAL_STATE(4);
+  SHOW_ACTUAL_STATE(5);
+  SHOW_ACTUAL_STATE(6);
+  SHOW_ACTUAL_STATE(7);
+  SHOW_ACTUAL_STATE(8);
+  SHOW_ACTUAL_STATE(9);
+  SHOW_ACTUAL_STATE(10);
 }
 
 
@@ -206,15 +264,22 @@ int main(void)
 
   estopPacketLen = DynamixelPacketWrapData(MMC_ESTOP_DEVICE_ID,
            MMC_ESTOP_STATE,mode,nRobots+1,buf,bufSize);
+           
+  
+  uint8_t modVal;
   
   while(1)
   {
     cntr++;
+    if (cntr == 1000)
+      cntr = 0;
+    modVal = cntr % 200;
     
-    if (cntr % 200 == 0)
+    if (modVal == 0)
     {
+      //generate new packet based on the latest desired estop state
       estopPacketLen = DynamixelPacketWrapData(MMC_ESTOP_DEVICE_ID,
-           MMC_ESTOP_STATE,estopState,nRobots+1,buf,bufSize);
+           MMC_ESTOP_STATE,commandedState,nRobots+1,buf,bufSize);
     
       pbuf = buf;
       for (ii=0; ii<estopPacketLen; ii++)
@@ -222,13 +287,26 @@ int main(void)
       //uart0_printf("sent estop packet\r\n");
     }
     
+    //show the actual status for brief moment
+    if (modVal < 50)
+    {
+      ShowActualStateAll();
+    }
+    else
+    {
+      ShowCommandedStateAll();
+    }
+    
+    
+    
+    //read from xbee
     while( (c = uart1_getchar()) != EOF )
     {
       //uart0_printf("%X ",c);;
       ret = DynamixelPacketProcessChar(c,&xbeePacket);
       if (ret > 0)
       {
-        id = DynamixelPacketGetId(&xbeePacket);
+        id   = DynamixelPacketGetId(&xbeePacket);
         type = DynamixelPacketGetType(&xbeePacket);
         data = DynamixelPacketGetData(&xbeePacket);
         
@@ -236,53 +314,52 @@ int main(void)
         {
           robotId = data[0];
           robotState = data[1];
-          uart0_printf("Robot%d: estop = %d\r\n",robotId,robotState);
+          
+          if ( (robotId > 0) && (robotId < 11) && (robotState >= 0) && (robotState < 3) )
+          {
+            actualState[robotId] = robotState;
+            uart0_printf("Robot%d: estop = %d\r\n",robotId,robotState);
+          }
+          else
+            uart0_printf("xbee received bad data : Robot%d: estop = %d\r\n",robotId,robotState);
         }
       }
     }
     
   
-    CHECK_PAUSE(1);
-    CHECK_PAUSE(2);
-    CHECK_PAUSE(3);
-    CHECK_PAUSE(4);
-    CHECK_PAUSE(5);
-    CHECK_PAUSE(6);
-    CHECK_PAUSE(7);
-    CHECK_PAUSE(8);
-    CHECK_PAUSE(9);
-    CHECK_PAUSE(10);
+    READ_ESTOP_STATE(1);
+    READ_ESTOP_STATE(2);
+    READ_ESTOP_STATE(3);
+    READ_ESTOP_STATE(4);
+    READ_ESTOP_STATE(5);
+    READ_ESTOP_STATE(6);
+    READ_ESTOP_STATE(7);
+    READ_ESTOP_STATE(8);
+    READ_ESTOP_STATE(9);
+    READ_ESTOP_STATE(10);
     
+    
+    //check the master pause button
     if ( (READ_VAL(RP_IN0_PORT,RP_IN0_PIN)) && debounceCntr[0] == DEBOUNCE_DELAY )
     {
-      if ( estopState[0] == 1 )
+      if ( commandedState[0] == 1 )
       {
         for (ii=0; ii<11; ii++)
-          estopState[ii] = 0;
+          commandedState[ii] = 0;
       }
-      else if (estopState[0]==0)
+      else if (commandedState[0]==0)
       {
         for (ii=0; ii<11; ii++)
-          estopState[ii] = 1;
+          commandedState[ii] = 1;
       }
       debounceCntr[0] = 0;
     }
-    if (debounceCntr[0] < DEBOUNCE_DELAY) debounceCntr[0]++;
-    UPDATE_PAUSE_LED(0);
+    if (debounceCntr[0] < DEBOUNCE_DELAY) 
+      debounceCntr[0]++;
+    
+    SHOW_COMMANDED_STATE(0);
     
     
-/*    
-    CHECK_DISABLE(1);
-    CHECK_DISABLE(2);
-    CHECK_DISABLE(3);
-    CHECK_DISABLE(4);
-    CHECK_DISABLE(5);
-    CHECK_DISABLE(6);
-    CHECK_DISABLE(7);
-    CHECK_DISABLE(8);
-    CHECK_DISABLE(9);
-    CHECK_DISABLE(10);
-*/   
   /*
     if ( READ_VAL(RP_IN1_PORT,RP_IN1_PIN) )
       SET_PIN(LED_OUT1_PORT,LED_OUT1_PIN);

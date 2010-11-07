@@ -33,7 +33,7 @@ PROGRAMMER = -c stk500v1 -P $(USBDEVICE) -b 57600 -D -F
 
 
 #OBJECTS    = uart0.o rs485.o adc.o timer1.o main.o
-OBJECTS    =  uart.o main.o DynamixelPacket.o uart0.o uart1.o
+OBJECTS    =  uart0.o main.o DynamixelPacket.o uart1.o
 FUSES      = -U hfuse:w:0xdf:m -U lfuse:w:0x62:m
 
 # ATMega8 fuse bits (fuse bits for other devices are different!):
