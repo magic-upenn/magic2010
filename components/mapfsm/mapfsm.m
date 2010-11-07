@@ -323,6 +323,7 @@ ipcReceiveSetFcn(GetMsgName('VelTracks'), @mapfsmRecvVelTracksFcn);
 ipcAPIDefine(GetMsgName('Planner_Path'));
 ipcAPIDefine(GetMsgName('FSM_Status'));
 ipcAPIDefine(GetMsgName('Servo1Cmd'),MagicServoControllerCmdSerializer('getFormat'));
+ipcAPIDefine(GetMsgName('Servo2Cmd'),MagicServoControllerCmdSerializer('getFormat'));
 
 PATH_DATA.newExplorePath = false;
 AVOID_REGIONS.x = [];

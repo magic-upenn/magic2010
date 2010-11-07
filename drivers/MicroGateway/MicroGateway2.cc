@@ -272,7 +272,7 @@ void MicroGateway::ServoControllerCmdMsgHandler (MSG_INSTANCE msgRef,
 
 
     default:
-      PRINT_ERROR("invalid servo id\n");
+      PRINT_ERROR("invalid servo " << id << "\n");
       break;
 
    }
