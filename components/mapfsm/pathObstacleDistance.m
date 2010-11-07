@@ -1,7 +1,7 @@
 function dObstacle = pathObstacleDistance(xp, yp, map, offsets)
 
 if nargin < 4,
-  offsets = [-0.28 0 0.28];
+  offsets = [-0.26 0 0.26];
 end
 
 xp = xp(:);

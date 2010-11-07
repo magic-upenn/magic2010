@@ -291,7 +291,7 @@ mapfsmExit;
 %==========
 function mapfsmEntry
 
-global MP PATH_DATA AVOID_REGIONS LAST_STATE SERVO_ANGLE USE_SERVO BODY_FACE LOOK_ANGLE TILT_ANGLE
+global MP PATH_DATA AVOID_REGIONS LAST_STATE SERVO_ANGLE USE_SERVO BODY_FACE LOOK_ANGLE TILT_ANGLE BATTERY
 
 MP.sm = entry(MP.sm);
 LAST_STATE = '';
@@ -312,6 +312,7 @@ ipcReceiveSetFcn(GetMsgName('Avoid_Regions'),@mapfsmRecvAvoidRegionsFcn);
 ipcReceiveSetFcn(GetMsgName('Look_Msg'),@mapfsmRecvLookMsgFcn);
 ipcReceiveSetFcn(GetMsgName('Servo1'), @mapfsmRecvServoFcn);
 ipcReceiveSetFcn(GetMsgName('Use_Servo'), @mapfsmRecvUseServoFcn);
+ipcReceiveSetFcn(GetMsgName('BatteryStatus'), @mapfsmRecvBatteryFcn);
 
 % Tracks from slam:
 ipcReceiveSetFcn(GetMsgName('VelTracks'), @mapfsmRecvVelTracksFcn);
@@ -330,7 +331,8 @@ AVOID_REGIONS.x = [];
 AVOID_REGIONS.y = [];
 SERVO_ANGLE = 0;
 LOOK_ANGLE = 0;
-TILT_ANGLE = 0;
+TILT_ANGLE = -0.06;
+BATTERY = 0;
 USE_SERVO = true;
 BODY_FACE = false;
 
@@ -340,7 +342,7 @@ function mapfsmUpdate
 
 global MP
 global MPOSE MAP
-global LAST_STATE SERVO_ANGLE
+global LAST_STATE SERVO_ANGLE BATTERY
 
 persistent lastStatusTime
 
@@ -357,7 +359,7 @@ MP.sm = update(MP.sm);
 
 %if the state has changed send a status message to the GCS
 if ~strcmp(currentState(MP.sm),LAST_STATE) || (gettime - lastStatusTime > 1.0)
-  msg.status = currentState(MP.sm);
+  msg.status = [currentState(MP.sm) sprintf(' %.1fV', BATTERY)];
   msg.servo = SERVO_ANGLE;
   msg.id = GetRobotId();
   ipcAPIPublish(GetMsgName('FSM_Status'), serialize(msg));
