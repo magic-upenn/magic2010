@@ -91,6 +91,12 @@ function imPacket = front_packet()
 	imPacket.t  = GetUnixTime();
 	imPacket.front = cjpeg(front,quality);
 	imPacket.front_angle = LIDAR.servo;
+	if isempty(LIDAR.scanH)
+		LIDAR.scanH.ranges = zeros(1081,1); 
+	end
+	if isempty(LIDAR.scanV)
+		LIDAR.scanV.ranges = zeros(1081,1); 
+	end
 	scanH =  fliplr(LIDAR.scanH.ranges);
 	scanV =  fliplr(LIDAR.scanV.ranges);
 	[rangeH,rangeV] = get_range_in_view(scanH,scanV,front,imPacket.front_angle,60,60); 
