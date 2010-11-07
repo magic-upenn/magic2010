@@ -131,6 +131,29 @@
         fieldName = NULL; \
     } \
   }
+  
+  #define MEX_READ_FIELD_RAW_ARRAY2D_INT8( mxArr, index, fieldName, cntr ) \
+  { \
+    mxArray *  mxArrTemp = mxGetField(mxArr,index,#fieldName); \
+    if (mxArrTemp) \
+    { \
+      if (mxGetClassID(mxArrTemp) != mxINT8_CLASS) \
+        mexErrMsgTxt("field "#fieldName" is not int8"); \
+      if (mxGetNumberOfElements(mxArrTemp) == 0) \
+        mexErrMsgTxt("field "#fieldName" is empty"); \
+      int sizex = mxGetN(mxArrTemp); \
+      int sizey = mxGetM(mxArrTemp); \
+      int len   = sizex * sizey; \
+      int8_t * matData = (int8_t*)mxGetData(mxArrTemp); \
+      if (len > 0) \
+      { \
+        fieldName = matData; \
+        cntr++; \
+      } \
+      else \
+        fieldName = NULL; \
+    } \
+  }
 
   #define MEX_READ_FIELD_RAW_ARRAY2D_CHAR( mxArr, index, fieldName, cntr ) \
   { \
@@ -515,6 +538,16 @@
     dims[1] = sizey; \
     mxArray * mxa = mxCreateNumericArray(2,dims,mxUINT8_CLASS,mxREAL); \
     memcpy(mxGetData(mxa),fieldName,sizex*sizey*sizeof(uint8_t)); \
+    mxSetField(mxArr,index,#fieldName,mxa); \
+  }
+  
+  #define MEX_WRITE_FIELD_RAW_ARRAY2D_INT8(mxArr,index,fieldName,sizex,sizey) \
+  { \
+    int dims[2]; \
+    dims[0] = sizex; \
+    dims[1] = sizey; \
+    mxArray * mxa = mxCreateNumericArray(2,dims,mxINT8_CLASS,mxREAL); \
+    memcpy(mxGetData(mxa),fieldName,sizex*sizey*sizeof(int8_t)); \
     mxSetField(mxArr,index,#fieldName,mxa); \
   }
 
