@@ -20,7 +20,7 @@ if (length(C{1}) ~= numEntries), return, end;
 
 for i = 1:numEntries,
   point(i).id = C{1}(i);
-  point(i).hex_id = hex2dec(C{2}{i});
+  point(i).hex_id = 0;%hex2dec(C{2}{i});
   point(i).type = C{3}(i);
   point(i).updated = C{4}(i);
   point(i).easting = C{5}(i);

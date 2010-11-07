@@ -1,7 +1,7 @@
 function gcsUAVFeed()
 more off;
 
-uavIP = '64.9.88.210';
+uavIP = '192.168.10.9';
 uavPort = 6117;
 uavFid = tcpopen(uavIP, uavPort);
 

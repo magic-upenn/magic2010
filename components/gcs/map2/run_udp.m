@@ -66,20 +66,20 @@ function run_udp(log_file)
 
         if isempty(RPOSE{id}),
           disp(sprintf('MapUpdateH: waiting for pose on robot %d', id));
-          break;
+        else
+          gcsMapUpdateH(id, pkt.hlidar);
+          gcsMapFitPose(id);
+          %gdispRobot(id, RNODE{id}.pF(:,end));
+          gdispRobot(id, GPOSE{id});
         end
-        gcsMapUpdateH(id, pkt.hlidar);
-        gcsMapFitPose(id);
-        %gdispRobot(id, RNODE{id}.pF(:,end));
-        gdispRobot(id, GPOSE{id});
         
         % Need MapUpdateH to first initialize RNODE
         if isempty(RNODE{id}),
           disp(sprintf('MapUpdateV: waiting for RNODE on robot %d', id));
-          break;
+        else
+          gcsMapUpdateV(id, pkt.vlidar);
+          gmapAdd(id, RNODE{id}.n);
         end
-        gcsMapUpdateV(id, pkt.vlidar);
-        gmapAdd(id, RNODE{id}.n);
 
         nProcess = nProcess+1;
         if (rem(nProcess, 100) == 0),
@@ -140,13 +140,13 @@ function run_udp(log_file)
       
       end
 
-      if (etime(clock, tmap) > 5.0),
-        tmap = clock;
+      if (gettime- tmap > 5.0),
+        tmap = gettime;
         gmapRecalc;
       end
 
-      if (etime(clock, tIpc) > 1.0),
-        tIpc = clock;
+      if (gettime - tIpc > 1.0),
+        tIpc = gettime;
         gcsMapIPCSendMap;
 
         gdispMap(GMAP.im, GMAP.x, GMAP.y);
