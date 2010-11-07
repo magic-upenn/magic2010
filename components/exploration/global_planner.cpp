@@ -281,14 +281,14 @@ double GPLAN::bias(const int RID, const int x, const int y) {
     // no penalty applies if the points are in different regions
     // fxn to calc a heading bias to prefer points closer to "straight ahead"
 
-    //  double theta_pt = atan2((double)(y-POSEYY[RID]), (double)(x-POSEXX[RID]));
-    //  double theta_diff = theta_pt - theta;
+      double theta_pt = atan2((double)(y-POSEY[RID]), (double)(x-POSEX[RID]));
+      double theta_diff = theta_pt - POSETHETA[RID];
 
     //normalize between -pi and pi
-    //  if (theta_diff > M_PI) { theta_diff -= 2*M_PI;}
-    //  if (theta_diff < -M_PI) { theta_diff += 2*M_PI;}
+      if (theta_diff > M_PI) { theta_diff -= 2*M_PI;}
+      if (theta_diff < -M_PI) { theta_diff += 2*M_PI;}
 
-    //  double heading_bias =  ((1.0+cos(THETA_BIAS*theta_diff))/2.0);
+      double heading_bias =  ((1.0+cos(THETA_BIAS*theta_diff))/2.0);
 
     int min_dist2 = (map_size_x+map_size_y) * (map_size_x+map_size_y) ;
     double dist_bias = 1;
@@ -344,7 +344,7 @@ double GPLAN::bias(const int RID, const int x, const int y) {
                 }
     else { region_bias = bias_table[RID  + (NUMROBOTS+2)*region_map[x + map_size_x*y] ]; }
 
-    double bias = dist_bias * region_bias * same_bonus;// *  heading_bias ;
+    double bias = dist_bias * region_bias * same_bonus *  heading_bias ;
     //  cout << " penalties for " << x << "," << y << " d: " << delta << " "<<  dist_bias << " r0: " << region_bias << " h: " << heading_bias << " t: " << bias << endl;
     return bias;
 }
@@ -1077,7 +1077,7 @@ vector < vector<Traj_pt_s> > GPLAN::gplan_plan(GP_POSITION_UPDATE * gp_position_
 		POSEX[idx] = (int)(gp_position_update_p->x[idx] / map_cell_size);
 		POSEY[idx] = (int)(gp_position_update_p->y[idx] / map_cell_size);
 		POSETHETA[idx] = gp_position_update_p->theta[idx];
-		printf("incoming robot %i pose is (%i, %i)\n", idx, POSEX[idx], POSEY[idx]);
+		printf("incoming robot %i pose is (%i, %i) facing %f\n", idx, POSEX[idx], POSEY[idx], POSETHETA[idx]);
 		if (!OnMap(POSEX[idx], POSEY[idx])) { POSEX[idx] = 0; POSEY[idx]=0; }
 		// free 9 cells in vicinity of robot start position
 		for(int i=-4; i<=4; i++) {

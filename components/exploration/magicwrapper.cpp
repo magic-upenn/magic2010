@@ -151,7 +151,7 @@ int main () {
 	planner.WRITE_FILES = 0; // flag to write files out
 	planner.DISPLAY_OUTPUT =1; // flag to display any output
 	planner.SENSORWIDTH = M_PI;
-	planner.THETA_BIAS = 0; // 0 to 1 bias on rough direction to goal location default is 1
+	planner.THETA_BIAS = 0.5; // 0 to 1 bias on rough direction to goal location default is 1
 	planner.sensor_radius = 7.0;		// sensing radius of robot in m
 	planner.sensor_height = 120;		// sensing height of robot in cm
 	planner.perimeter_radius = .25;	// radius of bounding circle
