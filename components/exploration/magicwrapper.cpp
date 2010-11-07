@@ -88,7 +88,7 @@ static void DATAhandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientDa
     
 	for (int j = 0; j < planner.map_size_y; j++) {
 		for (int i = 0; i < planner.map_size_x; i++) {
-			if(data->map[i+planner.map_size_x*j] > 90)  {
+			if(data->map[i+planner.map_size_x*j] > 75)  {
 				maps.coverage_map[i+planner.map_size_x*j] = KNOWN; 
 				maps.cost_map[i+planner.map_size_x*j] = OBSTACLE;
 			}
