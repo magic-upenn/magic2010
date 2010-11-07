@@ -23,10 +23,10 @@ int GP_DATA::ReadFromMatlab(mxArray * mxArr, int index)
   MEX_READ_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,x,numFieldsRead);
   MEX_READ_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,y,numFieldsRead);
   MEX_READ_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,theta,numFieldsRead);
-  MEX_READ_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,map,numFieldsRead);
+  MEX_READ_FIELD_RAW_ARRAY2D_INT8(mxArr,index,map,numFieldsRead);
   MEX_READ_FIELD_RAW_ARRAY2D_UINT8(mxArr,index,region_map,numFieldsRead);
 
-    MEX_READ_FIELD(mxArr,index,num_regions,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,num_regions,numFieldsRead);
   MEX_READ_FIELD(mxArr,index,num_states,numFieldsRead);
   MEX_READ_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,bias_table,numFieldsRead);
 
@@ -63,7 +63,7 @@ int GP_DATA::WriteToMatlab(mxArray * mxArr, int index)
   MEX_WRITE_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,x,NR, 1);
   MEX_WRITE_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,y,NR, 1);
   MEX_WRITE_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,theta,NR, 1);
-  MEX_WRITE_FIELD_RAW_ARRAY2D_DOUBLE(mxArr,index,map, map_size_x, map_size_y);
+  MEX_WRITE_FIELD_RAW_ARRAY2D_INT8(mxArr,index,map, map_size_x, map_size_y);
   MEX_WRITE_FIELD_RAW_ARRAY2D_UINT8(mxArr,index,region_map, map_size_x, map_size_y);
   
     MEX_WRITE_FIELD(mxArr,index,num_regions);

@@ -2,7 +2,7 @@
 #ifndef GP_HEADER
 #define GP_HEADER
 
-#define GP_DATA_FORM "{int, double, double, double, double, double, double, double, int, int, double, double, <short:1>, <double:1>, <double:1>, <double:1>, <double:9,10>, <ubyte:9,10>, int, int, <double:19,20>}"	
+#define GP_DATA_FORM "{int, double, double, double, double, double, double, double, int, int, double, double, <short:1>, <double:1>, <double:1>, <double:1>, <byte:9,10>, <ubyte:9,10>, int, int, <double:19,20>}"	
 #define GP_DATA_MSG "Global_Planner_DATA"
 
 typedef struct {
@@ -26,7 +26,7 @@ typedef struct {
 	double *y;			// y position of robot reference point in meters
 	double *theta; 		// robot heading referenced to 0 = positive x-axis
 	// maps
-	double *map;		// map of uncertainty in measurements
+	char *map;		// map of uncertainty in measurements
 	unsigned char *region_map;     // map of labeled regions with 0 being outdoors
     int num_regions;    // number of regions in lookup table
     int num_states;     // number of states (number of robots +2)
