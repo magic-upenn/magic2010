@@ -14,21 +14,26 @@
 #                is connected.
 # FUSES ........ Parameters for avrdude to flash the fuses appropriately.
 
-DEVICE     = atmega1280
-CLOCK      = 16000000
-
 ifndef OSTYPE
   OSTYPE = $(shell uname -s|awk '{print tolower($$0)}')
   #export OSTYPE
 endif
+
 ifeq ($(OSTYPE),linux)
   USBDEVICE = /dev/ttyUSB0
 endif
 ifeq ($(OSTYPE),darwin)
   USBDEVICE = $(shell ls /dev/cu.usbserial*)
 endif
-PROGRAMMER = -c stk500v1 -P $(USBDEVICE) -b 57600 -D
-OBJECTS    = uart0.o uart3.o main.o
+
+DEVICE     = atmega1280
+CLOCK      = 16000000
+
+PROGRAMMER = -c stk500v1 -P $(USBDEVICE) -b 57600 -D -F
+
+
+#OBJECTS    = uart0.o rs485.o adc.o timer1.o main.o
+OBJECTS    =  uart.o main.o DynamixelPacket.o uart0.o uart1.o
 FUSES      = -U hfuse:w:0xdf:m -U lfuse:w:0x62:m
 
 # ATMega8 fuse bits (fuse bits for other devices are different!):
@@ -72,12 +77,51 @@ FUSES      = -U hfuse:w:0xdf:m -U lfuse:w:0x62:m
 # Tune the lines below only if you know what you are doing:
 
 AVRDUDE = avrdude $(PROGRAMMER) -p $(DEVICE)
-COMPILE = avr-gcc -Wall -Os -DF_CPU=$(CLOCK) -mmcu=$(DEVICE)
+COMPILE = avr-gcc -Wall -O3 -DF_CPU=$(CLOCK) -mmcu=$(DEVICE) $(INCLUDES)
+
+ATMEL_COMMON_PATH = ../Common
+MAGIC_COMMON_PATH = ../../../common/dataTypes
+
+INCLUDES   = -I. -I$(MAGIC_COMMON_PATH) -I$(ATMEL_COMMON_PATH)
 
 # symbolic targets:
 all:	main.bin
 
+
+testLaser: testLaser.cc
+	g++ $^ -o $@ -I$(MAGIC_DIR)/include -L$(MAGIC_DIR)/lib -lSerialDevice
+
 .c.o:
+	$(COMPILE) -c $< -o $@
+
+DynamixelPacket.o: $(MAGIC_COMMON_PATH)/DynamixelPacket.c
+	$(COMPILE) -c $< -o $@
+
+HostInterface.o: $(ATMEL_COMMON_PATH)/HostInterface.c
+	$(COMPILE) -c $< -o $@
+
+uart.o: $(ATMEL_COMMON_PATH)/uart.c
+	$(COMPILE) -c $< -o $@
+
+uart0.o: $(ATMEL_COMMON_PATH)/uart0.c
+	$(COMPILE) -c $< -o $@
+
+uart1.o: $(ATMEL_COMMON_PATH)/uart1.c
+	$(COMPILE) -c $< -o $@
+
+uart2.o: $(ATMEL_COMMON_PATH)/uart2.c
+	$(COMPILE) -c $< -o $@
+
+uart3.o: $(ATMEL_COMMON_PATH)/uart3.c
+	$(COMPILE) -c $< -o $@
+
+rs485.o: $(ATMEL_COMMON_PATH)/rs485.c
+	$(COMPILE) -c $< -o $@
+
+GpsInterface.o: $(ATMEL_COMMON_PATH)/GpsInterface.c
+	$(COMPILE) -c $< -o $@
+
+BusInterface.o: $(ATMEL_COMMON_PATH)/BusInterface.c
 	$(COMPILE) -c $< -o $@
 
 .S.o:
@@ -105,11 +149,11 @@ load: all
 	bootloadHID main.hex
 
 clean:
-	rm -f main.bin main.hex main.elf $(OBJECTS)
+	rm -f main.bin main.hex main.elf $(OBJECTS) *~
 
 # file targets:
 main.elf: $(OBJECTS)
-	$(COMPILE) -o main.elf $(OBJECTS)
+	$(COMPILE) -o main.elf $(OBJECTS) -lm
 
 main.bin: main.hex
 	avr-objcopy -O binary -I ihex main.hex main.bin

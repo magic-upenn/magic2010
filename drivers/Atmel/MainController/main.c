@@ -196,6 +196,19 @@ void init(void)
 
   //enable global interrupts 
   sei();
+  
+  DDRL |= _BV(PL3) | _BV(PL5) | _BV(PL4);
+  PORTL |= _BV(PL3) | _BV(PL5) | _BV(PL4);
+  //PORTL |= _BV(PL3);
+  
+  /*
+  TCCR5A |= _BV(WGM51) | _BV(WGM50);
+  TCCR5B |= _BV(WGM52) | _BV(WGM53);
+  OCR5A = 2000;
+  TCCR5A |= _BV(COM5A0);
+  TCCR5A |= _BV(COM5B0);
+  TCCR5A |= _BV(COM5C0);
+  */
 
   LED_ERROR_OFF;
 }
@@ -459,6 +472,10 @@ int DisableVehicle()
 {
   LED_ESTOP_OFF;
   LED_ERROR_ON;
+  
+  DDRL = 0xFF;
+  PORTL = _BV(PL4);  //red leds
+  
   HostSendPacket(MMC_ESTOP_DEVICE_ID,MMC_ESTOP_STATE,
                  (uint8_t*)&estopState,1);
                  
@@ -543,6 +560,7 @@ int main(void)
   int c;
   int imuRet;
   int ret;
+  uint8_t ledState=0;
 
   uint8_t * servo1PacketOut        = NULL;
   DynamixelPacket * servo1PacketIn = NULL;
@@ -722,6 +740,49 @@ int main(void)
         memcpy(&(imuPacket[1]),adcVals,NUM_ADC_CHANNELS*sizeof(uint16_t));
         HostSendPacket(MMC_IMU_DEVICE_ID,MMC_IMU_RAW,
 		       (uint8_t*)imuPacket,(NUM_ADC_CHANNELS+1)*sizeof(uint16_t));
+      }
+      
+      
+      if (estopState == MMC_ESTOP_STATE_RUN)  //flicker leds when in run mode
+      {
+        if (adcCntr % 4 == 0)
+          DDRL = 0xFF;
+        else
+          DDRL = 0x00;
+      }
+      else 
+        DDRL = 0xFF;
+      
+
+      //switch colors when in run mode
+      if (adcCntr % 20 == 0)
+      {
+        ledState++;
+        
+        if (ledState == 8)
+          ledState = 0;
+        
+        if (estopState == MMC_ESTOP_STATE_RUN)
+        {
+          switch (ledState)
+          {
+            case 0:
+              PORTL = _BV(PL3);
+              break;
+            case 1:
+              PORTL = _BV(PL4);
+              break;
+            case 2:
+              PORTL = _BV(PL5);
+              break;
+            default:
+              PORTL = 0;
+              break;
+          
+          }
+        }
+        else 
+          PORTL = _BV(PL3); //paused
       }
 
       if (adcCntr % 100 == 0)

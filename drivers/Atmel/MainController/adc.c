@@ -110,6 +110,7 @@ void adc_init(void)
   //timer will trigger the conversion
   ADC_TIMER_INIT();
   ADC_TIMER_SET_COMPA_CALLBACK(ADC_TIMER_COMPA);
+  //ADC_TIMER_SET_OVERFLOW_CALLBACK(ADC_TIMER_COMPA);
 }
 
 //for manually reading adc channels
