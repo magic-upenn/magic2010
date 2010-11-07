@@ -22,7 +22,7 @@ function varargout = vision_gui(varargin)
 
 % Edit the above text to modify the response to help vision_gui
 
-% Last Modified by GUIDE v2.5 04-Nov-2010 08:14:41
+% Last Modified by GUIDE v2.5 07-Nov-2010 07:25:39
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -522,6 +522,7 @@ function setup_global_vars(vision_gui)
 	vision_fns.omni_cand_down	   = @omni_cand_down;  
 	vision_fns.updateGui		   = @updateGui;  
 	vision_fns.updateFrontFocused	   = @updateFrontFocused;  
+	vision_fns.center_bb_Callback 	   = @center_bb_Callback;  
 	vision_fns.updateBox		   = @updateBox;  
 	vision_fns.set_status		   = @set_status;  
 	vision_fns.lookat_Callback         = @lookat_Callback;
@@ -610,6 +611,7 @@ function set_focus(new_fr)
 	%If new_fr was not in front focus, it needs to speed up, and the old_fr needs to slow down
 	msg.id = new_fr; 
 	if new_fr_old_box > 2
+		'Slowing old, speeding new'
 		msg.cam = 2; 
 		msg.otime = 0.5;
 		msg.ftime = 0.5;
@@ -1117,4 +1119,12 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
+
+% --- Executes on button press in center_bb.
+function center_bb_Callback(hObject, eventdata, handles)
+	global GLOBALS 
+	GLOBALS.current_bb 
+	GLOBALS.current_bb = round([110,130,150,180]);
+	GLOBALS.current_bb_id = GLOBALS.focus; 
+	updateFrontFocused(GLOBALS.focus);
 

@@ -65,6 +65,8 @@ function button_handler(chr,gui)
 		GLOBALS.vision_fns.omni_cand_down([],1,1,0,2,2,'track')
 	elseif strcmp(chr, 'h')
 		GLOBALS.vision_fns.omni_cand_down([],1,1,0,2,3,'track')
+	elseif strcmp(chr, ' ')
+		GLOBALS.vision_fns.center_bb_Callback(); 
 	else 
 		GLOBALS.vision_fns.set_status(strcat('Invalid hotkey',chr)); 
 	end
