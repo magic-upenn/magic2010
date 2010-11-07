@@ -30,8 +30,10 @@ function run_udp(log_file)
   port = 12346;
   UdpReceiveAPI('connect', addr, port);
 
-  tmap = clock;
-  tIpc = clock;
+  tmap = gettime;
+  tIpc = gettime;
+  tProcess = gettime;
+  nProcess = 0;
 
   while 1,
     pause(.02);
@@ -76,6 +78,12 @@ function run_udp(log_file)
         %gdispRobot(id, RNODE{id}.pF(:,end));
         gdispRobot(id, GPOSE{id});
 
+        nProcess = nProcess+1;
+        if (rem(nProcess, 100) == 0),
+          disp(sprintf('map2: %d fits, %.2f sec', ...
+                       nProcess, gettime-tProcess));
+          tProcess = gettime;
+        end
           
       case 'MapUpdateV'
 
