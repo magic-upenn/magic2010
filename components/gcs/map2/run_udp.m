@@ -160,7 +160,7 @@ if isempty(lastSave)
   lastSave = gettime;
 end
 
-if (gettime - lastSave > 60)
+if (gettime - lastSave > 600)
   savefile = ['/tmp/gcs_map_', datestr(clock,30)];
   disp(sprintf('Saving map log file: %s', savefile));
   eval(['save ' savefile ' GMAP GPOSE GTRANSFORM GDISP RPOSE RNODE RCLUSTER RCLUSTER_INFO IPC_OUTPUT']);

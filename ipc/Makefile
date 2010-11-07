@@ -22,7 +22,6 @@ ipcWrapperAPI.$(MEXEXT): ipcWrapperAPI.cc IpcWrapper.cc
 	cp ipcWrapperAPI.$(MEXEXT) ipcWrapperAPI8.$(MEXEXT)
 	cp ipcWrapperAPI.$(MEXEXT) ipcWrapperAPI9.$(MEXEXT)
 	cp ipcWrapperAPI.$(MEXEXT) ipcWrapperAPI10.$(MEXEXT)
-
 	cp ipcWrapperAPI.$(MEXEXT) ipcWrapperAPIVision.$(MEXEXT)
 	cp ipcWrapperAPI.$(MEXEXT) ipcWrapperAPIMaster.$(MEXEXT)
 clean:

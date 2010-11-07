@@ -15,13 +15,13 @@ data.UTM_x = xmap(1);
 ymap = y(GMAP);
 data.UTM_y = ymap(1);
 
-data.map = double(getdata(GMAP, 'cost'));
+data.map = int8(getdata(GMAP, 'cost'));
 for i = 1:length(AVOID_REGIONS)
   data.map(sub2ind(size(data.map),round((AVOID_REGIONS(i).x-data.UTM_x)/data.map_cell_size), ...
            round((AVOID_REGIONS(i).y-data.UTM_y)/data.map_cell_size))) = 100;
 end
 
-data.region_map = uint8(zeros(size(GMAP)));
+data.region_map = uint8(zeros(data.map_size_x,data.map_size_y));
 data.bias_table = zeros(data.NR+2,length(EXPLORE_REGIONS)+1);
 data.num_states = data.NR+2;
 data.num_regions = length(EXPLORE_REGIONS)+1;
@@ -47,7 +47,8 @@ data.y =     zeros(data.NR,1);
 data.theta = zeros(data.NR,1);
 
 for id = GCS.sensor_ids
-  if ~strcmp(get(GDISPLAY.robotStatusText{id},'String'),'sExplore')
+  state = get(GDISPLAY.robotStatusText{id},'String');
+  if ~strcmp(state(1:3),'sEx')
     fprintf('Robot %d is not exploring\n',id);
     continue;
   end
@@ -71,7 +72,9 @@ for id = GCS.ids
 end
 
 try
-  gcs_machine.ipcAPI('publishVC','Global_Planner_DATA',MagicGP_DATASerializer('serialize',data));
+  ser_data = MagicGP_DATASerializer('serialize',data);
+  length(ser_data)
+  gcs_machine.ipcAPI('publishVC','Global_Planner_DATA',ser_data);
 catch
 end
 

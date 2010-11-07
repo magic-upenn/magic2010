@@ -17,7 +17,7 @@ pGps = node.pGps;
 oL = node.oL;
 gpsValid = node.gpsValid;
 speed = node.speed;
-iBad = find(node.hlidarConf < 0.25);
+iBad = find(node.hlidarConf < 0.4);
 iBad = [iBad 2:min(node.n,10)];  % also fit initial points
 
 nBad = length(iBad);

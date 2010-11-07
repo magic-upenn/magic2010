@@ -2,8 +2,8 @@ function gcsParams()
 global GCS MAGIC_CONSTANTS HAVE_ROBOTS LOG_PACKETS
 
 %ROBOT IDs
-GCS.disruptor_ids = [];
-GCS.sensor_ids = [1];
+GCS.disruptor_ids = [8];
+GCS.sensor_ids = [5];
 
 %OOI AVOID RANGES
 MAGIC_CONSTANTS.ooi_range = 3.5;
@@ -87,9 +87,9 @@ case 4
 case 5
   disp('starting test site (Hamstead Barracks)');
   MAGIC_CONSTANTS.mapEastMin = 282404;
-  MAGIC_CONSTANTS.mapEastMax = 282731;
+  MAGIC_CONSTANTS.mapEastMax = 282631;
   MAGIC_CONSTANTS.mapNorthMin = 6138571;
-  MAGIC_CONSTANTS.mapNorthMax = 6138927;
+  MAGIC_CONSTANTS.mapNorthMax = 6138807;
   MAGIC_CONSTANTS.mapEastOffset = 282550;
   MAGIC_CONSTANTS.mapNorthOffset = 6138770;
 

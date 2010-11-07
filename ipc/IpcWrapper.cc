@@ -365,6 +365,9 @@ int IpcWrapperPublishData(string msgName, void * data)
 int IpcWrapperPublishVC(string msgName, unsigned int size, void * data)
 {
   uint8_t * tempData = new uint8_t[size];
+  printf("%d\n",size);
+  if (tempData == NULL)
+    printf("oh noes! %d\n",size);
   memcpy(tempData,data,size);
 
   pthread_mutex_lock( &__ipcWrapperActionRequestMutex );

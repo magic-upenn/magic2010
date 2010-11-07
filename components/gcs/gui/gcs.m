@@ -37,14 +37,14 @@ last_explore_update = gettime;
 gcs_machine.ipcAPI = str2func('ipcAPI');
 gcs_machine.ipcAPI('connect');
 gcs_machine.ipcAPI('define','Global_Planner_DATA',  MagicGP_DATASerializer('getFormat'));
-ipcReceiveSetFcn('Global_Planner_TRAJ',@GPTRAJHandler,gcs_machine.ipcAPI,1);
+ipcReceiveSetFcn('Global_Planner_TRAJ',@GPTRAJHandler,gcs_machine.ipcAPI,2);
 ipcReceiveSetFcn('OOI_Msg',@gcsRecvOOIFcn,gcs_machine.ipcAPI,1);
 ipcReceiveSetFcn('OOI_Done_Msg',@gcsRecvOOIDoneFcn,gcs_machine.ipcAPI,1);
 ipcReceiveSetFcn('UAV_Feed',@gcsRecvUAVFcn,gcs_machine.ipcAPI,1);
 ipcReceiveSetFcn('Global_Map',@gcsRecvGlobalMapFcn,gcs_machine.ipcAPI,1);
-ipcReceiveSetFcn('RPose',@gcsRecvRPoseFcn,gcs_machine.ipcAPI,1);
-ipcReceiveSetFcn('IncH',@gcsRecvIncHFcn,gcs_machine.ipcAPI,1);
-ipcReceiveSetFcn('IncV',@gcsRecvIncVFcn,gcs_machine.ipcAPI,1);
+ipcReceiveSetFcn('RPose',@gcsRecvRPoseFcn,gcs_machine.ipcAPI,30);
+ipcReceiveSetFcn('IncH',@gcsRecvIncHFcn,gcs_machine.ipcAPI,30);
+ipcReceiveSetFcn('IncV',@gcsRecvIncVFcn,gcs_machine.ipcAPI,30);
 
 tUpdate = 0.1;
 
@@ -53,7 +53,7 @@ gcsEntryIPC()
 mapDisplay('entry');
 
 while 1,
-  pause(tUpdate);
+  %pause(tUpdate);
   gcsUpdateIPC;
   mapDisplay('update');
   if ((gettime - last_explore_update > 5.0) && HAVE_ROBOTS)

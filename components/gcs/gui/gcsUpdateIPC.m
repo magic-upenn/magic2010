@@ -54,7 +54,7 @@ end
 function GetLocalMsg
 global gcs_machine
 global IPC
-msgs = gcs_machine.ipcAPI('listen',50);
+msgs = gcs_machine.ipcAPI('listenWait',100);
 %gcsLogPackets('LocalIPC',msgs);
 nmsg = length(msgs);
 %process messages
