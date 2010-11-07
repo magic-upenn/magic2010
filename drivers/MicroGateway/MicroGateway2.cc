@@ -270,9 +270,11 @@ void MicroGateway::ServoControllerCmdMsgHandler (MSG_INSTANCE msgRef,
       else
         PRINT_ERROR("could not wrap packet\n");
 
+      break;
+
 
     default:
-      PRINT_ERROR("invalid servo " << id << "\n");
+      PRINT_ERROR("invalid servo " << scmd->id << "\n");
       break;
 
    }
