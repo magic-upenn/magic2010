@@ -97,7 +97,7 @@ else if(data->map[i+planner.map_size_x*j] > 2.0)  {
 				maps.cost_map[i+planner.map_size_x*j] = 0;
 			}
 
-			else if(data->map[i+planner.map_size_x*j] < -0.05)  {
+			else if(data->map[i+planner.map_size_x*j] < -1)  {
 				maps.coverage_map[i+planner.map_size_x*j] = KNOWN; 
 				maps.cost_map[i+planner.map_size_x*j] = 0;
 			}
