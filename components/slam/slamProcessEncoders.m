@@ -3,7 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function slamProcessEncoders(data,name)
 global ENCODERS SLAM IMU
-persistent tLastUpdate
+persistent tLastUpdate stopCntr
 
 if isempty(IMU.data)
     return
@@ -11,6 +11,10 @@ end
 
 if isempty(tLastUpdate)
   tLastUpdate = GetUnixTime();
+end
+
+if isempty(stopCntr)
+  stopCntr=0;
 end
 
 if ~isempty(data)
@@ -64,13 +68,26 @@ if ~isempty(data)
   rc = ENCODERS.counts.rr * ENCODERS.metersPerTic;
   lc = ENCODERS.counts.rl * ENCODERS.metersPerTic;
   
+  if ( (ENCODERS.counts.rr == 0) && (ENCODERS.counts.rl == 0) )
+    stopCntr = stopCntr + 1;
+  else
+    stopCntr = 0;
+  end
+  
   
   vdt = mean([rc,lc]);
   
   %the fudge factor scales the angular change due to slippage
   %TODO: this will also affect vdt!!
   %wdt = (rc - lc)/(2*ENCODERS.robotRadius*ENCODERS.robotRadiusFudge);
-  wdt = IMU.data.wyaw * (GetUnixTime()-tLastUpdate);
+  
+  
+  if (stopCntr < 40)
+    wdt = IMU.data.wyaw * (GetUnixTime()-tLastUpdate);
+  else
+    wdt = 0;
+  end
+  
   tLastUpdate = GetUnixTime();
   %dt = counts.t - ENCODERS.tLast;
   
