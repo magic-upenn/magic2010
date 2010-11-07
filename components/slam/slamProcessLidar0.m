@@ -125,7 +125,9 @@ if mod(SLAM.lidar0Cntr,20) == 0
     if (SPREAD.useSpread)
       spreadSendUnreliable('Pose', serialize(POSE.data));
     end
-    
+
+    %{
+    % Now send everthing in single packet
     if (SLAM.useUdpExternal)
         packet = POSE.data;
         packet.type = 'Pose';
@@ -134,6 +136,7 @@ if mod(SLAM.lidar0Cntr,20) == 0
         zraw = zlibCompress(raw);
         UdpSendAPI('send',zraw);
     end
+    %}
 end
 
 
@@ -185,7 +188,9 @@ if (mod(SLAM.lidar0Cntr,40) == 0)
   if (SPREAD.useSpread)
     spreadSendUnreliable('MapUpdateH', serialize(MapUpdateH));
   end
-  
+
+  % Now sending single 'SlamPoseMap' packet
+  %{
   if (SLAM.useUdpExternal)
     packet = MapUpdateH;
     packet.type = 'MapUpdateH';
@@ -194,6 +199,7 @@ if (mod(SLAM.lidar0Cntr,40) == 0)
     zraw = zlibCompress(raw);
     UdpSendAPI('send',zraw);
   end
+  %}
 
 
   [xdi ydi] = find(DVMAP.map.data);
@@ -207,9 +213,12 @@ if (mod(SLAM.lidar0Cntr,40) == 0)
   end
   
   if (SLAM.useUdpExternal)
-    packet = MapUpdateV;
-    packet.type = 'MapUpdateV';
     packet.id   = GetRobotId();
+    packet.type = 'SlamPoseMap';
+    packet.pose = POSE.data;
+    packet.hlidar = MapUpdateH;
+    packet.vlidar = MapUpdateV;
+
     raw = serialize(packet);
     zraw = zlibCompress(raw);
     UdpSendAPI('send',zraw);
