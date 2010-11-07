@@ -26,7 +26,7 @@ typedef struct {
 	double *y;			// y position of robot reference point in meters
 	double *theta; 		// robot heading referenced to 0 = positive x-axis
 	// maps
-	char *map;		// map of uncertainty in measurements
+	int8_t *map;		// map of uncertainty in measurements
 	unsigned char *region_map;     // map of labeled regions with 0 being outdoors
     int num_regions;    // number of regions in lookup table
     int num_states;     // number of states (number of robots +2)
