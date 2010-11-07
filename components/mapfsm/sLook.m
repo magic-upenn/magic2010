@@ -57,7 +57,7 @@ switch event
    servoMsgName = GetMsgName('Servo2Cmd');
    servoCmd.id           = 2;
    servoCmd.mode         = 0;
-   servoCmd.minAngle     = max(min(TILT_ANGLE, max_tilt), -max_tilt);
+   servoCmd.minAngle     = max(min(TILT_ANGLE, max_tilt), -max_tilt)*180/pi;
    servoCmd.maxAngle     = 0;
    servoCmd.speed        = 100;
    servoCmd.acceleration = 300;
