@@ -59,16 +59,23 @@ if (SLAM.lidar0Cntr > 1)
 
   %create a grid of distance-based costs from each cell to odometry pose
   [yGrid1 xGrid1] = meshgrid(yCand1,xCand1);
-  xDiff1 = xGrid1 - SLAM.xOdom;
-  yDiff1 = yGrid1 - SLAM.yOdom;
-  distGrid1 = sqrt(xDiff1.^2 + yDiff1.^2);
-
+  %xDiff1 = xGrid1 - SLAM.xOdom;
+  %yDiff1 = yGrid1 - SLAM.yOdom;
+  %distGrid1 = 1000*sqrt(xDiff1.^2 + yDiff1.^2);
+  %distGrid1(abs(distGrid1
+  [minIndX indx] = min(abs(xCand1-SLAM.xOdom));
+  [minIndY indy] = min(abs(yCand1-SLAM.yOdom));
+  
   %combine the pose likelihoods with the distance from odometry prediction
   %TODO: play around with the weights!!
-  costGrid1 = distGrid1 - hitsXY;
-
+  %costGrid1 = distGrid1 - hitsXY;
+  costGrid1 = - hitsXY;
+  costGrid1(indx,indy) = costGrid1(indx,indy) - 500;
+  
   %find the minimum and save the new pose
   [cmin cimin] = min(costGrid1(:));
+  
+  %fprintf(1,'distGrid min %f, hits xy min =%f\n',distGrid1(cimin),hitsXY(cimin));
 
   %save the best pose
   SLAM.yaw = aCand1(jmax);

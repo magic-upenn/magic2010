@@ -86,6 +86,8 @@ if ~isempty(data)
     wdt = IMU.data.wyaw * (GetUnixTime()-tLastUpdate);
   else
     wdt = 0;
+    vdt = 0;
+    %fprintf(1,'not moving\n');
   end
   
   tLastUpdate = GetUnixTime();
