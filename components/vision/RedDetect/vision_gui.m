@@ -101,7 +101,7 @@ function setup_imgs(gui)
 		handles.(ih_oname) = image(img.omni,'Parent',handles.(oname)); 
 		set(handles.(ih_oname),'ButtonDownFcn',{@mouse_ButtonDownFcn,{'omni',handles.(oname),box}});
 		set(handles.(ih_oname),'Interruptible','off');
-		axis(handles.(oname),'off')
+	axis(handles.(oname),'off')
 		end
 		guidata(gui, handles);
 
@@ -550,6 +550,8 @@ function setup_global_vars(vision_gui)
 	null_front = null_image(320,240); 	
 	null_omni  = null_image(500,100);
 	null_cand  = null_image(150,150);
+	GLOBALS.null_omni = null_omni; 
+	GLOBALS.null_cand = null_cand; 
 	null_cands = {}; 
 	null_pose.x = 0;  
 	null_pose.y = 0;  
@@ -592,10 +594,15 @@ function setup_global_vars(vision_gui)
 
 function set_focus(new_fr)
 	global GLOBALS;
+	handles = guidata(GLOBALS.vision_gui); 
 	new_fr_old_box = find(GLOBALS.bids == new_fr);  
 	old_fr = GLOBALS.bids(GLOBALS.focus);  
 	GLOBALS.bids(GLOBALS.focus) = new_fr; 
 	GLOBALS.bids(new_fr_old_box) = old_fr; 
+	delete(findobj(get(handles.(sprintf('omni%d',new_fr_old_box)),'Children'),'Type','Text')); 
+	delete(findobj(get(handles.(sprintf('omni%d',new_fr_old_box)),'Children'),'Type','Rectangle')); 
+	delete(findobj(get(handles.(sprintf('omni%d',new_fr_old_box)),'Children'),'Type','Line'));
+	set(handles.(sprintf('ih_omni%d',new_fr_old_box)),'CData',GLOBALS.null_omni);
 	GLOBALS.bids(3:8) = sort(GLOBALS.bids(3:8));  
 	GLOBALS.vision_fns.set_status(sprintf('Gave focus to: %d',new_fr)); 
 	GLOBALS.vision_fns.updateBox(GLOBALS.focus); 
@@ -681,7 +688,7 @@ function lazer_up_Callback(hObject, eventdata, handles)
 	if msg.phi < -pi/2
 		msg.phi = msg.phi+pi/2;
 	end 
-	send_look_msg(id,msg.theta,msg.phi,msg.type);  
+	send_look_msg(id,msg.theta,msg.phi,'look');  
 
 function lazer_down_Callback(hObject, eventdata, handles)
 	global GLOBALS; 
@@ -699,7 +706,7 @@ function lazer_down_Callback(hObject, eventdata, handles)
 	if msg.phi < -pi/2
 		msg.phi = msg.phi+pi/2;
 	end 
-	send_look_msg(id,msg.theta,msg.phi,msg.type);  
+	send_look_msg(id,msg.theta,msg.phi,'look');  
 
 function lazer_on_Callback(hObject, eventdata, handles)
 	global GLOBALS; 
