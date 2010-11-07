@@ -54,6 +54,40 @@ function run_udp(log_file)
       if ~isfield(pkt, 'type'), continue, end
 
       switch (pkt.type)
+      case 'SlamPoseMap'
+        id = pkt.id;
+
+        % send subfields to IPC
+        forwardPose(pkt.pose,id);
+        forwardIncH(pkt.hlidar,id);
+        forwardIncV(pkt.vlidar,id);
+        
+        gcsMapPoseExternal(id, pkt.pose);
+
+        if isempty(RPOSE{id}),
+          disp(sprintf('MapUpdateH: waiting for pose on robot %d', id));
+          break;
+        end
+        gcsMapUpdateH(id, pkt.hlidar);
+        gcsMapFitPose(id);
+        %gdispRobot(id, RNODE{id}.pF(:,end));
+        gdispRobot(id, GPOSE{id});
+        
+        % Need MapUpdateH to first initialize RNODE
+        if isempty(RNODE{id}),
+          disp(sprintf('MapUpdateV: waiting for RNODE on robot %d', id));
+          break;
+        end
+        gcsMapUpdateV(id, pkt.vlidar);
+        gmapAdd(id, RNODE{id}.n);
+
+        nProcess = nProcess+1;
+        if (rem(nProcess, 100) == 0),
+          disp(sprintf('map2: %d fits, %.2f sec', ...
+                       nProcess, gettime-tProcess));
+          tProcess = gettime;
+        end
+
       case 'Pose'
       % Pose packet:
 
