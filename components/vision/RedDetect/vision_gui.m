@@ -152,15 +152,22 @@ function updateOOIHistory(id,ser)
 		set(handles.ih_hist_ooi(t),'CData',GLOBALS.history(t).ooi.front);
 		%image(GLOBALS.history(t).ooi.front)
 	end
-	imwrite(ooi.front,sprintf('cands/robot_%d_ser_%d.png',id,ser));
+	try
+		imwrite(ooi.front,sprintf('~/cands/robot_%d_ser_%d.png',id,ser));
+	catch
+		'Unable to write cand image!!!'
+	end
 	oois = [GLOBALS.history.ooi];
 	ids = [oois.id];
 	sers = [oois.ser];
 	last_five = [ids;sers];
 	current_ser = ser + 1; 
-	save('cands/last_five.mat','last_five'); 
-	save('cands/current_ser.mat','current_ser'); 
-
+	try
+		save('~/cands/last_five.mat','last_five'); 
+		save('~/cands/current_ser.mat','current_ser'); 
+	catch
+		'Unable to save cand hist!!!'
+	end
 
 
 function updateOmni(box)
@@ -252,15 +259,15 @@ function updateBB
 		auto = 0; 
 		selected = get(handles.dist_source,'SelectedObject'); 
 		selected = get(selected,'String'); 
-	mand = str2num(get(handles.manual_dist,'String')); 
+	mand = str2num(get(handles.manual_dist,'String'));
 	switch(selected)
-	case 'IMG'
+	case 'I'
 		GLOBALS.current_distance = imgd; 
-	case 'HS'
+	case 'H'
 		GLOBALS.current_distance = hsd; 
-	case 'VS'
+	case 'V'
 		GLOBALS.current_distance = vsd; 
-	case '->'
+	case '>'
 		GLOBALS.current_distance = mand; 
 	end
 	set(handles.dists_display,'String',sprintf('%.1f | %.1f | %.1f | %.1f | *%.1f*',vsd,hsd,imgd,mand,GLOBALS.current_distance));    		end
@@ -334,7 +341,7 @@ function mouse_ButtonDownFcn(hObject, eventdata, data)
 	case 'omni'
 		omni_down(axeh,x,y,dclick,nums)
 	case 'omni_cand'
-		omni_cand_down(axeh,x,y,dclick,nums(1),nums(2))
+		omni_cand_down(axeh,x,y,dclick,nums(1),nums(2),'lookat')
 	case 'front' 
 		front_down(axeh,x,y,dclick,nums)
 	case 'front_cand' 
@@ -385,7 +392,7 @@ function front_down(axeh,x,y,dclick,box)
 	GLOBALS.current_bb_id = id; 
 	updateFrontFocused(focus);
 
-function omni_cand_down(axeh,x,y,dclick,box,cand)
+function omni_cand_down(axeh,x,y,dclick,box,cand,type)
 	global IMAGES GLOBALS 
 	id = GLOBALS.bids(box);  
 	bb = IMAGES(id).omni_stats(cand,2:end);
@@ -394,7 +401,7 @@ function omni_cand_down(axeh,x,y,dclick,box,cand)
 	y = mean(bb(1:2)); 
 	servo_yaw = IMAGES(id).front_angle; 
 	[theta] = pixel_to_angle(IMAGES(id).omni,x); 
-	lookat(id,theta,0,'look');
+	lookat(id,theta,0,type);
 	if box < 3 
 		focus = box;
 		GLOBALS.focus = focus;   
@@ -467,13 +474,13 @@ function set_status(msg)
 function restoreOOIHistory()
 	global GLOBALS
 	try
-		load('cands/current_ser.mat'); 
+		load('~/cands/current_ser.mat'); 
 		GLOBALS.current_ser = current_ser; 
 	catch 
 		GLOBALS.current_ser = 1;
 	end
 	try	
-		load('cands/last_five.mat')
+		load('~/cands/last_five.mat')
 		last_five
 		size(last_five,2)
 		for i = 1:size(last_five,2);
@@ -495,7 +502,8 @@ function setup_global_vars(vision_gui)
 	GLOBALS.current_label = '?'; 
 	GLOBALS.current_distance = 0;
 	GLOBALS.clock = tic; 
-	GLOBALS.last_look = []; 
+	GLOBALS.last_look = {};
+	GLOBALS.phis = zeros(1,9); 	  
 	GLOBALS.last_click = [0,0]; 
 	GLOBALS.last_click_box = 0; 
 	GLOBALS.last_click_time = tic; 
@@ -511,6 +519,7 @@ function setup_global_vars(vision_gui)
 	GLOBALS.speeds = ones(1,9); 
 	GLOBALS.last_update_tics = [tic,tic,tic,tic,tic,tic,tic,tic,tic];  
 	vision_fns.front_cand_down	   = @front_cand_down;  
+	vision_fns.omni_cand_down	   = @omni_cand_down;  
 	vision_fns.updateGui		   = @updateGui;  
 	vision_fns.updateFrontFocused	   = @updateFrontFocused;  
 	vision_fns.updateBox		   = @updateBox;  
@@ -537,7 +546,7 @@ function setup_global_vars(vision_gui)
 	vision_fns.nudge_left_Callback     = @nudge_left_Callback; 
 	vision_fns.set_focus	           = @set_focus;
 	GLOBALS.updateWithPackets 	   = @updateWithPackets; 
-	GLOBALS.vision_fns = vision_fns; 
+	GLOBALS.vision_fns = vision_fns;
 	null_front = null_image(320,240); 	
 	null_omni  = null_image(500,100);
 	null_cand  = null_image(150,150);
@@ -660,13 +669,37 @@ function lazer_up_Callback(hObject, eventdata, handles)
 	global GLOBALS; 
 	set_status('lazer up'); 	
 	id = GLOBALS.bids(GLOBALS.focus); 
-	send_lazer_msg(id,'up'); 
+	try
+		msg = GLOBALS.last_look{GLOBALS.focus};  
+	catch
+		return; 
+	end
+	msg.phi = msg.phi + pi/180;
+	if msg.phi > pi/2
+		msg.phi = msg.phi-pi/2;
+	end 
+	if msg.phi < -pi/2
+		msg.phi = msg.phi+pi/2;
+	end 
+	send_look_msg(id,msg.theta,msg.phi,msg.type);  
 
 function lazer_down_Callback(hObject, eventdata, handles)
 	global GLOBALS; 
 	set_status('lazer down'); 	
 	id = GLOBALS.bids(GLOBALS.focus); 
-	send_lazer_msg(id,'down'); 
+	try
+		msg = GLOBALS.last_look{GLOBALS.focus};  
+	catch
+		return; 
+	end
+	msg.phi = msg.phi - pi/180;
+	if msg.phi > pi/2
+		msg.phi = msg.phi-pi/2;
+	end 
+	if msg.phi < -pi/2
+		msg.phi = msg.phi+pi/2;
+	end 
+	send_look_msg(id,msg.theta,msg.phi,msg.type);  
 
 function lazer_on_Callback(hObject, eventdata, handles)
 	global GLOBALS; 
@@ -683,9 +716,10 @@ function lazer_off_Callback(hObject, eventdata, handles)
 function nudge_right_Callback(hObject, eventdata, handles)
 	global GLOBALS;
 	set_status('nudge right'); 	
-	msg = GLOBALS.last_look;  
-if isempty(msg)
-	return; 
+	try
+		msg = GLOBALS.last_look{GLOBALS.focus};  
+	catch
+		return; 
 	end
 	msg.theta = mod(msg.theta - pi/180,2*pi); 
 	id = GLOBALS.bids(GLOBALS.focus); 
@@ -694,11 +728,12 @@ if isempty(msg)
 function nudge_left_Callback(hObject, eventdata, handles)
 	global GLOBALS;
 	set_status('nudge left'); 	
-	msg = GLOBALS.last_look;  
-if isempty(msg)
-	return; 
+	try
+		msg = GLOBALS.last_look{GLOBALS.focus};  
+	catch
+		return; 
 	end
-	msg.theta = mod(msg.theta + pi/180,2*pi); 
+	msg.theta = mod(msg.theta + pi/181,2*pi); 
 	id = GLOBALS.bids(GLOBALS.focus); 
 	send_look_msg(id,msg.theta,msg.phi,msg.type);  
 
@@ -757,15 +792,15 @@ function send_lazer_msg(id,status)
 	msg.status = status;  
 	send_message_to_robot(id,name,msg); 
 
-	function send_look_msg(id,theta,phi,type);
+function send_look_msg(id,theta,phi,type);
 	global GLOBALS; 
 	name = 'Look_Msg'; 
 	msg.theta = theta;  
 	msg.phi = phi; 
 	msg.type = type; %'look', 'track', 'done'
 	msg.distance = GLOBALS.current_distance; 
-	GLOBALS.last_look = msg;
-set_status(type)
+	GLOBALS.last_look{GLOBALS.focus} = msg;
+	set_status(type)
 	send_message_to_robot(id,name,msg); 
 
 function send_message_to_robot(id,name,msg);

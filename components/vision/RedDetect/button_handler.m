@@ -54,17 +54,17 @@ function button_handler(chr,gui)
 	elseif strcmp(chr, 'down')
 		GLOBALS.vision_fns.lazer_down_Callback();     
 	elseif strcmp(chr, 'r')
-		GLOBALS.vision_fns.front_cand_down([],1,1,0,1,1)
+		GLOBALS.vision_fns.omni_cand_down([],3,1,0,1,1,'track')
 	elseif strcmp(chr, 't')
-		GLOBALS.vision_fns.front_cand_down([],1,1,0,1,2)
+		GLOBALS.vision_fns.omni_cand_down([],1,1,0,1,2,'track')
 	elseif strcmp(chr, 'y')
-		GLOBALS.vision_fns.front_cand_down([],1,1,0,1,3)
+		GLOBALS.vision_fns.omni_cand_down([],1,1,0,1,3,'track')
 	elseif strcmp(chr, 'f')
-		GLOBALS.vision_fns.front_cand_down([],1,1,0,2,1)
+		GLOBALS.vision_fns.omni_cand_down([],1,1,0,2,1,'track')
 	elseif strcmp(chr, 'g')
-		GLOBALS.vision_fns.front_cand_down([],1,1,0,2,2)
+		GLOBALS.vision_fns.omni_cand_down([],1,1,0,2,2,'track')
 	elseif strcmp(chr, 'h')
-		GLOBALS.vision_fns.front_cand_down([],1,1,0,2,3)
+		GLOBALS.vision_fns.omni_cand_down([],1,1,0,2,3,'track')
 	else 
 		GLOBALS.vision_fns.set_status(strcat('Invalid hotkey',chr)); 
 	end
