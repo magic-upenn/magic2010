@@ -15,7 +15,7 @@ CFREEMIN = [128 128 128]/255;
 CFREEMAX = [255 255 255]/255;
 CFREEDEL = CFREEMAX - CFREEMIN;
 COOI = [240 10 10]/255;
-COOITEXT = [25 250 25]/255;
+COOITEXT = [25 250 25]/255; % should be 255 255 255
 CRPATH = [120 0 140]/255;
 COOIPATH = [240 10 10]/255;
 CNCPATH = [0 255 0]/255;
@@ -33,10 +33,14 @@ map = GMAP.data.cost;
 map(map>100) = 100;
 map(map < -100) = -100;
 res = GMAP.resolution;
-[xdim ydim] = size(map);
+%map = imcrop(map);
+[xdim ydim] = size(map); % in cells
 
 HEADERSPACE = 20; % number of pixels of space at the top of the map
 MAPSIZE = 20; % size in meters of each small map
+DPI = 200;  % DPI for full map
+DPIs = 200;  % DPI for small maps
+
 
 fid = fopen([filename '.txt'], 'w');
 fprintf(fid, 'Serial\tType\t\tUTM N\t\tUTM E\t\tShirt #\n');
@@ -85,11 +89,9 @@ mapNoffset = MAGIC_CONSTANTS.mapNorthOffset - MAGIC_CONSTANTS.mapNorthMin;
 
 % pre screen paths
 RPATH(1).x=[];
-RPATH.y=[];
+RPATH(1).y=[];
 NPATH=[];
-% NPATH.y=[];
 OPATH=[];
-% OPATH.y=[];
 
 %convert paths to cell indices
 for ID = 1:size(ROBOT_PATH,2)
@@ -108,7 +110,6 @@ for ID = 1:size(OOI_PATH,2)
         OPATH(ID).y = floor((OOI_PATH(ID).y -MAGIC_CONSTANTS.mapNorthMin)/res);
     else
         OPATH(ID) = [];
-        %         OPATH(ID).y = [];
     end
 end
 
@@ -118,7 +119,6 @@ for ID =1:size(NC_PATH, 2)
         NPATH(ID).y = floor((NC_PATH(ID).y -MAGIC_CONSTANTS.mapNorthMin)/res);
     else
         NPATH(ID) = [];
-        %         NPATH(ID).y = [];
     end
 end
 
@@ -140,9 +140,9 @@ out_map3(:,:) = repmat(CDUNK(3), xdim+HEADERSPACE, ydim);
 for gx= 0:(xdim*res -1)
     for gy=0:(ydim*res -1)
         if (mod(gx+gy, 2))
-            out_map1((gx/res)+1:((gx+1)/res), (gy/res)+1:((gy+1)/res)) = CLUNK(1);
-            out_map2((gx/res)+1:((gx+1)/res), (gy/res)+1:((gy+1)/res)) = CLUNK(2);
-            out_map3((gx/res)+1:((gx+1)/res), (gy/res)+1:((gy+1)/res)) = CLUNK(3);
+            out_map1((gx/res)+1+HEADERSPACE:((gx+1)/res)+HEADERSPACE, (gy/res)+1:((gy+1)/res)) = CLUNK(1);
+            out_map2((gx/res)+1+HEADERSPACE:((gx+1)/res)+HEADERSPACE, (gy/res)+1:((gy+1)/res)) = CLUNK(2);
+            out_map3((gx/res)+1+HEADERSPACE:((gx+1)/res)+HEADERSPACE, (gy/res)+1:((gy+1)/res)) = CLUNK(3);
         end
     end
 end
@@ -160,7 +160,7 @@ out_map2(pmidx) = CFREEMAX(2) - (CFREEDEL(2).*(plot_map(pmidx)+100)/200);
 out_map3(pmidx) = CFREEMAX(3) - (CFREEDEL(3).*(plot_map(pmidx)+100)/200);
 
 %plot the walls
-pmidx = plot_map >=90;
+pmidx = plot_map >=75;
 out_map1(pmidx) = CWALL(1);
 out_map2(pmidx) = CWALL(2);
 out_map3(pmidx) = CWALL(3);
@@ -222,13 +222,13 @@ end
 
 
 
-set(gca, 'Position', [.0 .0 1,1], 'Visible', 'off', 'ActivePositionProperty', 'Position');
+set(gca, 'Position', [.0 .0 1 1], 'Visible', 'off', 'ActivePositionProperty', 'Position');
 orient tall
 drawnow;
 %output the file
 % print(h, '-dtiff','-r300',  [filename '_full.tif']);
 %img = get( 99,'Cdata');
-print(h, '-dtiff','-r600',  [filename '_full.tif']);
+print(h, '-dtiff',['-r' num2str(DPI)],  [filename '_full.tif']);
 [img] = imread([filename '_full.tif']);
 option.ModelTiepointTag(4) = MAGIC_CONSTANTS.mapEastMin;
 option.ModelTiepointTag(5) = MAGIC_CONSTANTS.mapNorthMax + HEADERSPACE;
@@ -280,7 +280,7 @@ out_map2(pmidx) = CFREEMAX(2) - (CFREEDEL(2).*(plot_map(pmidx)+100)/200);
 out_map3(pmidx) = CFREEMAX(3) - (CFREEDEL(3).*(plot_map(pmidx)+100)/200);
         
         %plot the walls
-        pmidx = plot_map >=90;
+        pmidx = plot_map >=75;
         out_map1(pmidx) = CWALL(1);
         out_map2(pmidx) = CWALL(2);
         out_map3(pmidx) = CWALL(3);
@@ -357,7 +357,7 @@ out_map3(pmidx) = CFREEMAX(3) - (CFREEDEL(3).*(plot_map(pmidx)+100)/200);
         orient tall
         drawnow;
         %output the file
-        print(h, '-dtiff', '-r300', [filename '_' num2str(x) '_' num2str(y) '.tif']);
+        print(h, '-dtiff', ['-r' num2str(DPIs)], [filename '_' num2str(x) '_' num2str(y) '.tif']);
 %         print(h, '-dtiff','-r600',  [filename '_full.tif']);
 [img] = imread([filename '_' num2str(x) '_' num2str(y) '.tif']);
 option.ModelTiepointTag(4) = MAGIC_CONSTANTS.mapEastMin + 20*y;
