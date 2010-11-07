@@ -54,7 +54,7 @@ switch event
 
 
    %Tilt servo
-   servoMsgName = GetMsgName('Servo1Cmd');
+   servoMsgName = GetMsgName('Servo2Cmd');
    servoCmd.id           = 2;
    servoCmd.mode         = 0;
    servoCmd.minAngle     = max(min(TILT_ANGLE, max_tilt), -max_tilt);
