@@ -1,8 +1,13 @@
+function receiveImu(host)
 SetMagicPaths;
+
+if (nargin < 1)
+    host = 'localhost';
+end
 
 servoMsgName = GetMsgName('ImuFiltered');
 
-ipcAPIConnect('localhost');
+ipcAPIConnect(host);
 ipcAPISubscribe(servoMsgName);
 
 oldT = 0;
