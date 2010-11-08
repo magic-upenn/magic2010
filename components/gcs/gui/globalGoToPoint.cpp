@@ -5,9 +5,8 @@
 
 using namespace std;
 
-#include "../../common/dataTypes/MagicPlanDataTypes.h"
-#include "../../ipc/ipc.h"
-#include "../sbpl/src/sbpl/headers.h"
+#include "../../../common/dataTypes/MagicPlanDataTypes.h"
+#include "../../sbpl/src/sbpl/headers.h"
 
 
 #define MODULE_NAME "GCS GoTo Point"
@@ -68,7 +67,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
     const unsigned char FREE = 0;
     
     const double ABS_TH = 500;
-    const double OBS_TH = 90;
+    const double OBS_TH = 70;
     const double UNK_TH = -1;
     
     const double SOFT_PAD_DIST = 1.0;
