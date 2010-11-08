@@ -229,7 +229,7 @@ print(h, '-dtiff',['-r' num2str(DPI)],  [filename '_full.tif']);
 option.ModelTiepointTag(4) = MAGIC_CONSTANTS.mapEastMin;
 option.ModelTiepointTag(5) = MAGIC_CONSTANTS.mapNorthMax + HEADERSPACE;
 
-geotiffwrite([filename '_full.tif'],[],img,8,option);
+%geotiffwrite([filename '_full.tif'],[],img,8,option);
 
 
 % make small maps
