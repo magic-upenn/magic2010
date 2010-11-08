@@ -5,10 +5,12 @@ function params = set_ctrl_values(camnum,params)
 		cam = @uvcCam1;
 	end
 old = get_ctrl_values(camnum);
-if params.exposure_absolute <= 1  
-	params.exposure_absolute == 1; 
-	params.exposure_auto = 3; 
+if params.exposure_absolute < 1  
+	params.exposure_absolute = 1; 
+	params.exposure_auto = 3;
+  'Setting too auto exposure'
 else
+  'Setting to manual exposure'
 	params.exposure_auto = 1; 
 end
 
@@ -33,7 +35,7 @@ changed = false;
 field_names = fields(names); 
 for f = 1:numel(field_names)
 	field = field_names{f}; 
-	if strcmp(field,'exposure_auto')
+	if strcmp(field,'exposure_absolute')
 		params.(field) = min(10000,max(0,params.(field)));
 	else
 		params.(field) = min(255,max(0,params.(field)));
