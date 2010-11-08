@@ -12,7 +12,7 @@ end
 
 if isempty(RNODE{id}),
   if (pose.gpsValid && ...
-      (pose.gps.speed > 0.2)),
+      (pose.gps.speed > 0.8)),
     disp(sprintf('Initial GPS lock on robot %d', id));
 
     % Initialize RNODE struct:
@@ -88,3 +88,10 @@ RNODE{id}.oL(:,n) = oL1;
 RNODE{id}.pF(:,n) = o_mult(pFPrev, oL1); 
 
 GPOSE{id} = o_mult(GTRANSFORM{id}, RNODE{id}.pL(:,n));
+
+
+% Delete memory:
+if (n > 30),
+  RNODE{id}.hlidar{n-30} = [];
+  RNODE{id}.vlidar{n-30} = [];
+end

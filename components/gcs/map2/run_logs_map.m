@@ -7,7 +7,7 @@ function run_logs_map(logdir)
   more off
 
   % Load scenario parameters
-  gcsParams;
+  %gcsParams;
 
   % Initialize global variables
   gcsMapInit;
@@ -16,14 +16,16 @@ function run_logs_map(logdir)
   if nargin < 1,
     %logdir = '~/MAGIC2010/Logs/master/log2';
     %logdir = '~/MAGIC2010/Logs/master/hill_field2';
-    logdir = '~/MAGIC2010/Logs/TowerField1';
+    logdir = '~/MAGIC2010/Logs/Hampstead2';
   end
 
   logname = '*_log_*.mat';
   dirList = dir([logdir '/' logname]);
 
-  tmap = clock;
-  tdisp = clock;
+  tmap = gettime;
+  tdisp = gettime;
+  tprocess = gettime;
+  nprocess = 0;
 
   for iLog = 1:length(dirList),
     logFile = [logdir '/' dirList(iLog).name];
@@ -58,6 +60,13 @@ function run_logs_map(logdir)
 
         %gdispRobot(id, RNODE{id}.pF(:,end));
         gdispRobot(id, GPOSE{id});
+
+        nprocess = nprocess+1;
+        if (rem(nprocess,100) == 0)
+          disp(sprintf('nprocess: %d, %.1f sec', ...
+                       nprocess, gettime-tprocess));
+          tprocess = gettime;
+        end
           
       case 'MapUpdateV'
         id = pkt.id;
@@ -77,13 +86,13 @@ function run_logs_map(logdir)
       
       end
 
-      if (etime(clock, tmap) > 5),
-        tmap = clock;
+      if (gettime-tmap) > 5,
+        tmap = gettime;
         gmapRecalc;
       end
 
-      if (etime(clock, tdisp) > .5),
-        tdisp = clock;
+      if (gettime-tdisp) > .5,
+        tdisp = gettime;
         gdispMap(GMAP.im, GMAP.x, GMAP.y);
 
         %{

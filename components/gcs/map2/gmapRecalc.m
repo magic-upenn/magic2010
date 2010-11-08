@@ -8,7 +8,8 @@ global GTRANSFORM
 GMAP.im = GMAP.im0 + 0; % Force making copy
 
 idValid = [];
-for id = 1:9,
+idMax = 5;  % Set to 5:
+for id = 1:idMax,
   if ~isempty(RCLUSTER{id}),
     idValid(end+1) = id;
   end

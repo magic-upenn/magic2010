@@ -78,7 +78,9 @@ function run_udp(log_file)
           disp(sprintf('MapUpdateV: waiting for RNODE on robot %d', id));
         else
           gcsMapUpdateV(id, pkt.vlidar);
-          gmapAdd(id, RNODE{id}.n);
+          if (id < 6), % no disrupters
+            gmapAdd(id, RNODE{id}.n);
+          end
         end
 
         nProcess = nProcess+1;
@@ -88,6 +90,7 @@ function run_udp(log_file)
           tProcess = gettime;
         end
 
+        %{
       case 'Pose'
       % Pose packet:
 
@@ -134,13 +137,14 @@ function run_udp(log_file)
         gcsMapUpdateV(id, pkt);
         gmapAdd(id, RNODE{id}.n);
 
+        %}
       otherwise
         
         disp('Unknown packet!');
       
       end
 
-      if (gettime- tmap > 5.0),
+      if (gettime- tmap > 10.0),
         tmap = gettime;
         gmapRecalc;
       end

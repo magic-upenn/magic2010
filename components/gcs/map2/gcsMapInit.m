@@ -34,6 +34,7 @@ if ~isempty(MAGIC_CONSTANTS),
 else
   [utmE, utmN, utmZone] = deg2utm(39.9524, -75.1915);
   [utmE, utmN, utmZone] = deg2utm(-34.9764, 138.5123);
+  [utmE, utmN, utmZone] = deg2utm(-34.8709, 138.6216);
   mapEastMin = utmE-150.0;
   mapEastMax = utmE+100.0;
   mapNorthMin = utmN-120.0;
