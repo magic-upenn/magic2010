@@ -23,7 +23,9 @@ function RedDetect
 	ipcReceiveSetFcn(GetMsgName('Lidar1'),   @VisionLidarVHandler);
 	ipcReceiveSetFcn(GetMsgName('Servo1'),   @VisionServoHandler);
 	ipcReceiveSetFcn(GetMsgName('Lazer_Msg'),   @LazerMsgHandler);
-	LIDAR.scanH = [];
+  ipcReceiveSetFcn(GetMsgName('EstopState'),   @EstopMsgHandler);
+	
+  LIDAR.scanH = [];
 	LIDAR.scanV = [];
 	LIDAR.servo = 0;
 	PARAMS.omni = []; 
@@ -168,5 +170,21 @@ global LIDAR
 if ~isempty(data)
   servo = MagicServoStateSerializer('deserialize',data);
   LIDAR.servo = servo.position;
+end
+
+fucntion EstopMsgHandler(data,name)
+global FTIME OTIME
+if ~isempty(data)
+  state = MagicEstopStateSerializer('deserialize',data);
+  if ~isfield(state,'state'), return, end
+  
+  if (state.state != 0)
+    FTIME = inf;
+    OTIME = inf;
+  
+  else
+    FTIME = 1;
+    OTIME = .5;
+  end
 end
 
