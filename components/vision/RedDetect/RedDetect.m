@@ -11,7 +11,7 @@ function RedDetect
 	system('sh $MAGIC_DIR/components/vision/RedDetect/add_ctrls.sh&')
 	pause(1)
 	'Added controls'
-	global POSE LIDAR PARAMS FTIME OTIME; 
+	global POSE LIDAR PARAMS FTIME OTIME FTIME2 OTIME2; 
 	POSE.data = [];
 	SetMagicPaths;
 	addpath( [ getenv('MAGIC_DIR') '/trunk/components/vision/uvcCam' ] )
@@ -37,6 +37,8 @@ function RedDetect
 	%%%%%%%%%%%%%%%%%%
 	FTIME = .5; 
 	OTIME = .5; 
+    FTIME2 = FTIME;
+    OTIME2 = OTIME;
 	ftic = tic;
 	otic = tic; 
 	while(1)
@@ -119,7 +121,7 @@ function PoseMsgHander(data,name)
 	POSE.data = MagicPoseSerializer('deserialize',data);
 
 function CamParamsMsgHandler(data,name)
-	global PARAMS OTIME FTIME
+	global PARAMS OTIME FTIME FTIME2 OTIME2
   	'Changing params'
 	if isempty(data)
 		return;
@@ -136,6 +138,8 @@ function CamParamsMsgHandler(data,name)
   if params.cam == 2
     OTIME = params.otime; 
     FTIME = params.ftime;
+    OTIME2 = OTIME;
+    FTIME2 = FTIME;
     sprintf('Timings are now %f %f',OTIME,FTIME)
   end
 
@@ -172,19 +176,19 @@ if ~isempty(data)
   LIDAR.servo = servo.position;
 end
 
-fucntion EstopMsgHandler(data,name)
-global FTIME OTIME
+function EstopMsgHandler(data,name)
+global FTIME OTIME FTIME2 OTIME2
 if ~isempty(data)
   state = MagicEstopStateSerializer('deserialize',data);
   if ~isfield(state,'state'), return, end
   
-  if (state.state != 0)
+  if (state.state ~= 0)
     FTIME = inf;
     OTIME = inf;
   
   else
-    FTIME = 1;
-    OTIME = .5;
+    FTIME = FTIME2;
+    OTIME = OTIME2;
   end
 end
 
