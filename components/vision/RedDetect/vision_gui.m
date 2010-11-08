@@ -131,14 +131,17 @@ set(handles.ih_hist_omni(t),'CData',history.omni{id});
 end
 drawnow 
 
-function updateBox(box)
+function updateBox(box,beat)
+	if nargin < 2
+		beat = 1; 
+	end
 	global GLOBALS IMAGES; 
 	handles = guidata(GLOBALS.vision_gui);
 	img = IMAGES(GLOBALS.bids(box));
 	if box < 3
 	updateFrontFocused(box); 	
 	end
-	updateOmni(box);
+	updateOmni(box,beat);
 
 function updateOOIHistory(id,ser)
 	global GLOBALS IMAGES;
@@ -170,8 +173,11 @@ function updateOOIHistory(id,ser)
 	end
 
 
-function updateOmni(box)
-	global GLOBALS IMAGES; 
+function updateOmni(box,beat)
+	global GLOBALS IMAGES;
+	if nargin < 2
+		beat = 1; 
+	end; 
 	handles = guidata(GLOBALS.vision_gui);
 	img = IMAGES(GLOBALS.bids(box));
 	cname = sprintf('cand%d',box);
@@ -194,7 +200,9 @@ function updateOmni(box)
 	speed_colors = 'ryg';
 	oh = GLOBALS.heartbeat(id);
 	nh = mod(GLOBALS.heartbeat(id),2) + 1;
-	GLOBALS.heartbeat(id) = nh;
+	if beat
+		GLOBALS.heartbeat(id) = nh;
+	end
 	text(231,95,'\_','Parent',handles.(oname),...
 			'FontSize',21,'Color',colors(oh), ...
 			'BackgroundColor',colors(nh));
@@ -277,8 +285,11 @@ function updateGui(id)
 	global GLOBALS IMAGES; 
 	updateHistory(id); 
 	handles = guidata(GLOBALS.vision_gui);
-	box = find(GLOBALS.bids == id); 
-	updateBox(box)
+	boxes = sort(find(GLOBALS.bids == id));
+	if numel(boxes) > 1
+		updateBox(boxes(2),0); 	
+	end
+	updateBox(boxes(1)); 
 
 function updateWithPackets(imPackets)
 	global IMAGES GLOBALS;
@@ -400,7 +411,7 @@ function omni_cand_down(axeh,x,y,dclick,box,cand,type)
 	x = mean(bb(3:4)); 
 	y = mean(bb(1:2)); 
 	servo_yaw = IMAGES(id).front_angle; 
-	[theta] = pixel_to_angle(IMAGES(id).omni,x); 
+	[theta] = pixel_to_angle(IMAGES(id).omni,x);
 	lookat(id,theta,0,type);
 	if box < 3 
 		focus = box;
@@ -507,7 +518,7 @@ function setup_global_vars(vision_gui)
 	GLOBALS.last_click = [0,0]; 
 	GLOBALS.last_click_box = 0; 
 	GLOBALS.last_click_time = tic; 
-	GLOBALS.bids = [1 2 3 4 5 6 7 8 9];  
+	GLOBALS.bids = [1 2 1 2 3 4 5 7 8];  
 	GLOBALS.track_mode = false; 
 	GLOBALS.heartbeat = ones(1,9); 
      	GLOBALS.startAngle = -2.356194496154785;
@@ -595,30 +606,24 @@ function setup_global_vars(vision_gui)
 
 function set_focus(new_fr)
 	global GLOBALS;
+	if GLOBALS.bids(1) == new_fr || GLOBALS.bids(2) == new_fr
+		set_status(sprintf('%d already in front focus',new_fr))
+		return; 
+	end
+	%new_fr is not in focus
 	handles = guidata(GLOBALS.vision_gui); 
-	new_fr_old_box = find(GLOBALS.bids == new_fr);  
 	old_fr = GLOBALS.bids(GLOBALS.focus);  
 	GLOBALS.bids(GLOBALS.focus) = new_fr; 
-	GLOBALS.bids(new_fr_old_box) = old_fr; 
-	delete(findobj(get(handles.(sprintf('omni%d',new_fr_old_box)),'Children'),'Type','Text')); 
-	delete(findobj(get(handles.(sprintf('omni%d',new_fr_old_box)),'Children'),'Type','Rectangle')); 
-	delete(findobj(get(handles.(sprintf('omni%d',new_fr_old_box)),'Children'),'Type','Line'));
-	set(handles.(sprintf('ih_omni%d',new_fr_old_box)),'CData',GLOBALS.null_omni);
-	GLOBALS.bids(3:8) = sort(GLOBALS.bids(3:8));  
 	GLOBALS.vision_fns.set_status(sprintf('Gave focus to: %d',new_fr)); 
 	GLOBALS.vision_fns.updateBox(GLOBALS.focus); 
-	%old_fr is in front focus, and is going fast	
-	%If new_fr was not in front focus, it needs to speed up, and the old_fr needs to slow down
+	%Slow old_fr, speed new_fr
 	msg.id = new_fr; 
-	if new_fr_old_box > 2
-		'Slowing old, speeding new'
-		msg.cam = 2; 
-		msg.otime = 0.5;
-		msg.ftime = 0.5;
-		send_cam_param_msg(new_fr,msg)
-		msg.ftime = 2;
-		send_cam_param_msg(old_fr,msg)
-	end
+	msg.cam = 2; 
+	msg.otime = 0.5;
+	msg.ftime = 0.5;
+	send_cam_param_msg(new_fr,msg)
+	msg.ftime = 2;
+	send_cam_param_msg(old_fr,msg)
 	%If new_fr was in front focus, nobody changes speed
 	
 
@@ -770,7 +775,12 @@ function lookat(id,theta,phi,type)
 		abs_angle = IMAGES(id).pose.yaw;   
 	end
 	set_status(type);
-	updateOmni(find(GLOBALS.bids == id)); ; 
+	boxes = sort(find(GLOBALS.bids == id));
+	if numel(boxes) > 1
+		updateOmni((2),0); 	
+	end
+	updateOmni(boxes(1)); 
+	  
 	[theta,abs_angle,theta+abs_angle,mod(theta-abs_angle,2*pi)] 
 	send_look_msg(id,mod(theta+abs_angle,2*pi),phi,type); 
 
