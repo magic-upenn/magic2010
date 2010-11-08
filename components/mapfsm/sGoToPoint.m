@@ -33,7 +33,12 @@ switch event
   
  case 'update'
   if ~DATA.havePath
-    getPath();
+    fail = getPath();
+    if fail
+      disp('double fail');
+      ret = 'done';
+      return;
+    end
     DATA.havePath = true;
     DATA.recovery_attempts = 0;
     DATA.recovering = false;
@@ -70,7 +75,7 @@ switch event
 end
 
 
-function getPath()
+function fail = getPath()
 
 global MPOSE PATH_DATA MAP AVOID_REGIONS
 
@@ -103,8 +108,17 @@ if(size(PATH_DATA.goToPointGoal,1) == 1)
   lattice_planner_mex('goal',PATH_DATA.goToPointGoal);
   disp('goal sent!');
 else
+  %trim the path
+  [dummy, idx]=min(sum(([PATH_DATA.goToPointGoal(:,1)-MPOSE.x PATH_DATA.goToPointGoal(:,2)-MPOSE.y]).^2,2))
+  PATH_DATA.goToPointGoal = PATH_DATA.goToPointGoal(idx:end,:);
+
   disp('sending explore path...');
-  lattice_planner_mex('explore_path',double(PATH_DATA.goToPointGoal));
+  ret = lattice_planner_mex('explore_path',double(PATH_DATA.goToPointGoal))
+  if ret > 0
+    disp('we fail');
+    fail = true;
+    return;
+  end
   disp('explore path sent!');
 end
 
@@ -117,4 +131,5 @@ disp('got plan!');
 ipcAPIPublish(GetMsgName('Planner_Path'), serialize(PATH_DATA.goToPointPath));
 
 PATH_DATA.type = 1;
+fail = false;
 

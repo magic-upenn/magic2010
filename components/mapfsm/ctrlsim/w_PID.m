@@ -113,7 +113,7 @@ offset_rate = (offset_error - offset_prev)/dt;
 w_out =  (heading_error * Khp) + (error_sum * Khi) + (heading_rate * Khd);% + offset_error*Kop + (offset_sum * Koi) + (offset_rate * Kod);
 
 % display for testing
-fprintf('he: % 2.2f es: % 2.2f hr: % 2.2f p: % 2.2f i: % 2.2f d: % 2.2f oe: % 2.2f os: % 2.2f or: % 2.2f p: % 2.2f i: % 2.2f d: % 2.2f w: % 2.3f dt: % 1.3f\n', heading_error, error_sum,heading_rate,(heading_error * Khp), (error_sum * Khi), (heading_rate * Khd), offset_error, offset_sum, offset_rate, offset_error*Kop,offset_sum * Koi,offset_rate * Kod, w_out, dt);
+%fprintf('he: % 2.2f es: % 2.2f hr: % 2.2f p: % 2.2f i: % 2.2f d: % 2.2f oe: % 2.2f os: % 2.2f or: % 2.2f p: % 2.2f i: % 2.2f d: % 2.2f w: % 2.3f dt: % 1.3f\n', heading_error, error_sum,heading_rate,(heading_error * Khp), (error_sum * Khi), (heading_rate * Khd), offset_error, offset_sum, offset_rate, offset_error*Kop,offset_sum * Koi,offset_rate * Kod, w_out, dt);
 
 % close out for next iteration
 error_prev = heading_error;

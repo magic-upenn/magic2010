@@ -3,7 +3,7 @@ function ret = sPath(event, varargin);
 global MPOSE PATH MAP SPEED PATH_DATA
 persistent DATA
 
-timeout = 120.0;
+timeout = 15.0;
 ret = [];
 switch event
  case 'entry'
@@ -70,7 +70,7 @@ switch event
      end
 %}
      temp_ang = sign(dHeading)*min(abs(dHeading), 45*pi/180) + MPOSE.heading;
-     w = w_PID(MPOSE.heading, temp_ang, MPOSE.x, MPOSE.y, [MPOSE.x,MPOSE.y;cos(temp_ang),sin(temp_ang)])
+     w = w_PID(MPOSE.heading, temp_ang, MPOSE.x, MPOSE.y, [MPOSE.x,MPOSE.y;cos(temp_ang),sin(temp_ang)]);
      w = sign(w)*min(abs(w), 3.0);
      SetVelocity(0,w);
      return;
@@ -82,7 +82,7 @@ switch event
    % Check for obstacles ahead:
    xp = MPOSE.x + [.25:.1:5]*cos(MPOSE.heading);
    yp = MPOSE.y + [.25:.1:5]*sin(MPOSE.heading);
-   dObstacle = pathObstacleDistance(xp, yp, MAP)
+   dObstacle = pathObstacleDistance(xp, yp, MAP);
 
    if (dObstacle < .3),
      dxStart = PATH(1,1)-MPOSE.x;

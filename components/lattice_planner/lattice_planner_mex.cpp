@@ -36,7 +36,7 @@ float padding_cost = 2;
 int exploration_obst_thresh = 249;
 int obst_thresh = 254;
 int inner_obst_thresh = obst_thresh-1;
-float close_to_path = 20;
+float close_to_path = 40;
 
 double global_x_offset = 0;
 double global_y_offset = 0;
@@ -284,14 +284,46 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray*prhs[] ){
 
     if(env){
       int i;
+
+      //find the point on the explore path which is closest to the the robot
+      float dx = explore_path[0] - global_start_x;
+      float dy = explore_path[0 + num_pts] - global_start_y;
+      float min_dist_sqr = dx*dx+dy*dy;
+      int min_idx = 0;
       for(i=1; i<num_pts; i++){
+        int cell_x = (explore_path[i]-global_x_offset)/resolution;
+        int cell_y = (explore_path[i + num_pts]-global_y_offset)/resolution;
+        if(!OnMap(cell_x, cell_y))
+          continue;
+
+        dx = explore_path[i] - global_start_x;
+        dy = explore_path[i + num_pts] - global_start_y;
+        float dist = dx*dx+dy*dy;
+        if(dist <= min_dist_sqr){
+          min_dist_sqr = dist;
+          min_idx = i;
+        }
+      }
+      printf("\nclosest point is %d\n\n",min_idx);
+
+      int cell_x = (explore_path[min_idx]-global_x_offset)/resolution;
+      int cell_y = (explore_path[min_idx + num_pts]-global_y_offset)/resolution;
+      if(!OnMap(cell_x, cell_y)){
+        printf("Error: Closest goal point is off the map! Aborting!\n");
+        plhs[0] = mxCreateDoubleMatrix(1,1,mxREAL);
+        double* ret = mxGetPr(plhs[0]);
+        ret[0] = 1;
+      }
+      
+      //trim explore path to when it leaves the map (starting from the closest point to the robot)
+      for(i=min_idx+1; i<num_pts; i++){
 
         //let it slide if the point in within our footprint
-        float dx = explore_path[i] - global_start_x;
-        float dy = explore_path[i + num_pts] - global_start_y;
-        float dist = sqrt(dx*dx+dy*dy)/resolution;
-        if(dist <= outer_radius)
-          continue;
+        //float dx = explore_path[i] - global_start_x;
+        //float dy = explore_path[i + num_pts] - global_start_y;
+        //float dist = sqrt(dx*dx+dy*dy)/resolution;
+        //if(dist <= outer_radius)
+          //continue;
 
         int cell_x = (explore_path[i]-global_x_offset)/resolution;
         int cell_y = (explore_path[i + num_pts]-global_y_offset)/resolution;
@@ -307,6 +339,11 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray*prhs[] ){
       global_goal_y = explore_path[i + num_pts];
       global_goal_theta = explore_path[i + 2*num_pts];
       //printf("exploration goal (%f, %f, %f)\n",global_goal_x,global_goal_y,global_goal_theta);
+      int f_idx = num_pts-1;
+      printf("sub-goal (%f, %f, %f)\nfinal goal (%f,%f,%f)\n\n",global_goal_x,global_goal_y,global_goal_theta,
+            explore_path[f_idx],
+            explore_path[f_idx + num_pts],
+            explore_path[f_idx + 2*num_pts]);
     }
     else{
       global_goal_x = explore_path[(num_pts-1)];
@@ -322,6 +359,9 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray*prhs[] ){
     memcpy(traj_path, explore_path, sizeof(double)*traj_length*3);
 
     initialized |= INIT_TRAJ;
+    plhs[0] = mxCreateDoubleMatrix(1,1,mxREAL);
+    double* ret = mxGetPr(plhs[0]);
+    ret[0] = 0;
   }
   
 
