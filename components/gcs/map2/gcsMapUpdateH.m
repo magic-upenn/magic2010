@@ -67,6 +67,9 @@ if n > 1,
   pFPrev = RNODE{id}.pF(:,n-1);
   phPrev = RNODE{id}.hlidar{n-1};
 else
+  % Hard-code initial gps pose:
+  pose.pGps(3) = 0;
+
   % Use initial gps pose for fitted pose
   pLPrev = pose.pL;
   pFPrev = pose.pGps;
@@ -88,6 +91,12 @@ RNODE{id}.oL(:,n) = oL1;
 RNODE{id}.pF(:,n) = o_mult(pFPrev, oL1); 
 
 GPOSE{id} = o_mult(GTRANSFORM{id}, RNODE{id}.pL(:,n));
+
+
+% Try to fit initial pose:
+if (n==1),
+  ofit = gmapFitPose(id, n);
+end
 
 
 % Delete memory:
