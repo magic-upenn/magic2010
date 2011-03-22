@@ -238,3 +238,4 @@ namespace Magic
 
 #endif //MAGIC_SENSOR_DATA_TYPES_HH
 
+
