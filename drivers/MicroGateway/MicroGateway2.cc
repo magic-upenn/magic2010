@@ -50,6 +50,10 @@ MicroGateway::MicroGateway()
   this->robotId             = -1;
 
   this->encoderTimer.Tic();
+
+
+  this->vCmdPrev = 0;
+  this->wCmdPrev = 0;
 }
 
 
@@ -123,6 +127,11 @@ void MicroGateway::VelocityCmdMsgHandler(MSG_INSTANCE msgRef,
   else if (vcmd->wCmd < -127)
     vcmd->wCmd = -127;
 
+  //filter
+  mg->vCmdPrev = vcmd->vCmd;
+  mg->wCmdPrev = vcmd->wCmd;
+
+/*
   uint8_t cmd[] = {vcmd->vCmd, vcmd->wCmd,0,0};
 
   const int bufSize=256;
@@ -136,6 +145,7 @@ void MicroGateway::VelocityCmdMsgHandler(MSG_INSTANCE msgRef,
     PRINT_ERROR("could not wrap data\n");
 
   mg->SendSerialPacket(tempBuf,len);
+*/
 
   //free memory
   IPC_freeData(IPC_msgInstanceFormatter(msgRef),callData);
@@ -895,6 +905,12 @@ int MicroGateway::Main()
 
   this->ResetImu();
 
+  Timer t0;
+  
+
+  int vCmdPrev = 0;
+  int wCmdPrev = 0;
+
   while(1)
   {
     cnt++;
@@ -916,6 +932,26 @@ int MicroGateway::Main()
     IPC_listen(0);
 
     usleep(1000);
+
+    if (t0.Toc() > 0.05)
+    {
+      t0.Tic();
+      this->vCmdPrev*=0.9;
+      this->wCmdPrev*=0.9;
+      uint8_t cmd[] = {this->vCmdPrev, this->wCmdPrev,0,0};
+
+      const int bufSize=256;
+      uint8_t tempBuf[bufSize];
+
+      uint8_t id   = MMC_MOTOR_CONTROLLER_DEVICE_ID;
+      uint8_t type = MMC_MOTOR_CONTROLLER_VELOCITY_SETTING;
+
+      int len = DynamixelPacketWrapData(id,type,cmd,4,tempBuf,bufSize);
+      if (len < 0)
+        PRINT_ERROR("could not wrap data\n");
+
+      this->SendSerialPacket(tempBuf,len);
+    }
   }
 
   return 0;

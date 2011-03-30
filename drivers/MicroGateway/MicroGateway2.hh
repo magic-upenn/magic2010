@@ -139,6 +139,9 @@ namespace Upenn
     private: string batteryStatusMsgName;
     private: string motorStatusMsgName;
     private: string xbeeMsgName;
+
+    private: int vCmdPrev;
+    private: int wCmdPrev;
   };
 }
 #endif
