@@ -9,7 +9,8 @@ height = 120;
 UdpReceiveAPI('connect',addr,port);
 
 
-nRobots = 6;
+ids=[2 7];
+nRobots = length(ids);
 
 figure(1); clf(gcf);
 hs=[];
@@ -22,6 +23,7 @@ end
 
 drawnow
 
+tic
 while(1)
   packets = UdpReceiveAPI('receive');
   n = length(packets);
@@ -31,7 +33,10 @@ while(1)
       imPacket = deserialize(packets(ii).data);
       im = djpeg(imPacket.jpg);
       id = imPacket.robotId;
-      set(hs(id),'cdata',im); drawnow;
+      idx = find(ids==id,1);
+      
+      set(hs(idx),'cdata',im); drawnow;
+      
     end
   end
   pause(0.01);

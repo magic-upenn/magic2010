@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include "Timer.hh"
 #include "../Atmel/MainController/ParamTable.h"
+#include "MicroParams.hh"
 
 using namespace Upenn;
 
@@ -230,13 +231,18 @@ int ReadConfig(uint16_t offset, uint8_t * data, uint16_t size)
 }
 
 
-int main()
+int main(int argc, char * argv[])
 {
   char * dev = (char*)"/dev/ttyUSB0";
   int baud   = 1000000;
+  int id     = 0;
+
+  if (argc > 1)
+    id = atoi(argv[1]);
+
+  printf("setting param table for id %d\n",id);
 
   
-
   if (sd.Connect(dev,baud))
   {
     PRINT_ERROR("could not connect\n");
@@ -252,24 +258,52 @@ int main()
     PRINT_ERROR("could not switch into config mode\n");
   }
 
+
+  MicroParamsInitialize();
   ParamTable ptable;
-  ptable.id = 6;
-  ptable.mode = 1;
-  ptable.accBiasX = 660;
-  ptable.accBiasY = 650;
-  ptable.accBiasZ = 670;
-  ptable.gyroNomBias = 512;
 
-  ptable.servo1Mode = 0;
-  ptable.servo1MinAngle = -30;
-  ptable.servo1MaxAngle = 30;
-  ptable.servo1MaxSpeed = 50;
+  switch(id)
+  {
+    case 0:
+      printf("please provide the robot id!!!\n");
+      exit(1);
 
-  ptable.servo2Mode = 0;
-  ptable.servo2MinAngle = -30;
-  ptable.servo2MaxAngle = 30;
-  ptable.servo2MaxSpeed = 50;
-  ptable.checksum       = 0;
+    case 1:
+      ptable = ptable1;
+      break;
+    case 2:
+      ptable = ptable2;
+      break;
+    case 3:
+      ptable = ptable3;
+      break;
+    case 4:
+      ptable = ptable4;
+      break;
+    case 5:
+      ptable = ptable5;
+      break;
+    case 6:
+      ptable = ptable6;
+      break;
+    case 7:
+      ptable = ptable7;
+      break;
+    case 8:
+      ptable = ptable8;
+      break;
+    case 9:
+      ptable = ptable9;
+      break;
+    case 10:
+      ptable = ptable10;
+      break;
+  
+    default:
+      printf("please provide the robot id!!!\n");
+      exit(1);
+  }
+  
 
   printf("sizeof param table = %d\n",sizeof(ParamTable));
 

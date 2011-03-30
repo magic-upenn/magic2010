@@ -37,13 +37,14 @@ int main(void)
 
     c = uart0_getchar();
     if (c != EOF) {
-      uart3_putchar(c);
+      uart0_putchar(c);
     }
-
+/*
     c = uart3_getchar();
     if (c != EOF) {
       uart0_putchar(c);
     }
+*/
   }
 
   return 0;

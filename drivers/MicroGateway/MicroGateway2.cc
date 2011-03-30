@@ -335,6 +335,7 @@ int MicroGateway::InitializeMessages()
   this->gpsMsgName           = this->DefineMsg("GPS",GpsASCII::getIPCFormat());
   this->encMsgName           = this->DefineMsg("Encoders",EncoderCounts::getIPCFormat());
   this->imuMsgName           = this->DefineMsg("ImuFiltered",ImuFiltered::getIPCFormat());
+  this->imuRawMsgName        = this->DefineMsg("ImuRaw",ImuRaw::getIPCFormat());
   this->estopMsgName         = this->DefineMsg("EstopState",EstopState::getIPCFormat());
   this->selectedIdMsgName    = this->DefineMsg("SelectedId","{byte}");
   this->servo1StateMsgName   = this->DefineMsg("Servo1",ServoState::getIPCFormat());
@@ -731,9 +732,15 @@ int MicroGateway::ImuPacketHandler(DynamixelPacket * dpacket)
 
   if (packetType == MMC_IMU_RAW)
   {
+    int16_t * adcData = (int16_t*)DynamixelPacketGetData(dpacket);
+
+    ImuRaw raw;
+    memcpy(&raw,adcData,8*sizeof(uint16_t));
+    raw.t = Upenn::Timer::GetAbsoluteTime();
+    IPC_publishData(this->imuRawMsgName.c_str(),&raw);
 
 #ifdef PRINT_IMU_RAW
-    int16_t * adcData = (int16_t*)DynamixelPacketGetData(dpacket);
+    
     double imuDt = this->imuTimer.Toc();
     this->imuTimer.Tic();
 

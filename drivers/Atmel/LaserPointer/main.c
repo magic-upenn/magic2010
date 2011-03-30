@@ -38,7 +38,7 @@ int main(void)
   uint8_t * data;
   
   uart_init();
-  uart_setbaud(1000000);
+  uart_setbaud(115200);
 
   //enable global interrupts 
   sei ();
@@ -48,6 +48,13 @@ int main(void)
   DDRC  |= _BV(PINC0);
   LaserOff();
   
+  while(1)
+  {
+    c= uart_getchar();
+    if (c != EOF)
+     uart_putchar(c);
+  }
+
 
   while(1)
   {

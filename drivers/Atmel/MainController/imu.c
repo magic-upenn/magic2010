@@ -1,5 +1,5 @@
 #include "config.h"
-#include "attitudeFilter.h"
+#include "imu.h"
 #include <math.h>
 
 //latest rotation matrix
@@ -14,6 +14,7 @@ volatile float ax,ay,az,wx,wy,wz;
 uint16_t imuUpdateCntr = 0;
 uint8_t gyrosCalibrated = 0;
 volatile uint8_t biasesSet = 0;
+volatile uint8_t sensSet = 0;
 
 //acceleration biases
 float axb; //= BIAS_ACC_X;
@@ -24,6 +25,12 @@ float azb; //= BIAS_ACC_Z;
 float wxb = 0;
 float wyb = 0;
 float wzb = 0;
+
+//nominal biases
+float wxbn = 0;
+float wybn = 0;
+float wzbn = 0;
+
 
 uint16_t wxcMin = 1023;
 uint16_t wxcMax = 0;
@@ -93,13 +100,33 @@ void ResetImu()
   wzcMax = 0;
 }
 
-
-int SetImuAccBiases(uint16_t biasx, uint16_t biasy, uint16_t biasz)
+int SetImuBiases(uint16_t biasax, uint16_t biasay, uint16_t biasaz,
+                 uint16_t biaswx, uint16_t biaswy, uint16_t biaswz)
 {
-  axb       = biasx;
-  ayb       = biasy;
-  azb       = biasz;
+  axb       = biasax;
+  ayb       = biasay;
+  azb       = biasaz;
+
+  wxbn      = biaswx;
+  wybn      = biaswy;
+  wzbn      = biaswz;
+
   biasesSet = 1;
+  return 0;
+}
+
+int SetImuSensitivities(float accSenX, float accSenY, float accSenZ,
+                        float gyroSenX, float gyroSenY, float gyroSenZ)
+{
+  axs       = accSenX;
+  ays       = accSenY;
+  azs       = accSenZ;
+
+  wxs       = gyroSenX;
+  wys       = gyroSenY;
+  wzs       = gyroSenZ;
+
+  sensSet = 1;
   return 0;
 }
 
@@ -109,7 +136,7 @@ int ProcessImuReadings(uint16_t * adcVals, float * rpy, float * wrpy)
   imuUpdateCntr++;
 
 
-  if (biasesSet == 0)
+  if (biasesSet == 0 || sensSet == 0)
     return -1;
   
   //initialization of rate gyros
@@ -149,12 +176,12 @@ int ProcessImuReadings(uint16_t * adcVals, float * rpy, float * wrpy)
       wyb /= NUM_GYRO_CALIB_SAMPLES;
       wzb /= NUM_GYRO_CALIB_SAMPLES;
 
-      if (wxb > (NOMINAL_GYRO_BIAS + GYRO_BIAS_MARGIN) ||
-          wxb < (NOMINAL_GYRO_BIAS - GYRO_BIAS_MARGIN) ||
-          wyb > (NOMINAL_GYRO_BIAS + GYRO_BIAS_MARGIN) ||
-          wyb < (NOMINAL_GYRO_BIAS - GYRO_BIAS_MARGIN) ||
-          wzb > (NOMINAL_GYRO_BIAS + GYRO_BIAS_MARGIN) ||
-          wzb < (NOMINAL_GYRO_BIAS - GYRO_BIAS_MARGIN) ||
+      if (wxb > (wxbn + GYRO_BIAS_MARGIN) ||
+          wxb < (wxbn - GYRO_BIAS_MARGIN) ||
+          wyb > (wybn + GYRO_BIAS_MARGIN) ||
+          wyb < (wybn - GYRO_BIAS_MARGIN) ||
+          wzb > (wzbn + GYRO_BIAS_MARGIN) ||
+          wzb < (wzbn - GYRO_BIAS_MARGIN) ||
           (wxcMax - wxcMin) > MAX_GYRO_CALIB_NOSE ||
           (wycMax - wycMin) > MAX_GYRO_CALIB_NOSE ||
           (wzcMax - wzcMin) > MAX_GYRO_CALIB_NOSE  )

@@ -11,19 +11,18 @@ typedef struct
 
   uint16_t accBiasY;
   uint16_t accBiasZ;
-  
-  uint16_t gyroNomBias;
-  uint8_t  servo1Mode;
-  uint8_t  servo2Mode;
 
-  int16_t  servo1MinAngle;
-  int16_t  servo1MaxAngle;
+  float    accSenX;
+  float    accSenY;
+  float    accSenZ;
+
+  float    gyroSenX;
+  float    gyroSenY;
+  float    gyroSenZ;
   
-  uint16_t servo1MaxSpeed;
-  int16_t  servo2MinAngle;
-  
-  int16_t  servo2MaxAngle;
-  uint16_t servo2MaxSpeed;
+  uint16_t gyroNomBiasX;
+  uint16_t gyroNomBiasY;
+  uint16_t gyroNomBiasZ;
   
   uint8_t dummy;
   uint8_t checksum;

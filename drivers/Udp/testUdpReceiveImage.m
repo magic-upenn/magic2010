@@ -6,7 +6,7 @@ port = 12345;
 
 UdpReceiveAPI('connect',addr,port);
 
-
+tic;
 while(1)
   packets = UdpReceiveAPI('receive');
   n = length(packets);
@@ -16,6 +16,7 @@ while(1)
       imPacket = deserialize(packets(ii).data);
       im = djpeg(imPacket.jpg);
       image(im); set(gca,'ydir','normal'); drawnow;
+      toc
     end
   end
   pause(0.01);

@@ -10,7 +10,7 @@ include $(MAGIC_DIR)/Makefile.mk
 runMicroGateway2: runMicroGateway2.cc $(OBJECTS)
 	g++ -Wall -o $@ $^ $(CPP_FLAGS) $(INCLUDES) $(LIB_DIRS) $(LIBS)
 
-MicroConfig: MicroConfig.cc $(OBJECTS)
+MicroConfig: MicroConfig.cc $(OBJECTS) MicroParams.o
 	g++ -Wall -o $@ $^ $(CPP_FLAGS) $(INCLUDES) $(LIB_DIRS) $(LIBS)
 
 GetMicroId : GetMicroId.cc $(OBJECTS)

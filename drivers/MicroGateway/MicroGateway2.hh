@@ -133,6 +133,7 @@ namespace Upenn
     private: string gpsMsgName;
     private: string encMsgName;
     private: string imuMsgName;
+    private: string imuRawMsgName;
     private: string estopMsgName;
     private: string selectedIdMsgName;
     private: string servo1StateMsgName;

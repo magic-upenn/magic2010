@@ -37,7 +37,11 @@
 
 
 int ProcessImuReadings(uint16_t * adcVals, float * rpy, float *wrpy);
-int SetImuAccBiases(uint16_t biasx, uint16_t biasy, uint16_t biasz);
+int SetImuBiases(uint16_t biasax, uint16_t biasay, uint16_t biasaz,
+                 uint16_t biaswx, uint16_t biaswy, uint16_t biaswz);
+
+int SetImuSensitivities(float accSenX, float accSenY, float accSenZ,
+                        float gyroSenX, float gyroSenY, float gyroSenZ);
 
 void ResetImu();
 

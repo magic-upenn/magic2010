@@ -16,7 +16,7 @@
 #include "timer1.h"
 #include "timer3.h"
 #include "timer4.h"
-#include "attitudeFilter.h"
+#include "imu.h"
 #include "ParamTable.h"
 #include <avr/eeprom.h>
 #include "Servo1Controller.h"
@@ -54,6 +54,10 @@ volatile uint8_t freshMotorCmd          = 0;
 volatile uint8_t mode                   = MMC_MC_MODE_RUN;
 
 
+volatile uint8_t sendImuRaw         = 0;
+volatile uint8_t sendImuRot         = 1;
+volatile uint8_t sendImuAcc         = 0;
+
 
 ParamTable EEMEM ptableE;
 ParamTable ptableR;
@@ -68,27 +72,20 @@ volatile uint32_t estopTimeout      = 0;
 uint8_t  estopPublishCntr           = 0;
 #define ESTOP_PUBLISH_MOD             3
 
+
+//--------------------------------------------------------------------
+// EEPROM access functions
+//--------------------------------------------------------------------
 int WriteParamTableBlock(uint16_t offset, uint8_t * data, uint16_t size)
 {
   eeprom_write_block(data,((uint8_t*)&(ptableE))+offset,size);
-  //eeprom_write_block((uint8_t*)0,data,1);
-  //eeprom_write_byte((uint8_t*)offset,*data);
   return size;
 }
 
 int ReadParamTableBlock(uint16_t offset, uint8_t * data, uint16_t size)
 {
   eeprom_read_block(data,((uint8_t*)&(ptableE))+offset,size);
-  //eeprom_read_block(data,0,1);
-  //*data = eeprom_read_byte((uint8_t*)offset);
   return size;
-}
-
-inline void PutUInt16(uint16_t val)
-{
-  uint8_t * p = (uint8_t*)&val;
-  HOST_COM_PORT_PUTCHAR(*(p+1));
-  HOST_COM_PORT_PUTCHAR(*p);
 }
 
 void SendEstopStatus(void)
@@ -96,7 +93,6 @@ void SendEstopStatus(void)
   HostSendPacket(MMC_ESTOP_DEVICE_ID,MMC_ESTOP_STATE,
                  (uint8_t*)&estopState,1);
 }
-
 
 
 void globalTimerOverflow(void)
@@ -120,16 +116,6 @@ void Rs485ResponseTimeout(void)
   timer4_disable_compa_callback();
 }
 
-void InitLeds()
-{
-  LED_ERROR_DDR     |= _BV(LED_ERROR_PIN);
-  LED_PC_ACT_DDR    |= _BV(LED_PC_ACT_PIN);
-  LED_ESTOP_DDR     |= _BV(LED_ESTOP_PIN);
-  LED_GPS_DDR       |= _BV(LED_GPS_PIN);
-  LED_RC_DDR        |= _BV(LED_RC_PIN);
-  LASER0_DDR        |= _BV(LASER0_PIN);
-}
-
 
 void SetBusBlocked()
 {
@@ -144,6 +130,23 @@ void EncodersRequestFcn(void)
   TCNT1 = 0;
 }
 
+
+//--------------------------------------------------------------------
+// Initialize LED ports
+//--------------------------------------------------------------------
+void InitLeds()
+{
+  LED_ERROR_DDR     |= _BV(LED_ERROR_PIN);
+  LED_PC_ACT_DDR    |= _BV(LED_PC_ACT_PIN);
+  LED_ESTOP_DDR     |= _BV(LED_ESTOP_PIN);
+  LED_GPS_DDR       |= _BV(LED_GPS_PIN);
+  LED_RC_DDR        |= _BV(LED_RC_PIN);
+  LASER0_DDR        |= _BV(LASER0_PIN);
+}
+
+//--------------------------------------------------------------------
+// Main Init function
+//--------------------------------------------------------------------
 void init(void)
 {
   uint16_t dummy = 0;
@@ -549,7 +552,11 @@ int XbeePacketHandler(DynamixelPacket * dpacket)
 int LoadAndSetEepromParams()
 {
   ReadParamTableBlock(0,&ptableR,sizeof(ParamTable));
-  SetImuAccBiases(ptableR.accBiasX,ptableR.accBiasY,ptableR.accBiasZ);
+  SetImuBiases(ptableR.accBiasX,ptableR.accBiasY,ptableR.accBiasZ,
+               ptableR.gyroNomBiasX, ptableR.gyroNomBiasY, ptableR.gyroNomBiasZ);
+
+  SetImuSensitivities(ptableR.accSenX, ptableR.accSenY, ptableR.accSenZ,
+                      ptableR.gyroSenX, ptableR.gyroSenY, ptableR.gyroSenZ);
   return 0;
 }
 
@@ -734,7 +741,7 @@ int main(void)
         HostSendPacket(MMC_IMU_DEVICE_ID,MMC_IMU_ROT, 
                   (uint8_t*)imuOutVals,6*sizeof(float));
       }
-      else if (imuRet == 1)    //send out raw values if calibration is not finished
+      if (imuRet == 1 || sendImuRaw == 1)    //send out raw values if calibration is not finished
       {
         imuPacket[0] = adcCntr;
         memcpy(&(imuPacket[1]),adcVals,NUM_ADC_CHANNELS*sizeof(uint16_t));
