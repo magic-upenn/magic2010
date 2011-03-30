@@ -1,6 +1,8 @@
 #include "MicroParams.hh"
 #include <math.h>
 
+#define ADC_VOLTAGE_MV 2560.0
+
 ParamTable ptable1;
 ParamTable ptable2;
 ParamTable ptable3;
@@ -23,9 +25,9 @@ int MicroParamsInitialize()
   ptable1.accSenX      = (1.0/139.0);
   ptable1.accSenY      = (1.0/139.0);
   ptable1.accSenZ      = (1.0/139.0);
-  ptable1.gyroSenX     = (M_PI/180.0/3.5);
-  ptable1.gyroSenY     = (M_PI/180.0/3.5);
-  ptable1.gyroSenZ     = (M_PI/180.0/3.5);
+  ptable1.gyroSenX     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
+  ptable1.gyroSenY     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
+  ptable1.gyroSenZ     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
   ptable1.gyroNomBiasX = 485;
   ptable1.gyroNomBiasY = 485;
   ptable1.gyroNomBiasZ = 485;
@@ -41,9 +43,9 @@ int MicroParamsInitialize()
   ptable2.accSenX      = (1.0/139.0);
   ptable2.accSenY      = (1.0/139.0);
   ptable2.accSenZ      = (1.0/139.0);
-  ptable2.gyroSenX     = (M_PI/180.0/3.5);
-  ptable2.gyroSenY     = (M_PI/180.0/3.5);
-  ptable2.gyroSenZ     = (M_PI/180.0/3.5);
+  ptable2.gyroSenX     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
+  ptable2.gyroSenY     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
+  ptable2.gyroSenZ     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
   ptable2.gyroNomBiasX = 485;
   ptable2.gyroNomBiasY = 485;
   ptable2.gyroNomBiasZ = 485;
@@ -59,9 +61,9 @@ int MicroParamsInitialize()
   ptable3.accSenX      = (1.0/139.0);
   ptable3.accSenY      = (1.0/139.0);
   ptable3.accSenZ      = (1.0/139.0);
-  ptable3.gyroSenX     = (M_PI/180.0/3.5);
-  ptable3.gyroSenY     = (M_PI/180.0/3.5);
-  ptable3.gyroSenZ     = (M_PI/180.0/3.5);
+  ptable3.gyroSenX     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
+  ptable3.gyroSenY     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
+  ptable3.gyroSenZ     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
   ptable3.gyroNomBiasX = 485;
   ptable3.gyroNomBiasY = 485;
   ptable3.gyroNomBiasZ = 485;
@@ -78,9 +80,9 @@ int MicroParamsInitialize()
   ptable4.accSenX      = (1.0/139.0);
   ptable4.accSenY      = (1.0/139.0);
   ptable4.accSenZ      = (1.0/139.0);
-  ptable4.gyroSenX     = (M_PI/180.0/3.5);
-  ptable4.gyroSenY     = (M_PI/180.0/3.5);
-  ptable4.gyroSenZ     = (M_PI/180.0/3.5);
+  ptable4.gyroSenX     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
+  ptable4.gyroSenY     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
+  ptable4.gyroSenZ     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
   ptable4.gyroNomBiasX = 485;
   ptable4.gyroNomBiasY = 485;
   ptable4.gyroNomBiasZ = 485;
@@ -96,9 +98,9 @@ int MicroParamsInitialize()
   ptable5.accSenX      = (1.0/139.0);
   ptable5.accSenY      = (1.0/139.0);
   ptable5.accSenZ      = (1.0/139.0);
-  ptable5.gyroSenX     = (M_PI/180.0/3.5);
-  ptable5.gyroSenY     = (M_PI/180.0/3.5);
-  ptable5.gyroSenZ     = (M_PI/180.0/3.5);
+  ptable5.gyroSenX     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
+  ptable5.gyroSenY     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
+  ptable5.gyroSenZ     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
   ptable5.gyroNomBiasX = 485;
   ptable5.gyroNomBiasY = 485;
   ptable5.gyroNomBiasZ = 485;
@@ -115,9 +117,9 @@ int MicroParamsInitialize()
   ptable6.accSenX      = (1.0/139.0);
   ptable6.accSenY      = (1.0/139.0);
   ptable6.accSenZ      = (1.0/139.0);
-  ptable6.gyroSenX     = (M_PI/180.0/3.5);
-  ptable6.gyroSenY     = (M_PI/180.0/3.5);
-  ptable6.gyroSenZ     = (M_PI/180.0/3.5);
+  ptable6.gyroSenX     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
+  ptable6.gyroSenY     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
+  ptable6.gyroSenZ     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
   ptable6.gyroNomBiasX = 485;
   ptable6.gyroNomBiasY = 485;
   ptable6.gyroNomBiasZ = 485;
@@ -127,15 +129,15 @@ int MicroParamsInitialize()
 
   ptable7.id           = 7;
   ptable7.mode         = 0;
-  ptable7.accBiasX     = 660;
-  ptable7.accBiasY     = 660;
-  ptable7.accBiasZ     = 660;
-  ptable7.accSenX      = (1.0/139.0);
-  ptable7.accSenY      = (1.0/139.0);
-  ptable7.accSenZ      = (1.0/139.0);
-  ptable7.gyroSenX     = (M_PI/180.0/3.5);
-  ptable7.gyroSenY     = (M_PI/180.0/3.5);
-  ptable7.gyroSenZ     = (M_PI/180.0/3.5);
+  ptable7.accBiasX     = 649;
+  ptable7.accBiasY     = 655;
+  ptable7.accBiasZ     = 678;
+  ptable7.accSenX      = (1.0/138.0);
+  ptable7.accSenY      = (1.0/137.0);
+  ptable7.accSenZ      = (1.0/129.0);
+  ptable7.gyroSenX     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
+  ptable7.gyroSenY     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
+  ptable7.gyroSenZ     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
   ptable7.gyroNomBiasX = 485;
   ptable7.gyroNomBiasY = 485;
   ptable7.gyroNomBiasZ = 485;
@@ -152,9 +154,9 @@ int MicroParamsInitialize()
   ptable8.accSenX      = (1.0/139.0);
   ptable8.accSenY      = (1.0/139.0);
   ptable8.accSenZ      = (1.0/139.0);
-  ptable8.gyroSenX     = (M_PI/180.0/3.5);
-  ptable8.gyroSenY     = (M_PI/180.0/3.5);
-  ptable8.gyroSenZ     = (M_PI/180.0/3.5);
+  ptable8.gyroSenX     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
+  ptable8.gyroSenY     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
+  ptable8.gyroSenZ     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
   ptable8.gyroNomBiasX = 485;
   ptable8.gyroNomBiasY = 485;
   ptable8.gyroNomBiasZ = 485;
@@ -170,9 +172,9 @@ int MicroParamsInitialize()
   ptable9.accSenX      = (1.0/139.0);
   ptable9.accSenY      = (1.0/139.0);
   ptable9.accSenZ      = (1.0/139.0);
-  ptable9.gyroSenX     = (M_PI/180.0/3.5);
-  ptable9.gyroSenY     = (M_PI/180.0/3.5);
-  ptable9.gyroSenZ     = (M_PI/180.0/3.5);
+  ptable9.gyroSenX     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
+  ptable9.gyroSenY     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
+  ptable9.gyroSenZ     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
   ptable9.gyroNomBiasX = 485;
   ptable9.gyroNomBiasY = 485;
   ptable9.gyroNomBiasZ = 485;
@@ -189,9 +191,9 @@ int MicroParamsInitialize()
   ptable10.accSenX      = (1.0/139.0);
   ptable10.accSenY      = (1.0/139.0);
   ptable10.accSenZ      = (1.0/139.0);
-  ptable10.gyroSenX     = (M_PI/180.0/3.5);
-  ptable10.gyroSenY     = (M_PI/180.0/3.5);
-  ptable10.gyroSenZ     = (M_PI/180.0/3.5);
+  ptable10.gyroSenX     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
+  ptable10.gyroSenY     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
+  ptable10.gyroSenZ     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
   ptable10.gyroNomBiasX = 485;
   ptable10.gyroNomBiasY = 485;
   ptable10.gyroNomBiasZ = 485;
