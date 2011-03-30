@@ -117,6 +117,56 @@ int ServoControllerCmd::WriteToMatlab(mxArray * mxArr, int index)
   return 0;
 }
 
+//ImuRaw
+int ImuRaw::ReadFromMatlab(mxArray * mxArr, int index)
+{
+  int numFieldsRead = 0;
+
+  MEX_READ_FIELD(mxArr,index,cntr,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,rawAx,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,rawAy,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,rawAz,numFieldsRead);
+
+  MEX_READ_FIELD(mxArr,index,rawWx,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,rawWy,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,rawWz,numFieldsRead);
+
+  MEX_READ_FIELD(mxArr,index,rawMx,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,rawMy,numFieldsRead);
+  MEX_READ_FIELD(mxArr,index,rawMz,numFieldsRead);  
+
+
+  MEX_READ_FIELD(mxArr,index,t,numFieldsRead);
+
+  return numFieldsRead;
+}
+
+int ImuRaw::CreateMatlabStructMatrix(mxArray ** mxArrPP,int m, int n)
+{
+  const char * fields[]= { "cntr","rawAx","rawAy","rawAz","rawWx","rawWy","rawWz","rawMx","rawMy","rawMz","t"};
+  const int nfields = sizeof(fields)/sizeof(*fields);
+  *mxArrPP = mxCreateStructMatrix(m,n,nfields,fields);
+  return 0;
+}
+
+int ImuRaw::WriteToMatlab(mxArray * mxArr, int index)
+{
+  MEX_WRITE_FIELD(mxArr,index,cntr);
+  MEX_WRITE_FIELD(mxArr,index,rawAx);  
+  MEX_WRITE_FIELD(mxArr,index,rawAy);
+  MEX_WRITE_FIELD(mxArr,index,rawAz);
+
+  MEX_WRITE_FIELD(mxArr,index,rawWx);  
+  MEX_WRITE_FIELD(mxArr,index,rawWy);
+  MEX_WRITE_FIELD(mxArr,index,rawWz);
+
+  MEX_WRITE_FIELD(mxArr,index,rawMx);  
+  MEX_WRITE_FIELD(mxArr,index,rawMy);
+  MEX_WRITE_FIELD(mxArr,index,rawMz);
+
+  MEX_WRITE_FIELD(mxArr,index,t);
+  return 0;
+}
 
 //ImuFiltered
 int ImuFiltered::ReadFromMatlab(mxArray * mxArr, int index)

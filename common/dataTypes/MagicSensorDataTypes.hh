@@ -70,6 +70,31 @@ namespace Magic
   #endif
 
   };
+
+  struct ImuRaw
+  {
+    uint16_t cntr;
+    uint16_t rawAx;
+    uint16_t rawAy;
+    uint16_t rawAz;
+    uint16_t rawWx;
+    uint16_t rawWy;
+    uint16_t rawWz;
+    uint16_t rawMx;
+    uint16_t rawMy;
+    uint16_t rawMz;
+
+    double t;
+
+    #define MagicImuRaw_IPC_FORMAT "{ushort,ushort,ushort,ushort,ushort,ushort,ushort,ushort,ushort,ushort,double}"
+    
+    static const char* getIPCFormat() { return MagicImuRaw_IPC_FORMAT; }
+    
+  #ifdef MEX_IPC_SERIALIZATION
+    INSERT_SERIALIZATION_DECLARATIONS 
+  #endif    
+
+  };
   
   struct ImuFiltered
   {
