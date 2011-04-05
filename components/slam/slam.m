@@ -25,9 +25,11 @@ end
 % Initialize slam process
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function slamStart
-global SLAM OMAP POSE SPREAD LIDAR0
+global SLAM OMAP POSE SPREAD LIDAR0 REF_MAP START_POSITION
 
 SetMagicPaths;
+
+loadConfig;
 
 %ipcAPIHandle = @ipcAPI;
 ipcAPIHandle = @ipcWrapperAPI; %use threaded version
@@ -93,6 +95,8 @@ gpsInit;
 
 sendServoStart;
 
+load refMoore308.mat
+
 %define messages
 DefineSensorMessages;
 
@@ -113,7 +117,6 @@ ipcReceiveSetFcn(GetMsgName('GPS'),         @slamProcessGps,      ipcAPIHandle,5
 ScanMatch2D('setBoundaries',OMAP.xmin,OMAP.ymin,OMAP.xmax,OMAP.ymax);
 ScanMatch2D('setResolution',OMAP.res);
 ScanMatch2D('setSensorOffsets',[LIDAR0.offsetx LIDAR0.offsety LIDAR0.offsetz]);
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Receive and handle ipc messages

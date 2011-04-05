@@ -1,5 +1,15 @@
 function loadConfig1()
-global LIDAR0 LIDAR1 SERVO1 KINECT ENCODERS
+global POSE LIDAR0 LIDAR1 SERVO1 KINECT ENCODERS
+
+
+%pose
+POSE.xInit      = 30;
+POSE.yInit      = 30;
+POSE.zInit      = 0;
+POSE.rollInit   = 0;
+POSE.pitchInit  = 0;
+POSE.yawInit    = 0;
+
 
 %lidar0
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

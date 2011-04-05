@@ -81,4 +81,17 @@ if (SLAM.lidar0Cntr > 1)
   SLAM.yaw = aCand1(jmax);
   SLAM.x   = xGrid1(cimin);
   SLAM.y   = yGrid1(cimin);
+else
+  [xStart yStart thStart] = FindStartPose(SLAM.x, SLAM.y, SLAM.yaw, xsss,ysss);
+
+if ~isempty(xStart)
+  SLAM.x = xStart;
+  SLAM.Y = yStart;
+  SLAM.yaw = thStart;
+  SLAM.xOdom = xStart;
+  SLAM.yOdom = yStart;
+  SLAM.yawOdom = thStart;
+  error('asdf');
+end
+    
 end
