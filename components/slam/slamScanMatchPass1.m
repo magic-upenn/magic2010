@@ -91,7 +91,6 @@ if ~isempty(xStart)
   SLAM.xOdom = xStart;
   SLAM.yOdom = yStart;
   SLAM.yawOdom = thStart;
-  error('asdf');
 end
     
 end
