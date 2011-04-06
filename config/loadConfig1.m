@@ -31,8 +31,8 @@ LIDAR0.mask(970:1010) = 0;
 LIDAR0.mask(1050:end) = 0;
 %}
 % Be very conservative to ensure no interpolated antenna obstacles
-LIDAR0.mask(1:140) = 0;
-LIDAR0.mask(end-139:end) = 0;
+LIDAR0.mask(1:190) = 0;
+LIDAR0.mask(end-189:end) = 0;
 LIDAR0.present = 1;
 
 
@@ -58,8 +58,8 @@ LIDAR1.present = 1;
 SERVO1.offsetx   = 0.165;
 SERVO1.offsety   = 0;
 SERVO1.offsetz   = 0.40;
-SERVO1.amult     = 1; %could be not 1 if servo potentiometer is wearing out
-SERVO1.offsetYaw = rad(0);
+SERVO1.amult     = 0.92; %could be not 1 if servo potentiometer is wearing out
+SERVO1.offsetYaw = rad(3);
 
 %kinect
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
