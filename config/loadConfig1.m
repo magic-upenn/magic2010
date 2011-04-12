@@ -3,8 +3,8 @@ global POSE LIDAR0 LIDAR1 SERVO1 KINECT ENCODERS
 
 
 %pose
-POSE.xInit      = 30;
-POSE.yInit      = 30;
+POSE.xInit      = 0;
+POSE.yInit      = 0;
 POSE.zInit      = 0;
 POSE.rollInit   = 0;
 POSE.pitchInit  = 0;
