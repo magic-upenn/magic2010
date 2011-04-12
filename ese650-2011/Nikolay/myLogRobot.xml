@@ -1,0 +1,19 @@
+<IpcLoggerConfig>
+  <msgPrefix>ENV_ROBOT_ID</msgPrefix>
+  <msgTypeP>GPS</msgTypeP>
+  <msgTypeP>Encoders</msgTypeP>
+  <msgTypeP>EstopState</msgTypeP>
+  <msgTypeP>ImuFiltered</msgTypeP>
+  <msgTypeP>Lidar0</msgTypeP>
+  <msgTypeP>Lidar1</msgTypeP>  
+  <msgTypeP>Servo1</msgTypeP>
+  <msgTypeP>IncMapUpdateH</msgTypeP>
+  <msgTypeP>IncMapUpdateV</msgTypeP>
+  <msgTypeP>Pose</msgTypeP>
+  <msgTypeP>Planner_Path</msgTypeP>
+  <msgTypeP>VelocityCmd</msgTypeP>
+  <msgTypeP>BatteryStatus</msgTypeP>
+  <msgTypeP>MotorStatus</msgTypeP>
+  <flushPeriod>0.5</flushPeriod>
+</IpcLoggerConfig>
+
