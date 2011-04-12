@@ -95,7 +95,7 @@ gpsInit;
 
 sendServoStart;
 
-load refMoore308.mat
+%load refMoore308.mat
 
 %define messages
 DefineSensorMessages;

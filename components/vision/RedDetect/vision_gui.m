@@ -243,11 +243,12 @@ function updateFrontFocused(box)
 	draw_box_on_axes(GLOBALS.current_bb,'c',handles.(fname)); 
 	end
 	draw_range(img.rangeH,img.rangeV,img.front,handles.(fname));  
-	for sc = 1:3
+	for sc = 1:1 %
 	scname = sprintf('candf%d_%d',box,sc); 
 	cand_h = image(img.front_cands{sc},'Parent',handles.(scname)); 
 	daspect(handles.(scname),[1 1 1]); 
-	axis(handles.(scname),'off'); 
+	axis(handles.(scname),'off');
+  img.front_stats
 	bb = img.front_stats(sc,2:end);
 	[dist,vsd,hsd] = get_dist_by_bb([],bb,[],[]); 
 	text(1,10,sprintf('%.1fm',dist),'Parent',handles.(scname),'FontSize',16,'BackgroundColor','y','HitTest','off'); 
@@ -302,7 +303,7 @@ function updateWithPackets(imPackets)
 		if strcmp(imPacket.type,'FrontVision')
  			front = djpeg(imPacket.front);
 			IMAGES(imPacket.id).front = front; 
-			for im = 1:3
+			for im = 1:1 %3
 				IMAGES(imPacket.id).front_cands{im} = draw_cand_zoom(imPacket.front_stats,im,front); 
 			end 
 			IMAGES(imPacket.id).front_stats = imPacket.front_stats; 
@@ -315,7 +316,7 @@ function updateWithPackets(imPackets)
 			if isempty(imPacket.rangeH)
 				IMAGES(imPacket.id).rangeH = zeros([1,60]); 
 			end
-			IMAGES(imPacket.id).front_params = imPacket.params; 
+			IMAGES(imPacket.id).front_params = []; %imPacket.params; 
 		end
 		if strcmp(imPacket.type,'OmniVision')
 			omni = djpeg(imPacket.omni);
@@ -326,7 +327,7 @@ function updateWithPackets(imPackets)
 				IMAGES(imPacket.id).omni_stats = imPacket.omni_stats; 
 				IMAGES(imPacket.id).omni_params = imPacket.params; 
 		end
-		updateSettingsWithPacket(imPacket.id,imPacket.type,imPacket.params); 	
+		%updateSettingsWithPacket(imPacket.id,imPacket.type,imPacket.params); 	
 	end
 	for i = 1:numel(ids)
 		id = ids(i); 

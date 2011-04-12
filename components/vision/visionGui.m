@@ -48,11 +48,11 @@ function initComm(ids)
 	visionConnectGCS('192.168.10.220'); 
 	'Initializing IPC'
 	ipcInit;
-%	masterConnectRobots(ids,'127.0.0.1');
+	masterConnectRobots(ids,'127.0.0.1');
 	masterConnectRobots(ids);
 	
 	'Setting up upd'
-	addr = '192.168.10.221';
+	addr = '192.168.10.19';
 	port = 12345;
 	UdpReceiveAPI('connect',addr,port);
 

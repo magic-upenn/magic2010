@@ -3,7 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function slamProcessLidar0(data,name)
-global SLAM LIDAR0 OMAP EMAP POSE IMU CMAP DHMAP MAPS DVMAP SPREAD ENCODERS TRACK GPS
+global SLAM LIDAR0 OMAP EMAP POSE IMU CMAP DHMAP MAPS DVMAP SPREAD ENCODERS TRACK GPS POSES
 
 runTrackObs = 1;
 
@@ -111,6 +111,14 @@ SLAM.xOdom      = SLAM.x;
 SLAM.yOdom      = SLAM.y;
 SLAM.yawOdom    = SLAM.yaw;
 
+%{
+if (POSES.log)
+  POSES.cntr = POSES.cntr + 1;
+  POSES.data(:,POSES.cntr) = [SLAM.x; SLAM.y; SLAM.z; IMU.data.roll; IMU.data.pitch; SLAM.yaw];
+  POSES.ts(POSES.cntr) = LIDAR0.scan.startTime;
+end
+%}
+
 %send out pose message
 if mod(SLAM.lidar0Cntr,4) == 0
   ipcAPIPublishVC(POSE.msgName,MagicPoseSerializer('serialize',POSE.data));
@@ -190,7 +198,7 @@ if (mod(SLAM.lidar0Cntr,40) == 0)
   end
 
   % Now sending single 'SlamPoseMap' packet
-  %{
+  
   if (SLAM.useUdpExternal)
     packet = MapUpdateH;
     packet.type = 'MapUpdateH';
@@ -199,7 +207,7 @@ if (mod(SLAM.lidar0Cntr,40) == 0)
     zraw = zlibCompress(raw);
     UdpSendAPI('send',zraw);
   end
-  %}
+  
 
 
   [xdi ydi] = find(DVMAP.map.data);
@@ -207,7 +215,18 @@ if (mod(SLAM.lidar0Cntr,40) == 0)
   MapUpdateV.ys = single(ydi * MAPS.res + OMAP.ymin);
   MapUpdateV.cs = CMAP.map.data(sub2ind(size(CMAP.map.data),xdi,ydi));
   ipcAPIPublish(SLAM.IncMapUpdateVMsgName,serialize(MapUpdateV));
-
+  
+  %{
+  if (SLAM.useUdpExternal)
+    packet = MapUpdateV;
+    packet.type = 'MapUpdateV';
+    packet.id   = GetRobotId();
+    raw =serialize(packet);
+    zraw = zlibCompress(raw);
+    UdpSendAPI('send',zraw);
+  end
+  %}
+  
   if (SPREAD.useSpread)
     spreadSendUnreliable('MapUpdateV', serialize(MapUpdateV));
   end
