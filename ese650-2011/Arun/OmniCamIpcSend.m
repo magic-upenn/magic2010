@@ -2,7 +2,7 @@
 cam2Driver = @uvcCam650_2;
 
 % Initialize the omni
-cam2Driver('init','/dev/video1');
+cam2Driver('init','/dev/cam_omni');
 cam2Driver('stream_on');
 cam2Driver('set_ctrl','contrast', 32);
 
@@ -20,9 +20,9 @@ while(1)
     if ~isempty(imYuyv_omni)
         cntr_omni      = cntr_omni + 1;
         imRgb_omni     = yuyv2rgbm(imYuyv_omni);
-        image(imRgb_omni);
-        set(gca,'ydir','normal','xdir','reverse');
-        drawnow;
+        %image(imRgb_omni);
+        %set(gca,'ydir','normal','xdir','reverse');
+        %drawnow;
 
         imJpg_omni = cjpeg(imRgb_omni);
 

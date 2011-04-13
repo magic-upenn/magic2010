@@ -45,7 +45,7 @@ spread:/usr/local/sbin/spread -l y
 mg:nice -n -5 $MAGIC_DIR/drivers/MicroGateway/runMicroGateway2 /dev/ttyUSB0
 frontcam: matlab -nodesktop -r startFrontCam
 omnicam: matlab -nodesktop -r startOmniCam
-gps: matlab - nodesktop -r startGPS
+gps: matlab -nodesktop -r startGPS
 EOF
 
 exit

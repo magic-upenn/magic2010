@@ -10,7 +10,7 @@ ipcAPIConnect('localhost');
 ipcAPIDefine(gpsMsgName,MagicGpsASCIISerializer('getFormat'));
 
 while(1)
-  chars = serialDeviceAPI('read',1000,1000000);
+  chars = serialDeviceAPI('read',1000,1500000);
   if ~isempty(chars)
       gpsStr = char(chars);
       

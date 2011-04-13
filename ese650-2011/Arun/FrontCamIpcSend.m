@@ -2,7 +2,7 @@
 cam1Driver = @uvcCam650_1;
 
 % Initialize the front facing cam
-cam1Driver('init','/dev/video0');
+cam1Driver('init','/dev/cam_front');
 cam1Driver('stream_on');
 cam1Driver('set_ctrl','contrast', 32);
 
@@ -22,9 +22,9 @@ while(1)
   if ~isempty(imYuyv)
     cntr      = cntr + 1;
     imRgb     = yuyv2rgbm(imYuyv);
-    image(imRgb);
-    set(gca,'ydir','normal','xdir','reverse');
-    drawnow;
+    %image(imRgb);
+    %set(gca,'ydir','normal','xdir','reverse');
+    %drawnow;
     
     imJpg = cjpeg(imRgb);
     
