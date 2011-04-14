@@ -1,4 +1,5 @@
-SetMagicPaths;
+system('./startCentral_650.sh');
+DefinePlaybackMessages();
 robotId = '5';
 encMsgName = ['Robot' robotId '/Encoders'];              % Encoders
 imuMsgName = ['Robot' robotId '/ImuFiltered'];           % IMU
@@ -13,7 +14,8 @@ FrontCamMsgName = ['Robot' robotId '/CamFront'];               %Front facing cam
 % ctrMsgName = ['Robot' robotId '/VelocityCmd'];           % Control commands
 
 % Messages to receive
-ipcAPIConnect(strcat('192.168.10.10',robotId));
+%ipcAPIConnect(strcat('192.168.10.10',robotId));
+ipcAPIConnect('localhost');
 ipcAPISubscribe(encMsgName);             
 ipcAPISubscribe(imuMsgName);
 ipcAPISubscribe(GPSMsgName);
@@ -37,11 +39,16 @@ FrontCam = {};
 % Pose = [];
 % Path = [];
 % Control = [];
-try
-  while(1)
+timeout = 10;
+tic;
+while(1)
+      if(toc > timeout)
+          break;
+      end
       msgs = ipcAPIReceive(10);
       len = length(msgs);
       if len > 0
+          tic;
           disp('receiving...');
           for i=1:len
               switch(msgs(i).name)
@@ -70,9 +77,7 @@ try
               end
           end
       end
-  end
-catch
-    b = datestr(clock());
-    savename = strcat('data_',b(1:11),'_',b(13:end),'.mat');
-    save(savename,'Encoders','IMU','GPS','OmniCam','FrontCam');
 end
+b = datestr(clock());
+savename = strcat('data_',b(1:11),'_',b(13:end),'.mat');
+save(savename,'Encoders','Imu','GPS','OmniCam','FrontCam');
