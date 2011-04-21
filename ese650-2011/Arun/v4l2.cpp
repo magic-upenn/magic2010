@@ -7,12 +7,13 @@
 #include <assert.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
-#include <linux/videodev2.h>
 #include <cctype>
-#include <string>
 #include <algorithm>
 #include <vector>
 #include <map>
+#include <string>
+#include <string.h>
+#include "v4l2.h"
 
 // Logitech UVC controls
 #ifndef V4L2_CID_FOCUS
@@ -31,25 +32,11 @@
 #define V4L2_CID_RAW_BITS_PER_PIXEL 0x0A046D72
 #endif
 
-int video_fd = -1;
-int nbuffer = 4;
-extern int width;
-extern int height;
-
-struct buffer {
-  void * start;
-  size_t length;
-};
-
-std::map<std::string, struct v4l2_queryctrl> ctrlMap;
-std::map<std::string, struct v4l2_querymenu> menuMap;
-
-std::vector<struct buffer> buffers;
-
 static int xioctl(int fd, int request, void *arg) {
   int r;
-  do
-    r = ioctl(fd, request, arg);
+  do{
+    r = ioctl(fd, request, arg); 
+  }
   while (r == -1 && errno == EINTR);
   return r;
 }
@@ -61,18 +48,16 @@ void string_tolower(std::string &str) {
                  (int(*)(int)) std::tolower);
 }
 
-int v4l2_error(const char *error_msg) {
+int V4l2::v4l2_error(const char *error_msg) {
   if (video_fd >= 0)
     close(video_fd);
   video_fd = 0;
-  //printf("V4L2 error: %s\n", error_msg);
-  fprintf(stdout, "V4L2 error: %s\n", error_msg);
+  fprintf(stderr, "V4L2 error: %s\n", error_msg);
   return -1;
 }
 
-int v4l2_query_menu(struct v4l2_queryctrl &queryctrl) {
+int V4l2::v4l2_query_menu(struct v4l2_queryctrl &queryctrl) {
   struct v4l2_querymenu querymenu;
-
   querymenu.id = queryctrl.id;
   for (querymenu.index = queryctrl.minimum;
        querymenu.index <= queryctrl.maximum;
@@ -88,7 +73,7 @@ int v4l2_query_menu(struct v4l2_queryctrl &queryctrl) {
   return 0;
 }
 
-int v4l2_query_ctrl(unsigned int addr_begin, unsigned int addr_end) {
+int V4l2::v4l2_query_ctrl(unsigned int addr_begin, unsigned int addr_end) {
   struct v4l2_queryctrl queryctrl;
   std::string key;
 
@@ -121,7 +106,8 @@ int v4l2_query_ctrl(unsigned int addr_begin, unsigned int addr_end) {
   }
 }
 
-int v4l2_set_ctrl(const char *name, int value) {
+int V4l2::v4l2_set_ctrl(const char *name, int value) {
+  if(!init) return v4l2_error("v4l2 is not initialized"); 
   std::string key(name);
   string_tolower(key);
   std::map<std::string, struct v4l2_queryctrl>::iterator ictrl
@@ -138,7 +124,8 @@ int v4l2_set_ctrl(const char *name, int value) {
   return ret;
 }
 
-int v4l2_get_ctrl(const char *name, int *value) {
+int V4l2::v4l2_get_ctrl(const char *name, int *value) {
+  if(!init) return v4l2_error("v4l2 is not initialized"); 
   std::string key(name);
   string_tolower(key);
   std::map<std::string, struct v4l2_queryctrl>::iterator ictrl
@@ -155,21 +142,22 @@ int v4l2_get_ctrl(const char *name, int *value) {
   return ret;
 }
 
-int v4l2_open(const char *device) {
+int V4l2::v4l2_open(const char *device) {
+  if(init) return v4l2_error("v4l2 is already initialized"); 
   if (device == NULL) {
     // Default video device name
     device = "/dev/video0";
   }
-  
+   
   // Open video device
   if ((video_fd = open(device, O_RDWR|O_NONBLOCK, 0)) == -1)
     return v4l2_error("Could not open video device");
   fprintf(stdout, "open: %d\n", video_fd);
-
+  printf("Device %s has fd %d\n", device, video_fd); 
   return 0;
 }
 
-int v4l2_init_mmap() {
+int V4l2::v4l2_init_mmap() {
   struct v4l2_requestbuffers req;
   req.count = nbuffer;
   req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -201,7 +189,7 @@ int v4l2_init_mmap() {
   return 0;
 }
 
-int v4l2_uninit_mmap() {
+int V4l2::v4l2_uninit_mmap() {
   for (int i = 0; i < buffers.size(); i++) {
     if (munmap(buffers[i].start, buffers[i].length) == -1)
       return v4l2_error("munmap");
@@ -209,7 +197,50 @@ int v4l2_uninit_mmap() {
   buffers.clear();
 }
 
-int v4l2_init() {
+
+int V4l2::v4l2_set_framerate()
+{
+	struct v4l2_streamparm parm;
+	int ret;
+
+	memset(&parm, 0, sizeof parm);
+	parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+	ret = ioctl(video_fd, VIDIOC_G_PARM, &parm);
+	if (ret < 0) {
+		printf("Unable to get frame rate: %d.\n", errno);
+		return ret;
+	}
+
+	printf("Current frame rate: %u/%u\n",
+		parm.parm.capture.timeperframe.numerator,
+		parm.parm.capture.timeperframe.denominator);
+
+	parm.parm.capture.timeperframe.numerator = 1;
+	parm.parm.capture.timeperframe.denominator = 5;
+
+	ret = ioctl(video_fd, VIDIOC_S_PARM, &parm);
+	if (ret < 0) {
+		printf("Unable to set frame rate: %d.\n", errno);
+		return ret;
+	}
+
+	ret = ioctl(video_fd, VIDIOC_G_PARM, &parm);
+	if (ret < 0) {
+		printf("Unable to get frame rate: %d.\n", errno);
+		return ret;
+	}
+
+	printf("Frame rate set: %u/%u\n",
+		parm.parm.capture.timeperframe.numerator,
+		parm.parm.capture.timeperframe.denominator);
+	return 0;
+}
+
+int V4l2::v4l2_init(int width, int height) {
+  if(init) return v4l2_error("v4l2 is already initialized"); 
+  this->width = width; 
+  this->height = height; 
   struct v4l2_capability video_cap;
   if (xioctl(video_fd, VIDIOC_QUERYCAP, &video_cap) == -1)
     return v4l2_error("VIDIOC_QUERYCAP");
@@ -224,9 +255,14 @@ int v4l2_init() {
   video_fmt.fmt.pix.height      = height;
   video_fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
   video_fmt.fmt.pix.field       = V4L2_FIELD_ANY;
+
   if (xioctl(video_fd, VIDIOC_S_FMT, &video_fmt) == -1)
     v4l2_error("VIDIOC_S_FMT");
-    
+  v4l2_set_framerate();    
+//    v4l2_error("VIDIOC_G_PARM");
+//  printf("Current framerate %u/%u", (unsigned int)params.timeperframe.numerator, (unsigned int)params.timeperframe.denominator); 
+ 
+  printf("Querying V4L2 controls"); 
   // Query V4L2 controls:
   v4l2_query_ctrl(V4L2_CID_BASE,
 		  V4L2_CID_LASTP1);
@@ -235,6 +271,7 @@ int v4l2_init() {
   v4l2_query_ctrl(V4L2_CID_CAMERA_CLASS_BASE+1,
 		  V4L2_CID_CAMERA_CLASS_BASE+20);
 
+  printf("Querying logitech controls"); 
   // Logitech specific controls:
   v4l2_query_ctrl(V4L2_CID_FOCUS,
 		  V4L2_CID_FOCUS+1);
@@ -249,11 +286,12 @@ int v4l2_init() {
 
   // Initialize memory map
   v4l2_init_mmap();
-
+  init = true; 
   return 0;
 }
 
-int v4l2_stream_on() {
+int V4l2::v4l2_stream_on() {
+  if(!init) return v4l2_error("v4l2 is not initialized"); 
   for (int i = 0; i < buffers.size(); i++) {
     struct v4l2_buffer buf;
     buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -264,13 +302,15 @@ int v4l2_stream_on() {
   }
 
   enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  printf("Stream on for %d\n",video_fd); 
   if (xioctl(video_fd, VIDIOC_STREAMON, &type) == -1)
     return v4l2_error("VIDIOC_STREAMON");
 
   return 0;
 }
 
-int v4l2_stream_off() {
+int V4l2::v4l2_stream_off() {
+  if(!init) return v4l2_error("v4l2 is not initialized"); 
   enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   if (xioctl(video_fd, VIDIOC_STREAMOFF, &type) == -1)
     return v4l2_error("VIDIOC_STREAMOFF");
@@ -278,14 +318,19 @@ int v4l2_stream_off() {
   return 0;
 }
 
-void * v4l2_get_buffer(int index, size_t *length) {
+void * V4l2::v4l2_get_buffer(int index, size_t *length) {
+  if(!init){
+	v4l2_error("v4l2 is not initialized"); 
+ 	return NULL; 
+  }
   if (length != NULL)
     *length = buffers[index].length;
 
   return buffers[index].start;
 }
 
-int v4l2_read_frame() {
+int V4l2::v4l2_read_frame() {
+  if(!init) return v4l2_error("v4l2 is not initialized"); 
   struct v4l2_buffer buf;
   buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   buf.memory = V4L2_MEMORY_MMAP;
@@ -305,7 +350,7 @@ int v4l2_read_frame() {
 
   // process image
   void *ptr = buffers[buf.index].start;
-  //fprintf(stdout, "read: %d\n", buf.index);
+  fprintf(stdout, "read: %d\n", buf.index);
 
   if (xioctl(video_fd, VIDIOC_QBUF, &buf) == -1)
     return v4l2_error("VIDIOC_QBUF");
@@ -313,7 +358,7 @@ int v4l2_read_frame() {
   return buf.index;
 }
 
-int v4l2_close() {
+int V4l2::v4l2_close() {
   v4l2_uninit_mmap();
   if (close(video_fd) == -1)
     v4l2_error("Closing video device");

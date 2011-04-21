@@ -41,6 +41,8 @@ FrontCam = {};
 % Control = [];
 timeout = 10;
 tic;
+ctf = 1;
+cto = 1;
 while(1)
       if(toc > timeout)
           break;
@@ -60,8 +62,23 @@ while(1)
                       GPS{end+1} = MagicGpsASCIISerializer('deserialize',msgs(i).data);
                   case OmniCamMsgName
                       OmniCam{end+1} = deserialize(msgs(i).data);
+                      if(cto == 1)
+                          fgo = figure;
+                          hdlo = imagesc(djpeg(OmniCam{1}.img));
+                      else
+                          set(hdlo,'CData',djpeg(OmniCam{cto}.img));
+                      end
+                      cto = cto+1;
                   case FrontCamMsgName
                       FrontCam{end+1} = deserialize(msgs(i).data);
+                      if(ctf == 1)
+                          fg = figure;
+                          hdl = imagesc(djpeg(FrontCam{1}.img));
+                      else
+                          set(hdl,'CData',djpeg(FrontCam{ctf}.img));
+                      end
+                      ctf = ctf+1;
+                      %drawnow;
   %                 case ser1MsgName
   %                     Servo1 = cat(1,Servo1,MagicServoStateSerializer('deserialize',msgs(i).data));
   %                 case hmapMsgName
@@ -74,6 +91,7 @@ while(1)
   %                     Path = cat(1,Path,deserialize(msgs(i).data));
   %                 case ctrMsgName
   %                     Control = cat(1,Control,MagicVelocityCmdSerializer('deserialize',msgs(i).data));
+                                         drawnow;
               end
           end
       end
@@ -81,3 +99,5 @@ end
 b = datestr(clock());
 savename = strcat('data_',b(1:11),'_',b(13:end),'.mat');
 save(savename,'Encoders','Imu','GPS','OmniCam','FrontCam');
+close all
+clear all
