@@ -1,3 +1,4 @@
 SetMagicPaths;
 
-OmniCamIpcSend;
+%OmniCamIpcSend;
+OmniCamIpcSend_mod;

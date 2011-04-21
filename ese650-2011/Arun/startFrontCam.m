@@ -1,3 +1,4 @@
 SetMagicPaths;
 
-FrontCamIpcSend;
+%FrontCamIpcSend;
+FrontCamIpcSend_mod;
