@@ -1,5 +1,5 @@
 function slam(addr,id)
-global SLAM SPREAD
+global SLAM
 
 if nargin < 1
   SLAM.addr = 'localhost';
@@ -11,7 +11,6 @@ if nargin >1
   setenv('ROBOT_ID',sprintf('%d',id));
 end
 
-SPREAD.useSpread = 0;
 SLAM.useUdpExternal = 1;
 SLAM.useIpcExternal = 0;
 
@@ -25,7 +24,7 @@ end
 % Initialize slam process
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function slamStart
-global SLAM OMAP POSE SPREAD LIDAR0 REF_MAP START_POSITION
+global SLAM OMAP POSE LIDAR0 REF_MAP START_POSITION
 
 SetMagicPaths;
 
@@ -36,13 +35,14 @@ ipcAPIHandle = @ipcWrapperAPI; %use threaded version
 
 ipcInit(SLAM.addr,ipcAPIHandle);
 
-if (SPREAD.useSpread)
-  spreadInit;
-end
 
 if (SLAM.useUdpExternal)
   % Broadcast address is bad over WiFi; direct to GCS
-  masterIp = '192.168.10.220';
+  
+  masterIp = getenv('MASTER_IP');
+  if isempty(masterIp)
+    error('MASTER_IP env var is not defined');
+  end
   masterPort = 12346;
   UdpSendAPI('connect',masterIp,masterPort);
 end

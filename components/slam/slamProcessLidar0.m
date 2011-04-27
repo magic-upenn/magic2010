@@ -3,7 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function slamProcessLidar0(data,name)
-global SLAM LIDAR0 OMAP EMAP POSE IMU CMAP DHMAP MAPS DVMAP SPREAD ENCODERS TRACK GPS POSES
+global SLAM LIDAR0 OMAP EMAP POSE IMU CMAP DHMAP MAPS DVMAP ENCODERS TRACK GPS POSES
 
 runTrackObs = 1;
 
@@ -130,10 +130,6 @@ if mod(SLAM.lidar0Cntr,20) == 0
   
     ipcAPIPublishVC(POSE.extMsgName,MagicPoseSerializer('serialize',POSE.data));
 
-    if (SPREAD.useSpread)
-      spreadSendUnreliable('Pose', serialize(POSE.data));
-    end
-
     %{
     % Now send everthing in single packet
     if (SLAM.useUdpExternal)
@@ -186,16 +182,13 @@ DHMAP.map.data(inds) = 1;
 %send out map updates
 if (mod(SLAM.lidar0Cntr,40) == 0)
   [xdi ydi] = find(DHMAP.map.data);
+  
   MapUpdateH.xs = single(xdi * MAPS.res + OMAP.xmin);
   MapUpdateH.ys = single(ydi * MAPS.res + OMAP.ymin);
   MapUpdateH.cs = OMAP.map.data(sub2ind(size(OMAP.map.data),xdi,ydi));
   ipcAPIPublish(SLAM.IncMapUpdateHMsgName,serialize(MapUpdateH));
   
   %imagesc(CMAP.map.data); axis(800+[-5 5 -5 5]/0.05); drawnow;
-
-  if (SPREAD.useSpread)
-    spreadSendUnreliable('MapUpdateH', serialize(MapUpdateH));
-  end
 
   % Now sending single 'SlamPoseMap' packet
   
@@ -227,10 +220,6 @@ if (mod(SLAM.lidar0Cntr,40) == 0)
   end
   %}
   
-  if (SPREAD.useSpread)
-    spreadSendUnreliable('MapUpdateV', serialize(MapUpdateV));
-  end
-  
   if (SLAM.useUdpExternal)
     packet.id   = GetRobotId();
     packet.type = 'SlamPoseMap';
@@ -247,15 +236,6 @@ if (mod(SLAM.lidar0Cntr,40) == 0)
   DHMAP.map.data = zeros(size(DHMAP.map.data),'uint8');
   DVMAP.map.data = zeros(size(DVMAP.map.data),'uint8');
 end
-
-%{
-if (GetUnixTime()-SLAM.plannerUpdateTime > SLAM.plannerUpdatePeriod)
-  oldPublishMapsToMotionPlanner;
-  fprintf('sent planner map\n');
-  SLAM.plannerUpdateTime = GetUnixTime();
-end
-%}
-
 
 if (SLAM.updateExplorationMap) 
     % Update the exploration map
