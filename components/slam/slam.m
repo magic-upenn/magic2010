@@ -110,12 +110,12 @@ end
 
 %assign the message handlers
 %arguments are (msgName, function handle, ipcAPI handle, queue length)
-ipcReceiveSetFcn(GetMsgName('Lidar0'),      @slamProcessLidar0,   ipcAPIHandle,100);
-ipcReceiveSetFcn(GetMsgName('Lidar1'),      @slamProcessLidar1_2, ipcAPIHandle,100);
-ipcReceiveSetFcn(GetMsgName('Servo1'),      @slamProcessServo1,   ipcAPIHandle,100);
-ipcReceiveSetFcn(GetMsgName('Encoders'),    @slamProcessEncoders, ipcAPIHandle,100);
+ipcReceiveSetFcn(GetMsgName('Lidar0'),      @slamProcessLidar0,   ipcAPIHandle,40);
+ipcReceiveSetFcn(GetMsgName('Lidar1'),      @slamProcessLidar1_2, ipcAPIHandle,40);
+ipcReceiveSetFcn(GetMsgName('Servo1'),      @slamProcessServo1,   ipcAPIHandle,40);
+ipcReceiveSetFcn(GetMsgName('Encoders'),    @slamProcessEncoders, ipcAPIHandle,40);
 ipcReceiveSetFcn(GetMsgName('ImuFiltered'), @slamProcessImu,      ipcAPIHandle,100);
-ipcReceiveSetFcn(GetMsgName('GPS'),         @slamProcessGps,      ipcAPIHandle,100);
+ipcReceiveSetFcn(GetMsgName('GPS'),         @slamProcessGps,      ipcAPIHandle,10);
 
 %initialize scan matching function
 ScanMatch2D('setBoundaries',OMAP.xmin,OMAP.ymin,OMAP.xmax,OMAP.ymax);

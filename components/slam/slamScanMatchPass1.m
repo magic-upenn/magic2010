@@ -1,20 +1,6 @@
- 
-if (abs(IMU.data.wyaw) < 50/180*pi)
-  nyaw1 = 5;
-  dyaw1 = 0.2/180.0*pi;
-elseif (abs(IMU.data.wyaw) < 100/180*pi)
-  nyaw1 = 5;
-  dyaw1 = 0.3/180.0*pi;
-elseif (abs(IMU.data.wyaw) < 200/180*pi)
-  nyaw1 = 9;
-  dyaw1 = 0.4/180.0*pi;
-elseif (abs(IMU.data.wyaw) < 270/180*pi)
-  nyaw1 = 15;
-  dyaw1 = 0.5/180.0*pi;
-else
-  nyaw1 = 25;
-  dyaw1 = 1.0/180.0*pi;
-end
+
+nyaw1 = 15;
+dyaw1 = 1.0/180.0*pi;
 
 
 %resolution of the candidate poses
@@ -40,12 +26,12 @@ xRange1   = floor(nxs1/2);
 yRange1   = floor(nys1/2);
 
 %create the candidate locations in each dimension
-aCand1 = (-yawRange1:yawRange1)*dyaw1+SLAM.yaw + IMU.data.wyaw*dt;
+aCand1 = (-yawRange1:yawRange1)*dyaw1+SLAM.yawOdom; % + IMU.data.wyaw*0.025;
 xCand1 = (-xRange1:xRange1)*dx1+SLAM.xOdom;
 yCand1 = (-yRange1:yRange1)*dy1+SLAM.yOdom;
 
 %get a local 3D sampling of pose likelihood
-hits = ScanMatch2D('match',OMAP.map.data,xsss,ysss, ...
+hits = ScanMatch2D('match',OMAP.map.data,xsss(1:2:end),ysss(1:2:end), ...
   xCand1,yCand1,aCand1);
 
 %find maximum

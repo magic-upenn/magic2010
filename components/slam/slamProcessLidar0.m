@@ -23,8 +23,9 @@ if (LIDAR0_TS.cntr > 1)
   tnow = GetUnixTime();
   tl   = LIDAR0.scan.startTime;
   dtt= tnow-tl;
-  LIDAR0_TS.ts(LIDAR0_TS.cntr) = tl;
-  LIDAR0_TS.dts(LIDAR0_TS.cntr) = dtt; %tl - LIDAR0_TS.ts(LIDAR0_TS.cntr-1);%dtt;
+  tmod = mod(LIDAR0_TS.cntr-1,1000)+1;
+  LIDAR0_TS.ts(tmod) = tl;
+  LIDAR0_TS.dts(tmod) = dtt; %tl - LIDAR0_TS.ts(LIDAR0_TS.cntr-1);%dtt;
 end
 LIDAR0_TS.cntr = LIDAR0_TS.cntr + 1;
 
@@ -51,8 +52,6 @@ SLAM.lidar0Cntr = SLAM.lidar0Cntr+1;
 if isempty(LIDAR0.lastTime)
   LIDAR0.lastTime = LIDAR0.scan.startTime;
 end
-
-dt = LIDAR0.scan.startTime - LIDAR0.lastTime;
 
 %fprintf(1,'got lidar scan\n');
 if (mod(SLAM.lidar0Cntr,40) == 0)
@@ -207,7 +206,7 @@ if (mod(SLAM.lidar0Cntr,40) == 0)
   %imagesc(CMAP.map.data); axis(800+[-5 5 -5 5]/0.05); drawnow;
 
   % Now sending single 'SlamPoseMap' packet
-  
+  %{
   if (SLAM.useUdpExternal)
     packet = MapUpdateH;
     packet.type = 'MapUpdateH';
@@ -216,7 +215,7 @@ if (mod(SLAM.lidar0Cntr,40) == 0)
     zraw = zlibCompress(raw);
     UdpSendAPI('send',zraw);
   end
-  
+  %}
 
 
   [xdi ydi] = find(DVMAP.map.data);

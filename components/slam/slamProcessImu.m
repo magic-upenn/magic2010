@@ -18,8 +18,9 @@ tnow = GetUnixTime();
 if (IMU_TS.cntr > 1)
   ti   = IMU.data.t;
   dtt= tnow-ti;
-  IMU_TS.ts(IMU_TS.cntr) = ti;
-  IMU_TS.dts(IMU_TS.cntr) = dtt; %ti-IMU_TS.ts(IMU_TS.cntr-1);%dtt;
+  tmod = mod(IMU_TS.cntr-1,1000)+1;
+  IMU_TS.ts(tmod) = ti;
+  IMU_TS.dts(tmod) = dtt; %ti-IMU_TS.ts(IMU_TS.cntr-1);%dtt;
 end
 IMU_TS.cntr = IMU_TS.cntr + 1;
 

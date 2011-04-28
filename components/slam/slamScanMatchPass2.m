@@ -1,9 +1,6 @@
 
-if (abs(IMU.data.wyaw) < 250/180*pi)
-  nyaw2 = 5;
-else
-  nyaw2 = 11;
-end
+
+nyaw2 = 21;
 dyaw2 = 0.1/180*pi;
 nxs2  = 1;
 nys2  = 1;

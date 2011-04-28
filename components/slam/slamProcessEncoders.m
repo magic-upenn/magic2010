@@ -83,7 +83,7 @@ if ~isempty(data)
   
   
   if (stopCntr < 40)
-    wdt = IMU.data.wyaw * (GetUnixTime()-tLastUpdate);
+    wdt = IMU.data.wyaw * 0.025; %(GetUnixTime()-tLastUpdate);
   else
     wdt = 0;
     vdt = 0;
