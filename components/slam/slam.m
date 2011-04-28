@@ -1,6 +1,8 @@
 function slam(addr,id)
 global SLAM
 
+SetMagicPaths;
+
 if nargin < 1
   SLAM.addr = 'localhost';
 else
