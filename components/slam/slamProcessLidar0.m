@@ -4,14 +4,29 @@
 
 function slamProcessLidar0(data,name)
 global SLAM LIDAR0 OMAP EMAP POSE IMU CMAP DHMAP MAPS DVMAP ENCODERS TRACK GPS POSES
-
+global LIDAR0_TS
 runTrackObs = 1;
+
+if isempty(LIDAR0_TS)
+    LIDAR0_TS.ts  = zeros(1,1000);
+    LIDAR0_TS.dts = zeros(1,1000);
+    LIDAR0_TS.cntr = 1;
+end
 
 if ~isempty(data)
   LIDAR0.scan = MagicLidarScanSerializer('deserialize',data);
 else
   return;
 end
+
+if (LIDAR0_TS.cntr > 1)
+  tnow = GetUnixTime();
+  tl   = LIDAR0.scan.startTime;
+  dtt= tnow-tl;
+  LIDAR0_TS.ts(LIDAR0_TS.cntr) = tl;
+  LIDAR0_TS.dts(LIDAR0_TS.cntr) = dtt; %tl - LIDAR0_TS.ts(LIDAR0_TS.cntr-1);%dtt;
+end
+LIDAR0_TS.cntr = LIDAR0_TS.cntr + 1;
 
 if ~CheckImu()
     disp('ignoring lidar0 because imu data is invalid');
@@ -106,6 +121,7 @@ POSE.data.z     = SLAM.z;
 POSE.data.roll  = IMU.data.roll;
 POSE.data.pitch = IMU.data.pitch;
 POSE.data.yaw   = SLAM.yaw;
+POSE.data.t     = GetUnixTime();
 POSE.t          = GetUnixTime();
 SLAM.xOdom      = SLAM.x;
 SLAM.yOdom      = SLAM.y;
@@ -120,12 +136,12 @@ end
 %}
 
 %send out pose message
-if mod(SLAM.lidar0Cntr,4) == 0
+if mod(SLAM.lidar0Cntr,2) == 0
   ipcAPIPublishVC(POSE.msgName,MagicPoseSerializer('serialize',POSE.data));
 end
   
 %publish pose message going out to outside world
-if mod(SLAM.lidar0Cntr,20) == 0
+if mod(SLAM.lidar0Cntr,10) == 0
     POSE.data.gps = GPS;
   
     ipcAPIPublishVC(POSE.extMsgName,MagicPoseSerializer('serialize',POSE.data));

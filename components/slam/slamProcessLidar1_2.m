@@ -10,6 +10,7 @@ else
   return;
 end
 
+
 %bin information for running statistics
 xBinLength = 0.1; % meters
 xBinMax = round((25.0)/xBinLength);

@@ -90,6 +90,7 @@ if ~isempty(data)
     %fprintf(1,'not moving\n');
   end
   
+  
   tLastUpdate = GetUnixTime();
   %dt = counts.t - ENCODERS.tLast;
   

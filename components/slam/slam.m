@@ -14,6 +14,8 @@ end
 SLAM.useUdpExternal = 1;
 SLAM.useIpcExternal = 0;
 
+renice(-20);
+
 slamStart;
 
 while(1)
@@ -30,8 +32,8 @@ SetMagicPaths;
 
 loadConfig;
 
-%ipcAPIHandle = @ipcAPI;
-ipcAPIHandle = @ipcWrapperAPI; %use threaded version
+ipcAPIHandle = @ipcAPI;
+%ipcAPIHandle = @ipcWrapperAPI; %use threaded version
 
 ipcInit(SLAM.addr,ipcAPIHandle);
 
@@ -106,12 +108,12 @@ end
 
 %assign the message handlers
 %arguments are (msgName, function handle, ipcAPI handle, queue length)
-ipcReceiveSetFcn(GetMsgName('Lidar0'),      @slamProcessLidar0,   ipcAPIHandle,5);
-ipcReceiveSetFcn(GetMsgName('Lidar1'),      @slamProcessLidar1_2, ipcAPIHandle,5);
-ipcReceiveSetFcn(GetMsgName('Servo1'),      @slamProcessServo1,   ipcAPIHandle,5);
-ipcReceiveSetFcn(GetMsgName('Encoders'),    @slamProcessEncoders, ipcAPIHandle,5);
-ipcReceiveSetFcn(GetMsgName('ImuFiltered'), @ipcRecvImuFcn,       ipcAPIHandle,5);
-ipcReceiveSetFcn(GetMsgName('GPS'),         @slamProcessGps,      ipcAPIHandle,5);
+ipcReceiveSetFcn(GetMsgName('Lidar0'),      @slamProcessLidar0,   ipcAPIHandle,100);
+ipcReceiveSetFcn(GetMsgName('Lidar1'),      @slamProcessLidar1_2, ipcAPIHandle,100);
+ipcReceiveSetFcn(GetMsgName('Servo1'),      @slamProcessServo1,   ipcAPIHandle,100);
+ipcReceiveSetFcn(GetMsgName('Encoders'),    @slamProcessEncoders, ipcAPIHandle,100);
+ipcReceiveSetFcn(GetMsgName('ImuFiltered'), @slamProcessImu,      ipcAPIHandle,100);
+ipcReceiveSetFcn(GetMsgName('GPS'),         @slamProcessGps,      ipcAPIHandle,100);
 
 %initialize scan matching function
 ScanMatch2D('setBoundaries',OMAP.xmin,OMAP.ymin,OMAP.xmax,OMAP.ymax);

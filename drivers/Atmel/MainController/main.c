@@ -54,7 +54,7 @@ volatile uint8_t freshMotorCmd          = 0;
 volatile uint8_t mode                   = MMC_MC_MODE_RUN;
 
 
-volatile uint8_t sendImuRaw         = 0;
+volatile uint8_t sendImuRaw         = 1;
 volatile uint8_t sendImuRot         = 1;
 volatile uint8_t sendImuAcc         = 0;
 

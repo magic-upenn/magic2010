@@ -12,6 +12,7 @@ if isempty(IPC) || ~isfield(IPC,'connected') || ~IPC.connected
     ipcAPIHandle = @ipcAPI;
   end
   ipcAPIHandle('connect',host);
+  ipcAPIHandle('set_capacity',5);
   IPC.handle = ipcAPIHandle;
   IPC.connected = 1;
   disp('IPC initialized');

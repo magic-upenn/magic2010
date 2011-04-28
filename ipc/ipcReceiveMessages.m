@@ -29,8 +29,10 @@ for mi=1:nmsg
   end
 end
 
+
 dtActual = etime(clock,tStart);
 
 if (dtActual < dt/1000)
   pause(dt/1000-dtActual)
 end
+
