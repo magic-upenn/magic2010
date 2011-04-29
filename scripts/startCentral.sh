@@ -34,8 +34,7 @@ StartFunction ()
 
 # List session names and commands for screen, delimited by ":"
 StartFunction <<EOF
-centralI:nice -n -5 central -s -p1381
-centralE:nice -n -5 central -s -p1382
+central:nice -n -15 central -s
 EOF
 
 exit
