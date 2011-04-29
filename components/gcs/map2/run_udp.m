@@ -27,7 +27,7 @@ SetMagicPaths;
   gcsLogPackets('entry');
 
   % Connect to UDP
-  addr = '192.168.10.220';
+  addr = '127.0.0.1';
   port = 12346;
   UdpReceiveAPI('connect', addr, port);
 

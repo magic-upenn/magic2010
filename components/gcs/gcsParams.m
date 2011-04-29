@@ -108,10 +108,10 @@ case 6
   MAGIC_CONSTANTS.mapNorthOffset = 4332100;
 otherwise
   disp('starting custom map');
-  MAGIC_CONSTANTS.mapEastMin = 0;
-  MAGIC_CONSTANTS.mapEastMax = 60;
-  MAGIC_CONSTANTS.mapNorthMin = 0;
-  MAGIC_CONSTANTS.mapNorthMax = 60;
+  MAGIC_CONSTANTS.mapEastMin = -40;
+  MAGIC_CONSTANTS.mapEastMax = 40;
+  MAGIC_CONSTANTS.mapNorthMin = -40;
+  MAGIC_CONSTANTS.mapNorthMax = 40;
   MAGIC_CONSTANTS.mapEastOffset = 0;
   MAGIC_CONSTANTS.mapNorthOffset = 0;
 end

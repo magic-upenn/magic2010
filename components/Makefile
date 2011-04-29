@@ -1,4 +1,4 @@
-SUBDIRS = slam sbpl 
+SUBDIRS = slam sbpl gcs/map2
 
 all:
 	for i in $(SUBDIRS) ; do if (cd $$i && make); then :; else exit; fi ; done

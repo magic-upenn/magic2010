@@ -1,5 +1,4 @@
-TARGETS = map_accum.$(MEXEXT) map_filter.$(MEXEXT) map_assign.$(MEXEXT) \
-	scan_correlation.cpp scan_icp.cpp
+TARGETS = map_accum.$(MEXEXT) map_filter.$(MEXEXT) map_assign.$(MEXEXT) scan_icp.$(MEXEXT) scan_icp_irls.$(MEXEXT) scan_correlation.$(MEXEXT)
 
 include $(MAGIC_DIR)/Makefile.mk
 
