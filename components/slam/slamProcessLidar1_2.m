@@ -16,52 +16,17 @@ xBinLength = 0.1; % meters
 xBinMax = round((25.0)/xBinLength);
 xBin = xBinLength*[1:xBinMax];
 
-%make sure we have fresh data
-if ~CheckServo1()
-  disp('ignoring lidar1 because servo data is invalid');
+tLidar = LIDAR1.scan.startTime;
+
+[servoAngle servoT] = GetServo1At(tLidar);
+[imu imuT] = GetImuAt(tLidar);
+if isempty(servoAngle) || isempty(imu)
   return;
 end
 
-if ~CheckImu()
-    disp('ignoring lidar1 because imu data is invalid');
-    return;
-end
 
 
-
-tLidar = LIDAR1.scan.startTime;
-tServo = SERVO1.data.t;
-
-servoAngle = [];
-
-dtServo = tLidar - tServo;
-
-if (dtServo > 0.1)
-    fprintf(1,'servo data is too old!!!');
-    return;
-elseif (dtServo < 0) && size(SERVO1.hist,2) > 3
-  %find the closest time
-  for ii=2:length(SERVO1.hist)
-    if (SERVO1.hist(2,ii) > tLidar)
-      da = (SERVO1.hist(1,ii)-SERVO1.hist(1,ii-1))/(SERVO1.hist(2,ii)-SERVO1.hist(2,ii-1));
-      servoAngle = SERVO1.hist(1,ii-1) + da*(tLidar-SERVO1.hist(2,ii-1));
-      %fprintf(1,'blah\n');
-      %return;
-      break;
-    end
-  end
-elseif (size(SERVO1.hist,2) > 8)
-  %fprintf(1,'blah2\n');
-  filtLen = 4;
-  da = (SERVO1.hist(1,end)-SERVO1.hist(1,end-filtLen))/(SERVO1.hist(2,end)-SERVO1.hist(2,end-filtLen));
-  servoAngle = SERVO1.hist(1,end) + da*(tLidar-SERVO1.hist(2,end)) -sign(da)*0.025;
-end
-
-if isempty(servoAngle)
-  servoAngle = SERVO1.data.position*SERVO1.amult + SERVO1.offsetYaw;
-else
-  servoAngle = servoAngle*SERVO1.amult + SERVO1.offsetYaw;
-end
+servoAngle = servoAngle*SERVO1.amult + SERVO1.offsetYaw;
 
 %from servo frame to robot frame
 Tservo1 = trans([SERVO1.offsetx SERVO1.offsety SERVO1.offsetz])*rotz(servoAngle);
@@ -71,7 +36,7 @@ Tlidar1 = trans([LIDAR1.offsetx LIDAR1.offsety LIDAR1.offsetz]) * ...
           rotx(pi/2);
         
 %from robot frame to world frame (roll, pitch)
-Timu = roty(IMU.data.pitch)*rotx(IMU.data.roll);
+Timu = roty(imu.pitch)*rotx(imu.roll);
 
 %from robot frame to world frame (translation)
 Tpos = trans([SLAM.x SLAM.y SLAM.z])*rotz(SLAM.yaw);

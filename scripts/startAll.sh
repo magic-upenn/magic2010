@@ -34,10 +34,10 @@ StartFunction ()
 
 # List session names and commands for screen, delimited by ":"
 StartFunction <<EOF
-central:nice -n -19 central -s
-h0:$MAGIC_DIR/drivers/Hokuyo/runHokuyo /dev/ttyACM0
-h1:$MAGIC_DIR/drivers/Hokuyo/runHokuyo /dev/ttyACM1
-mg:nice -n -10 $MAGIC_DIR/drivers/MicroGateway/runMicroGateway2 /dev/ttyUSB0
+central:nice -n -15 central -s
+h0:nice -n -15 $MAGIC_DIR/drivers/Hokuyo/runHokuyo /dev/ttyACM0
+h1:nice -n -15 $MAGIC_DIR/drivers/Hokuyo/runHokuyo /dev/ttyACM1
+mg:nice -n -15 $MAGIC_DIR/drivers/MicroGateway/runMicroGateway2 /dev/ttyUSB0
 EOF
 
 #slam:matlab -nodesktop -r startSlam
