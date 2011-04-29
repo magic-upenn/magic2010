@@ -185,12 +185,12 @@ int MicroParamsInitialize()
 
   ptable10.id           = 10;
   ptable10.mode         = 0;
-  ptable10.accBiasX     = 660;
-  ptable10.accBiasY     = 660;
-  ptable10.accBiasZ     = 660;
-  ptable10.accSenX      = (1.0/139.0);
-  ptable10.accSenY      = (1.0/139.0);
-  ptable10.accSenZ      = (1.0/139.0);
+  ptable10.accBiasX     = 664;
+  ptable10.accBiasY     = 643;
+  ptable10.accBiasZ     = 655;
+  ptable10.accSenX      = (1.0/133.0);
+  ptable10.accSenY      = (1.0/133.0);
+  ptable10.accSenZ      = (1.0/133.0);
   ptable10.gyroSenX     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
   ptable10.gyroSenY     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);
   ptable10.gyroSenZ     = ADC_VOLTAGE_MV/1023.0*(M_PI/180.0/3.5);

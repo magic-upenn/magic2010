@@ -8,15 +8,18 @@
 #include <iostream>
 #include <fstream>
 #include <math.h>
+#include "VisInterfaces.hh"
 
 using namespace std;
+using namespace vis;
 
 //#define SERIAL_BAUD_RATE 115200
 //#define SERIAL_BAUD_RATE 230400
 #define SERIAL_BAUD_RATE 1000000
 
 SerialDevice sd;
-
+VisPublishInterfacePose3D poseIface;
+Pose3D pose = { {0,0,0} , {0,0,0} };
 
 int ProcessPacket(DynamixelPacket * packet)
 {
@@ -76,6 +79,13 @@ int ProcessPacket(DynamixelPacket * packet)
                rpy[0]*180/M_PI,rpy[1]*180/M_PI,rpy[2]*180/M_PI,
                rpy[3]*180/M_PI,rpy[4]*180/M_PI,rpy[5]*180/M_PI);
 
+        
+        pose.rot.roll  = rpy[0];
+        pose.rot.pitch = rpy[1];
+        pose.rot.yaw   = rpy[2];
+        //publish message
+        poseIface.Publish((void*)&pose);
+
 
       }
       else if (DynamixelPacketGetType(packet) == MMC_MAG_RAW)
@@ -125,7 +135,7 @@ int main(int argc, char * argv[])
   DynamixelPacketInit(&packet);
   int ret;
 
-  
+  poseIface.Connect("imu");
 
   while(1)
   {
