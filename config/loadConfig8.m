@@ -59,7 +59,7 @@ SERVO1.offsetx   = 0.165;
 SERVO1.offsety   = 0;
 SERVO1.offsetz   = 0.40;
 SERVO1.amult     = 1; %could be not 1 if servo potentiometer is wearing out
-SERVO1.offsetYaw = rad(0);
+SERVO1.offsetYaw = rad(4);
 
 %kinect
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

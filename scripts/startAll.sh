@@ -38,10 +38,11 @@ central:nice -n -15 central -s
 h0:nice -n -15 $MAGIC_DIR/drivers/Hokuyo/runHokuyo /dev/ttyACM0
 h1:nice -n -15 $MAGIC_DIR/drivers/Hokuyo/runHokuyo /dev/ttyACM1
 mg:nice -n -15 $MAGIC_DIR/drivers/MicroGateway/runMicroGateway2 /dev/ttyUSB0
+slam:matlab -nojvm -nosplash -r startSlam
+mapfsm: matlab -nojvm -nosplash -r startMapfsm
 EOF
 
-#slam:matlab -nodesktop -r startSlam
-#mapfsm: matlab -nodesktop -r startMapfsm
+
 #red: matlab -nodesktop -r startRed
 
 exit
