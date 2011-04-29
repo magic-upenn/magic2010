@@ -16,3 +16,6 @@ scan_correlation.$(MEXEXT) : scan_correlation.cpp
 
 scan_icp.$(MEXEXT) : scan_icp.cpp
 	mex -O $^
+
+scan_icp_irls.$(MEXEXT) : scan_icp_irls.cpp
+	mex -O $^
