@@ -27,7 +27,7 @@ while(1)
       msgs = ipcAPIReceive(10);
       len = length(msgs);
       if len > 0
-          disp('receiving...');
+          %disp('receiving...');
           for i=1:len
               switch(msgs(i).name)
                   case LidarMsgName
