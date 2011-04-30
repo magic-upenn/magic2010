@@ -1,6 +1,7 @@
 clear all
 close all
-strg = 'Lidardata_30-Apr-2011_18:48:59';
+%strg = 'Lidardata_30-Apr-2011_18:48:59';
+strg = 'Lidardata_30-Apr-2011_19:38:11';
 data = load(strcat(strg,'.mat'));
 Lidar = cell2mat(data.Lidar);
 Servo = cell2mat(data.Servo);
