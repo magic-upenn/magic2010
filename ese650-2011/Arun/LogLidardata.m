@@ -32,10 +32,10 @@ while(1)
               switch(msgs(i).name)
                   case LidarMsgName
                      lidarScan =  MagicLidarScanSerializer('deserialize',msgs(i).data);
-                      angles = linspace(lidarScan.startAngle, lidarScan.stopAngle, length(lidarScan.ranges));
-                      polar(angles,lidarScan.ranges,'.');
+                      %angles = linspace(lidarScan.startAngle, lidarScan.stopAngle, length(lidarScan.ranges));
+                      %polar(angles,lidarScan.ranges,'.');
                       Lidar{end+1} = lidarScan;
-                      drawnow;
+                      %drawnow;
                       fprintf(1,'.');
                   case imuMsgName
                       Imu{end+1} = MagicImuFilteredSerializer('deserialize',msgs(i).data);

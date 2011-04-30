@@ -1,4 +1,7 @@
-data = load('Lidardata_30-Apr-2011_18:48:59.mat');
+clear all
+close all
+strg = 'Lidardata_30-Apr-2011_18:48:59';
+data = load(strcat(strg,'.mat'));
 Lidar = cell2mat(data.Lidar);
 Servo = cell2mat(data.Servo);
 Imu = cell2mat(data.Imu);
@@ -35,10 +38,10 @@ for k = 1:numel(ts)
         xs = (Lidar(k_Lidar).ranges.*cos(las_angles));
         ys = (Lidar(k_Lidar).ranges.*sin(las_angles));
         X = [xs;ys;zs;os]; %[x;y;0;1]
-        Yt = Tpr*Tsensor*X;
+        Yt = Typr*Tsensor*X;
         if(isempty(pts_3D))
             figure;
-            A = plot3(Yt(1,:),Yt(2,:),Yt(3,:));
+            A = plot3(Yt(1,:),Yt(2,:),Yt(3,:),'.');
             pts_3D = Yt(1:3,:);
         elseif(mod(k_Lidar,10) == 0)
             xd = get(A,'Xdata');
@@ -48,10 +51,11 @@ for k = 1:numel(ts)
             pts_3D = cat(2,pts_3D,Yt(1:3,:));
             drawnow;
         end
+        k_Lidar = k_Lidar+1;
         
     elseif(ts(k) == 2)
-        pitch = Imu(k_imu).pitch;
-        roll = Imu(k_imu).roll;
+        pitch = Imu(k_Imu).pitch;
+        roll = Imu(k_Imu).roll;
         yaw = 0;
         k_Imu = k_Imu + 1;
     elseif(ts(k) == 3)
@@ -59,4 +63,6 @@ for k = 1:numel(ts)
         k_Servo = k_Servo + 1;
     end
 end
+
+save(strcat('3Dpts_',strg(11:end),'.mat'),'pts_3D');
 
