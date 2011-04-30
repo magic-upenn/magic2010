@@ -5,7 +5,7 @@ function im = get_image(cam,waste,space)
 	end
 	im = [];
 	if cam == 0
-		im = get_im(waste,@uvcCam0,'/dev/cam_omni',640,480);
+		im = get_im(waste,@uvcCam0,'/dev/cam_omni',1280,800);
 %   		im = get_im(waste,@uvcCam0,'/dev/video4',1600,1200);
 	else 
 		im = get_im(waste,@uvcCam1,'/dev/cam_front',640,480);
