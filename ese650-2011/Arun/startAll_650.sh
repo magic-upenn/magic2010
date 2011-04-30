@@ -39,11 +39,12 @@ StartFunction ()
 # slam:matlab -nodesktop -r startSlam
 # mapfsm: matlab -nodesktop -r startMapfsm
 # red: matlab -nodesktop -r startRed
+
 StartFunction <<EOF
 central:nice -n -5 central -s
 mg:nice -n -5 $MAGIC_DIR/drivers/MicroGateway/runMicroGateway2 /dev/ttyUSB0
-frontcam: matlab -nodesktop -r startFrontCam
 omnicam: matlab -nodesktop -r startOmniCam
+frontcam: matlab -nodesktop -r startFrontCam
 gps: matlab -nodesktop -r startGPS
 EOF
 
