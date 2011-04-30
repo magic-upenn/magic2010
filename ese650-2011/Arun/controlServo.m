@@ -48,7 +48,7 @@ while(1)
         servoCmd.mode         = 2;  %0: disabled; 1: feedback only: 2: point minAngle is the goal), 3: servo mode
         servoCmd.minAngle     = 0;
         servoCmd.maxAngle     = 0;
-        servoCmd.speed        = 100;
+        servoCmd.speed        = 15;
         servoCmd.acceleration = 300;
         fprintf(1,'Stopping servo mode\n');
         ex_flag = 1;
@@ -56,8 +56,8 @@ while(1)
       case 'g'
         servoCmd.id           = 1;
         servoCmd.mode         = 3;  %0: disabled; 1: feedback only: 2: point minAngle is the goal), 3: servo mode
-        servoCmd.minAngle     = -45;
-        servoCmd.maxAngle     = 20;
+        servoCmd.minAngle     = -20;
+        servoCmd.maxAngle     = 45;
         servoCmd.speed        = 15;
         servoCmd.acceleration = 300;
     end
