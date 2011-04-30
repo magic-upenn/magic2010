@@ -4,14 +4,17 @@ SetMagicPaths;
 %lidar0MsgName = GetMsgName('Lidar0');
 
 robotId = '5';
-LidarMsgName = ['Robot' robotId '/Lidar0'];               % Omni-directional Cam
+LidarMsgName = ['Robot' robotId '/Lidar0'];    
+imuMsgName = ['Robot' robotId '/ImuFiltered']; % IMU
 ServoMsgName = ['Robot' robotId '/Servo1']; 
 ipcAPIConnect('localhost');
 ipcAPISubscribe(LidarMsgName);
 ipcAPISubscribe(ServoMsgName);
+ipcAPISubscribe(imuMsgName);
 
 Lidar ={}; 
 Servo = {};
+Imu = {};
 
 timeout = 10;
 tic;
@@ -28,13 +31,15 @@ while(1)
           for i=1:len
               switch(msgs(i).name)
                   case LidarMsgName
-                     lidarScan =  MagicLidarScanSerializer('deserialize',msgs(i).data)
+                     lidarScan =  MagicLidarScanSerializer('deserialize',msgs(i).data);
                       angles = linspace(lidarScan.startAngle, lidarScan.stopAngle, length(lidarScan.ranges));
                       polar(angles,lidarScan.ranges,'.');
                       Lidar{end+1} = lidarScan;
                       drawnow;
                       fprintf(1,'.');
-                  case ServoMsgname
+                  case imuMsgName
+                      Imu{end+1} = MagicImuFilteredSerializer('deserialize',msgs(i).data);
+                  case ServoMsgName
                       Servo{end+1} = MagicServoStateSerializer('deserialize',msgs(i).data);
               end
           end
@@ -42,6 +47,6 @@ while(1)
 end
 b = datestr(clock());
 savename = strcat('Lidardata_',b(1:11),'_',b(13:end),'.mat');
-save(savename,'Lidar','Servo');
+save(savename,'Lidar','Servo','Imu');
 close all
 clear all
