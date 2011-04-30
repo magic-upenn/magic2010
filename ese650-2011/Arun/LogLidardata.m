@@ -16,7 +16,7 @@ Lidar ={};
 Servo = {};
 Imu = {};
 
-timeout = 10;
+timeout = 50;
 tic;
 ctf = 1;
 cto = 1;
