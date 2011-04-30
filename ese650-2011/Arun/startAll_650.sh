@@ -45,6 +45,7 @@ central:nice -n -5 central -s
 mg:nice -n -5 $MAGIC_DIR/drivers/MicroGateway/runMicroGateway2 /dev/ttyUSB0
 omnicam: matlab -nodesktop -r startOmniCam
 frontcam: matlab -nodesktop -r startFrontCam
+h0:$MAGIC_DIR/drivers/Hokuyo/runHokuyo /dev/ttyACM0
 gps: matlab -nodesktop -r startGPS
 EOF
 
