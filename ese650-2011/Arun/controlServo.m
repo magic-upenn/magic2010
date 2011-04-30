@@ -15,6 +15,9 @@ servoCmd.maxAngle     = 20;
 servoCmd.speed        = 15;
 servoCmd.acceleration = 300;
 ex_flag = 0;
+% do it for first time
+content = MagicServoControllerCmdSerializer('serialize',servoCmd);
+ipcAPIPublishVC(servoMsgName,content);
 
 while(1)
   c = getch();
@@ -49,6 +52,14 @@ while(1)
         servoCmd.acceleration = 300;
         fprintf(1,'Stopping servo mode\n');
         ex_flag = 1;
+        
+      case 'g'
+        servoCmd.id           = 1;
+        servoCmd.mode         = 3;  %0: disabled; 1: feedback only: 2: point minAngle is the goal), 3: servo mode
+        servoCmd.minAngle     = -45;
+        servoCmd.maxAngle     = 20;
+        servoCmd.speed        = 15;
+        servoCmd.acceleration = 300;
     end
     content = MagicServoControllerCmdSerializer('serialize',servoCmd);
     ipcAPIPublishVC(servoMsgName,content);
