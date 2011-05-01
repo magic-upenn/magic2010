@@ -68,10 +68,10 @@ T_senstoservo = trans([0 0 0]);
 %global MAP
 MAP.res   = 0.05; %meters
 
-MAP.xmin  = -5;  %meters
-MAP.ymin  = -5;
-MAP.xmax  =  5;
-MAP.ymax  =  5;
+MAP.xmin  = -15;  %meters
+MAP.ymin  = -15;
+MAP.xmax  =  15;
+MAP.ymax  =  15;
 
 %dimensions of the map
 MAP.sizex  = ceil((MAP.xmax - MAP.xmin) / MAP.res + 1); %cells
