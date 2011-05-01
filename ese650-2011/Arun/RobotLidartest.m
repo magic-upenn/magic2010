@@ -178,7 +178,7 @@ end
 b = datestr(clock());
 savename = strcat('Lidardata_',b(1:11),'_',b(13:end),'.mat');
 %procname = strcat('Processed_',b(1:11),'_',b(13:end),'.mat');
-save(savename,'Lidar','Servo','Imu','MAP','pts_3D');
+%save(savename,'Lidar','Servo','Imu','MAP','pts_3D');
 
 % Bring the servo back to zero position
 servoCmd.id           = 1;
