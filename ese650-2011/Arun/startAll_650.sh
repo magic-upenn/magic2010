@@ -39,6 +39,7 @@ StartFunction ()
 # slam:matlab -nodesktop -r startSlam
 # mapfsm: matlab -nodesktop -r startMapfsm
 # red: matlab -nodesktop -r startRed
+# servo: matlab -nodesktop -r controlServo_aut
 
 StartFunction <<EOF
 central:nice -n -5 central -s
@@ -47,7 +48,6 @@ omnicam: matlab -nodesktop -r startOmniCam
 frontcam: matlab -nodesktop -r startFrontCam
 h0:$MAGIC_DIR/drivers/Hokuyo/runHokuyo /dev/ttyACM1
 gps: matlab -nodesktop -r startGPS
-servo: matlab -nodesktop -r controlServo_aut
 EOF
 
 exit
