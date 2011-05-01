@@ -101,7 +101,7 @@ while(1)
                         Rsensor = roty(servo_angl)'; % transpose is the inverse of the rotation
                         %[Lidar(k_Lidar).startAngle Lidar(k_Lidar).angleStep   Lidar(k_Lidar).stopAngle]
                         if(isempty(las_angles))
-                            las_angles = Lidar{k_Lidar}.startAngle : Lidar{k_Lidar}.angleStep : Lidar(k_Lidar).stopAngle;
+                            las_angles = Lidar{k_Lidar}.startAngle : Lidar{k_Lidar}.angleStep : Lidar{k_Lidar}.stopAngle;
                             zs = zeros(size(las_angles));
                             os = ones(size(las_angles));
                             coslas_ang = cos(las_angles);
