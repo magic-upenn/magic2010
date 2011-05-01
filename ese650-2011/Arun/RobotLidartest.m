@@ -36,7 +36,7 @@ servoCmd.acceleration = 300;
 
 content = MagicServoControllerCmdSerializer('serialize',servoCmd);
 ipcAPIPublishVC(servoMsgName,content);
-servo_flag = false;
+Servo_flag = false;
 
 % Subscribe to stuff
 ipcAPISubscribe(LidarMsgName);
@@ -92,7 +92,7 @@ while(1)
         for i=1:len
             switch(msgs(i).name)
                 case LidarMsgName
-                    if(servo_flag)
+                    if(Servo_flag)
                         lidarScan =  MagicLidarScanSerializer('deserialize',msgs(i).data);
                         %angles = linspace(lidarScan.startAngle, lidarScan.stopAngle, length(lidarScan.ranges));
                         %polar(angles,lidarScan.ranges,'.');
