@@ -117,9 +117,11 @@ while(1)
 
                         X = [xs;ys;zs;os]; %[x;y;0;1]
                         Yt = Rypr*T_servotobody*Rservo*T_senstoservo*X(:,valid);
+                        
+                        not_floor = (Yt(3,:) > 0.05);
 
-                        xs1 = Yt(1,:);
-                        ys1 = Yt(2,:);
+                        xs1 = Yt(1,not_floor);
+                        ys1 = Yt(2,not_floor);
 
                         %convert from meters to cells
                         xis = ceil((xs1 - MAP.xmin) ./ MAP.res);
