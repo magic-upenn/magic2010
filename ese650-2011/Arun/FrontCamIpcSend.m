@@ -1,8 +1,8 @@
 %SetMagicPaths;
-cam1Driver = @uvcCam650_1;
+cam1Driver = @uvcCam;
 
 % Initialize the front facing cam
-cam1Driver('init','/dev/cam_front');
+cam1Driver('init','/dev/cam_front',[640 480]);
 cam1Driver('stream_on');
 cam1Driver('set_ctrl','contrast', 32);
 

@@ -1,4 +1,4 @@
-clear all;
+%clear all;
 close all;
 SetMagicPaths;
 %lidar0MsgName = GetMsgName('Lidar0');
@@ -29,7 +29,7 @@ pause(2); % wait for servo to reach that position
 % Then do automatic scanning 
 servoCmd.id           = 1;
 servoCmd.mode         = 3;  %0: disabled; 1: feedback only: 2: point minAngle is the goal), 3: servo mode
-servoCmd.minAngle     = -20;
+servoCmd.minAngle     = 0;
 servoCmd.maxAngle     = 45;
 servoCmd.speed        = 15;
 servoCmd.acceleration = 300;
@@ -98,8 +98,8 @@ while(1)
                         %polar(angles,lidarScan.ranges,'.');
                         Lidar{end+1} = lidarScan;
 
-                        Rypr = rotz(yaw)*roty(pitch)*rotx(roll); 
-                        Rservo = roty(servo_angl)'; % transpose is the inverse of the rotation
+                        Rypr = eye(4); %rotz(yaw)*roty(pitch)*rotx(roll); 
+                        Rservo = roty(servo_angl); % transpose is the inverse of the rotation
 
                         %[Lidar(k_Lidar).startAngle Lidar(k_Lidar).angleStep   Lidar(k_Lidar).stopAngle]
                         if(isempty(las_angles))
@@ -109,7 +109,7 @@ while(1)
                             coslas_ang = cos(las_angles);
                             sinlas_ang = sin(las_angles);
                         end
-                        las_ranges = Lidar{k_Lidar}.ranges;
+                        las_ranges = lidarScan.ranges;
                         xs = (las_ranges.*coslas_ang);
                         ys = (las_ranges.*sinlas_ang);
 
@@ -117,7 +117,8 @@ while(1)
 
                         X = [xs;ys;zs;os]; %[x;y;0;1]
                         Yt = Rypr*T_servotobody*Rservo*T_senstoservo*X(:,valid);
-                        
+                        %Yt = Rservo*T_senstoservo*X(:,valid);
+                        %Yt = [Rypr(1:3,1:3) T_servotobody(1:3,4); 0 0 0 1]*[Rservo(1:3,1:3) T_senstoservo(1:3,4); 0 0 0 1]*X(:,valid);
                         not_floor = (Yt(3,:) > 0.05);
 
                         xs1 = Yt(1,not_floor);
@@ -130,7 +131,7 @@ while(1)
                         %check the indices and populate the map
                         indGood = (xis > 1) & (yis > 1) & (xis < MAP.sizex) & (yis < MAP.sizey);
                         inds = sub2ind(size(MAP.map),xis(indGood),yis(indGood));
-                        MAP.map(inds) = min(MAP.map(inds)+1,100);
+                        MAP.map(inds) = min(MAP.map(inds)+10,100);
 
                         if(isempty(pts_3D))
                             % 3D points
@@ -172,7 +173,7 @@ while(1)
                     k_Imu = k_Imu + 1;
                 case ServoMsgName
                     Servo{end+1} = MagicServoStateSerializer('deserialize',msgs(i).data);
-                    servo_angl = Servo{k_Servo}.position;
+                    servo_angl = Servo{k_Servo}.position+0.05; % initial offset is 0.05 radians
                     Servo_flag = true;
                     k_Servo = k_Servo + 1;
             end
@@ -182,7 +183,7 @@ end
 b = datestr(clock());
 savename = strcat('Lidardata_',b(1:11),'_',b(13:end),'.mat');
 %procname = strcat('Processed_',b(1:11),'_',b(13:end),'.mat');
-%save(savename,'Lidar','Servo','Imu','MAP','pts_3D');
+save(savename,'Lidar','Servo','Imu','MAP','pts_3D');
 
 % Bring the servo back to zero position
 servoCmd.id           = 1;

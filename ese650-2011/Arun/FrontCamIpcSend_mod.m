@@ -11,7 +11,7 @@ while(1)
   imRgb = get_image(1);
   if ~isempty(imRgb)
     cntr      = cntr + 1;
-    imRgb     = yuyv2rgbm(imYuyv);
+    %imRgb     = yuyv2rgbm(imYuyv);
     %image(imRgb);
     %set(gca,'ydir','normal','xdir','reverse');
     %drawnow;
