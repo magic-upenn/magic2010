@@ -61,8 +61,8 @@ servo_angl = 0;
 
 pts_3D = [];
 las_angles = [];
-T_servotobody = trans([145 0 506]); % 144.775 0 506
-T_senstoservo = trans([56 0 28]); 
+T_servotobody = trans([0.145 0 0.506]); % 144.775 0 506
+T_senstoservo = trans([0.056 0 0.028]); 
 
 %% Initialize the cost map
 %global MAP
