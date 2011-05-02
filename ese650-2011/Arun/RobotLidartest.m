@@ -61,8 +61,8 @@ servo_angl = 0;
 
 pts_3D = [];
 las_angles = [];
-T_servotobody = trans([0 0 0]);
-T_senstoservo = trans([0 0 0]);
+T_servotobody = trans([145 0 506]); % 144.775 0 506
+T_senstoservo = trans([56 0 28]); 
 
 %% Initialize the cost map
 %global MAP
@@ -97,8 +97,10 @@ while(1)
                         %angles = linspace(lidarScan.startAngle, lidarScan.stopAngle, length(lidarScan.ranges));
                         %polar(angles,lidarScan.ranges,'.');
                         Lidar{end+1} = lidarScan;
+
                         Rypr = rotz(yaw)*roty(pitch)*rotx(roll); 
-                        Rsensor = roty(servo_angl)'; % transpose is the inverse of the rotation
+                        Rservo = roty(servo_angl)'; % transpose is the inverse of the rotation
+
                         %[Lidar(k_Lidar).startAngle Lidar(k_Lidar).angleStep   Lidar(k_Lidar).stopAngle]
                         if(isempty(las_angles))
                             las_angles = Lidar{k_Lidar}.startAngle : Lidar{k_Lidar}.angleStep : Lidar{k_Lidar}.stopAngle;
@@ -114,7 +116,7 @@ while(1)
                         valid = ((las_ranges > 0.15)&(las_ranges<40));
 
                         X = [xs;ys;zs;os]; %[x;y;0;1]
-                        Yt = Rypr*Rsensor*X(:,valid);
+                        Yt = Rypr*Tservotobody*Rservo*Tsenstoservo*X(:,valid);
 
                         xs1 = Yt(1,:);
                         ys1 = Yt(2,:);
