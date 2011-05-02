@@ -116,7 +116,7 @@ while(1)
                         valid = ((las_ranges > 0.15)&(las_ranges<40));
 
                         X = [xs;ys;zs;os]; %[x;y;0;1]
-                        Yt = Rypr*Tservotobody*Rservo*Tsenstoservo*X(:,valid);
+                        Yt = Rypr*T_servotobody*Rservo*T_senstoservo*X(:,valid);
 
                         xs1 = Yt(1,:);
                         ys1 = Yt(2,:);
