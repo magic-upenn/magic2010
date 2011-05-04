@@ -35,7 +35,8 @@ switch event
             gl_yw = gl_yw + 2*pi;
         end
         % Wait till the robot reaches that angle
-        if(yaw-gl_yw>0.1) % Make the robot turn to that particular angle
+        %if(yaw-gl_yw>0.1) % Make the robot turn to that particular angle
+        if(gettime - DATA.t0 < 5)
             SetVelocity(0, sign(gl_yw-yw)*1.0);
             %ret = [];
             return;

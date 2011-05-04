@@ -8,7 +8,7 @@ switch event
  case 'entry'
   disp('sInitial: Waiting for initial pose');
   tt = gettime;
-  setVelocity(0,0);
+  SetVelocity(0,0);
  case 'exit'
     
  case 'update'

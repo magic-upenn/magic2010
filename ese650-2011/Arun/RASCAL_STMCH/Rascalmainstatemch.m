@@ -58,6 +58,7 @@ POSE.yaw = 0;
 POSE.pitch = 0;
 POSE.roll = 0;
 MAP = init_map(0.05,15,15);
+MP.nupdate = 0;
 
 %robotId = '5';
 
@@ -70,6 +71,7 @@ ipcReceiveSetFcn(GetMsgName('Lidar0'), @RascalmapfsmRecvLidarScansFcn);
 ipcReceiveSetFcn(GetMsgName('Servo1'), @RascalmapfsmRecvServoFcn);
 %ipcReceiveSetFcn(GetMsgName('ImuFiltered'), @RascalmapfsmRecvImuFcn);
 
+ipcAPIDefine(GetMsgName('FSM_Status'));
 % Servo stuff
 servoMsgName = GetMsgName('Servo1Cmd');
 ipcAPIDefine(servoMsgName,MagicServoControllerCmdSerializer('getFormat'));
