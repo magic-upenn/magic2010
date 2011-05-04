@@ -8,10 +8,12 @@ if isempty(data)
 end
 
 if(QUEUELASER)
+    fprintf('%d \n',k_Lidar);
     if(isempty(k_Lidar))
         k_Lidar = 1;
         LIDAR = {};
         setServotoScan;
+        pause(0.1)
     end
     LIDAR{k_Lidar} = MagicLidarScanSerializer('deserialize',data);
     LIDAR{k_Lidar}.pitch = POSE.pitch;
@@ -20,7 +22,7 @@ if(QUEUELASER)
     LIDAR{k_Lidar}.servoangle = SERVO_ANGLE;
     k_Lidar = k_Lidar + 1;
     
-    if(k_Lidar > 100)
+    if(k_Lidar > 150)
         k_Lidar = [];
         LFLAG = true;
         QUEUELASER = false;

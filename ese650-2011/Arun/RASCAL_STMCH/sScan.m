@@ -1,6 +1,6 @@
 function ret = sScan(event, varargin)
 
-global POSE GOAL QUEUELASER LFLAG
+global POSE GOAL QUEUELASER LFLAG MAP
 persistent DATA;
 ret = [];
 switch event
@@ -37,7 +37,7 @@ switch event
         % Wait till the robot reaches that angle
         %if(yaw-gl_yw>0.1) % Make the robot turn to that particular angle
         if(gettime - DATA.t0 < 5)
-            SetVelocity(0, sign(gl_yw-yw)*1.0);
+            SetVelocity(0, sign(gl_yw-yw)*3.0);
             %ret = [];
             return;
         else
@@ -51,11 +51,16 @@ switch event
     if(LFLAG)
         ProcessLidarScans; % Create a costmap from the LIDAR scans
         LFLAG = false;
-    %if(gettime - tx > 2)
+        %GOAL = [];
+        figure;
+        imagesc(MAP.map);
+        colormap gray
+        QUEUELASER = false;
+        %if(gettime - tx > 2)
         %disp('Exiting...');
         % Now scan the environment using the tilt lidar and make a costmap
         
-        ret = 'plan';
+        ret = 'stop';
     end
 
 end
