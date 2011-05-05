@@ -15,11 +15,9 @@ init_map(res,xdev,ydev);
 %NikolayGui('gui_OpeningFcn',goalMsgName);
 
 
-h.map = dispMap([]);
-set(h.map,'ButtonDownFcn',@sendGoal,'UserData',goalMsgName);
+h = dispMap([]);
+set(h,'ButtonDownFcn',@sendGoal,'UserData',goalMsgName);
 
-h.pose = [];
-h.path = [];
 
 while(1)
 
@@ -68,7 +66,7 @@ while(1)
     end
     
     % display
-    h.map = dispMap(h.map);
+    h = dispMap(h);
     drawnow;
     
 end
