@@ -3,9 +3,7 @@
   <msgTypeP>GPS</msgTypeP>
   <msgTypeP>Encoders</msgTypeP>
   <msgTypeP>EstopState</msgTypeP>
-  <msgTypeP>ImuFiltered</msgTypeP>
-  <msgTypeP>CamOmni</msgTypeP>
-  <msgTypeP>CamFront</msgTypeP>  
+  <msgTypeP>ImuFiltered</msgTypeP> 
   <msgTypeP>BatteryStatus</msgTypeP>
   <msgTypeP>MotorStatus</msgTypeP>
   <flushPeriod>0.5</flushPeriod>
