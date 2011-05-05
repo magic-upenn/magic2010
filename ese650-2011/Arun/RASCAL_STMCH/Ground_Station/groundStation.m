@@ -10,7 +10,7 @@ res = 0.05;
 xdev = 15;
 ydev = 15;
 
-MAP = init_map(res,xdev,ydev);
+init_map(res,xdev,ydev);
 
 %NikolayGui('gui_OpeningFcn',goalMsgName);
 
