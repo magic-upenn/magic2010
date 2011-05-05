@@ -10,7 +10,7 @@ B(B == 0) = 1;
 %B = conv2(double(B),ones(11),'same');
 
 tic
-[C,ind] = plannerAstar(double(B),[206 328],[309 348]);
+[C,ind] = plannerAstar(double(B),[299 299],[400 100]);
 toc
 
 figure;imagesc(B);colormap gray;

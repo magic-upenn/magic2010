@@ -2,6 +2,8 @@ function ret = sScan(event, varargin)
 
 global POSE GOAL QUEUELASER LFLAG MAP
 persistent DATA;
+persistent fg m;
+
 ret = [];
 switch event
  case 'entry'
@@ -52,12 +54,16 @@ switch event
         ProcessLidarScans; % Create a costmap from the LIDAR scans
         LFLAG = false;
         %GOAL = [];
-        figure;
-        set(gca,'xDir','normal','yDir','reverse');
-        imagesc(MAP.map);
-        colormap gray
-        pause();
-        
+        if(isempty(fg))
+            fg = figure;
+            set(gca,'xDir','normal','yDir','reverse');
+            m = imagesc(MAP.map);
+            colormap gray
+            hold on
+        else
+            set(m,'Cdata',MAP.map);
+        end
+          
         % Publish the costmap
         mapMsgName = 'Robot5/CMap';
         ipcAPIDefine(mapMsgName);
@@ -72,8 +78,11 @@ switch event
         ipcAPIPublishVC(mapMsgName,content);
         
         % Plan on the costmap
-        [Cells,ind] = plannerAstar(double(MAP.map),[POSE.x POSE.y],[GOAL(1),GOAL(2)]); 
-        Cells
+        tic
+        [Cells,ind] = plannerAstar(double(MAP.map),round([POSE.x POSE.y]),round([GOAL(1),GOAL(2)])); 
+        toc
+        plot(Cells(2,1:ind),Cells(1,1:ind),'r.');
+        
         % Publish the path
         pathMsgName = 'Robot5/path';
         ipcAPIDefine(pathMsgName);
@@ -89,7 +98,7 @@ switch event
         %disp('Exiting...');
         % Now scan the environment using the tilt lidar and make a costmap
         disp('Costmap generated');
-        ret = 'Traj';
+        ret = 'Stop';
     end
 
 end

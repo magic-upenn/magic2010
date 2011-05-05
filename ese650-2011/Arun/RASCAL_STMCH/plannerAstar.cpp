@@ -31,8 +31,8 @@ void mexFunction(int nlhs, mxArray *plhs[],
  double i;
  long int pos[2],a,b,count;
  double h;
- double *robotpos, *targetpos1,*envmap,*output;
- long int targetpos[2];
+ double *robotpos1, *targetpos1,*envmap,*output;
+ long int targetpos[2],robotpos[2];
  int dx[8],dy[8],dir,result[2];
  int path[8];
  double weight[8];
@@ -75,13 +75,16 @@ void mexFunction(int nlhs, mxArray *plhs[],
         gvalue[(long)i] = 1000000;
         //printf("gvalue: %f \n",envmap[(long)i]);
     }
-    robotpos =  mxGetPr(prhs[1]);
+    robotpos1 =  mxGetPr(prhs[1]);
     targetpos1 = mxGetPr(prhs[2]);
+    
+    robotpos[0] = (int)robotpos1[0]-1;
+    robotpos[1] = (int)robotpos1[1]-1;
     
     output  =   mxGetPr(plhs[0]);
     
-    pos[0]=(int)robotpos[0]-1; // Column value
-    pos[1]=(int)robotpos[1]-1; // Row value
+    pos[0]=robotpos[0]; // Column value
+    pos[1]=robotpos[1]; // Row value
     targetpos[0]=(int)targetpos1[0]-1; // Column value
     targetpos[1]=(int)targetpos1[1]-1; // Row value
 
@@ -102,7 +105,9 @@ void mexFunction(int nlhs, mxArray *plhs[],
     newmap[pos[0]*m+pos[1]]=3;
     pq.push(state);
     count=0;
-    //return;
+    
+    plhs[1] = mxCreateDoubleScalar(count_path);
+
   while(( pos[0]!= targetpos[0] || pos[1] != targetpos[1] ))// && ((clock()-time_start)<=0.97*CLOCKS_PER_SEC))//&&count<2000000)
   {
      a=pos[0]*m+pos[1];
@@ -145,6 +150,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
   }
     
   printf("Finished going forward.... \n");
+  
   /*for(i=0;i<n*m;i++)
   {
      output[(long)i]=gvalue[(long)i];
@@ -159,14 +165,14 @@ void mexFunction(int nlhs, mxArray *plhs[],
   {
       epsilon=5;
   }*/
-    //printf("pos[0] : %d, pos[1] : %d",pos[0],pos[1]);
+  printf("pos[0] : %d, pos[1] : %d",pos[0],pos[1]);
+  printf("robotpos[0] : %f, robotpos[1] : %f",robotpos1[0],robotpos1[1]);
 
-  
-  while( pos[0] != (robotpos[0]-1) || pos[1] != (robotpos[1]-1) )
+  while( pos[0] != robotpos[0] || pos[1] != robotpos[1] )
   {
        //printf("Backtracking Now.... \n");
         
-        long gprev=1000000;
+        long int gprev=1000000;
         for (dir=0; dir<8; dir++)
         {
             newx=pos[0]+dx[dir];

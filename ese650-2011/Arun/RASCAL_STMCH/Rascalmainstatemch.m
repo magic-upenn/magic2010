@@ -64,7 +64,7 @@ PATH_DATA = [];
 init_map(0.05,15,15);
 MP.nupdate = 0;
 
-temp = meters2cells_cont([0 0],[MAP.xmin,MAP.ymin],MAP.res);
+temp = meters2cells([0 0],[MAP.xmin,MAP.ymin],MAP.res);
 
 POSE.x = temp(1); % column value
 POSE.y = temp(2); % row value
