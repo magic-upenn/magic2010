@@ -8,10 +8,11 @@ A = load('test.mat');
 B = A.MAP.map;
 B(B == 0) = 1;
 %B = conv2(double(B),ones(11),'same');
-figure;imagesc(B);colormap gray
+
 tic
-C = plannerAstar(B,[206 328],[309 348],1);
+[C,ind] = plannerAstar(double(B),[206 328],[309 348]);
 toc
-figure;
-imagesc(C);
-colormap gray
+
+figure;imagesc(B);colormap gray;
+hold on
+plot(C(2,1:ind),C(1,1:ind),'r.');

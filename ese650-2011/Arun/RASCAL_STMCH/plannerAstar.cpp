@@ -6,7 +6,7 @@
 
 using namespace std;
     int newmap[4000000];
-    long int gvalue[4000000];
+    int gvalue[4000000];
 class map
 {
 public:
@@ -23,21 +23,22 @@ public:
       return false;
    }
 };
-static int epsilon;
+static int epsilon = 1;
 void mexFunction(int nlhs, mxArray *plhs[], 
     int nrhs, const mxArray *prhs[])
 {
- int  m, n,g,newx,newy,j,newxprev,newyprev;
+ int  m, n,newx,newy,j,newxprev,newyprev,g;
  double i;
  long int pos[2],a,b,count;
  double h;
- double *robotpos, *targetpos1,*envmap,*output,*val;
+ double *robotpos, *targetpos1,*envmap,*output;
  long int targetpos[2];
  int dx[8],dy[8],dir,result[2];
  int path[8];
  double weight[8];
- clock_t time_start;
- time_start=clock();
+ int count_path = 0;
+ //clock_t time_start;
+ //time_start=clock();
  priority_queue<map, vector<map>, Comparemap> pq;
  
  dx[0]=dx[1]=dx[2]=-1;
@@ -51,12 +52,13 @@ void mexFunction(int nlhs, mxArray *plhs[],
  for(dir = 0; dir<8; dir ++)
  {
      weight[dir] = sqrt(dx[dir]*dx[dir] + dy[dir]*dy[dir]);
+     //printf("Weight: %f \n",weight[dir]);
  }
  
- if (nrhs != 4)
- mexErrMsgTxt("No of input arguments must be four");
+ if (nrhs != 3)
+ mexErrMsgTxt("No of input arguments must be three - Costmap,starting point,goal");
  
- if (nlhs != 1)
+ if (nlhs != 2)
  mexErrMsgTxt("No of output arguments must be one");
   
   
@@ -64,31 +66,29 @@ void mexFunction(int nlhs, mxArray *plhs[],
     m = mxGetM(prhs[0]); // no of rows in the map x*m+n;
     printf("Row: %d ,Col: %d \n",m,n);
     //plhs[0] = mxCreateDoubleMatrix(1, 2, mxREAL);// change to 1,2
-    plhs[0] = mxCreateDoubleMatrix(m, n, mxREAL);// change to 1,2
+    plhs[0] = mxCreateDoubleMatrix(2, 10000, mxREAL);// change to 1,2
     envmap=mxGetPr(prhs[0]);
 
     for(i=0;i<n*m;i++)
     {
         newmap[(long)i] = 0;//envmap[(long)i];
         gvalue[(long)i] = 1000000;
+        //printf("gvalue: %f \n",envmap[(long)i]);
     }
     robotpos =  mxGetPr(prhs[1]);
     targetpos1 = mxGetPr(prhs[2]);
+    
     output  =   mxGetPr(plhs[0]);
+    
     pos[0]=(int)robotpos[0]-1; // Column value
     pos[1]=(int)robotpos[1]-1; // Row value
     targetpos[0]=(int)targetpos1[0]-1; // Column value
     targetpos[1]=(int)targetpos1[1]-1; // Row value
-    
-    val=mxGetPr(prhs[3]);
-    if(val[0]==1)
-    {
-        epsilon=1;
+
         //printf("epsilon: %d \n",epsilon);
-    }
     printf("Start Column : %d, Start Row : %d \n",pos[0],pos[1]);
     printf("End Column : %d, End Row : %d \n",targetpos[0],targetpos[1]);
-    printf("Value : %d \n",(int)val[0]);
+    //printf("Value : %d \n",(int)val[0]);
   
     gvalue[pos[0]*m+pos[1]]=0;
    
@@ -103,7 +103,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
     pq.push(state);
     count=0;
     //return;
-  while(( pos[0]!= targetpos[0] || pos[1] != targetpos[1] ) && ((clock()-time_start)<=0.97*CLOCKS_PER_SEC))//&&count<2000000)
+  while(( pos[0]!= targetpos[0] || pos[1] != targetpos[1] ))// && ((clock()-time_start)<=0.97*CLOCKS_PER_SEC))//&&count<2000000)
   {
      a=pos[0]*m+pos[1];
      if(newmap[a] != 2) 
@@ -116,6 +116,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
            newy=pos[1]+dy[dir];
   
            g=gvalue[a];
+           //printf("Gvalue: %d \n",g);
            //g = envmap[a];
            b=newx*m+newy;
 
@@ -124,7 +125,8 @@ void mexFunction(int nlhs, mxArray *plhs[],
              if(newmap[b] == 0)
              {
                  h=sqrt((newx-targetpos[0])*(newx-targetpos[0]) + (newy-targetpos[1])*(newy-targetpos[1]));
-                 gvalue[b]=g + weight[dir]*envmap[b];
+                 gvalue[b]= g + weight[dir]*envmap[b];
+                 //printf("gvalue : %d \n",gvalue[b]);
                  state.f=gvalue[b]+epsilon*h;
                  state.x=newx;
                  state.y=newy;
@@ -137,33 +139,34 @@ void mexFunction(int nlhs, mxArray *plhs[],
      map state2 = pq.top();
      pos[0]=state2.x;
      pos[1]=state2.y;
-     printf("Row : %d, Col : %d \n",pos[0],pos[1]);
+     //printf("Row : %d, Col : %d \n",pos[0],pos[1]);
      pq.pop();               
      count++;
   }
     
   printf("Finished going forward.... \n");
-  for(i=0;i<n*m;i++)
+  /*for(i=0;i<n*m;i++)
   {
      output[(long)i]=gvalue[(long)i];
   }
-  return;
+  return;*/
     
-  if(( pos[0]== targetpos[0] || pos[1] == targetpos[1] ) && count<1000000)
+  /*if(( pos[0]== targetpos[0] || pos[1] == targetpos[1] ) && count<1000000)
   {
       epsilon=1;
   }
   else
   {
       epsilon=5;
-  }
+  }*/
     //printf("pos[0] : %d, pos[1] : %d",pos[0],pos[1]);
 
-  long gprev=1000000;
+  
   while( pos[0] != (robotpos[0]-1) || pos[1] != (robotpos[1]-1) )
   {
        //printf("Backtracking Now.... \n");
         
+        long gprev=1000000;
         for (dir=0; dir<8; dir++)
         {
             newx=pos[0]+dx[dir];
@@ -183,9 +186,15 @@ void mexFunction(int nlhs, mxArray *plhs[],
         pos[0]=newxprev;
         pos[1]=newyprev;
         newmap[pos[0]*m+pos[1]]=5; //means backtracked
+        
+        output[count_path*2+0] = pos[1]+1;//Row - Add 1 to get it to matlab basis
+        output[count_path*2+1] = pos[0]+1;//Column
+        count_path = count_path + 1;
+        
+        //printf("Col : %d, Row : %d \n",pos[0],pos[1]);
    }     
-    
-   for (dir=0; dir<8; dir++)
+   plhs[1] = mxCreateDoubleScalar(count_path);
+   /*for (dir=0; dir<8; dir++)
    {
         newx=pos[0]+dx[dir];
         newy=pos[1]+dy[dir];
@@ -195,14 +204,14 @@ void mexFunction(int nlhs, mxArray *plhs[],
             result[0]=newx;
             result[1]=newy;
         }
-   }
+   }*/
          
   // output[0]=result[0]+1;
   // output[1]=result[1]+1;
    
-   for(i=0;i<n*m;i++)
+   /*for(i=0;i<n*m;i++)
    {
       output[(long)i]=newmap[(long)i];
-   }
+   }*/
   
 }
