@@ -3,6 +3,7 @@ global MAP GOAL
 
 %initRobotParam();
 MsgNames = initMessagingGC(robotId,ip);
+%mapMsgName = ['Robot' robotId '/CMap'];
 goalMsgName = ['Robot' robotId '/Goal_Point'];
 ipcAPIDefine(goalMsgName);
 
@@ -22,17 +23,20 @@ set(h,'ButtonDownFcn',@sendGoal,'UserData',goalMsgName);
 while(1)
 
     %fprintf('.');
-    msgs = ipcAPI('listenWait',100); %ipcAPIReceive(10);
+    msgs = ipcAPIReceive(10);
     len = length(msgs);
     %fprintf('got %d messages\n',len);
     if len > 0
         %disp('receiving...');
         for i=1:len
             switch(msgs(i).name)
+                
+                case MsgNames.cmap
+                    CMap = deserialize(msgs(i).data);
+                    disp('Received incremental map'); 
+                case MsgNames.path
+                    disp('Received path');
                 %{
-                case MsgNames.enc                   
-                    Encoders = MagicEncoderCountsSerializer('deserialize',msgs(i).data);
-        
                 case MsgNames.imu
                     
                     Imu = MagicImuFilteredSerializer('deserialize',msgs(i).data);
