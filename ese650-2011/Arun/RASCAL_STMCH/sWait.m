@@ -1,7 +1,7 @@
 function ret = sWait(event, varargin)
 
 global GOAL
-persistent PREV_GOAL;
+global PREV_GOAL;
 ret = [];
 switch event
  case 'entry'
@@ -21,6 +21,7 @@ switch event
     if ~isempty(GOAL) && ~isequal(PREV_GOAL,GOAL),
     %if(gettime - tx > 2)
         PREV_GOAL = GOAL;
+        %GOAL = [];
         disp('Scanning...');
         ret = 'scan';
     end

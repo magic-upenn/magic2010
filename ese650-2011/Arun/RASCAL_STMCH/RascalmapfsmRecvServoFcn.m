@@ -3,6 +3,6 @@ global SERVO_ANGLE
 
 if ~isempty(data)
   servo = MagicServoStateSerializer('deserialize',data);
-  SERVO_ANGLE = servo.position;
+  SERVO_ANGLE = servo.position + 0.05;
 end
 

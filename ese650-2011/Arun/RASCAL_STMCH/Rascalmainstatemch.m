@@ -41,7 +41,7 @@ end
 
 function mapfsmEntry
 
-global MP SERVO_ANGLE POSE LIDAR LFLAG QUEUELASER MAP GOAL LAST_STATE BATTERY 
+global MP SERVO_ANGLE POSE LIDAR LFLAG QUEUELASER GOAL LAST_STATE BATTERY 
 
 MP.sm = entry(MP.sm);
 
@@ -57,7 +57,7 @@ POSE.y = 0;
 POSE.yaw = 0;
 POSE.pitch = 0;
 POSE.roll = 0;
-MAP = init_map(0.05,15,15);
+init_map(0.05,15,15);
 MP.nupdate = 0;
 
 %robotId = '5';

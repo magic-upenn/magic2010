@@ -1,31 +1,33 @@
 function RascalmapfsmRecvLidarScansFcn(data, name)
 
-global LIDAR LFLAG QUEUELASER POSE SERVO_ANGLE
-persistent k_Lidar
+global LIDAR LFLAG QUEUELASER POSE SERVO_ANGLE PREV_GOAL GOAL
+global K_LIDAR
 
 if isempty(data)
   return
 end
 
 if(QUEUELASER)
-    fprintf('%d \n',k_Lidar);
-    if(isempty(k_Lidar))
-        k_Lidar = 1;
+    %fprintf('%d, %f \n',K_LIDAR,SERVO_ANGLE);
+    if(isempty(K_LIDAR))
+        K_LIDAR = 1;
         LIDAR = {};
         setServotoScan;
-        pause(0.1)
+        pause(0.5)
+        return;
     end
-    LIDAR{k_Lidar} = MagicLidarScanSerializer('deserialize',data);
-    LIDAR{k_Lidar}.pitch = POSE.pitch;
-    LIDAR{k_Lidar}.yaw = POSE.yaw;
-    LIDAR{k_Lidar}.roll = POSE.roll;
-    LIDAR{k_Lidar}.servoangle = SERVO_ANGLE;
-    k_Lidar = k_Lidar + 1;
+    LIDAR{K_LIDAR} = MagicLidarScanSerializer('deserialize',data);
+    LIDAR{K_LIDAR}.pitch = POSE.pitch;
+    LIDAR{K_LIDAR}.yaw = POSE.yaw;
+    LIDAR{K_LIDAR}.roll = POSE.roll;
+    LIDAR{K_LIDAR}.servoangle = SERVO_ANGLE;
+    K_LIDAR = K_LIDAR + 1;
     
-    if(k_Lidar > 150)
-        k_Lidar = [];
+    if(K_LIDAR > 170)
+        K_LIDAR = [];
         LFLAG = true;
         QUEUELASER = false;
+        PREV_GOAL = GOAL;
         setServotoPoint;
     end
 end

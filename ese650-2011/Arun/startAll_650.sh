@@ -40,14 +40,14 @@ StartFunction ()
 # mapfsm: matlab -nodesktop -r startMapfsm
 # red: matlab -nodesktop -r startRed
 # servo: matlab -nodesktop -r controlServo_aut
+# omnicam: matlab -nodesktop -r startOmniCam
+# frontcam: matlab -nodesktop -r startFrontCam
+# gps: matlab -nodesktop -r startGPS
 
 StartFunction <<EOF
 central:nice -n -5 central -s
 mg:nice -n -5 $MAGIC_DIR/drivers/MicroGateway/runMicroGateway2 /dev/ttyUSB0
-omnicam: matlab -nodesktop -r startOmniCam
-frontcam: matlab -nodesktop -r startFrontCam
-h0:$MAGIC_DIR/drivers/Hokuyo/runHokuyo /dev/ttyACM1
-gps: matlab -nodesktop -r startGPS
+h0:$MAGIC_DIR/drivers/Hokuyo/runHokuyo /dev/ttyACM0
 EOF
 
 exit

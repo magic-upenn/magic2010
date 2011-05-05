@@ -37,7 +37,7 @@ switch event
         % Wait till the robot reaches that angle
         %if(yaw-gl_yw>0.1) % Make the robot turn to that particular angle
         if(gettime - DATA.t0 < 5)
-            SetVelocity(0, sign(gl_yw-yw)*3.0);
+            SetVelocity(0, sign(gl_yw-yw)*0.1);
             %ret = [];
             return;
         else
@@ -55,6 +55,7 @@ switch event
         figure;
         imagesc(MAP.map);
         colormap gray
+        set(gca,'xdir','normal','ydir','reverse');
         QUEUELASER = false;
         %if(gettime - tx > 2)
         %disp('Exiting...');
