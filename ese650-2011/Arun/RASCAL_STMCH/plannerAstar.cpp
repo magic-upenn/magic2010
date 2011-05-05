@@ -65,8 +65,8 @@ void mexFunction(int nlhs, mxArray *plhs[],
     n = mxGetN(prhs[0]); // no of columns in the map
     m = mxGetM(prhs[0]); // no of rows in the map x*m+n;
     printf("Row: %d ,Col: %d \n",m,n);
-    plhs[0] = mxCreateDoubleMatrix(m, n, mxREAL);// change to 1,2
-    //plhs[0] = mxCreateDoubleMatrix(2, 10000, mxREAL);// change to 1,2
+    //plhs[0] = mxCreateDoubleMatrix(1, 2, mxREAL);// change to 1,2
+    plhs[0] = mxCreateDoubleMatrix(2, 10000, mxREAL);// change to 1,2
     envmap=mxGetPr(prhs[0]);
 
     for(i=0;i<n*m;i++)
@@ -145,11 +145,11 @@ void mexFunction(int nlhs, mxArray *plhs[],
   }
     
   printf("Finished going forward.... \n");
-  for(i=0;i<n*m;i++)
+  /*for(i=0;i<n*m;i++)
   {
      output[(long)i]=gvalue[(long)i];
   }
-  return;
+  return;*/
     
   /*if(( pos[0]== targetpos[0] || pos[1] == targetpos[1] ) && count<1000000)
   {
