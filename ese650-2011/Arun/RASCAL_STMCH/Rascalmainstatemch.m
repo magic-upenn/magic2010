@@ -32,6 +32,7 @@ MP.sm = setTransition(MP.sm, 'sFollow', ...
                              'goToPoint','sScan',...
                              'Stop','sWait',...
                              'Dist','sScan',...
+                             'Timeout','sScan',...
                              'Done','sWait'...
                              );
 mapfsmEntry;
@@ -48,7 +49,7 @@ end
 
 function mapfsmEntry
 
-global MP SERVO_ANGLE POSE LIDAR LFLAG QUEUELASER GOAL LAST_STATE BATTERY PATH_DATA 
+global MP SERVO_ANGLE POSE LIDAR LFLAG QUEUELASER GOAL LAST_STATE BATTERY PATH 
 global MAP
 
 MP.sm = entry(MP.sm);
@@ -60,7 +61,7 @@ LFLAG = false;
 LIDAR = {};
 GOAL = [];
 BATTERY = [];
-PATH_DATA = [];
+PATH = [];
 
 init_map(0.05,15,15);
 MP.nupdate = 0;

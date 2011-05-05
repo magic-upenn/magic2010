@@ -82,14 +82,14 @@ switch event
         tic
         [Cells,ind] = plannerAstar(double(MAP.map),round([POSE.x POSE.y]),round([GOAL(1),GOAL(2)])); 
         toc
-        set(pl,'Xdata',Cells(2,:),'Ydata',Cells(1,:));
+        set(pl,'Xdata',Cells(1,:),'Ydata',Cells(2,:));
         
         % Publish the path
         pathMsgName = GetMsgName('Path');
         ipcAPIDefine(pathMsgName);
 
-        traj.x = Cells(1,1:ind);
-        traj.y = Cells(2,1:ind);
+        traj.x = Cells(1,1:ind); % columns
+        traj.y = Cells(2,1:ind); % rows
         
         content = serialize(traj);
         ipcAPIPublishVC(pathMsgName,content);
