@@ -1,9 +1,9 @@
 function [] = ProcessLidarScans()
-    global LIDAR MAP
+    global LIDAR MAP POSE
     las_angles = [];
     T_servotobody = trans([0.145 0 0.506]); % 144.775 0 506
     T_senstoservo = trans([0.056 0 0.028]); 
-    
+    T_bodytoworld = trans([POSE.x POSE.y 0]);
     %MAP.map = zeros(MAP.sizex,MAP.sizey,'int8')+127;
     %numel(LIDAR)
     for k = 1:numel(LIDAR)
@@ -26,7 +26,7 @@ function [] = ProcessLidarScans()
         valid = ((las_ranges > 0.15)&(las_ranges<40));
 
         X = [xs;ys;zs;os]; %[x;y;0;1]
-        Yt = Rypr*T_servotobody*Rservo*T_senstoservo*X(:,valid);
+        Yt = T_bodytoworld*Rypr*T_servotobody*Rservo*T_senstoservo*X(:,valid);
         %Yt = Rservo*T_senstoservo*X(:,valid);
         %Yt = [Rypr(1:3,1:3) T_servotobody(1:3,4); 0 0 0 1]*[Rservo(1:3,1:3) T_senstoservo(1:3,4); 0 0 0 1]*X(:,valid);
         not_floor = (Yt(3,:) > 0.15);

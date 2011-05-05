@@ -56,7 +56,32 @@ switch event
         set(gca,'xDir','normal','yDir','reverse');
         imagesc(MAP.map);
         colormap gray
+        
+        % Publish the costmap
+        mapMsgName = 'Robot5/CMap';
+        ipcAPIDefine(mapMsgName);
+        
+        CMap.map = MAP.map; % costmap
+        CMap.orx = POSE.x; % x is column
+        CMap.ory = POSE.y; % y is row
+        CMap.glx = GOAL.x;
+        CMap.gly = GOAL.y;
+        
+        content = serialize(CMap);
+        ipcAPIPublishVC(mapMsgName,content);
+        
+        % Plan on the costmap
         [Cells,ind] = plannerAstar(MAP.map,[POSE.x POSE.y],[GOAL.x,GOAL.y]); 
+        
+        % Publish the path
+        pathMsgName = 'Robot5/path';
+        ipcAPIDefine(pathMsgName);
+
+        traj.x = Cells(1,1:ind);
+        traj.y = Cells(2,1:ind);
+        
+        content = serialize(traj);
+        ipcAPIPublishVC(pathMsgName,content);
         
         QUEUELASER = false;
         %if(gettime - tx > 2)

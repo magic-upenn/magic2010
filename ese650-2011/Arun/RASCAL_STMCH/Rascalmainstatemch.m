@@ -47,7 +47,7 @@ end
 
 function mapfsmEntry
 
-global MP SERVO_ANGLE POSE LIDAR LFLAG QUEUELASER GOAL LAST_STATE BATTERY 
+global MP SERVO_ANGLE POSE LIDAR LFLAG QUEUELASER GOAL LAST_STATE BATTERY PATH_DATA
 
 MP.sm = entry(MP.sm);
 
@@ -58,6 +58,7 @@ LFLAG = false;
 LIDAR = {};
 GOAL = [];
 BATTERY = [];
+PATH_DATA = [];
 
 init_map(0.05,15,15);
 MP.nupdate = 0;
@@ -80,6 +81,8 @@ ipcReceiveSetFcn(GetMsgName('Pose'), @RascalmapfsmRecvPoseFcn);
 ipcReceiveSetFcn(GetMsgName('Goal_Point'), @RascalmapfsmRecvGoalPointFcn);
 ipcReceiveSetFcn(GetMsgName('Lidar0'), @RascalmapfsmRecvLidarScansFcn);
 ipcReceiveSetFcn(GetMsgName('Servo1'), @RascalmapfsmRecvServoFcn);
+%ipcReceiveSetFcn(GetMsgName('Mapupdate'), @RascalmapfsmRecvIncMapUpdateVFcn);
+ipcReceiveSetFcn(GetMsgName('Path'), @RascalmapfsmRecvPlannerPathFcn);
 %ipcReceiveSetFcn(GetMsgName('ImuFiltered'), @RascalmapfsmRecvImuFcn);
 
 ipcAPIDefine(GetMsgName('FSM_Status'));
@@ -130,7 +133,7 @@ if ~strcmp(currentState(MP.sm),LAST_STATE) || (gettime - lastStatusTime > 1.0)
 end
 LAST_STATE = currentState(MP.sm);
 
-if ~isempty(POSE) && mode(MP.nupdate,200) == 0
+if ~isempty(POSE) && mode(MP.nupdate,10) == 0
     imagesc(MAP.map)
     hold on
     cpose = meters2cells_cont([POSE.x,POSE.y],[MAP.xmin,MAP.ymin],MAP.res);
