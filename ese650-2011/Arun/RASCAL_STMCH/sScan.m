@@ -2,7 +2,7 @@ function ret = sScan(event, varargin)
 
 global POSE GOAL QUEUELASER LFLAG MAP
 persistent DATA;
-persistent fg m;
+persistent fg m pl;
 
 ret = [];
 switch event
@@ -60,15 +60,16 @@ switch event
             m = imagesc(MAP.map);
             colormap gray
             hold on
+            pl = plot(0,0,'r.');
         else
             set(m,'Cdata',MAP.map);
         end
           
         % Publish the costmap
-        mapMsgName = 'Robot5/CMap';
+        mapMsgName = GetMsgName('CMap');
         ipcAPIDefine(mapMsgName);
         
-        CMap.map = MAP.map; % costmap
+        CMap.MAP = MAP; % costmap
         CMap.orx = POSE.x; % x is column
         CMap.ory = POSE.y; % y is row
         CMap.glx = GOAL(1);
@@ -81,10 +82,10 @@ switch event
         tic
         [Cells,ind] = plannerAstar(double(MAP.map),round([POSE.x POSE.y]),round([GOAL(1),GOAL(2)])); 
         toc
-        plot(Cells(2,1:ind),Cells(1,1:ind),'r.');
+        set(pl,'Xdata',Cells(2,:),'Ydata',Cells(1,:));
         
         % Publish the path
-        pathMsgName = 'Robot5/path';
+        pathMsgName = GetMsgName('Path');
         ipcAPIDefine(pathMsgName);
 
         traj.x = Cells(1,1:ind);
