@@ -6,7 +6,7 @@
 
 using namespace std;
     int newmap[4000000];
-    int gvalue[4000000];
+    long int gvalue[4000000];
 class map
 {
 public:
@@ -75,10 +75,10 @@ void mexFunction(int nlhs, mxArray *plhs[],
     robotpos =  mxGetPr(prhs[1]);
     targetpos1 = mxGetPr(prhs[2]);
     output  =   mxGetPr(plhs[0]);
-    pos[0]=(int)robotpos[0]-1; // Row value
-    pos[1]=(int)robotpos[1]-1; // Column value
-    targetpos[0]=(int)targetpos1[0]-1; // Row value
-    targetpos[1]=(int)targetpos1[1]-1; // Column value
+    pos[0]=(int)robotpos[0]-1; // Column value
+    pos[1]=(int)robotpos[1]-1; // Row value
+    targetpos[0]=(int)targetpos1[0]-1; // Column value
+    targetpos[1]=(int)targetpos1[1]-1; // Row value
     
     val=mxGetPr(prhs[3]);
     if(val[0]==1)
@@ -86,15 +86,15 @@ void mexFunction(int nlhs, mxArray *plhs[],
         epsilon=1;
         //printf("epsilon: %d \n",epsilon);
     }
-    //printf("Start Row : %d, Start Col : %d \n",pos[0],pos[1]);
-    //printf("End Row : %d, End Col : %d \n",targetpos[0],targetpos[1]);
-    //printf("Value : %d \n",(int)val[0]);
+    printf("Start Column : %d, Start Row : %d \n",pos[0],pos[1]);
+    printf("End Column : %d, End Row : %d \n",targetpos[0],targetpos[1]);
+    printf("Value : %d \n",(int)val[0]);
   
     gvalue[pos[0]*m+pos[1]]=0;
    
     h=sqrt((pos[0]-targetpos[0])*(pos[0]-targetpos[0]) + (pos[1]-targetpos[1])*(pos[1]-targetpos[1]));
     
-    //printf("%f \n",h);
+    printf("%f \n",h);
     
     state.f=h;
     state.x=pos[0];
@@ -137,7 +137,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
      map state2 = pq.top();
      pos[0]=state2.x;
      pos[1]=state2.y;
-     //printf("Row : %d, Col : %d \n",pos[0],pos[1]);
+     printf("Row : %d, Col : %d \n",pos[0],pos[1]);
      pq.pop();               
      count++;
   }

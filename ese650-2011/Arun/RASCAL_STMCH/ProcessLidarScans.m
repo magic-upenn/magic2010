@@ -55,7 +55,7 @@ function [] = ProcessLidarScans()
         %check the indices and populate the map
         indGood = (xis > 1) & (yis > 1) & (xis < MAP.sizex) & (yis < MAP.sizey);
         inds = sub2ind(size(MAP.map),xis(indGood),yis(indGood));
-        MAP.map(inds) = max(MAP.map(inds)-5,0);
+        MAP.map(inds) = max(MAP.map(inds)-5,1);
         %imagesc(MAP.map);
         %drawnow
 %         if(k==1)

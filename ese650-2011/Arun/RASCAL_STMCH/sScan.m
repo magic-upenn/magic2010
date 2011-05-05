@@ -53,14 +53,16 @@ switch event
         LFLAG = false;
         %GOAL = [];
         figure;
+        set(gca,'xDir','normal','yDir','reverse');
         imagesc(MAP.map);
         colormap gray
-        set(gca,'xdir','normal','ydir','reverse');
+        
+        save('test.mat','MAP');
         QUEUELASER = false;
         %if(gettime - tx > 2)
         %disp('Exiting...');
         % Now scan the environment using the tilt lidar and make a costmap
-        
+        disp('Costmap generated');
         ret = 'stop';
     end
 

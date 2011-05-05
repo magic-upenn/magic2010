@@ -22,7 +22,7 @@ switch event
     %if(gettime - tx > 2)
         PREV_GOAL = GOAL;
         %GOAL = [];
-        disp('Scanning...');
+        disp('Got a goal point...');
         ret = 'scan';
     end
 end
