@@ -7,8 +7,8 @@ goalMsgName = ['Robot' robotId '/Goal_Point'];
 ipcAPIDefine(goalMsgName);
 
 res = 0.05;
-xdev = 40;
-ydev = 40;
+xdev = 15;
+ydev = 15;
 
 MAP = init_map(res,xdev,ydev);
 
@@ -79,7 +79,11 @@ function sendGoal(src,varargin)
 global MAP GOAL
 [x,y] = ginput(1);
 
-GOAL = cells2meters([x,y],[MAP.xmin,MAP.ymin],MAP.res);
+%GOAL = cells2meters([x,y],[MAP.xmin,MAP.ymin],MAP.res);
+x = round(x);
+y = round(y);
+GOAL(1) = x;
+GOAL(2) = y;
 
 choice = questdlg('Would you like to specify a goal orientation?',...
     'Choose Orientation',...
@@ -98,10 +102,10 @@ switch choice
         if status
             GOAL(3) = val*pi/180;
             
-            fprintf('Setting GOAL at [%f,%f,%f]\n',x,y,val);
+            fprintf('Setting GOAL at [%d,%d,%f]\n',x,y,val);
         end
     case 'No, thank you!'
-        fprintf('Setting GOAL at [%f,%f]\n',x,y);
+        fprintf('Setting GOAL at [%d,%d]\n',x,y);
 end
 
 content = serialize(GOAL);

@@ -4,6 +4,7 @@ global MAP
 if isempty(h)
    figure;
    h = imagesc(MAP.map);
+   set(gca,'ydir','reverse');
    hold on;
 else
     set(h,'cdata',MAP.map);
