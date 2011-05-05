@@ -23,6 +23,6 @@ switch event
         PREV_GOAL = GOAL;
         %GOAL = [];
         disp('Got a goal point...');
-        ret = 'scan';
+        ret = 'Scan';
     end
 end

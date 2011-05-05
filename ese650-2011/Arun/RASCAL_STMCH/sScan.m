@@ -56,14 +56,14 @@ switch event
         set(gca,'xDir','normal','yDir','reverse');
         imagesc(MAP.map);
         colormap gray
+        [Cells,ind] = plannerAstar(MAP.map,[POSE.x POSE.y],[GOAL.x,GOAL.y]); 
         
-        save('test.mat','MAP');
         QUEUELASER = false;
         %if(gettime - tx > 2)
         %disp('Exiting...');
         % Now scan the environment using the tilt lidar and make a costmap
         disp('Costmap generated');
-        ret = 'stop';
+        ret = 'Traj';
     end
 
 end

@@ -15,7 +15,7 @@ switch event
     if(gettime - tt > 0.5)
     %if ~isempty(POSE),
         disp('Got pose estimate from UKF');
-        ret = 'pose';
+        ret = 'Pose';
     end
 
 end
