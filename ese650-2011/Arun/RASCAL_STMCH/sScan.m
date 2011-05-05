@@ -56,6 +56,7 @@ switch event
         set(gca,'xDir','normal','yDir','reverse');
         imagesc(MAP.map);
         colormap gray
+        pause();
         
         % Publish the costmap
         mapMsgName = 'Robot5/CMap';
@@ -64,15 +65,15 @@ switch event
         CMap.map = MAP.map; % costmap
         CMap.orx = POSE.x; % x is column
         CMap.ory = POSE.y; % y is row
-        CMap.glx = GOAL.x;
-        CMap.gly = GOAL.y;
+        CMap.glx = GOAL(1);
+        CMap.gly = GOAL(2);
         
         content = serialize(CMap);
         ipcAPIPublishVC(mapMsgName,content);
         
         % Plan on the costmap
-        [Cells,ind] = plannerAstar(MAP.map,[POSE.x POSE.y],[GOAL.x,GOAL.y]); 
-        
+        [Cells,ind] = plannerAstar(double(MAP.map),[POSE.x POSE.y],[GOAL(1),GOAL(2)]); 
+        Cells
         % Publish the path
         pathMsgName = 'Robot5/path';
         ipcAPIDefine(pathMsgName);
