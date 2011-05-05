@@ -197,7 +197,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
         output[count_path*2+1] = pos[0]+1;//Column
         count_path = count_path + 1;
         
-        printf("Col : %d, Row : %d \n",pos[0],pos[1]);
+       // printf("Col : %d, Row : %d \n",pos[0],pos[1]);
    }     
    plhs[1] = mxCreateDoubleScalar(count_path);
    /*for (dir=0; dir<8; dir++)

@@ -1,5 +1,6 @@
 function Rascalmainstatemch(tUpdate)
 %close all;
+clear persistent
 SetMagicPaths;
 %lidar0MsgName = GetMsgName('Lidar0');
 if nargin < 1,
