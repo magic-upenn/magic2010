@@ -15,12 +15,12 @@ init_map(res,xdev,ydev);
 
 %NikolayGui('gui_OpeningFcn',goalMsgName);
 
-[x,y] = meters2cells_cont([0,0],[MAP.xmin,MAP.ymin],MAP.res);
+point = meters2cells_cont([0,0],[MAP.xmin,MAP.ymin],MAP.res);
 %h = dispMap([]);
 figure;
 h = imagesc(MAP.map);
 hold on
-pl = plot(x,y,'b*');
+pl = plot(point(1),point(2),'b*');
 pth = plot(0,0,'r*');
 gl = plot(0,0,'g*');
 set(h,'ButtonDownFcn',@sendGoal,'UserData',goalMsgName);
