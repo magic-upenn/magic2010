@@ -25,7 +25,7 @@ switch event
    end
 
    dst = sqrt((POSE.x - DATA.x).^2 + (POSE.y-DATA.y).^2);
-   if(dst > 2)
+   if(dst > 20)
      SetVelocity(0, 0);
      ret = 'Dist';
      return;
