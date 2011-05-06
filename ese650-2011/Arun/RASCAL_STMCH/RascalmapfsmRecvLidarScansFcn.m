@@ -10,8 +10,13 @@ end
 % This will happen only at the very start to ensure that we can see the
 % area before clicking in the ground station
 if(START_MAP)
-    setServotoPoint(0);
-    pause(0.5);
+    if(isempty(K_LIDAR))
+        K_LIDAR = 1;
+        LIDAR ={};
+        setServotoPoint(0);
+        pause(0.5);
+        return;
+    end
     LIDAR{K_LIDAR} = MagicLidarScanSerializer('deserialize',data);
     LIDAR{K_LIDAR}.pitch = POSE.pitch;
     LIDAR{K_LIDAR}.yaw = POSE.yaw;
