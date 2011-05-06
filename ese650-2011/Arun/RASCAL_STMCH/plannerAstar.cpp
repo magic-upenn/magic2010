@@ -193,8 +193,8 @@ void mexFunction(int nlhs, mxArray *plhs[],
         pos[1]=newyprev;
         newmap[pos[0]*m+pos[1]]=5; //means backtracked
         
-        output[count_path*2+0] = pos[1]+1;//Row - Add 1 to get it to matlab basis
-        output[count_path*2+1] = pos[0]+1;//Column
+        output[count_path*2+0] = pos[0]+1;//Row - Add 1 to get it to matlab basis
+        output[count_path*2+1] = pos[1]+1;//Column
         count_path = count_path + 1;
         
        // printf("Col : %d, Row : %d \n",pos[0],pos[1]);

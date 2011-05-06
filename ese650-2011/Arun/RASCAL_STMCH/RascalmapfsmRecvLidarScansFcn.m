@@ -23,7 +23,7 @@ if(START_MAP)
     LIDAR{K_LIDAR}.roll = POSE.roll;
     LIDAR{K_LIDAR}.servoangle = SERVO_ANGLE;
     K_LIDAR = K_LIDAR + 1;
-    if(K_LIDAR > 15)
+    if(K_LIDAR > 40)
         START_MAP = false;
         K_LIDAR = [];
         ProcessLidarScans;
