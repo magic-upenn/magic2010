@@ -67,9 +67,9 @@ wt_sgmp = 1/(2*size(state_covar,1)); % weight factgor for each of sigma points -
 wt_chol = size(state_covar,1); %n+k in the UKF formalization
 
 %Process noise
-encx_noise = 0.01; % 0.2 m
-ency_noise = 0.01; %0.2 m
-yrt_noise = 0.01;%deg2rad(0.05); % 5 degrees
+encx_noise = 0.001; % 0.2 m
+ency_noise = 0.001; %0.2 m
+yrt_noise = 0.0001;%deg2rad(0.05); % 5 degrees
 proc_noise_enc = [encx_noise 0 0; 0 ency_noise 0; 0 0 0];
 proc_noise_gyro = [ 0 0 0; 0 0 0; 0 0 yrt_noise];
 
@@ -85,7 +85,7 @@ while(1)
     msgs = ipcAPIReceive(10);
     len = length(msgs);
     if len > 0
-        %disp('receiving...');
+
         for i=1:len
             switch(msgs(i).name)
                 case ImuMsgName
@@ -120,24 +120,23 @@ while(1)
 
                     state_covar = wt_sgmp*(sigm_disp_ms*sigm_disp_ms');
 
-                    ct_Imu = ct_Imu+1;
+                    %ct_Imu = ct_Imu+1;
 
                 case EncMsgName
                     Encoders = MagicEncoderCountsSerializer('deserialize',msgs(i).data);
-                    if(ct_Imu > 1)
+                    %if(ct_Imu > 1)
                         wdt = mean(yaw_str);
                         if((isnan(wdt)) || isempty(wdt))
                             wdt = 0;
                         end
                         yaw_str = [];
-                    else
-                        wdt = 0;
-                    end
-                    prevImu = ct_Imu;
-                    %LatestUp.Encoder= Encoders(ct_Enc);
+                    %else
+                    %    wdt = 0;
+                    %end
+                    %%LatestUp.Encoder= Encoders(ct_Enc);
                     rc = mean([Encoders.fr,Encoders.rr]) * mpertic; % rear right wheel distance = no of tics * m/tic
                     lc = mean([Encoders.fl,Encoders.rl]) * mpertic; % rear left wheel distance = no of tics * m/tic
-                    vdt = mean([rc,lc]);
+                    vdt = mean([rc,lc])
 
                     yawPrev = 0;
                     %calculate the change in position
@@ -197,12 +196,12 @@ while(1)
                     %yd_en = get(pl_Enc,'Ydata');
                     %set(pl_Enc,'Xdata',[xd_en state(1)],'Ydata',[yd_en state(2)]);
 
-                    ct_Enc = ct_Enc+1;
+                    %ct_Enc = ct_Enc+1;
 
             end
         end
     end
-    temp = meters2cells([POSE.x POSE.y],[MAP.xmin,MAP.ymin],MAP.res);
+    temp = meters2cells([state(1) state(2)],[MAP.xmin,MAP.ymin],MAP.res);
     POSE.x = temp(1);
     POSE.y = temp(2);
     POSE.yaw = state(3);
