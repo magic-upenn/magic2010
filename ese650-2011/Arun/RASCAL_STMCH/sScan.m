@@ -37,7 +37,7 @@ switch event
             gl_yw = gl_yw + 2*pi;
         end
         % Wait till the robot reaches that angle
-        if(yaw-gl_yw>30*pi/180) % Make the robot turn to that particular angle
+        if(yw-gl_yw>30*pi/180) % Make the robot turn to that particular angle
         %if(gettime - DATA.t0 < 1)
             SetVelocity(0, sign(gl_yw-yw)*0.5);
             %ret = [];
@@ -51,6 +51,7 @@ switch event
     
     % Once scan is done, this flag will be set to true
     if(LFLAG)
+        MAP.map = zeros(MAP.sizex,MAP.sizey,'uint8')+127;
         ProcessLidarScans; % Create a costmap from the LIDAR scans
         LFLAG = false;
         %GOAL = [];
