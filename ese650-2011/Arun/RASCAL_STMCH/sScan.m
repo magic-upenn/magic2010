@@ -73,8 +73,8 @@ switch event
         CMap.orx = POSE.x; % x is column
         CMap.ory = POSE.y; % y is row
         cMap.yaw = POSE.yaw;
-        CMap.glx = GOAL(1);
-        CMap.gly = GOAL(2);
+        %CMap.glx = GOAL(1);
+        %CMap.gly = GOAL(2);
         
         content = serialize(CMap);
         ipcAPIPublishVC(mapMsgName,content);

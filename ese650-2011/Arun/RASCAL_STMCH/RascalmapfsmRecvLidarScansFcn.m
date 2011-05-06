@@ -1,7 +1,7 @@
 function RascalmapfsmRecvLidarScansFcn(data, name)
 
-global LIDAR LFLAG QUEUELASER POSE SERVO_ANGLE PREV_GOAL GOAL START_MAP
-global K_LIDAR
+global LIDAR LFLAG QUEUELASER POSE SERVO_ANGLE PREV_GOAL GOAL START_MAP 
+global K_LIDAR MAP
 
 if isempty(data)
   return
@@ -37,8 +37,8 @@ if(START_MAP)
         CMap.orx = POSE.x; % x is column
         CMap.ory = POSE.y; % y is row
         cMap.yaw = POSE.yaw;
-        CMap.glx = GOAL(1);
-        CMap.gly = GOAL(2);
+        %CMap.glx = GOAL(1);
+        %CMap.gly = GOAL(2);
         
         content = serialize(CMap);
         ipcAPIPublishVC(mapMsgName,content);
