@@ -39,7 +39,7 @@ switch event
    dEnd = sqrt(dxEnd.^2+dyEnd.^2);
 
    [xNear, yNear, aNear] = pathClosestPoint(PATH, [POSE.x POSE.y]);
-   dHeading = modAngle(aNear-POSE.heading);
+   dHeading = modAngle(aNear-POSE.yaw);
    if (dEnd < 0.5) && abs(dHeading) < 30*pi/180,
      ret = 'Done';
      return;
@@ -47,9 +47,9 @@ switch event
 
    if abs(dHeading) > 45*pi/180,
      if (dHeading > 0),
-       SetVelocity(0, SPEED.minTurn);
+       SetVelocity(0, 0.5);%SPEED.minTurn);
      else
-       SetVelocity(0, -SPEED.minTurn);
+       SetVelocity(0, -0.5);%-SPEED.minTurn);
      end
      return;
    end

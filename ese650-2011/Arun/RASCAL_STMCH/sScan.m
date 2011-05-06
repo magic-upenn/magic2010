@@ -37,9 +37,9 @@ switch event
             gl_yw = gl_yw + 2*pi;
         end
         % Wait till the robot reaches that angle
-        %if(yaw-gl_yw>0.1) % Make the robot turn to that particular angle
-        if(gettime - DATA.t0 < 5)
-            SetVelocity(0, sign(gl_yw-yw)*0.1);
+        if(yaw-gl_yw>30*pi/180) % Make the robot turn to that particular angle
+        %if(gettime - DATA.t0 < 1)
+            SetVelocity(0, sign(gl_yw-yw)*0.5);
             %ret = [];
             return;
         else
@@ -100,7 +100,7 @@ switch event
         %disp('Exiting...');
         % Now scan the environment using the tilt lidar and make a costmap
         disp('Costmap generated');
-        ret = 'Stop';
+        ret = 'Traj';
     end
 
 end
