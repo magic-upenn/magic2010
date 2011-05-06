@@ -16,7 +16,7 @@ MP.sm = statemch('sInitial', ...
                  );
 
 MP.sm = setTransition(MP.sm, 'sInitial', ...
-                             'Pose', 'sWait' ...                                
+                             'Pose', 'sWait' ... 
                              );
 MP.sm = setTransition(MP.sm, 'sWait', ...
                              'Scan', 'sScan', ...      
@@ -74,6 +74,7 @@ POSE.y = temp(2); % row value
 POSE.yaw = 0;
 POSE.pitch = 0;
 POSE.roll = 0;
+%POSE = [];
 
 
 %robotId = '5';
@@ -104,7 +105,7 @@ servoCmd.acceleration = 300;
 
 content = MagicServoControllerCmdSerializer('serialize',servoCmd);
 ipcAPIPublishVC(servoMsgName,content);
-
+disp('Hi')
 end
 
 %==========

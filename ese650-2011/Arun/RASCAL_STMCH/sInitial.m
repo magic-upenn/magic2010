@@ -1,6 +1,6 @@
 function ret = sInitial(event, varargin)
 
-%global POSE
+global POSE
 persistent tt;
 
 ret = [];
@@ -9,6 +9,7 @@ switch event
   disp('sInitial: Waiting for initial pose');
   tt = gettime;
   SetVelocity(0,0);
+  
  case 'exit'
     
  case 'update'

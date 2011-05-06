@@ -52,11 +52,11 @@ prevImu = 1;
 
 %% INitialize a figure;
 temp = meters2cells([POSE.x POSE.y],[MAP.xmin,MAP.ymin],MAP.res);
-fg = figure;
-h = imagesc(MAP.map);
-colormap gray
-hold on
-pl = plot(temp(1),temp(2),'r*');
+% fg = figure;
+% h = imagesc(MAP.map);
+% colormap gray
+% hold on
+% pl = plot(temp(1),temp(2),'r*');
 
 %% Unscented Kalman Filter Stuff
 state = [0;0;0];
@@ -162,7 +162,15 @@ while(1)
                     LatestUp.Wdt = wdt;
                     state(1) = state(1) + pos_chng(1);
                     state(2) = state(2) + pos_chng(2);
-
+                    
+                    temp = meters2cells([state(1) state(2)],[MAP.xmin,MAP.ymin],MAP.res);
+                    POSE.x = temp(1);
+                    POSE.y = temp(2);
+                    POSE.yaw = state(3);
+                    %set(pl,'Xdata',POSE.x,'Ydata',POSE.y);
+                    content = serialize(POSE);
+                    ipcAPIPublishVC(PoseMsgName,content);
+                    
 %                     %% Unscented Kalman Filter Process update for X and Y
 % 
 %                     % Get the Sigma points first        
@@ -206,14 +214,8 @@ while(1)
             end
         end
     end
-    temp = meters2cells([state(1) state(2)],[MAP.xmin,MAP.ymin],MAP.res);
-    POSE.x = temp(1);
-    POSE.y = temp(2);
-    POSE.yaw = state(3);
-    set(pl,'Xdata',POSE.x,'Ydata',POSE.y);
-    content = serialize(POSE);
-    ipcAPIPublishVC(PoseMsgName,content);
-    drawnow;
+    
+    %drawnow;
 end
 
 
