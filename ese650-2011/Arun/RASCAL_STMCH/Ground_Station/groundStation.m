@@ -21,7 +21,7 @@ figure;
 h = imagesc(MAP.map);
 hold on
 pl = plot(point(1),point(2),'b*');
-pth = plot(0,0,'r*');
+pth = plot(0,0,'r.');
 gl = plot(0,0,'g*');
 set(h,'ButtonDownFcn',@sendGoal,'UserData',goalMsgName);
 
@@ -51,7 +51,7 @@ while(1)
                     set(pl,'Xdata',Pose.x,'Ydata',Pose.y);
                 case goalMsgName
                     Goal = deserialize(msgs(i).data);
-                    set(gl,'Xdata',Goal.x,'Ydata',Goal.y);
+                    set(gl,'Xdata',Goal(1),'Ydata',Goal(2));
                     
                 %{
                 case MsgNames.imu
