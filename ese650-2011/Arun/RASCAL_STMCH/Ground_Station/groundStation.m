@@ -6,7 +6,7 @@ MsgNames = initMessagingGC(robotId,ip);
 %mapMsgName = ['Robot' robotId '/CMap'];
 goalMsgName = ['Robot' robotId '/Goal_Point'];
 ipcAPIDefine(goalMsgName);
-
+ipcAPIsubscribe(goalMsgName);
 res = 0.05;
 xdev = 15;
 ydev = 15;
@@ -15,8 +15,14 @@ init_map(res,xdev,ydev);
 
 %NikolayGui('gui_OpeningFcn',goalMsgName);
 
-
-h = dispMap([]);
+[x,y] = meters2cells_cont([0,0],[MAP.xmin,MAP.ymin],MAP.res);
+%h = dispMap([]);
+figure;
+h = imagesc(MAP.map);
+hold on
+pl = plot(x,y,'b*');
+pth = plot(0,0,'r*');
+gl = plot(0,0,'g*');
 set(h,'ButtonDownFcn',@sendGoal,'UserData',goalMsgName);
 
 
@@ -33,9 +39,20 @@ while(1)
                 
                 case MsgNames.cmap
                     CMap = deserialize(msgs(i).data);
-                    disp('Received incremental map'); 
+                    set(h,'Cdata',CMap.MAP.map);
+                    set(pl,'Xdata',CMap.orx,'Ydata',CMap.ory);
+                    disp('Received LIDAR map'); 
                 case MsgNames.path
+                    Path = deserialize(msgs(i).data);
+                    set(pth,'Xdata',Path.x,'Ydata',Path.y);
                     disp('Received path');
+                case Msgnames.pose
+                    Pose = deserialize(msgs(i).data);
+                    set(pl,'Xdata',Pose.x,'Ydata',Pose.y);
+                case goalMsgName
+                    Goal = deserialize(msgs(i).data);
+                    set(gl,'Xdata',Goal.x,'Ydata',Goal.y);
+                    
                 %{
                 case MsgNames.imu
                     

@@ -72,6 +72,7 @@ switch event
         CMap.MAP = MAP; % costmap
         CMap.orx = POSE.x; % x is column
         CMap.ory = POSE.y; % y is row
+        cMap.yaw = POSE.yaw;
         CMap.glx = GOAL(1);
         CMap.gly = GOAL(2);
         

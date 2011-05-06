@@ -50,13 +50,14 @@ end
 function mapfsmEntry
 
 global MP SERVO_ANGLE POSE LIDAR LFLAG QUEUELASER GOAL LAST_STATE BATTERY PATH 
-global MAP
+global MAP START_MAP
 
 MP.sm = entry(MP.sm);
 
 LAST_STATE = '';
 SERVO_ANGLE = 0;
-QUEUELASER = false;
+QUEUELASER = false; 
+START_MAP = true;% Just to get an initial map of the surroundings
 LFLAG = false;
 LIDAR = {};
 GOAL = [];
