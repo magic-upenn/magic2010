@@ -52,11 +52,11 @@ prevImu = 1;
 
 %% INitialize a figure;
 temp = meters2cells([POSE.x POSE.y],[MAP.xmin,MAP.ymin],MAP.res);
-fg = figure;
-h = imagesc(MAP.map);
-colormap gray
-hold on
-pl = plot(temp(1),temp(2),'r*');
+% fg = figure;
+% h = imagesc(MAP.map);
+% colormap gray
+% hold on
+% pl = plot(temp(1),temp(2),'r*');
 
 %% Unscented Kalman Filter Stuff
 state = [0;0;0];
@@ -205,7 +205,7 @@ while(1)
     POSE.x = temp(1);
     POSE.y = temp(2);
     POSE.yaw = state(3);
-    set(pl,'Xdata',POSE.x,'Ydata',POSE.y);
+    %set(pl,'Xdata',POSE.x,'Ydata',POSE.y);
     content = serialize(POSE);
     ipcAPIPublishVC(PoseMsgName,content);
     drawnow;
