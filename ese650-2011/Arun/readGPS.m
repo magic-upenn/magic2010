@@ -1,7 +1,7 @@
 %SetMagicPaths
 
 dev = '/dev/ttyACM0';
-serialDeviceAPI('connect','/dev/ttyACM0',9600);
+serialDeviceAPI('connect','/dev/ttyACM1',9600);
 serialDeviceAPI('setTermSequenceEndLine');
 
 gpsMsgName = 'Robot5/GPS';
