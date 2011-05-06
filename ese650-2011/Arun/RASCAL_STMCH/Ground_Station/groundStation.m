@@ -19,7 +19,7 @@ point = meters2cells_cont([0,0],[MAP.xmin,MAP.ymin],MAP.res);
 %h = dispMap([]);
 figure;
 h = imagesc(MAP.map);
-colormap gray
+%colormap gray
 hold on
 pl = plot(point(1),point(2),'b*');
 pth = plot(0,0,'r.');
@@ -42,6 +42,8 @@ while(1)
                     CMap = deserialize(msgs(i).data);
                     set(h,'Cdata',CMap.MAP.map);
                     set(pl,'Xdata',CMap.orx,'Ydata',CMap.ory);
+                    set(pth,'Xdata',0,'Ydata',0);
+                    set(gl,'Xdata',0,'Ydata',0);
                     disp('Received LIDAR map'); 
                 case MsgNames.path
                     Path = deserialize(msgs(i).data);
