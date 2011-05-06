@@ -19,6 +19,7 @@ point = meters2cells_cont([0,0],[MAP.xmin,MAP.ymin],MAP.res);
 %h = dispMap([]);
 figure;
 h = imagesc(MAP.map);
+colormap gray
 hold on
 pl = plot(point(1),point(2),'b*');
 pth = plot(0,0,'r.');
