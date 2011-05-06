@@ -46,7 +46,7 @@ while(1)
                     Path = deserialize(msgs(i).data);
                     set(pth,'Xdata',Path.x,'Ydata',Path.y);
                     disp('Received path');
-                case Msgnames.pose
+                case MsgNames.pose
                     Pose = deserialize(msgs(i).data);
                     set(pl,'Xdata',Pose.x,'Ydata',Pose.y);
                 case goalMsgName
@@ -87,7 +87,7 @@ while(1)
     end
     
     % display
-    h = dispMap(h);
+    %h = dispMap(h);
     drawnow;
     
 end

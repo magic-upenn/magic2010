@@ -26,6 +26,6 @@ ipcAPIDefine(MsgNames.path);
 % ipcAPIDefine(MsgNames.ctrl,MagicVelocityCmdSerializer('getFormat'));
 ipcAPIDefine(MsgNames.cmap);
 
-DefineSensorMessages(str2double(robotId),ip);
+%DefineSensorMessages(str2double(robotId),ip);
 
 end
