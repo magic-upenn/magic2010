@@ -4,8 +4,8 @@ robotId = '5';
 encMsgName = ['Robot' robotId '/Encoders'];              % Encoders
 imuMsgName = ['Robot' robotId '/ImuFiltered'];           % IMU
 GPSMsgName = ['Robot' robotId '/GPS'];               %GPS
-OmniCamMsgName = ['Robot' robotId '/CamOmni'];               % Omni-directional Cam
-FrontCamMsgName = ['Robot' robotId '/CamFront'];               %Front facing cam
+%OmniCamMsgName = ['Robot' robotId '/CamOmni'];               % Omni-directional Cam
+%FrontCamMsgName = ['Robot' robotId '/CamFront'];               %Front facing cam
 % ser1MsgName = ['Robot' robotId '/Servo1'];               % Servo1 (Vertical)
 % hmapMsgName = ['Robot' robotId '/IncMapUpdateH'];         % Horizontal Map Update
 % vmapMsgName = ['Robot' robotId '/IncMapUpdateV'];         % Vertical Map Update
@@ -19,8 +19,8 @@ ipcAPIConnect('localhost');
 ipcAPISubscribe(encMsgName);             
 ipcAPISubscribe(imuMsgName);
 ipcAPISubscribe(GPSMsgName);
-ipcAPISubscribe(OmniCamMsgName);
-ipcAPISubscribe(FrontCamMsgName);
+%ipcAPISubscribe(OmniCamMsgName);
+%ipcAPISubscribe(FrontCamMsgName);
 % ipcAPISubscribe(ser1MsgName);
 % ipcAPISubscribe(hmapMsgName);
 % ipcAPISubscribe(vmapMsgName);
@@ -98,6 +98,6 @@ while(1)
 end
 b = datestr(clock());
 savename = strcat('data_',b(1:11),'_',b(13:end),'.mat');
-save(savename,'Encoders','Imu','GPS','OmniCam','FrontCam');
+save(savename,'Encoders','Imu','GPS');%'OmniCam','FrontCam');
 close all
 clear all
