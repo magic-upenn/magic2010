@@ -8,8 +8,8 @@ goalMsgName = ['Robot' robotId '/Goal_Point'];
 ipcAPIDefine(goalMsgName);
 ipcAPIsubscribe(goalMsgName);
 res = 0.05;
-xdev = 15;
-ydev = 15;
+xdev = 30;
+ydev = 30;
 
 init_map(res,xdev,ydev);
 

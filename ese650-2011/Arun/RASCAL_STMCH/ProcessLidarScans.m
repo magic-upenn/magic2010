@@ -5,6 +5,7 @@ function [] = ProcessLidarScans()
     T_senstoservo = trans([0.056 0 0.028]); 
     data = cells2meters([POSE.x POSE.y],[MAP.xmin,MAP.ymin],MAP.res);
     T_bodytoworld = trans([data(1) data(2) 0]);
+    %Tpose = trans([POSE.x POSE.y 0]);
     %MAP.map = zeros(MAP.sizex,MAP.sizey,'uint8')+127;
     %numel(LIDAR)
     for k = 1:numel(LIDAR)

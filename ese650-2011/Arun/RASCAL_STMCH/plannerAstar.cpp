@@ -5,8 +5,8 @@
 #include <time.h>
 
 using namespace std;
-    int newmap[4000000];
-    int gvalue[4000000];
+    int newmap[5000000];
+    int gvalue[5000000];
 class map
 {
 public:
