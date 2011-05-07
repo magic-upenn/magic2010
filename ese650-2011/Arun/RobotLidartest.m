@@ -31,7 +31,7 @@ servoCmd.id           = 1;
 servoCmd.mode         = 3;  %0: disabled; 1: feedback only: 2: point minAngle is the goal), 3: servo mode
 servoCmd.minAngle     = 0;
 servoCmd.maxAngle     = 45;
-servoCmd.speed        = 15;
+servoCmd.speed        = 25;
 servoCmd.acceleration = 300;
 
 content = MagicServoControllerCmdSerializer('serialize',servoCmd);
@@ -47,7 +47,7 @@ Lidar ={};
 Servo = {};
 Imu = {};
 
-timeout = 25;
+timeout = 5;
 
 % Initialize stuff
 k_Imu = 1;
@@ -77,7 +77,7 @@ MAP.ymax  =  15;
 MAP.sizex  = ceil((MAP.xmax - MAP.xmin) / MAP.res + 1); %cells
 MAP.sizey  = ceil((MAP.ymax - MAP.ymin) / MAP.res + 1);
 
-MAP.map = zeros(MAP.sizex,MAP.sizey,'int8');
+MAP.map = zeros(MAP.sizex,MAP.sizey,'uint8') + 75;
 
 tic;
 
@@ -131,21 +131,38 @@ while(1)
                         %check the indices and populate the map
                         indGood = (xis > 1) & (yis > 1) & (xis < MAP.sizex) & (yis < MAP.sizey);
                         inds = sub2ind(size(MAP.map),xis(indGood),yis(indGood));
-                        MAP.map(inds) = min(MAP.map(inds)+10,100);
+                        MAP.map(inds) = min(MAP.map(inds)+5,255);
+                        
+                        xs1 = Yt(1,~not_floor);
+                        ys1 = Yt(2,~not_floor);
 
+                        %convert from meters to cells
+                        xis = ceil((xs1 - MAP.xmin) ./ MAP.res);
+                        yis = ceil((ys1 - MAP.ymin) ./ MAP.res);
+
+                        %check the indices and populate the map
+                        indGood = (xis > 1) & (yis > 1) & (xis < MAP.sizex) & (yis < MAP.sizey);
+                        inds = sub2ind(size(MAP.map),xis(indGood),yis(indGood));
+                        MAP.map(inds) = max(MAP.map(inds)-5,0);
+                        
                         if(isempty(pts_3D))
                             % 3D points
                             figure;
                             A = plot3(Yt(1,:),Yt(2,:),Yt(3,:),'.');
                             pts_3D = Yt(1:3,:);
-
+                            title('3D points from the LIDAR'); 
+                            xlabel('X-axis');
+                            ylabel('Y-axis');
+                            zlabel('Z-axis');
                             % Cost map
                             figure;
                             hold on
-                            colormap gray
+                            %colormap gray
                             h = imagesc(MAP.map);
+                            pl = plot(300,300,'r*');
+                            colorbar;
                             axis tight;
-                            title({['MAP - Iterations:',num2str(k_Lidar)];['Pitch:',num2str(pitch)]});
+                            title({['Costmap from 3D points:',num2str(k_Lidar)];['Pitch:',num2str(pitch)]});
 
                         elseif(mod(k_Lidar,10) == 0)
                             % 3D points
@@ -173,7 +190,7 @@ while(1)
                     k_Imu = k_Imu + 1;
                 case ServoMsgName
                     Servo{end+1} = MagicServoStateSerializer('deserialize',msgs(i).data);
-                    servo_angl = Servo{k_Servo}.position+0.05; % initial offset is 0.05 radians
+                    servo_angl = Servo{k_Servo}.position+0.12; % initial offset is 0.05 radians
                     Servo_flag = true;
                     k_Servo = k_Servo + 1;
             end
@@ -183,7 +200,7 @@ end
 b = datestr(clock());
 savename = strcat('Lidardata_',b(1:11),'_',b(13:end),'.mat');
 %procname = strcat('Processed_',b(1:11),'_',b(13:end),'.mat');
-save(savename,'Lidar','Servo','Imu','MAP','pts_3D');
+%save(savename,'Lidar','Servo','Imu','MAP','pts_3D');
 
 % Bring the servo back to zero position
 servoCmd.id           = 1;

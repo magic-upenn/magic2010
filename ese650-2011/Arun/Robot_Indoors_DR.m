@@ -211,10 +211,10 @@ while(1)
                     ct_Enc = ct_Enc+1;
 
             end
-                    temp = meters2cells([state(1) state(2)],[MAP.xmin,MAP.ymin],MAP.res);
+                    temp = meters2cells([0 0],[MAP.xmin,MAP.ymin],MAP.res);
                     POSE.x = temp(1);
                     POSE.y = temp(2);
-                    POSE.yaw = state(3);
+                    POSE.yaw = 0;
                     %set(pl,'Xdata',POSE.x,'Ydata',POSE.y);
                     content = serialize(POSE);
                     ipcAPIPublishVC(PoseMsgName,content);

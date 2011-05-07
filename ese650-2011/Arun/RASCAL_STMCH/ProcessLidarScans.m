@@ -60,15 +60,19 @@ function [] = ProcessLidarScans()
         MAP.map(inds) = max(MAP.map(inds)-5,1);
         %imagesc(MAP.map);
         %drawnow
-%         if(k==1)
-%             figure;
-%             hold on
-%             %p = plot(xs,ys,'b.');
-%             plot3(Yt(1,:),Yt(2,:),Yt(3,:),'b.');
-%         elseif(mod(k,1) == 0)
-%             pause(0.03)
-%             %set(p,'Xdata',xs,'Ydata',ys);
-%             plot3(Yt(1,:),Yt(2,:),Yt(3,:),'b.');
-%         end   
+        if(k==1)
+            figure;
+            hold on
+            title('3D points from the LIDAR'); 
+            xlabel('X-axis');
+            ylabel('Y-axis');
+            zlabel('Z-axis');
+            %p = plot(xs,ys,'b.');
+            plot3(Yt(1,:),Yt(2,:),Yt(3,:),'b.');
+        elseif(mod(k,1) == 0)
+            pause(0.03)
+            %set(p,'Xdata',xs,'Ydata',ys);
+            plot3(Yt(1,:),Yt(2,:),Yt(3,:),'b.');
+         end   
     end
 end

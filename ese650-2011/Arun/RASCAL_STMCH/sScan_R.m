@@ -57,11 +57,13 @@ switch event
         %GOAL = [];
         if(isempty(fg_ori))
             fg_ori = figure;
-            set(gca,'xDir','normal','yDir','reverse');
+            %set(gca,'xDir','normal','yDir','reverse');
             mn = imagesc(MAP.map);
-            colormap gray
+            %colormap gray
             hold on;
-            plot(POSE.x,POSE.y,'g*');
+            plot(POSE.x,POSE.y,'r*');
+            title('Costmap from 3D points');
+            
         else
             set(mn,'Cdata',MAP.map);
         end
@@ -84,7 +86,9 @@ switch event
             m = imagesc(MAP.map);
             colormap gray
             hold on
-            pl = plot(0,0,'r.');
+            plot(POSE.x,POSE.y,'b*');
+            title('Obstacles inflated and planner path in red');
+            pl = plot(0,0,'r*');
         else
             set(m,'Cdata',MAP.map);
         end
