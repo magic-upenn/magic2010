@@ -145,6 +145,10 @@ while(1)
                         inds = sub2ind(size(MAP.map),xis(indGood),yis(indGood));
                         MAP.map(inds) = max(MAP.map(inds)-5,0);
                         
+                                                    
+                            figure(100);
+                            polar(las_angles,las_ranges)
+                            
                         if(isempty(pts_3D))
                             % 3D points
                             figure;
@@ -214,4 +218,4 @@ content = MagicServoControllerCmdSerializer('serialize',servoCmd);
 ipcAPIPublishVC(servoMsgName,content);
 
 %close all
-clear all
+%clear all

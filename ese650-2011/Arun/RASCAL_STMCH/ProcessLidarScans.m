@@ -5,6 +5,7 @@ function [] = ProcessLidarScans()
     T_senstoservo = trans([0.056 0 0.028]); 
     data = cells2meters([POSE.x POSE.y],[MAP.xmin,MAP.ymin],MAP.res);
     T_bodytoworld = trans([data(1) data(2) 0]);
+    V = 1;
     %Tpose = trans([POSE.x POSE.y 0]);
     %MAP.map = zeros(MAP.sizex,MAP.sizey,'uint8')+127;
     %numel(LIDAR)
@@ -16,12 +17,14 @@ function [] = ProcessLidarScans()
         %[Lidar(k_Lidar).startAngle Lidar(k_Lidar).angleStep   Lidar(k_Lidar).stopAngle]
         if(isempty(las_angles))
             las_angles = LIDAR{k}.startAngle : LIDAR{k}.angleStep : LIDAR{k}.stopAngle;
+            %las_angles = las_angles(V:end-V);
             zs = zeros(size(las_angles));
             os = ones(size(las_angles));
             coslas_ang = cos(las_angles);
             sinlas_ang = sin(las_angles);
         end
         las_ranges = LIDAR{k}.ranges;
+        %las_ranges = las_ranges(V:end-V);
         xs = (las_ranges.*coslas_ang);
         ys = (las_ranges.*sinlas_ang);
 
@@ -69,7 +72,7 @@ function [] = ProcessLidarScans()
             zlabel('Z-axis');
             %p = plot(xs,ys,'b.');
             plot3(Yt(1,:),Yt(2,:),Yt(3,:),'b.');
-        elseif(mod(k,1) == 0)
+        elseif(mod(k,5) == 0)
             pause(0.03)
             %set(p,'Xdata',xs,'Ydata',ys);
             plot3(Yt(1,:),Yt(2,:),Yt(3,:),'b.');

@@ -68,8 +68,8 @@ switch event
         else
             set(mn,'Cdata',MAP.map);
         end
-        
-        
+        V = 5;
+        MAP.map((POSE.y-V:POSE.y+V),(POSE.x-V:POSE.x+V)) = 75;
         % Inflate the costmap by the robot's footprint (assume square for
         % now)
         D = (MAP.map > 150);
