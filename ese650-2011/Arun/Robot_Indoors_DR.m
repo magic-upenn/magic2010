@@ -17,19 +17,19 @@ ipcAPISubscribe(ImuMsgName);
 PoseMsgName = GetMsgName('Pose');
 ipcAPIDefine(PoseMsgName);
 
-%POSE.x = 0;
-%POSE.y = 0;
-%POSE.yaw = 0;
-%POSE.pitch = 0;
-%POSE.roll = 0;
-POSE = [];
-POSE.x = [];
-POSE.y = [];
-POSE.yaw = [];
-POSE.pitch = [];
-POSE.roll = [];
-%content = serialize(POSE);
-%ipcAPIPublishVC(PoseMsgName,content);
+POSE.x = 0;
+POSE.y = 0;
+POSE.yaw = 0;
+POSE.pitch = 0;
+POSE.roll = 0;
+% POSE = [];
+% POSE.x = [];
+% POSE.y = [];
+% POSE.yaw = [];
+% POSE.pitch = [];
+% POSE.roll = [];
+content = serialize(POSE);
+ipcAPIPublishVC(PoseMsgName,content);
 
 global MAP
 res = 0.05;
@@ -168,13 +168,7 @@ while(1)
                     state(1) = state(1) + pos_chng(1);
                     state(2) = state(2) + pos_chng(2);
                     
-                    temp = meters2cells([state(1) state(2)],[MAP.xmin,MAP.ymin],MAP.res);
-                    POSE.x = temp(1);
-                    POSE.y = temp(2);
-                    POSE.yaw = state(3);
-                    %set(pl,'Xdata',POSE.x,'Ydata',POSE.y);
-                    content = serialize(POSE);
-                    ipcAPIPublishVC(PoseMsgName,content);
+
                     
 %                     %% Unscented Kalman Filter Process update for X and Y
 % 
@@ -217,6 +211,14 @@ while(1)
                     ct_Enc = ct_Enc+1;
 
             end
+                    temp = meters2cells([state(1) state(2)],[MAP.xmin,MAP.ymin],MAP.res);
+                    POSE.x = temp(1);
+                    POSE.y = temp(2);
+                    POSE.yaw = state(3);
+                    %set(pl,'Xdata',POSE.x,'Ydata',POSE.y);
+                    content = serialize(POSE);
+                    ipcAPIPublishVC(PoseMsgName,content);
+
         end
     end
     

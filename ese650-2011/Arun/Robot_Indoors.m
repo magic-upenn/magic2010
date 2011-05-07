@@ -17,20 +17,20 @@ ipcAPISubscribe(ImuMsgName);
 PoseMsgName = GetMsgName('Pose');
 ipcAPIDefine(PoseMsgName);
 
-%POSE.x = 0;
-%POSE.y = 0;
-%POSE.yaw = 0;
-%POSE.pitch = 0;
-%POSE.roll = 0;
-%POSE = [];
-POSE = [];
-POSE.x = [];
-POSE.y = [];
-POSE.yaw = [];
-POSE.pitch = [];
-POSE.roll = [];
-%content = serialize(POSE);
-%ipcAPIPublishVC(PoseMsgName,content);
+POSE.x = 0;
+POSE.y = 0;
+POSE.yaw = 0;
+POSE.pitch = 0;
+POSE.roll = 0;
+% %POSE = [];
+% POSE = [];
+% POSE.x = [];
+% POSE.y = [];
+% POSE.yaw = [];
+% POSE.pitch = [];
+% POSE.roll = [];
+content = serialize(POSE);
+ipcAPIPublishVC(PoseMsgName,content);
 
 global MAP
 res = 0.05;
@@ -205,9 +205,7 @@ while(1)
                     %ct_Enc = ct_Enc+1;
 
             end
-        end
-    end
-    temp = meters2cells([state(1) state(2)],[MAP.xmin,MAP.ymin],MAP.res);
+                temp = meters2cells([state(1) state(2)],[MAP.xmin,MAP.ymin],MAP.res);
     POSE.x = temp(1);
     POSE.y = temp(2);
     POSE.yaw = state(3);
@@ -215,6 +213,9 @@ while(1)
     content = serialize(POSE);
     ipcAPIPublishVC(PoseMsgName,content);
     drawnow;
+        end
+    end
+
 end
 
 
