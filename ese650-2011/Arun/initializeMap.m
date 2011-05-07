@@ -65,8 +65,8 @@ function [] = initializeMap(las_ranges,las_angles,pitch,roll,yaw)
     las_ranges = las_ranges(las_ranges > 0.15);
     
     %xy position in the sensor frame
-    xs0 = (las_ranges.*cos(las_angles))';
-    ys0 = (las_ranges.*sin(las_angles))';
+    xs0 = (las_ranges.*cos(las_angles));
+    ys0 = (las_ranges.*sin(las_angles));
 
     %convert to body frame using initial transformation
     X = [xs0;ys0;zeros(size(xs0)); ones(size(xs0))];

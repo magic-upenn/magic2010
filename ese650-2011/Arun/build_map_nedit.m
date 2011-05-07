@@ -67,15 +67,19 @@ k_enc = 1;
 k_las = 1;
 %xData = zeros(1,numel(enc.Encoders.ts));
 %yData = zeros(1,numel(enc.Encoders.ts));
-yaw_rt = [];
+yaw_str = [];
 inl_pitch = 0;
 inl_roll = 0;
+dt_Imu = 0.01;
+servo_angl = 0.05;
 
 global MAP
+MAP.xmin = -30;
+MAP.res = 0.05;
 
 ct_Enc = 1;
 ct_Imu = 1;
-
+las_angles = [];
 while(1)
     msgs = ipcAPIReceive(10);
     len = length(msgs);
@@ -133,7 +137,7 @@ while(1)
                         continue
                     end
                     if(isempty(las_angles))
-                        las_angles = Lidar{k_Lidar}.startAngle : Lidar{k_Lidar}.angleStep : Lidar{k_Lidar}.stopAngle;
+                        las_angles = lidarScan.startAngle : lidarScan.angleStep : lidarScan.stopAngle;
                         %zs = zeros(size(las_angles));
                         %os = ones(size(las_angles));
                         %coslas_ang = cos(las_angles);
@@ -181,12 +185,13 @@ while(1)
                     Servo = MagicServoStateSerializer('deserialize',msgs(i).data);
                     servo_angl = Servo.position+0.05; % initial offset is 0.05 radians
             end
-            POSE.x = xcell;
-            POSE.y = ycell;
+            POSE.x =(state(2) - MAP.xmin) ./ MAP.res;
+            POSE.y = (state(1) - MAP.xmin) ./ MAP.res;
             POSE.yaw = state(3);
             content = serialize(POSE);
             ipcAPIPublishVC(PoseMsgName,content);
             drawnow;
     end
     %pose_6D(:,k) = [state(1);state(2);z_val;state(3);pitch;roll]; % x,y,z,yaw,pitch,roll
+    end
 end

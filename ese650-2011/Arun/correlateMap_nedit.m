@@ -63,8 +63,8 @@ function [state,dz] = correlateMap_nedit(las_ranges,las_angles,pitch,roll,state,
     las_ranges = las_ranges((las_ranges > 0.15)&(las_ranges<40));
     
     %xy position in the sensor frame
-    xs0 = (las_ranges.*cos(las_angles))';
-    ys0 = (las_ranges.*sin(las_angles))';
+    xs0 = (las_ranges.*cos(las_angles));
+    ys0 = (las_ranges.*sin(las_angles));
 
     %convert to body frame using initial transformation
     X = [xs0;ys0;zeros(size(xs0)); ones(size(xs0))];
@@ -173,9 +173,10 @@ function [state,dz] = correlateMap_nedit(las_ranges,las_angles,pitch,roll,state,
     Timu = rotz(state(3))*Tpr;%roty(pitch)*rotx(roll);
     Tpose   = trans([state(1) state(2) 0]);
     %full transform from lidar frame to world frame
-    T = Tpose*Timu*Tsensor;
+    %T = Tpose*Timu*Tsensor;
 
-    Y=T*X;
+    %Y=T*X;
+    Y = Tpose*Timu*T_servotobody*Rservo*T_senstoservo*X;
 
     %transformed xs and ys
     xs1 = Y(1,:);

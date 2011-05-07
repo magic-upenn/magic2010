@@ -28,7 +28,7 @@ switch event
 %         if(goal_ang < 0)
 %              goal_ang = goal_ang + 2*pi;
 %         end
-        yw = POSE.yaw;
+        yw = mod(POSE.yaw,2*pi);
         if(yw < 0)
             yw = yw+2*pi;
         end
@@ -37,7 +37,7 @@ switch event
             gl_yw = gl_yw + 2*pi;
         end
         % Wait till the robot reaches that angle
-        if(yw-gl_yw>30*pi/180) % Make the robot turn to that particular angle
+        if(yw-gl_yw>45*pi/180) % Make the robot turn to that particular angle
         %if(gettime - DATA.t0 < 1)
             SetVelocity(0, sign(gl_yw-yw)*0.5);
             %ret = [];

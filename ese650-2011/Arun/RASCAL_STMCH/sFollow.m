@@ -3,7 +3,7 @@ function ret = sFollow(event, varargin)
 global POSE PATH SPEED
 persistent DATA
 
-timeout = 10.0;
+timeout = 100.0;
 ret = [];
 switch event
  case 'entry'

@@ -1,7 +1,7 @@
 %% Set some parameters & initialize stuff
 
 close all;
-SetMagicPaths;
+%SetMagicPaths;
 %lidar0MsgName = GetMsgName('Lidar0');
 
 robotId = '5';
