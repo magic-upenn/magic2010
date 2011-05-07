@@ -2,7 +2,7 @@ function ret = sScan_R(event, varargin)
 
 global POSE GOAL QUEUELASER LFLAG MAP
 persistent DATA;
-persistent fg fg_ori m pl mn;
+persistent fg fg_ori m pl mn pthh;
 
 ret = [];
 switch event
@@ -60,8 +60,9 @@ switch event
             %set(gca,'xDir','normal','yDir','reverse');
             mn = imagesc(MAP.map);
             %colormap gray
+            colorbar
             hold on;
-            plot(POSE.x,POSE.y,'r*');
+            pthh = plot(POSE.x,POSE.y,'r*');
             title('Costmap from 3D points');
             
         else
@@ -71,7 +72,7 @@ switch event
         
         % Inflate the costmap by the robot's footprint (assume square for
         % now)
-        D = (MAP.map > 170);
+        D = (MAP.map > 150);
         dil = imdilate(D,strel('square',5));
         inds = (dil > 0);
         MAP.map(inds) = 255; % set them all as obstacles
@@ -84,7 +85,8 @@ switch event
             fg = figure;
             set(gca,'xDir','normal','yDir','reverse');
             m = imagesc(MAP.map);
-            colormap gray
+            %colormap gray
+            colorbar
             hold on
             plot(POSE.x,POSE.y,'b*');
             title('Obstacles inflated and planner path in red');
@@ -110,6 +112,7 @@ switch event
         [Cells,ind] = plannerAstar(double(MAP.map),round([POSE.x POSE.y]),round([GOAL(1),GOAL(2)])); 
         toc
         set(pl,'Xdata',Cells(1,:),'Ydata',Cells(2,:));
+        set(pthh,'Xdata',Cells(1,:),'Ydata',Cells(2,:));
         drawnow;
         % Publish the path
         pathMsgName = GetMsgName('Path');
