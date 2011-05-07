@@ -44,6 +44,8 @@ while(1)
                     set(pl,'Xdata',CMap.orx,'Ydata',CMap.ory);
                     set(pth,'Xdata',0,'Ydata',0);
                     set(gl,'Xdata',0,'Ydata',0);
+                    title('Costmap from LIDAR');
+                    colorbar;
                     disp('Received LIDAR map'); 
                 case MsgNames.path
                     Path = deserialize(msgs(i).data);
