@@ -12,7 +12,7 @@ xdev = 30;
 ydev = 30;
 
 init_map(res,xdev,ydev);
-
+pause(0.1)
 %NikolayGui('gui_OpeningFcn',goalMsgName);
 
 point = meters2cells_cont([0,0],[MAP.xmin,MAP.ymin],MAP.res);

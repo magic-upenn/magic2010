@@ -17,19 +17,19 @@ ipcAPISubscribe(ImuMsgName);
 PoseMsgName = GetMsgName('Pose');
 ipcAPIDefine(PoseMsgName);
 
-POSE.x = 0;
-POSE.y = 0;
-POSE.yaw = 0;
-POSE.pitch = 0;
-POSE.roll = 0;
-
-content = serialize(POSE);
-ipcAPIPublishVC(PoseMsgName,content);
+%POSE.x = 0;
+%POSE.y = 0;
+%POSE.yaw = 0;
+%POSE.pitch = 0;
+%POSE.roll = 0;
+POSE = [];
+%content = serialize(POSE);
+%ipcAPIPublishVC(PoseMsgName,content);
 
 global MAP
 res = 0.05;
-xdev = 15;
-ydev = 15;
+xdev = 30;
+ydev = 30;
 
 init_map(res,xdev,ydev);
 
