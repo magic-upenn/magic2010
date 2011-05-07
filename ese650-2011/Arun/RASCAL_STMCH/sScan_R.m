@@ -2,7 +2,7 @@ function ret = sScan_R(event, varargin)
 
 global POSE GOAL QUEUELASER LFLAG MAP
 persistent DATA;
-persistent fg fg_ori m pl;
+persistent fg fg_ori m pl mn;
 
 ret = [];
 switch event
@@ -58,12 +58,10 @@ switch event
         if(isempty(fg_ori))
             fg_ori = figure;
             set(gca,'xDir','normal','yDir','reverse');
-            m = imagesc(MAP.map);
+            mn = imagesc(MAP.map);
             colormap gray
-            hold on
-            pl = plot(0,0,'r.');
         else
-            set(m,'Cdata',MAP.map);
+            set(mn,'Cdata',MAP.map);
         end
         
         
@@ -106,7 +104,7 @@ switch event
         [Cells,ind] = plannerAstar(double(MAP.map),round([POSE.x POSE.y]),round([GOAL(1),GOAL(2)])); 
         toc
         set(pl,'Xdata',Cells(1,:),'Ydata',Cells(2,:));
-        
+        drawnow;
         % Publish the path
         pathMsgName = GetMsgName('Path');
         ipcAPIDefine(pathMsgName);

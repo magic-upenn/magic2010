@@ -51,7 +51,6 @@ while(1)
                     disp('Received path');
                 case MsgNames.pose
                     Pose = deserialize(msgs(i).data);
-                    Pose
                     set(pl,'Xdata',Pose.x,'Ydata',Pose.y);
                 case goalMsgName
                     Goal = deserialize(msgs(i).data);
