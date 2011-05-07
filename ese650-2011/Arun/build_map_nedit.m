@@ -109,7 +109,7 @@ while(1)
                     %%LatestUp.Encoder= Encoders(ct_Enc);
                     rc = mean([Encoders.fr,Encoders.rr]) * mpertic; % rear right wheel distance = no of tics * m/tic
                     lc = mean([Encoders.fl,Encoders.rl]) * mpertic; % rear left wheel distance = no of tics * m/tic
-                    vdt = mean([rc,lc])
+                    vdt = mean([rc,lc]);
 
                     yawPrev = 0;
                     %calculate the change in position
@@ -123,10 +123,6 @@ while(1)
                         dyaw = wdt;
                     end
 
-                    Tpr = roty(POSE.pitch)*rotx(POSE.roll);
-                    Tyaw = rotz(state(3));
-                    pos_chng = Tyaw*Tpr*[dx;dy;0;1];
-                    
 %                     state(1) = state(1) + pos_chng(1);
 %                     state(2) = state(2) + pos_chng(2);
 %                     state(3) = state(3) + wdt;
@@ -142,7 +138,7 @@ while(1)
                         %os = ones(size(las_angles));
                         %coslas_ang = cos(las_angles);
                         %sinlas_ang = sin(las_angles);
-                        initializeMap(lidarScan.ranges,las_angles,POSE.pitch,POSE.roll,0);
+                        initializeMap(lidarScan.ranges,las_angles,POSE.pitch,POSE.roll,0,servo_angl);
 
                         % INitialize figure for map,trajectory and robot
                         xcell = (state(1) - MAP.xmin) ./ MAP.res;
@@ -155,11 +151,11 @@ while(1)
                         hr = plot(ycell,xcell,'g*');
                         axis tight;
                         title(['MAP - Iterations:',num2str(k_enc)]);
-                        inl_ptch = 0;%pitch;
-                        inl_rll = 0;%roll;
+
                     else
 
                         [state,dz] = correlateMap_nedit(lidarScan.ranges,las_angles,POSE.pitch,POSE.roll,state,dyaw,dx,dy,servo_angl);
+                        state;
                         %dz;
                         %z_val = z_val + dz;
                         % update the figure
@@ -178,9 +174,9 @@ while(1)
                             %F = getframe(fig);
                             %aviobj = addframe(aviobj,F);
                         end
+                        k_enc = k_enc + 1;
                     end
-                    %pose(:,k_enc) = state';
-                    k_enc = k_enc + 1;
+
                 case servoMsgName
                     Servo = MagicServoStateSerializer('deserialize',msgs(i).data);
                     servo_angl = Servo.position+0.05; % initial offset is 0.05 radians
@@ -190,6 +186,7 @@ while(1)
             POSE.yaw = state(3);
             content = serialize(POSE);
             ipcAPIPublishVC(PoseMsgName,content);
+            %state%
             drawnow;
     end
     %pose_6D(:,k) = [state(1);state(2);z_val;state(3);pitch;roll]; % x,y,z,yaw,pitch,roll

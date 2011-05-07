@@ -9,8 +9,9 @@ function [state,dz] = correlateMap_nedit(las_ranges,las_angles,pitch,roll,state,
     global MAP
     T_servotobody = trans([0.145 0 0.506]); % 144.775 0 506
     T_senstoservo = trans([0.056 0 0.028]); 
-    Rservo = roty(servo_angl);
     
+    Rservo = roty(servo_angl);
+
     Tpr = roty(pitch)*rotx(roll);
     Tyaw = rotz(state(3)+dyaw);
     A = Tyaw*Tpr*[dx;dy;0;1];
@@ -55,10 +56,10 @@ function [state,dz] = correlateMap_nedit(las_ranges,las_angles,pitch,roll,state,
     %% Removing the ranges for the antennaes that obstruct the LIDAR
     %% Also, laser's minimum range is 0.1 m and if laser does not find
     %% object, it sets value to less than that... remove these as well
-    las_ranges(975:1010) = 0; % left antenna
-    las_ranges(80:115) = 0;% right antenna
-    las_angles(975:1010) = 0;
-    las_angles(80:115) = 0;
+%     las_ranges(975:1010) = 0; % left antenna
+%     las_ranges(80:115) = 0;% right antenna
+%     las_angles(975:1010) = 0;
+%     las_angles(80:115) = 0;
     las_angles = las_angles((las_ranges > 0.15)&(las_ranges<40));
     las_ranges = las_ranges((las_ranges > 0.15)&(las_ranges<40));
     
@@ -110,7 +111,7 @@ function [state,dz] = correlateMap_nedit(las_ranges,las_angles,pitch,roll,state,
 
         %transform for the imu reading (assuming zero for this example)
         %Timu = rotz(yaw_v_c(k))*Tpr; % yaw*pitch*roll - orientation of the body frame w.r.t the world frame
-        Tyaw = rotz(yaw_v_c(k)); 
+        Tyaw = rotz(yaw_v_c(k));
         %full transform from lidar frame to world frame 
         % Tpose - just the translation from the body frame to the world frame
         %T = [ Timu(1:3,1:3) [x_new;y_new;0]; 0 0 0 1] *Tsensor; % first part is Tpose*Timu - which can be written as [R T; 0 1] - a homogeneous matrix
@@ -119,55 +120,57 @@ function [state,dz] = correlateMap_nedit(las_ranges,las_angles,pitch,roll,state,
 
         c(:,:,k) = map_correlation(MAP.map,MAP.x_im,MAP.y_im,Y(1:3,:),MAP.x_range_c,MAP.y_range_c);
         %max(max(c(:,:,k)))
-        c(3,3,k) = c(3,3,k) + max(max(c(:,:,k)))/1000; 
+        %c(3,3,k) = c(3,3,k) + max(max(c(:,:,k)))/1000; 
         %c(:,:,k) = c(:,:,k).*MAP.gaussian_c;%*(max(max(c(:,:,k)))/100);
         
     end
-
+    
     [a,ind] = max(c(:));
     [xv_c,yv_c,thv] = ind2sub(size(c),ind);
     x_new = x_new + MAP.x_range_c(xv_c);
     y_new = y_new + MAP.y_range_c(yv_c);
 %     
-    %% DO a finer search for angles and poses
-    if(abs(dyaw)>0)%5e-4)
-        %yaw_v_f = yaw_v_c(thv)-deg2rad(1):deg2rad(0.1):yaw_v_c(thv)+deg2rad(1); % fine search for yaw values
-        yaw_v_f = yaw_v_c(thv)-deg2rad(1):deg2rad(0.25):yaw_v_c(thv)+deg2rad(1); % fine search for yaw values
-
-    else
-        yaw_v_f = yaw_v_c(thv)-deg2rad(0.5):deg2rad(0.25):yaw_v_c(thv)+deg2rad(0.5);
-    end
+%     %% DO a finer search for angles and poses
+%     if(abs(dyaw)>0)%5e-4)
+%         %yaw_v_f = yaw_v_c(thv)-deg2rad(1):deg2rad(0.1):yaw_v_c(thv)+deg2rad(1); % fine search for yaw values
+%         yaw_v_f = yaw_v_c(thv)-deg2rad(1):deg2rad(0.25):yaw_v_c(thv)+deg2rad(1); % fine search for yaw values
+% 
+%     else
+%         yaw_v_f = yaw_v_c(thv)-deg2rad(0.5):deg2rad(0.25):yaw_v_c(thv)+deg2rad(0.5);
+%     end
+%     
+%     c = zeros(numel(MAP.x_range_f),numel(MAP.y_range_f),numel(yaw_v_f));
+% 
+%     for k = 1:numel(yaw_v_f)
+%         %make the origin of the robot's frame at its geometrical center
+% 
+%         %transform for the imu reading (assuming zero for this example)
+%         %Timu = rotz(yaw_v_f(k))*Tpr; % yaw*pitch*roll - orientation of the body frame w.r.t the world frame
+%                 
+%         %full transform from lidar frame to world frame 
+%         % Tpose - just the translation from the body frame to the world frame
+%         %T = [ Timu(1:3,1:3) [x_new;y_new;0]; 0 0 0 1] *Tsensor; % first part is Tpose*Timu - which can be written as [R T; 0 1] - a homogeneous matrix
+%         %T = Tpose*Timu*Tsensor;
+%         Tyaw = rotz(yaw_v_f(k)); 
+% 
+%         Y=Tpose*Tyaw*Yt;
+% 
+%         c(:,:,k) = map_correlation(MAP.map,MAP.x_im,MAP.y_im,Y(1:3,:),MAP.x_range_f,MAP.y_range_f);
+%         %max(max(c(:,:,k)))
+%         %c(3,3,k) = c(3,3,k) + max(max(c(:,:,k)))/1000;
+%         %c(:,:,k) = c(:,:,k).*MAP.gaussian_f;%*(max(max(c(:,:,k)))/100);
+%         
+%     end
+%     %% Update the state
+%     [a,ind] = max(c(:));
+%     [xv_f,yv_f,thv] = ind2sub(size(c),ind);
+%     state(3) = yaw_v_f(thv);
+%     state(1) = x_new + MAP.x_range_f(xv_f);
+%     state(2) = y_new + MAP.y_range_f(yv_f);
     
-    c = zeros(numel(MAP.x_range_f),numel(MAP.y_range_f),numel(yaw_v_f));
-
-    for k = 1:numel(yaw_v_f)
-        %make the origin of the robot's frame at its geometrical center
-
-        %transform for the imu reading (assuming zero for this example)
-        %Timu = rotz(yaw_v_f(k))*Tpr; % yaw*pitch*roll - orientation of the body frame w.r.t the world frame
-                
-        %full transform from lidar frame to world frame 
-        % Tpose - just the translation from the body frame to the world frame
-        %T = [ Timu(1:3,1:3) [x_new;y_new;0]; 0 0 0 1] *Tsensor; % first part is Tpose*Timu - which can be written as [R T; 0 1] - a homogeneous matrix
-        %T = Tpose*Timu*Tsensor;
-        Tyaw = rotz(yaw_v_f(k)); 
-
-        Y=Tpose*Tyaw*Yt;
-
-        c(:,:,k) = map_correlation(MAP.map,MAP.x_im,MAP.y_im,Y(1:3,:),MAP.x_range_f,MAP.y_range_f);
-        %max(max(c(:,:,k)))
-        c(3,3,k) = c(3,3,k) + max(max(c(:,:,k)))/1000;
-        %c(:,:,k) = c(:,:,k).*MAP.gaussian_f;%*(max(max(c(:,:,k)))/100);
-        
-    end
-    %% Update the state
-    [a,ind] = max(c(:));
-    [xv_f,yv_f,thv] = ind2sub(size(c),ind);
-    state(3) = yaw_v_f(thv);
-    state(1) = x_new + MAP.x_range_f(xv_f);
-    state(2) = y_new + MAP.y_range_f(yv_f);
-    
-    
+    state(1) = x_new;
+    state(2) = y_new;
+    state(3) = yaw_v_c(thv);
     %% update the map
     %transform for the imu reading (assuming zero for this example)
     Timu = rotz(state(3))*Tpr;%roty(pitch)*rotx(roll);
@@ -191,9 +194,9 @@ function [state,dz] = correlateMap_nedit(las_ranges,las_angles,pitch,roll,state,
     inds = sub2ind(size(MAP.map),xis(indGood),yis(indGood));
     MAP.map(inds) = min(MAP.map(inds)+1,100);
        
-    %% see the changes in the map
-    %     %plot original lidar points
-    %     figure(1);
-    %     plot(xs1,ys1,'.')
+    % see the changes in the map
+        %plot original lidar points
+%         figure(2);
+%         plot(xs1,ys1,'.')
     
 end

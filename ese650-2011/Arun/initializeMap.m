@@ -1,4 +1,4 @@
-function [] = initializeMap(las_ranges,las_angles,pitch,roll,yaw)
+function [] = initializeMap(las_ranges,las_angles,pitch,roll,yaw,servo_angl)
 %initializeMap.m - initialize the map for the very first time and populate
 %it with the points from the first laser scan
 %INPUTS:
@@ -43,10 +43,11 @@ function [] = initializeMap(las_ranges,las_angles,pitch,roll,yaw)
 
 
     %make the origin of the robot's frame at its geometrical center
-
-    %sensor to body transform - distance of 514.35 mm along z-axis
-    Tsensor = trans([0.13323 0 0.51435]);%*rotz(0)*roty(0)*rotx(0); % distance of 133.73 mm along the x-axis
-
+    T_servotobody = trans([0.145 0 0.506]); % 144.775 0 506
+    T_senstoservo = trans([0.056 0 0.028]); 
+    
+    Rservo = roty(servo_angl);
+    
     %transform for the imu reading (assuming zero for this example)
     Timu = rotz(yaw)*roty(pitch)*rotx(roll);
 
@@ -54,13 +55,13 @@ function [] = initializeMap(las_ranges,las_angles,pitch,roll,yaw)
     Tpose   = trans([0 0 0]);
 
     %full transform from lidar frame to world frame
-    T = Tpose*Timu*Tsensor;
+    T = Tpose*Timu*T_servotobody*Rservo*T_senstoservo;
     
-    %% Remove really small values and antennas from hokuyo scans
-    las_ranges(975:1010) = 0;
-    las_ranges(80:115) = 0;
-    las_angles(975:1010) = 0;
-    las_angles(80:115) = 0;
+%     %% Remove really small values and antennas from hokuyo scans
+%     las_ranges(975:1010) = 0;
+%     las_ranges(80:115) = 0;
+%     las_angles(975:1010) = 0;
+%     las_angles(80:115) = 0;
     las_angles = las_angles(las_ranges > 0.15);
     las_ranges = las_ranges(las_ranges > 0.15);
     

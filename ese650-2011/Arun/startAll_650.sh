@@ -43,6 +43,7 @@ StartFunction ()
 # omnicam: matlab -nodesktop -r startOmniCam
 # frontcam: matlab -nodesktop -r startFrontCam
 # gps: matlab -nodesktop -r startGPS
+# ind: matlab -nodesktop -r Robot_Indoors
 
 StartFunction <<EOF
 central:nice -n -5 central -s
