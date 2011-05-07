@@ -50,7 +50,7 @@ central:nice -n -5 central -s
 mg:nice -n -5 $MAGIC_DIR/drivers/MicroGateway/runMicroGateway2 /dev/ttyUSB0
 h0:$MAGIC_DIR/drivers/Hokuyo/runHokuyo /dev/ttyACM0
 gps: matlab -nodesktop -r startGPS
-ind: matlab -nodesktop -r Robot_Indoors_DR
+ind: matlab -nodesktop -r Robot_Indoors
 EOF
 
 exit
