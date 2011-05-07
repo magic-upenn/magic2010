@@ -68,7 +68,7 @@ switch event
         % Inflate the costmap by the robot's footprint (assume square for
         % now)
         D = (MAP.map > 170);
-        dil = imdilate(D,strel('square',[5,5]));
+        dil = imdilate(D,strel('square',5));
         inds = (dil > 0);
         MAP.map(inds) = 255; % set them all as obstacles
         
