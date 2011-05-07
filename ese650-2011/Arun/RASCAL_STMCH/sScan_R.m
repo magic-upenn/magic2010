@@ -60,6 +60,8 @@ switch event
             set(gca,'xDir','normal','yDir','reverse');
             mn = imagesc(MAP.map);
             colormap gray
+            hold on;
+            plot(POSE.x,POSE.y,'g*');
         else
             set(mn,'Cdata',MAP.map);
         end
