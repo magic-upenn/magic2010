@@ -22,7 +22,13 @@ ipcAPIDefine(PoseMsgName);
 %POSE.yaw = 0;
 %POSE.pitch = 0;
 %POSE.roll = 0;
+%POSE = [];
 POSE = [];
+POSE.x = [];
+POSE.y = [];
+POSE.yaw = [];
+POSE.pitch = [];
+POSE.roll = [];
 %content = serialize(POSE);
 %ipcAPIPublishVC(PoseMsgName,content);
 
