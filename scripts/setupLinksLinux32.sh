@@ -15,6 +15,7 @@ sudo ln -s $MAGIC_DIR/ipc/xdrgen.linux32 /usr/local/bin/xdrgen
 sudo chmod 755 /usr/local/bin/central
 sudo chmod 755 /usr/local/bin/xdrgen
 sudo chmod 4755 /usr/bin/nice
+sudo chmod 4755 /usr/bin/renice
 
 sudo ln -s /usr/bin/ccache /usr/local/bin/gcc
 sudo ln -s /usr/bin/ccache /usr/local/bin/g++
