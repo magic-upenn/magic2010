@@ -12,3 +12,5 @@ else
   cd /opt/db-4.8.30/build_unix; ../dist/configure --enable-cxx --prefix=/usr/local; make -j 4; sudo make install
   sudo ldconfig
 fi
+
+#if using OSX in i368 mode, run the following before configure: export CFLAGS="-arch i386"
