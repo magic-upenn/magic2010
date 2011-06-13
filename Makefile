@@ -6,6 +6,7 @@ all:
 	cd components; make
 	cd ipc; make
 	cd matlab/mexTools; make
+	cd utils; make
 	cd matlab/serialization; make
 	cd visPlugins; make -j 4
 
@@ -17,6 +18,7 @@ clean:
 	cd components; make clean
 	cd ipc; make clean
 	cd matlab/mexTools; make clean
+	cd utils; make clean
 	cd matlab/serialization; make clean
 	cd visPlugins; make clean
 	rm -f *~
