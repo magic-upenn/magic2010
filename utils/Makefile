@@ -4,5 +4,5 @@ getpid: getpid.cc
 	mex -O $<
 
 clean:
-	rm *.mex*
+	rm -f *.mex*
 
