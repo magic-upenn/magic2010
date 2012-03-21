@@ -185,9 +185,9 @@ int MicroParamsInitialize()
 
   ptable10.id           = 10;
   ptable10.mode         = 0;
-  ptable10.accBiasX     = 664;
-  ptable10.accBiasY     = 643;
-  ptable10.accBiasZ     = 655;
+  ptable10.accBiasX     = 654;
+  ptable10.accBiasY     = 654;
+  ptable10.accBiasZ     = 650;
   ptable10.accSenX      = (1.0/133.0);
   ptable10.accSenY      = (1.0/133.0);
   ptable10.accSenZ      = (1.0/133.0);

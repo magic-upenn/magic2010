@@ -1,23 +1,26 @@
-OBJECTS  = MicroGateway2.o ErrorMessage.o DynamixelController.o 
+OBJECTS  =  ErrorMessage.o DynamixelController.o
 
-TARGETS = runMicroGateway2 MicroConfig readIMU GetMicroId #runMicroGateway
+TARGETS = runMicroGateway2 runMicroGateway3 MicroConfig readIMU GetMicroId #runMicroGateway 
 
 include $(MAGIC_DIR)/Makefile.mk
 
 INCLUDES += -I$(VIS_DIR)/include
-LIBS+= -lvis
+LIBS+= -lvis -lipc
 LIB_DIRS+=-L$(VIS_DIR)/lib
 
 #runMicroGateway: runMicroGateway.cc $(OBJECTS)
 #	g++ -Wall -o $@ $^ $(CPP_FLAGS) $(INCLUDES) $(LIB_DIRS) $(LIBS)
 
-runMicroGateway2: runMicroGateway2.cc $(OBJECTS)
+runMicroGateway2: runMicroGateway2.cc $(OBJECTS) MicroGateway2.o
 	g++ -Wall -o $@ $^ $(CPP_FLAGS) $(INCLUDES) $(LIB_DIRS) $(LIBS)
 
-MicroConfig: MicroConfig.cc $(OBJECTS) MicroParams.o
+runMicroGateway3: runMicroGateway3.cc $(OBJECTS) MicroGateway3.o
 	g++ -Wall -o $@ $^ $(CPP_FLAGS) $(INCLUDES) $(LIB_DIRS) $(LIBS)
 
-GetMicroId : GetMicroId.cc $(OBJECTS)
+MicroConfig: MicroConfig.cc $(OBJECTS) MicroParams.o MicroGateway2.o
+	g++ -Wall -o $@ $^ $(CPP_FLAGS) $(INCLUDES) $(LIB_DIRS) $(LIBS)
+
+GetMicroId : GetMicroId.cc $(OBJECTS) MicroGateway2.o
 	g++ -Wall -o $@ $^ $(CPP_FLAGS) $(INCLUDES) $(LIB_DIRS) $(LIBS)
 
 
