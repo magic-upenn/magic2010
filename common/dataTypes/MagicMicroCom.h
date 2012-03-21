@@ -49,7 +49,8 @@ enum { MMC_IMU_RAW,
        MMC_IMU_FILTERED, 
        MMC_IMU_ROT, 
        MMC_MAG_RAW,
-       MMC_IMU_RESET
+       MMC_IMU_RESET,
+       MMC_IMU_FILTERED2
      };
 
 //motor controller packet types
