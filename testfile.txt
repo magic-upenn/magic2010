@@ -1,7 +1,0 @@
-this is a test file.
-
-This is a modification.
-
-This is a modification using svn commit --force-log foo.ext
-
-this is a modification using svn commit -m "this isa mod."
