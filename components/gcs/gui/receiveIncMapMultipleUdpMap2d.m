@@ -66,7 +66,7 @@ while(1)
   if n > 0
     for ii=1:n
       fprintf(1,'got packet of size %d\n',length(packets(ii).data));
-      packet = deserialize(zlibUncompress(packets(ii).data));
+      packet = deserialize(zlibUncompress(packets(ii).data))
       if ~isfield(packet,'type'), continue, end
       if ~ischar(packet.type), continue, end
       

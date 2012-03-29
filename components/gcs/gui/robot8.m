@@ -1,6 +1,6 @@
 SetMagicPaths
 
-global GCS MAGIC_COLORMAP HAVE_ROBOTS ROBOTS
+global GCS MAGIC_COLORMAP HAVE_ROBOTS ROBOTS RDISPLAY
 HAVE_ROBOTS = 1;
 GCS.ids = [8];
 GCS.sensor_ids = [8];
@@ -133,7 +133,7 @@ end
 
 
 if HAVE_ROBOTS
-  masterConnectRobots(GCS.ids);
+  masterConnectRobots(GCS.ids,'localhost');
 end
 
 messages = {'Planner_Path', ...
