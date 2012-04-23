@@ -3,3 +3,8 @@ change the gcc version to 4.4.3 (the default 4.5.x seems to fail during compilat
 change the number of threads to N
 summon... everything should go smoothly
 
+
+
+export PATH=$PATH:~/arm-none-eabi/bin:
+export STM32_GCC_ROOT=~/arm-none-eabi
+
