@@ -1,0 +1,368 @@
+#!/bin/bash
+# Written by Uwe Hermann <uwe@hermann-uwe.de>, released as public domain.
+# Modified by Piotr Esden-Tempski <piotr@esden.net>, released as public domain.
+
+#
+# Requirements (example is for Debian, replace package names as needed):
+#
+# apt-get install flex bison libgmp3-dev libmpfr-dev libncurses5-dev \
+# libmpc-dev autoconf texinfo build-essential
+#
+# Or on Ubuntu Maverick give `apt-get build-dep gcc-4.5` a try.
+#
+
+# Stop if any command fails
+set -e
+
+##############################################################################
+# Settings section
+# You probably want to customize those
+##############################################################################
+TARGET=arm-none-eabi		# Or: TARGET=arm-elf
+PREFIX=${HOME}/arm-none-eabi	# Install location of your final toolchain
+PARALLEL="-j 5" #for 4 CPUs
+DARWIN_OPT_PATH=/opt/local	# Path in which MacPorts or Fink is installed
+# Set to 'sudo' if you need superuser privileges while installing
+SUDO=
+# Set to 1 to be quieter while running
+QUIET=0
+# Set to 1 to use linaro gcc instead of the FSF gcc
+USE_LINARO=0
+# Set to 1 to build libstm32 provided by ST
+LIBSTM32_EN=1
+# Set to 1 to build libopenstm32 an open source library for stm32
+LIBOPENSTM32_EN=0
+# Make the gcc default to Cortex-M3
+DEFAULT_TO_CORTEX_M3=1
+
+##############################################################################
+# Version and download url settings section
+##############################################################################
+if [ ${USE_LINARO} == 0 ] ; then
+	# For FSF GCC:
+	GCCVERSION=4.4.3 #4.5.1
+	GCC=gcc-${GCCVERSION}
+	GCCURL=http://ftp.gnu.org/gnu/gcc/${GCC}/${GCC}.tar.gz
+else
+	# For the Linaro GCC:
+	GCCVERSION=4.5-2010.08-1
+	GCC=gcc-linaro-${GCCVERSION}
+	GCCURL=http://launchpad.net/gcc-linaro/4.5/${GCCVERSION}/+download/${GCC}.tar.gz
+fi
+
+BINUTILS=binutils-2.20
+NEWLIB=newlib-1.18.0
+GDB=gdb-7.2
+LIBCMSIS=v1.10-2
+LIBSTM32=v3.0.0-1
+LIBSTM32USB=v3.0.1-1
+LIBOPENSTM32=master
+
+##############################################################################
+# Flags section
+##############################################################################
+
+GDBFLAGS=
+BINUTILFLAGS=
+
+if [ ${DEFAULT_TO_CORTEX_M3} == 0 ] ; then
+	GCCFLAGS=
+else
+	# To default to the Cortex-M3:
+	GCCFLAGS="--with-arch=armv7-m --with-mode=thumb"
+fi
+
+# Pull in the local configuration, if any
+if [ -f local.sh ]; then
+    . ./local.sh
+fi
+
+MAKEFLAGS=${PARALLEL}
+TARFLAGS=v
+
+if [ ${QUIET} != 0 ]; then
+    TARFLAGS=
+    MAKEFLAGS="${MAKEFLAGS} -s"
+fi
+
+export PATH="${PREFIX}/bin:${PATH}"
+
+SUMMON_DIR=$(pwd)
+SOURCES=${SUMMON_DIR}/sources
+STAMPS=${SUMMON_DIR}/stamps
+
+##############################################################################
+# Building section
+# You probably don't have to touch anything after this
+##############################################################################
+
+# Fetch a versioned file from a URL
+function fetch {
+    if [ ! -e ${STAMPS}/$1.fetch ]; then
+        log "Downloading $1 sources..."
+        wget -c --no-passive-ftp $2
+        touch ${STAMPS}/$1.fetch
+    fi
+}
+
+# Log a message out to the console
+function log {
+    echo "******************************************************************"
+    echo "* $*"
+    echo "******************************************************************"
+}
+
+# Unpack an archive
+function unpack {
+    log Unpacking $*
+    # Use 'auto' mode decompression.  Replace with a switch if tar doesn't support -a
+    tar xaf${TARFLAGS} ${SOURCES}/$1.tar.*
+}
+
+# Install a build
+function install {
+    log $1
+    ${SUDO} make ${MAKEFLAGS} $2 $3 $4 $5 $6 $7 $8
+}
+
+case "$(uname)" in
+	Linux)
+	echo "Found Linux OS."
+	;;
+	Darwin)
+	echo "Found Darwin OS."
+	GCCFLAGS="${GCCFLAGS} \
+                  --with-gmp=${DARWIN_OPT_PATH} \
+	          --with-mpfr=${DARWIN_OPT_PATH} \
+	          --with-mpc=${DARWIN_OPT_PATH} \
+		  -with-libiconv-prefix=${DARWIN_OPT_PATH}"
+	;;
+	*)
+	echo "Found unknown OS. Aborting!"
+	exit 1
+	;;
+esac
+
+mkdir -p ${STAMPS} ${SOURCES}
+
+cd ${SOURCES}
+
+fetch ${BINUTILS} http://ftp.gnu.org/gnu/binutils/${BINUTILS}.tar.bz2
+fetch ${GCC} ${GCCURL}
+fetch ${NEWLIB} ftp://sources.redhat.com/pub/newlib/${NEWLIB}.tar.gz
+fetch ${GDB} http://ftp.gnu.org/gnu/gdb/${GDB}.tar.bz2
+
+if [ ${LIBSTM32_EN} != 0 ]; then
+if [ ! -e libcmsis-${LIBCMSIS}.tar.bz2 ]; then
+	log "Cloning libcmsis sources..."
+	git clone git://git.open-bldc.org/libcmsis.git
+        cd libcmsis
+        git archive --format=tar --prefix=libcmsis-${LIBCMSIS}/ ${LIBCMSIS} | \
+            bzip2 --stdout > ../libcmsis-${LIBCMSIS}.tar.bz2
+        cd ..
+        rm -rf libcmsis
+fi
+
+if [ ! -e libstm32-${LIBSTM32}.tar.bz2 ]; then
+	log "Cloning libstm32 sources..."
+	git clone git://git.open-bldc.org/libstm32.git
+        cd libstm32
+        git archive --format=tar --prefix=libstm32-${LIBSTM32}/ ${LIBSTM32} | \
+            bzip2 --stdout > ../libstm32-${LIBSTM32}.tar.bz2
+        cd ..
+        rm -rf libstm32
+fi
+
+if [ ! -e libstm32usb-${LIBSTM32USB}.tar.bz2 ]; then
+	log "Cloning libstm32usb sources..."
+	git clone git://git.open-bldc.org/libstm32usb.git
+        cd libstm32usb
+        git archive --format=tar --prefix=libstm32usb-${LIBSTM32USB}/ ${LIBSTM32USB} | \
+            bzip2 --stdout > ../libstm32usb-${LIBSTM32USB}.tar.bz2
+        cd ..
+        rm -rf libstm32usb
+fi
+fi
+
+if [ ${LIBOPENSTM32_EN} != 0 ]; then
+if [ ! -e libopenstm32-${LIBOPENSTM32}.tar.bz2 ]; then
+	log "Cloning libopenstm32 sources..."
+	git clone git://libopenstm32.git.sourceforge.net/gitroot/libopenstm32/libopenstm32
+        cd libopenstm32
+        git archive --format=tar --prefix=libopenstm32-${LIBOPENSTM32}/ ${LIBOPENSTM32} | \
+            bzip2 --stdout > ../libopenstm32-${LIBOPENSTM32}.tar.bz2
+        cd ..
+        rm -rf libopenstm32
+fi
+fi
+
+cd ${SUMMON_DIR}
+
+if [ ! -e build ]; then
+    mkdir build
+fi
+
+if [ ! -e ${STAMPS}/${BINUTILS}.build ]; then
+    unpack ${BINUTILS}
+    cd build
+    log "Configuring ${BINUTILS}"
+    ../${BINUTILS}/configure --target=${TARGET} \
+                           --prefix=${PREFIX} \
+                           --enable-interwork \
+                           --enable-multilib \
+                           --with-gnu-as \
+                           --with-gnu-ld \
+                           --disable-nls \
+                           --disable-werror \
+			   ${BINUTILFLAGS}
+    log "Building ${BINUTILS}"
+    make ${MAKEFLAGS}
+    install ${BINUTILS} install
+    cd ..
+    log "Cleaning up ${BINUTILS}"
+    touch ${STAMPS}/${BINUTILS}.build
+    rm -rf build/* ${BINUTILS}
+fi
+
+if [ ! -e ${STAMPS}/${GCC}-boot.build ]; then
+    unpack ${GCC} boot
+    cd build
+    log "Configuring ${GCC}-boot"
+    ../${GCC}/configure --target=${TARGET} \
+                      --prefix=${PREFIX} \
+                      --enable-interwork \
+                      --enable-multilib \
+                      --enable-languages="c" \
+                      --with-newlib \
+                      --without-headers \
+                      --disable-shared \
+                      --with-gnu-as \
+                      --with-gnu-ld \
+                      --disable-nls \
+                      --disable-werror \
+		      ${GCCFLAGS}
+    log "Building ${GCC}-boot"
+    make ${MAKEFLAGS} all-gcc
+    install ${GCC}-boot install-gcc
+    cd ..
+    log "Cleaning up ${GCC}-boot"
+    touch ${STAMPS}/${GCC}-boot.build
+    rm -rf build/* ${GCC}
+fi
+
+if [ ! -e ${STAMPS}/${NEWLIB}.build ]; then
+    unpack ${NEWLIB}
+    cd build
+    log "Configuring ${NEWLIB}"
+    ../${NEWLIB}/configure --target=${TARGET} \
+                         --prefix=${PREFIX} \
+                         --enable-interwork \
+                         --enable-multilib \
+                         --with-gnu-as \
+                         --with-gnu-ld \
+                         --disable-nls \
+                         --disable-werror \
+                         --disable-newlib-supplied-syscalls
+    log "Building ${NEWLIB}"
+    make ${MAKEFLAGS}
+    install ${NEWLIB} install
+    cd ..
+    log "Cleaning up ${NEWLIB}"
+    touch ${STAMPS}/${NEWLIB}.build
+    rm -rf build/* ${NEWLIB}
+fi
+
+# Yes, you need to build gcc again!
+if [ ! -e ${STAMPS}/${GCC}.build ]; then
+    unpack ${GCC}
+    cd build
+    log "Configuring ${GCC}"
+    ../${GCC}/configure --target=${TARGET} \
+                      --prefix=${PREFIX} \
+                      --enable-interwork \
+                      --enable-multilib \
+                      --enable-languages="c,c++" \
+                      --with-newlib \
+                      --disable-shared \
+                      --with-gnu-as \
+                      --with-gnu-ld \
+		      --disable-nls \
+                      --disable-werror \
+	 	     ${GCCFLAGS}
+    log "Building ${GCC}"
+    make ${MAKEFLAGS}
+    install ${GCC} install
+    cd ..
+    log "Cleaning up ${GCC}"
+    touch ${STAMPS}/${GCC}.build
+    rm -rf build/* ${GCC}
+fi
+
+if [ ! -e ${STAMPS}/${GDB}.build ]; then
+    unpack ${GDB}
+    cd build
+    log "Configuring ${GDB}"
+    ../${GDB}/configure --target=${TARGET} \
+                      --prefix=${PREFIX} \
+                      --enable-interwork \
+                      --enable-multilib \
+                      --disable-werror \
+		      ${GDBFLAGS}
+    log "Building ${GDB}"
+    make ${MAKEFLAGS}
+    install ${GDB} install
+    cd ..
+    log "Cleaning up ${GDB}"
+    touch ${STAMPS}/${GDB}.build
+    rm -rf build/* ${GDB}
+fi
+
+if [ ${LIBSTM32_EN} != 0 ]; then
+if [ ! -e .libcmsis-${LIBCMSIS}.build ]; then
+    unpack libcmsis-${LIBCMSIS}
+    cd libcmsis-${LIBCMSIS}
+    log "Building libcmsis-${LIBCMSIS}"
+    make arch_prefix=${TARGET} prefix=${PREFIX}
+    install libcmsis-${LIBCMSIS} arch_prefix=${TARGET} prefix=${PREFIX} install
+    cd ..
+    log "Cleaning up libcmsis-${LIBCMSIS}"
+    touch .libcmsis-${LIBCMSIS}.build
+    rm -rf libcmsis-${LIBCMSIS}
+fi
+
+if [ ! -e .libstm32-${LIBSTM32}.build ]; then
+    unpack libstm32-${LIBSTM32}
+    cd libstm32-${LIBSTM32}
+    log "Building libstm32-${LIBSTM32}"
+    make arch_prefix=${TARGET} prefix=${PREFIX}
+    install libstm32-${LIBSTM32} arch_prefix=${TARGET} prefix=${PREFIX} install
+    cd ..
+    log "Cleaning up libstm32-${LIBSTM32}"
+    touch .libstm32-${LIBSTM32}.build
+    rm -rf libstm32-${LIBSTM32}
+fi
+
+if [ ! -e .libstm32usb-${LIBSTM32USB}.build ]; then
+    unpack libstm32usb-${LIBSTM32USB}
+    cd libstm32usb-${LIBSTM32USB}
+    log "Building libstm32usb-${LIBSTM32USB}"
+    make arch_prefix=${TARGET} prefix=${PREFIX}
+    install libstm32usb-${LIBSTM32USB} arch_prefix=${TARGET} prefix=${PREFIX} install
+    cd ..
+    log "Cleaning up libstm32usb-${LIBSTM32USB}"
+    touch .libstm32usb-${LIBSTM32USB}.build
+    rm -rf libstm32usb-${LIBSTM32USB}
+fi
+fi
+
+if [ $LIBOPENSTM32_EN != 0 ]; then
+    unpack libopenstm32-${LIBOPENSTM32}
+    cd libopenstm32-${LIBOPENSTM32}
+    log "Building libopenstm32-${LIBOPENSTM32}"
+    make PREFIX=${TARGET} DESTDIR=${PREFIX}
+    install libopenstm32-${LIBOPENSTM32} PREFIX=${TARGET} DESTDIR=${PREFIX} install
+    cd ..
+    log "Cleaning up libopenstm32-${LIBOPENSTM32}"
+    touch .libopenstm32-${LIBOPENSTM32}.build
+    rm -rf libopenstm32-${LIBOPENSTM32}
+fi

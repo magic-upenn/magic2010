@@ -1,0 +1,5 @@
+sudo apt-get install libgmp3-dev libmpfr-dev libmpc-dev
+change the gcc version to 4.4.3 (the default 4.5.x seems to fail during compilation) in the summon script
+change the number of threads to N
+summon... everything should go smoothly
+
