@@ -260,6 +260,11 @@ int Dynamixel::GetPosition(float & position)
 
   int packetLength = this->CreateOutgoingPacket(cmd, cmdLen, this->outBuffer,DYNAMIXEL_DEF_BUFFER_LENGTH);
 
+  printf("outgoing packet = ");
+  for (int ii=0; ii<packetLength; ii++)
+    printf(" %X",(uint8_t)this->outBuffer[ii]);
+  printf("\n");
+
   if (this->WritePacket(this->outBuffer,packetLength))
   {
 #ifdef DYNAMIXEL_DEBUG
