@@ -1,0 +1,8 @@
+The distance traveled for each robot and run times:
+
+1: 448m : 34.6 min
+2: 388m : 26.4 min (this is the bot that died before the end)
+3: 375m : 34.6 min
+4: 337m : 31.9 min (not sure why is shorter)
+5: 368m : 34.6 min
+
