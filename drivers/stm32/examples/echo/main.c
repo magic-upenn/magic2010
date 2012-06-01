@@ -74,6 +74,11 @@ int main(void)
         HL_COM_PORT_PUTSTR("System resetting..\r\n");
         NVIC_SystemReset();
       }
+      else if (c == 'a')
+      {
+        uart1_putchar('$');
+        uart1_printf("hello world\r\n");
+      }
     }
   }
 
