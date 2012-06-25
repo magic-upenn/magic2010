@@ -3,7 +3,7 @@ OBJECTS  = ErrorMessage.o CircularBuffer.o DataLogger.o DeviceInterface.o \
 		DataLoggerQueue.o DbWrite.o DataLoggerQueueDB.o IpcHelper.o \
 		SerialDevice.o IpcWrapper.o DynamixelPacket.o
 
-TARGETS = libSerialDevice.a
+TARGETS = libSerialDevice.a SerialDeviceAPI.$(MEXSUFFIX)
 
 include $(MAGIC_DIR)/Makefile.mk
 
@@ -17,4 +17,7 @@ ErrorMessage.o: ../../common/ErrorMessage.cc
 
 DynamixelPacket.o: ../../common/dataTypes/DynamixelPacket.c
 	g++ $(INCLUDES) $(CPP_FLAGS) -c -o $@ $^
+
+SerialDeviceAPI.$(MEXSUFFIX) : SerialDevice.o SerialDeviceAPI.cc
+	mex -O SerialDeviceAPI.cc SerialDevice.o  $(INCLUDES)
 
