@@ -9,7 +9,7 @@ STM32_LD_PATH       = $(STM32_ROOT_PATH)/ld
 STM32_INCLUDES      = -I. -I$(STM32_ROOT_PATH)/include -I$(STM32_ROOT_PATH)/include
 STM32_LIB_PATH      = $(STM32_ROOT_PATH)/lib
 STM32_SRC_PATH      = $(STM32_ROOT_PATH)/src
-GCC_STM32_LIB_PATH  = -L$(STM32_GCC_ROOT)/arm-none-eabi/lib/ -L$(STM32_GCC_ROOT)/lib/gcc/arm-none-eabi/4.4.3/ 
+GCC_STM32_LIB_PATH  = -L$(STM32_GCC_ROOT)/arm-none-eabi/lib/ -L$(STM32_GCC_ROOT)/../lib/gcc/arm-none-eabi/4.5.2/ 
   
 STM32_CFLAGS        =  $(STM32_INCLUDES) -c -fno-common -O2 -mcpu=cortex-m3 -mthumb -nostartfiles #-Wall
 STM32_LFLAGS        = -T$(STM32_LD_PATH)/stm32f10x_flash.ld

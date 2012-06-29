@@ -22,7 +22,7 @@ POSE.cntr =1;
 USER_INPUT.freshClick =0;
 %id of the robot that maps should be received from
 
-addr = '192.168.10.220';
+addr = '192.168.10.31';
 port = 12346;
 
 UdpReceiveAPI('connect',addr,port);

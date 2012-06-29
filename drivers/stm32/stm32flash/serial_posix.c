@@ -87,7 +87,7 @@ serial_err_t serial_setup(serial_t *h, const serial_baud_t baud, const serial_bi
 		case SERIAL_BAUD_38400 : port_baud = B38400 ; break;
 		case SERIAL_BAUD_57600 : port_baud = B57600 ; break;
 		case SERIAL_BAUD_115200: port_baud = B115200; break;
-    case SERIAL_BAUD_1000000: port_baud = B1000000; break;
+		case SERIAL_BAUD_1000000: port_baud = B1000000; break;
 
 		case SERIAL_BAUD_INVALID:
 		default:
