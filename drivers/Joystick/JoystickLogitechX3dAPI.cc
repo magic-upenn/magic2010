@@ -57,6 +57,8 @@ void * JoyThreadFunc(void * input)
         wCmd = 511-ev.value;
       if (ev.type == 3 && ev.code == 1)
         vCmd = 511-ev.value;
+
+      printf("type = %d code = %d value %d\n",ev.type, ev.code, ev.value);
     }
   }
 
