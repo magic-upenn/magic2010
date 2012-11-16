@@ -1,0 +1,27 @@
+<package>
+  <description brief="magic_driver">
+
+     magic_driver
+
+  </description>
+  <author>Christopher Clingerman</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/magic_driver</url>
+
+  <depend package="roscpp" />
+  <depend package="trajectory_msgs" />
+  <depend package="std_msgs"/>
+  <depend package="geometry_msgs"/>
+  <depend package="sensor_msgs"/>
+  <depend package="actionlib"/>
+  <depend package="joint_trajectory_action" />
+  <depend package="kinematics_msgs" />
+  <depend package="tf" />
+
+
+
+
+</package>
+
+
