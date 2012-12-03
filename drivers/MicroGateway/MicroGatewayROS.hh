@@ -157,6 +157,7 @@ namespace Upenn
     //ROS stuff
     private: ros::NodeHandle *nh; 
     private: ros::Publisher odom_pub; 
+    private: ros::Publisher wheel_pub; 
     private: ros::Subscriber vel_sub; 
     private: tf::TransformBroadcaster odom_broadcaster; 
     private: nav_msgs::Odometry odom_;
@@ -167,6 +168,11 @@ namespace Upenn
     private: double wheelSpeed[2];
     private: double odomPose[3];
     private: double odomVel[3];
+
+    //wheel joint stuff
+    private: double wheel_pos[4]; 
+    private: double wheel_vel[4]; 
+    private: double wheel_efforts[4]; 
 
     //private: boost::mutex lock;
     private: double x_;

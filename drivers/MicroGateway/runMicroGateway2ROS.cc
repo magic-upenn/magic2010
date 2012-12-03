@@ -46,6 +46,8 @@ int main(int argc, char * argv[])
 	return -1; 
   }
   
+  PRINT_INFO("everything connected, starting main loop\n"); 
+
   while(1)
   {
     mg->Main();

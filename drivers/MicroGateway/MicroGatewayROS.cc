@@ -19,6 +19,7 @@
 #include <tf/transform_broadcaster.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Twist.h>
+#include <sensor_msgs/JointState.h>
 
 using namespace std;
 using namespace Upenn;
@@ -33,6 +34,9 @@ using namespace Magic;
 //#define PRINT_GPS
 #define PRINT_ENCODERS
 //#define PRINT_SERVO
+
+const string wheel_names[4] = {"base_link_front_left_wheel_joint", "base_link_front_right_wheel_joint", 
+			       "base_link_back_left_wheel_joint", "base_link_back_right_wheel_joint"}; 
 
 enum
 {
@@ -444,6 +448,8 @@ void MicroGateway::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& cmd_msg)
 	this->vCmdPrev = vcmd.vCmd; 
 	this->wCmdPrev = vcmd.wCmd; 
 
+	//ROS_INFO("setting vel cmd to :%d %d", vcmd.vCmd, vcmd.wCmd); 
+
 }
 /*
 void internalCmdVelCallback(const geometry_msgs::Twist::ConstPtr& cmd_msg) { 
@@ -488,6 +494,26 @@ int MicroGateway::ConnectROS(char * addr) {
   this->odomVel[0] = 0.0; 
   this->odomVel[1] = 0.0; 
   this->odomVel[2] = 0.0; 
+
+
+  //wheel joint stuff
+  this->wheel_pos[0] = 0.0; 
+  this->wheel_pos[1] = 0.0; 
+  this->wheel_pos[2] = 0.0; 
+  this->wheel_pos[3] = 0.0; 
+
+  this->wheel_vel[0] = 0.0; 
+  this->wheel_vel[1] = 0.0; 
+  this->wheel_vel[2] = 0.0; 
+  this->wheel_vel[3] = 0.0; 
+
+  this->wheel_efforts[0] = 0.0; 
+  this->wheel_efforts[1] = 0.0; 
+  this->wheel_efforts[2] = 0.0; 
+  this->wheel_efforts[3] = 0.0; 
+
+  this->wheel_pub = this->nh->advertise<sensor_msgs::JointState>("/joint_states", 1); 
+
 
   //this->callback_queue_thread_ = boost::thread(boost::bind(&MicroGateway::QueueThread, this)); 
 
@@ -874,7 +900,7 @@ int MicroGateway::MotorControllerPacketHandler(DynamixelPacket * dpacket)
   }
   else if (DynamixelPacketGetType(dpacket) == MMC_MOTOR_CONTROLLER_VELOCITY_CONFIRMATION)
   {
-    //printf("got velocity confirmation (%f) \n",motorDt);
+    //printf("got velocity confirmation (%f) \n",motorDt);	
   }
 
   return 0;
@@ -895,6 +921,29 @@ void MicroGateway::ROSCalcOdom(EncoderCounts encPacket) {
 	ros::Time current_time = ros::Time::now(); 
 	double stepTime = (current_time - this->last_time).toSec(); 
 
+	//update our knowledge of the wheel joints' positions and velocities
+	//--do nothing for now--
+
+	//publish JointState stuff for the wheels
+	sensor_msgs::JointState wheel_joints; 
+	wheel_joints.header.stamp = current_time; 
+	wheel_joints.header.frame_id = ""; 
+
+	wheel_joints.name.resize(4); 
+	wheel_joints.position.resize(4); 
+	wheel_joints.velocity.resize(4); 
+	wheel_joints.effort.resize(4); 
+
+	for(int i = 0; i < 4; i++) { 
+		wheel_joints.name[i] = wheel_names[i]; 
+		wheel_joints.position[i] = this->wheel_pos[i]; 
+		wheel_joints.velocity[i] = this->wheel_vel[i]; 
+		wheel_joints.effort[i] = this->wheel_efforts[i]; 
+	}
+
+	this->wheel_pub.publish(wheel_joints); 
+
+
 	//here we would update the wheelSpeed variables, but this is done separately as part of the velocity cmd callback 
 
 	wd = this->wheelDiameter; 
@@ -903,11 +952,22 @@ void MicroGateway::ROSCalcOdom(EncoderCounts encPacket) {
 	double d_left_avg_enc = (fl + rl) / 2.0; 
 	double d_right_avg_enc = (fr + rr) / 2.0; 
 
-	d1 = wd / 2 * d_left_avg_enc; 
-	d2 = wd / 2 * d_right_avg_enc; 
+	double d_left_avg_meters = d_left_avg_enc * 0.0022166; //convert encoder counts to meters (360 encoder ticks = 1 revolution = 0.7979645 meters = 2 * pi * 0.12700 meters => 1 encoder tick = 0.0022166 meters)
+	double d_right_avg_meters = d_right_avg_enc * 0.0022166; //convert encoder counts to meters
+
+	d1 = d_left_avg_meters; //wd / 2 * d_left_avg_meters; 
+	d2 = d_right_avg_meters; //wd / 2 * d_right_avg_meters; 
 
 	dr = (d1 + d2) / 2; 
-	da = (d1 - d2) / ws; 
+	da = (d2 - d1) / (2 * ws); //(d1 - d2) / ws; 
+
+	//printf("dr: %f da: %f stepTime: %f current time: %f\n", dr, da, stepTime, (ros::Time::now()).toSec()); 
+
+	/*
+	if(fabs(d2 - d1) >= 0.05) { 
+		printf("\n\n\nBLARGH!!!\n\n\n"); 
+	}
+	*/
 
 	//compute odometric pose (this is in the "/odom" frame) 
 	odomPose[0] += dr * cos(odomPose[2]); 
@@ -918,6 +978,8 @@ void MicroGateway::ROSCalcOdom(EncoderCounts encPacket) {
 	odomVel[0] = dr / stepTime; 
 	odomVel[1] = 0.0; 
 	odomVel[2] = da / stepTime; 
+
+	ROS_INFO("odomPose: %f %f %f\todomVel: %f %f %f", odomPose[0], odomPose[1], odomPose[2], odomVel[0], odomVel[1], odomVel[2]); 
 
 	//here we would set the velocities and torques for the wheel joints, but that's handled in the velocity cmd callback, and we don't have to update Gazebo stuff here
 
@@ -1199,6 +1261,8 @@ int MicroGateway::Main()
       this->vCmdPrev*=0.9;
       this->wCmdPrev*=0.9;
       uint8_t cmd[] = {this->vCmdPrev, this->wCmdPrev,0,0};
+
+	ROS_INFO("sending velocity command %d %d", this->vCmdPrev, this->wCmdPrev); 
 
       const int bufSize=256;
       uint8_t tempBuf[bufSize];

@@ -15,8 +15,6 @@
   <depend package="geometry_msgs"/>
   <depend package="sensor_msgs"/>
   <depend package="actionlib"/>
-  <depend package="joint_trajectory_action" />
-  <depend package="kinematics_msgs" />
   <depend package="tf" />
 
 
