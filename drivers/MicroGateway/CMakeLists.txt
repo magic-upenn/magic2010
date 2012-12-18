@@ -55,7 +55,7 @@ rosbuild_add_executable(runMicroGateway2ROS MicroGatewayROS.cc runMicroGateway2R
 
 #rosbuild_add_compile_flags(runMicroGateway2ROS ../ErrorMessage.o ../DynamixelController.o)
 #rosbuild_add_link_flags(runMicroGateway2ROS ../ErrorMessage.o ../DynamixelController.o)
-target_link_libraries(runMicroGateway2ROS ipc SerialDevice) # DynamixelPacket)
+target_link_libraries(runMicroGateway2ROS ipc SerialDevice pthread) # DynamixelPacket)
 
 
 #something added 9-11-12 so that I don't have to create a new package to do something simple in the simulator

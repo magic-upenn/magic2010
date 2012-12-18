@@ -8,6 +8,9 @@
 #include <ipc.h>
 #include <stdlib.h>
 
+#include <ros/ros.h>
+#include <sensor_msgs/LaserScan.h>
+
 using namespace std;
 using namespace Upenn;
 using namespace Magic;
@@ -55,6 +58,16 @@ void ShutdownFn(int code)
 
 int main(int argc, char * argv[])
 {
+  //setting up ROS stuff
+  ros::init(argc, argv, "HokuyoDriver"); 
+
+  ros::NodeHandle nh; 
+  ros::Publisher lidar_pub; 
+
+  lidar_pub = nh.advertise<sensor_msgs::LaserScan>("/base_scan", 1); 
+  //done with ROS stuff
+
+
   string address = string(HOKUYO_DEF_DEVICE);
   string ipcHost = string("localhost");
 
@@ -252,6 +265,18 @@ int main(int argc, char * argv[])
   lidarScan.counter     = 0;
   lidarScan.id          = 0;
 
+
+  //fill the ROS LaserScan message static values
+  sensor_msgs::LaserScan rosLaserScan; 
+  rosLaserScan.header.frame_id = "/base_scan_link"; 
+  rosLaserScan.ranges.resize(nPoints);  
+  rosLaserScan.angle_min = -135.0/180.0*M_PI; 
+  rosLaserScan.angle_max = 135.0/180.0*M_PI; 
+  rosLaserScan.angle_increment = 0.25/180.0*M_PI; 
+  rosLaserScan.range_min = 0.025; //0.1; 
+  rosLaserScan.range_max = 5.0; 
+
+
   HeartBeatPublisher hBeatPublisher;
   if ( hBeatPublisher.Initialize((char*)processName.c_str(),(char*)lidarScanMsgName.c_str()) )
   {
@@ -291,6 +316,19 @@ int main(int argc, char * argv[])
 
         //publish messages
         IPC_publishData(lidarScanMsgName.c_str(),&lidarScan);
+
+
+	//fill the ROS lidar scan message
+	rosLaserScan.header.stamp = ros::Time(timeStamps[j]); 
+	
+	for(unsigned int jj = 0; jj < lidarScan.ranges.size; jj++) { 
+		rosLaserScan.ranges[jj] = (float) ranges[jj]*0.001; //could combine the two loops, but this way I separate IPC/Magic stuff from ROS stuff
+	}
+
+
+	//publish the ROS lidar scan topic
+	lidar_pub.publish(rosLaserScan); 
+
 
         //publis heart beat message
         if (lidarScan.counter % 40 == 0)
