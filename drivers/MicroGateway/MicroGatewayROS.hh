@@ -162,6 +162,13 @@ namespace Upenn
     private: tf::TransformBroadcaster odom_broadcaster; 
     private: nav_msgs::Odometry odom_;
 
+    private: ros::Publisher enc_pub; 
+    private: ros::Publisher imu_pub; 
+    private: ros::Publisher gps_pub; 
+
+    private: ros::Publisher imu_enc_pub; 
+    private: ros::Publisher gps_enc_pub; 
+
     private: double wheelSeparation;
     private: double wheelDiameter;
     private: double torque;

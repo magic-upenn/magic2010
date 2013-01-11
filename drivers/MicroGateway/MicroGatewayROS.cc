@@ -21,6 +21,9 @@
 #include <geometry_msgs/Twist.h>
 #include <sensor_msgs/JointState.h>
 
+#include <custom_msgs/encoder_msg.h>
+#include <custom_msgs/imu_msg.h>
+#include <custom_msgs/gps_msg.h>
 
 //used to lock "theta" updates in odometry between the encoder code and the IMU code
 #include <pthread.h>
@@ -496,6 +499,13 @@ int MicroGateway::ConnectROS(char * addr) {
   this->vel_sub  = this->nh->subscribe("/cmd_vel", 1, &MicroGateway::cmdVelCallback, this); 
   this->odom_pub = this->nh->advertise<nav_msgs::Odometry>("/odom", 1); 
   
+  this->enc_pub = this->nh->advertise<custom_msgs::encoder_msg>("/encoder", 1); 
+  this->imu_pub = this->nh->advertise<custom_msgs::imu_msg>("/imu_filtered", 1); 
+  this->gps_pub = this->nh->advertise<custom_msgs::gps_msg>("/gps", 1); 
+
+  this->imu_enc_pub = this->nh->advertise<custom_msgs::encoder_msg>("/imu_encoder", 1); 
+  this->gps_enc_pub = this->nh->advertise<custom_msgs::encoder_msg>("/gps_encoder", 1); 
+
   this->odomPose[0] = 0.0; 
   this->odomPose[1] = 0.0; 
   this->odomPose[2] = 0.0; 
@@ -844,6 +854,16 @@ int MicroGateway::GpsPacketHandler(DynamixelPacket * dpacket)
                      DynamixelPacketGetPayloadSize(dpacket),
                      DynamixelPacketGetData(dpacket) );
 
+  custom_msgs::gps_msg gps; 
+  gps.stamp.stamp = ros::Time::now(); 
+  gps.stamp.frame_id = "/odom"; 
+
+  gps.Vx = gpsPacket.data[0]; 
+  gps.Vy = gpsPacket.data[1]; 
+  gps.Vtheta = gpsPacket.data[2]; 
+
+  this->gps_pub.publish(gps); 
+
   
   this->PublishMsg(this->gpsMsgName,&gpsPacket);
 
@@ -901,6 +921,8 @@ int MicroGateway::MotorControllerPacketHandler(DynamixelPacket * dpacket)
     EncoderCounts encPacket(Upenn::Timer::GetAbsoluteTime(),
                            (uint16_t)encData[0],encData[1],encData[2],encData[3], encData[4]);
     
+   
+
     this->PublishMsg(this->encMsgName, &encPacket);
 
     //call ROS function to handle odometry update
@@ -932,6 +954,55 @@ void MicroGateway::ROSCalcOdom(EncoderCounts encPacket) {
 	ros::Time current_time = ros::Time::now(); 
 	double stepTime = (current_time - this->last_time).toSec(); 
 
+
+	custom_msgs::encoder_msg enc; 
+	enc.header.stamp = ros::Time::now(); 
+	enc.header.frame_id = "/odom";
+
+	enc.fl_tick = encPacket.fl; 
+	enc.fr_tick = encPacket.fr; 
+	enc.rl_tick = encPacket.rl; 
+	enc.rr_tick = encPacket.rr; 
+
+	enc.fl_vel_meters = enc.fl_tick * 0.0022166 / stepTime; 
+	enc.fr_vel_meters = enc.fr_tick * 0.0022166 / stepTime; 
+	enc.rl_vel_meters = enc.rl_tick * 0.0022166 / stepTime; 
+	enc.rr_vel_meters = enc.rr_tick * 0.0022166 / stepTime; 
+
+	this->enc_pub.publish(enc); 
+
+	//publish "imu encoder" message
+	int sigma = rand() % 5 - 2; 
+
+	enc.fl_tick += sigma; 
+	enc.fr_tick += sigma; 
+	enc.rl_tick += sigma; 
+	enc.rr_tick += sigma; 
+
+	enc.fl_vel_meters = enc.fl_tick * 0.0022166 / stepTime; 
+	enc.fr_vel_meters = enc.fr_tick * 0.0022166 / stepTime; 
+	enc.rl_vel_meters = enc.rl_tick * 0.0022166 / stepTime; 
+	enc.rr_vel_meters = enc.rr_tick * 0.0022166 / stepTime; 
+
+	this->imu_enc_pub.publish(enc);
+
+	//publish "gps encoder" message
+	sigma = rand() % 3 - 1; 
+
+	enc.fl_tick = encPacket.fl + sigma; 
+	enc.fr_tick = encPacket.fr + sigma; 
+	enc.rl_tick = encPacket.rl + sigma; 
+	enc.rr_tick = encPacket.rr + sigma; 
+
+	enc.fl_vel_meters = enc.fl_tick * 0.0022166 / stepTime; 
+	enc.fr_vel_meters = enc.fr_tick * 0.0022166 / stepTime; 
+	enc.rl_vel_meters = enc.rl_tick * 0.0022166 / stepTime; 
+	enc.rr_vel_meters = enc.rr_tick * 0.0022166 / stepTime; 
+
+	this->gps_enc_pub.publish(enc); 
+
+	
+    
 	//update our knowledge of the wheel joints' positions and velocities
 	//--do nothing for now--
 
@@ -1152,6 +1223,20 @@ int MicroGateway::ImuPacketHandler(DynamixelPacket * dpacket)
                imu.wroll*180/M_PI,imu.wpitch*180/M_PI,imu.wyaw*180/M_PI);
 #endif
  
+    custom_msgs::imu_msg imu_ros; 
+    imu_ros.stamp.stamp = ros::Time::now(); 
+    imu_ros.stamp.frame_id = "/odom"; 
+
+    imu_ros.roll = imu.roll*180/M_PI; 
+    imu_ros.pitch = imu.pitch*180/M_PI; 
+    imu_ros.yaw = imu.yaw*180/M_PI; 
+    imu_ros.wroll = imu.wroll*180/M_PI; 
+    imu_ros.wpitch = imu.wpitch*180/M_PI; 
+    imu_ros.wyaw = imu.wyaw*180/M_PI; 
+
+    this->imu_pub.publish(imu_ros); 
+
+
     pthread_mutex_lock(&theta_mutex); 
     imu_yaw_shared = imu.yaw; 
     imu_wyaw_shared = imu.wyaw; 

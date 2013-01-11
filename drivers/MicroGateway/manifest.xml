@@ -17,7 +17,7 @@
   <depend package="actionlib"/>
   <depend package="tf" />
 
-
+  <depend package="custom_msgs" />
 
 
 </package>
