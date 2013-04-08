@@ -21,10 +21,10 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #uncomment if you have defined services
 #rosbuild_gensrv()
 
-include_directories(/home/magicbot/Desktop/magic2010/include) #/home/cclinger/Desktop/magic_svn/magic2010/trunk/include) 
+include_directories(/home/cclinger/Desktop/magic_svn/magic2010/trunk/include) 
 #include_directories(/home/cclinger/Desktop/magic_svn/magic2010/trunk/common)
 
-link_directories(/home/magicbot/Desktop/magic2010/lib) #/home/cclinger/Desktop/magic_svn/magic2010/trunk/lib)
+link_directories(/home/cclinger/Desktop/magic_svn/magic2010/trunk/lib)
 
 #common commands for building c++ executables and libraries
 #rosbuild_add_library(${PROJECT_NAME} src/example.cpp)
@@ -55,7 +55,7 @@ rosbuild_add_executable(runMicroGateway2ROS MicroGatewayROS.cc runMicroGateway2R
 
 #rosbuild_add_compile_flags(runMicroGateway2ROS ../ErrorMessage.o ../DynamixelController.o)
 #rosbuild_add_link_flags(runMicroGateway2ROS ../ErrorMessage.o ../DynamixelController.o)
-target_link_libraries(runMicroGateway2ROS ipc SerialDevice pthread) # DynamixelPacket)
+target_link_libraries(runMicroGateway2ROS ipc SerialDevice) # DynamixelPacket)
 
 
 #something added 9-11-12 so that I don't have to create a new package to do something simple in the simulator

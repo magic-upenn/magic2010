@@ -19,18 +19,6 @@
 #include <tf/transform_broadcaster.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Twist.h>
-#include <sensor_msgs/JointState.h>
-
-#include <custom_msgs/encoder_msg.h>
-#include <custom_msgs/imu_msg.h>
-#include <custom_msgs/gps_msg.h>
-
-//used to lock "theta" updates in odometry between the encoder code and the IMU code
-#include <pthread.h>
-pthread_mutex_t theta_mutex = PTHREAD_MUTEX_INITIALIZER;
-double imu_yaw_shared = 0; 
-double imu_wyaw_shared = 0; 
-
 
 using namespace std;
 using namespace Upenn;
@@ -45,10 +33,6 @@ using namespace Magic;
 //#define PRINT_GPS
 #define PRINT_ENCODERS
 //#define PRINT_SERVO
-
-
-const string wheel_names[4] = {"base_link_front_left_wheel_joint", "base_link_front_right_wheel_joint", 
-			       "base_link_back_left_wheel_joint", "base_link_back_right_wheel_joint"}; 
 
 enum
 {
@@ -460,8 +444,6 @@ void MicroGateway::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& cmd_msg)
 	this->vCmdPrev = vcmd.vCmd; 
 	this->wCmdPrev = vcmd.wCmd; 
 
-	//ROS_INFO("setting vel cmd to :%d %d", vcmd.vCmd, vcmd.wCmd); 
-
 }
 /*
 void internalCmdVelCallback(const geometry_msgs::Twist::ConstPtr& cmd_msg) { 
@@ -499,13 +481,6 @@ int MicroGateway::ConnectROS(char * addr) {
   this->vel_sub  = this->nh->subscribe("/cmd_vel", 1, &MicroGateway::cmdVelCallback, this); 
   this->odom_pub = this->nh->advertise<nav_msgs::Odometry>("/odom", 1); 
   
-  this->enc_pub = this->nh->advertise<custom_msgs::encoder_msg>("/encoder", 1); 
-  this->imu_pub = this->nh->advertise<custom_msgs::imu_msg>("/imu_filtered", 1); 
-  this->gps_pub = this->nh->advertise<custom_msgs::gps_msg>("/gps", 1); 
-
-  this->imu_enc_pub = this->nh->advertise<custom_msgs::encoder_msg>("/imu_encoder", 1); 
-  this->gps_enc_pub = this->nh->advertise<custom_msgs::encoder_msg>("/gps_encoder", 1); 
-
   this->odomPose[0] = 0.0; 
   this->odomPose[1] = 0.0; 
   this->odomPose[2] = 0.0; 
@@ -513,26 +488,6 @@ int MicroGateway::ConnectROS(char * addr) {
   this->odomVel[0] = 0.0; 
   this->odomVel[1] = 0.0; 
   this->odomVel[2] = 0.0; 
-
-
-  //wheel joint stuff
-  this->wheel_pos[0] = 0.0; 
-  this->wheel_pos[1] = 0.0; 
-  this->wheel_pos[2] = 0.0; 
-  this->wheel_pos[3] = 0.0; 
-
-  this->wheel_vel[0] = 0.0; 
-  this->wheel_vel[1] = 0.0; 
-  this->wheel_vel[2] = 0.0; 
-  this->wheel_vel[3] = 0.0; 
-
-  this->wheel_efforts[0] = 0.0; 
-  this->wheel_efforts[1] = 0.0; 
-  this->wheel_efforts[2] = 0.0; 
-  this->wheel_efforts[3] = 0.0; 
-
-  this->wheel_pub = this->nh->advertise<sensor_msgs::JointState>("/joint_states", 1); 
-
 
   //this->callback_queue_thread_ = boost::thread(boost::bind(&MicroGateway::QueueThread, this)); 
 
@@ -854,16 +809,6 @@ int MicroGateway::GpsPacketHandler(DynamixelPacket * dpacket)
                      DynamixelPacketGetPayloadSize(dpacket),
                      DynamixelPacketGetData(dpacket) );
 
-  custom_msgs::gps_msg gps; 
-  gps.stamp.stamp = ros::Time::now(); 
-  gps.stamp.frame_id = "/odom"; 
-
-  gps.Vx = gpsPacket.data[0]; 
-  gps.Vy = gpsPacket.data[1]; 
-  gps.Vtheta = gpsPacket.data[2]; 
-
-  this->gps_pub.publish(gps); 
-
   
   this->PublishMsg(this->gpsMsgName,&gpsPacket);
 
@@ -921,8 +866,6 @@ int MicroGateway::MotorControllerPacketHandler(DynamixelPacket * dpacket)
     EncoderCounts encPacket(Upenn::Timer::GetAbsoluteTime(),
                            (uint16_t)encData[0],encData[1],encData[2],encData[3], encData[4]);
     
-   
-
     this->PublishMsg(this->encMsgName, &encPacket);
 
     //call ROS function to handle odometry update
@@ -931,13 +874,11 @@ int MicroGateway::MotorControllerPacketHandler(DynamixelPacket * dpacket)
   }
   else if (DynamixelPacketGetType(dpacket) == MMC_MOTOR_CONTROLLER_VELOCITY_CONFIRMATION)
   {
-    //printf("got velocity confirmation (%f) \n",motorDt);	
+    //printf("got velocity confirmation (%f) \n",motorDt);
   }
 
   return 0;
 }
-
-int blah_counter = 0; 
 
 //CC's ROS function to handle odometry calculations and publishing
 void MicroGateway::ROSCalcOdom(EncoderCounts encPacket) { 
@@ -954,78 +895,6 @@ void MicroGateway::ROSCalcOdom(EncoderCounts encPacket) {
 	ros::Time current_time = ros::Time::now(); 
 	double stepTime = (current_time - this->last_time).toSec(); 
 
-
-	custom_msgs::encoder_msg enc; 
-	enc.header.stamp = ros::Time::now(); 
-	enc.header.frame_id = "/odom";
-
-	enc.fl_tick = encPacket.fl; 
-	enc.fr_tick = encPacket.fr; 
-	enc.rl_tick = encPacket.rl; 
-	enc.rr_tick = encPacket.rr; 
-
-	enc.fl_vel_meters = enc.fl_tick * 0.0022166 / stepTime; 
-	enc.fr_vel_meters = enc.fr_tick * 0.0022166 / stepTime; 
-	enc.rl_vel_meters = enc.rl_tick * 0.0022166 / stepTime; 
-	enc.rr_vel_meters = enc.rr_tick * 0.0022166 / stepTime; 
-
-	this->enc_pub.publish(enc); 
-
-	//publish "imu encoder" message
-	int sigma = rand() % 5 - 2; 
-
-	enc.fl_tick += sigma; 
-	enc.fr_tick += sigma; 
-	enc.rl_tick += sigma; 
-	enc.rr_tick += sigma; 
-
-	enc.fl_vel_meters = enc.fl_tick * 0.0022166 / stepTime; 
-	enc.fr_vel_meters = enc.fr_tick * 0.0022166 / stepTime; 
-	enc.rl_vel_meters = enc.rl_tick * 0.0022166 / stepTime; 
-	enc.rr_vel_meters = enc.rr_tick * 0.0022166 / stepTime; 
-
-	this->imu_enc_pub.publish(enc);
-
-	//publish "gps encoder" message
-	sigma = rand() % 3 - 1; 
-
-	enc.fl_tick = encPacket.fl + sigma; 
-	enc.fr_tick = encPacket.fr + sigma; 
-	enc.rl_tick = encPacket.rl + sigma; 
-	enc.rr_tick = encPacket.rr + sigma; 
-
-	enc.fl_vel_meters = enc.fl_tick * 0.0022166 / stepTime; 
-	enc.fr_vel_meters = enc.fr_tick * 0.0022166 / stepTime; 
-	enc.rl_vel_meters = enc.rl_tick * 0.0022166 / stepTime; 
-	enc.rr_vel_meters = enc.rr_tick * 0.0022166 / stepTime; 
-
-	this->gps_enc_pub.publish(enc); 
-
-	
-    
-	//update our knowledge of the wheel joints' positions and velocities
-	//--do nothing for now--
-
-	//publish JointState stuff for the wheels
-	sensor_msgs::JointState wheel_joints; 
-	wheel_joints.header.stamp = current_time; 
-	wheel_joints.header.frame_id = ""; 
-
-	wheel_joints.name.resize(4); 
-	wheel_joints.position.resize(4); 
-	wheel_joints.velocity.resize(4); 
-	wheel_joints.effort.resize(4); 
-
-	for(int i = 0; i < 4; i++) { 
-		wheel_joints.name[i] = wheel_names[i]; 
-		wheel_joints.position[i] = this->wheel_pos[i]; 
-		wheel_joints.velocity[i] = this->wheel_vel[i]; 
-		wheel_joints.effort[i] = this->wheel_efforts[i]; 
-	}
-
-	this->wheel_pub.publish(wheel_joints); 
-
-
 	//here we would update the wheelSpeed variables, but this is done separately as part of the velocity cmd callback 
 
 	wd = this->wheelDiameter; 
@@ -1034,71 +903,21 @@ void MicroGateway::ROSCalcOdom(EncoderCounts encPacket) {
 	double d_left_avg_enc = (fl + rl) / 2.0; 
 	double d_right_avg_enc = (fr + rr) / 2.0; 
 
-	double d_left_avg_meters = d_left_avg_enc * 0.0022166; //convert encoder counts to meters (360 encoder ticks = 1 revolution = 0.7979645 meters = 2 * pi * 0.12700 meters => 1 encoder tick = 0.0022166 meters)
-	double d_right_avg_meters = d_right_avg_enc * 0.0022166; //convert encoder counts to meters
-
-	d1 = d_left_avg_meters; //wd / 2 * d_left_avg_meters; 
-	d2 = d_right_avg_meters; //wd / 2 * d_right_avg_meters; 
+	d1 = wd / 2 * d_left_avg_enc; 
+	d2 = wd / 2 * d_right_avg_enc; 
 
 	dr = (d1 + d2) / 2; 
-	da = (d2 - d1) / (2 * ws); //(d1 - d2) / ws; 
-
-
-	/*
-	//EXPERIMENTAL ADJUSTMENT OF ANGULAR ROTATION ESTIMATE
-	da *= 1.095; 
-	//END EXPERIMENTAL SECTION
-	*/
-
-	//printf("dr: %f da: %f stepTime: %f current time: %f\n", dr, da, stepTime, (ros::Time::now()).toSec()); 
-
-	/*
-	if(fabs(d2 - d1) >= 0.05) { 
-		printf("\n\n\nBLARGH!!!\n\n\n"); 
-	}
-	*/
+	da = (d1 - d2) / ws; 
 
 	//compute odometric pose (this is in the "/odom" frame) 
-	this->odomPose[0] += dr * cos(this->odomPose[2]); 
-	this->odomPose[1] += dr * sin(this->odomPose[2]); 
-	this->odomPose[2] += da; //handled in IMU code
+	odomPose[0] += dr * cos(odomPose[2]); 
+	odomPose[1] += dr * sin(odomPose[2]); 
+	odomPose[2] += da; 
 
 	//compute odometric instantaneous velocity (this is in the "/base_footprint" frame)
-	this->odomVel[0] = dr / stepTime; 
-	this->odomVel[1] = 0.0; 
-	this->odomVel[2] = da / stepTime; //handled in IMU code
-
-	//if the encoder values show that we are turning, then use the IMU wyaw value added to our currently known theta values
-	//if(fabs(da) > 0.001) { 
-/*
-		double old_imu_yaw = this->odomPose[2]; 
-
-		pthread_mutex_lock(&theta_mutex); 
-		double local_imu_yaw = imu_yaw_shared; 
-		double local_imu_wyaw = imu_wyaw_shared; 
-		pthread_mutex_unlock(&theta_mutex); 
-
-		this->odomPose[2] = local_imu_yaw; //+= local_imu_wyaw; 
-		this->odomVel[2] = (local_imu_yaw - old_imu_yaw) / stepTime; //= local_imu_wyaw; 
-*/
-		//printf("\t\t%f %f\n", this->odomPose[2], this->odomVel[2]); 
-	//}
-
-	//printf("\t\t\t\t%f %f\n", da, local_imu_wyaw); 
-
-	/*
-	pthread_mutex_lock(&theta_mutex); 
-	double odomPoseTheta = this->odomPose[2]; 
-	double odomVelTheta = this->odomVel[2]; 
-	*/
-/*
-	if(++blah_counter % 30 == 0) { 
-		ROS_INFO("odomPose: %f %f %f\todomVel: %f %f %f", this->odomPose[0], this->odomPose[1], this->odomPose[2], this->odomVel[0], this->odomVel[1], this->odomVel[2]); 
-	}
-*/
-	//pthread_mutex_unlock(&theta_mutex); 
-	
-	 
+	odomVel[0] = dr / stepTime; 
+	odomVel[1] = 0.0; 
+	odomVel[2] = da / stepTime; 
 
 	//here we would set the velocities and torques for the wheel joints, but that's handled in the velocity cmd callback, and we don't have to update Gazebo stuff here
 
@@ -1107,12 +926,12 @@ void MicroGateway::ROSCalcOdom(EncoderCounts encPacket) {
 	std::string base_footprint_frame = "/base_footprint"; 
 
 	geometry_msgs::Pose pose; 
-	pose.position.x = this->odomPose[0]; 
-	pose.position.y = this->odomPose[1]; 
+	pose.position.x = odomPose[0]; 
+	pose.position.y = odomPose[1]; 
 	pose.position.z = 0.0; 
 
 	tf::Quaternion temp_quat; 
-	temp_quat.setRPY(0,0,this->odomPose[2]); 
+	temp_quat.setRPY(0,0,odomPose[2]); 
 
 	geometry_msgs::Quaternion quat; // = tf::createQuaternionFromRPY(0,0,odomPose[2]); 
 	//quat.setRPY(0,0,odomPose[2]); 
@@ -1140,9 +959,9 @@ void MicroGateway::ROSCalcOdom(EncoderCounts encPacket) {
 	this->odom_.pose.pose.orientation.z = quat.z; 
 	this->odom_.pose.pose.orientation.w = quat.w; 
 
-	this->odom_.twist.twist.linear.x = this->odomVel[0]; 
-	this->odom_.twist.twist.linear.y = this->odomVel[1]; 
-	this->odom_.twist.twist.angular.z = this->odomVel[2]; 
+	this->odom_.twist.twist.linear.x = odomVel[0]; 
+	this->odom_.twist.twist.linear.y = odomVel[1]; 
+	this->odom_.twist.twist.angular.z = odomVel[2]; 
 
 	this->odom_.header.stamp = current_time; 
 	this->odom_.header.frame_id = odom_frame; 
@@ -1154,9 +973,6 @@ void MicroGateway::ROSCalcOdom(EncoderCounts encPacket) {
 	this->last_time = current_time; 
 
 }
-
-int imu_counter = 0; 
-double imu_yaw_mysum = 0; 
 
 int MicroGateway::ImuPacketHandler(DynamixelPacket * dpacket)
 {
@@ -1207,41 +1023,12 @@ int MicroGateway::ImuPacketHandler(DynamixelPacket * dpacket)
     }
    
     IPC_publishData(this->imuMsgName.c_str(),&imu);
-/*
-    if(++imu_counter % 20 == 0) { 
-	printf("got rot imu packet: %f %f\n", imu.yaw, imu.wyaw);
-    }
-*/
-/*
-    imu_yaw_mysum += imu.wyaw; 
-    printf("\t\t\t%f %f\n", imu.yaw, imu_yaw_mysum); 
-*/
 
 #ifdef PRINT_IMU_FILTERED
     printf("got rot imu packet: %f %f %f %f %f %f\n",
                imu.roll*180/M_PI,imu.pitch*180/M_PI,imu.yaw*180/M_PI,
                imu.wroll*180/M_PI,imu.wpitch*180/M_PI,imu.wyaw*180/M_PI);
 #endif
- 
-    custom_msgs::imu_msg imu_ros; 
-    imu_ros.stamp.stamp = ros::Time::now(); 
-    imu_ros.stamp.frame_id = "/odom"; 
-
-    imu_ros.roll = imu.roll*180/M_PI; 
-    imu_ros.pitch = imu.pitch*180/M_PI; 
-    imu_ros.yaw = imu.yaw*180/M_PI; 
-    imu_ros.wroll = imu.wroll*180/M_PI; 
-    imu_ros.wpitch = imu.wpitch*180/M_PI; 
-    imu_ros.wyaw = imu.wyaw*180/M_PI; 
-
-    this->imu_pub.publish(imu_ros); 
-
-
-    pthread_mutex_lock(&theta_mutex); 
-    imu_yaw_shared = imu.yaw; 
-    imu_wyaw_shared = imu.wyaw; 
-    pthread_mutex_unlock(&theta_mutex); 
-
   }
   
   return 0;
@@ -1413,8 +1200,6 @@ int MicroGateway::Main()
       this->wCmdPrev*=0.9;
       uint8_t cmd[] = {this->vCmdPrev, this->wCmdPrev,0,0};
 
-	//ROS_INFO("sending velocity command %d %d", this->vCmdPrev, this->wCmdPrev); 
-
       const int bufSize=256;
       uint8_t tempBuf[bufSize];
 
@@ -1429,7 +1214,7 @@ int MicroGateway::Main()
     }
   }
 
-  //ros::waitForShutdown(); 
+  ros::waitForShutdown(); 
 
   return 0;
 }

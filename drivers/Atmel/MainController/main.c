@@ -661,7 +661,7 @@ int main(void)
     
     if (newEstopTime > (estopTimeout + 625000))     //10 seconds
     {
-      //estopState = MMC_ESTOP_STATE_FREEZE;
+      estopState = MMC_ESTOP_STATE_FREEZE;
     }
      
 

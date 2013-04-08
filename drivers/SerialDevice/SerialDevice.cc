@@ -32,6 +32,8 @@
 
 */
 
+#define SERIAL_DEVICE_DEBUG
+
 #include "SerialDevice.hh"
 #include <stdlib.h>
 #include <stdio.h>
