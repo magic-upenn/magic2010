@@ -1,7 +1,7 @@
 if [ -a db-4.8.30.tar.gz ] || [ -a db-4.8.30 ] || [ -a /opt/db-4.8.30 ]
 then :;
 else
-  wget http://www.upennrobotics.org/magic2010/software/db-4.8.30.tar.gz
+  wget http://download.oracle.com/berkeley-db/db-4.8.30.tar.gz
 fi
 
 if [ -a db-4.8.30 ] || [ -a /opt/db-4.8.30 ]
