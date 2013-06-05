@@ -1,5 +1,5 @@
-SetQuadPaths;
-
+%SetQuadPaths;
+SetMagicPaths;
 uvcCam('init','/dev/video0');
 uvcCam('stream_on');
 uvcCam('set_ctrl','contrast', 32);
@@ -18,7 +18,8 @@ ipcAPIDefine(imgMsgName);
 
 
 while(1)
-  usleep(30000);
+  %usleep(30000);
+  pause(0.03);
   imYuyv = uvcCam('read');
   if ~isempty(imYuyv)
     cntr      = cntr + 1;

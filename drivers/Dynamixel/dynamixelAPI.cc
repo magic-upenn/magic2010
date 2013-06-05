@@ -41,11 +41,11 @@ void CheckConnection()
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	int ret;
-  vector< float > values;
-  vector<double> timeStamps;
-  int n_points;
+	vector< float > values;
+	vector<double> timeStamps;
+	int n_points;
 	int dims[2], port;
-  int baud;
+	int baud;
 	
 	// Get input arguments
 	if (nrhs == 0) {
@@ -68,44 +68,44 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 		if (nrhs != 4) mexErrMsgTxt("Please enter correct arguments: open <device> <baud rate> <moduleId>\n");
 
 
-    if (mxGetString(prhs[1], buf, BUFLEN) != 0)
-    {
+    		if (mxGetString(prhs[1], buf, BUFLEN) != 0)
+    		{
 			mexErrMsgTxt("Could not read string while reading the device name");
 		}
 		
 		switch ((int)mxGetPr(prhs[2])[0]){
-      case 9600:
+      			case 9600:
 				baud = 9600;
 				break;
 			case 19200:
 				baud = 19200;
 				break;
-      case 38400:
+      			case 38400:
 				baud = 38400;
 				break;
-      case 57600:
+      			case 57600:
 				baud = 57600;
 				break;
 			case 115200:
 				baud = 115200;
 				break;
-      case 1000000:
-        baud = 1000000;
-        break;
-      case 2000000:
-        baud = 2000000;
-        break;
+      			case 1000000:
+        			baud = 1000000;
+        			break;
+      			case 2000000:
+        			baud = 2000000;
+        			break;
 			default:
 				mexErrMsgTxt("Invalid dynamixel baud rate. Options are 9600, 19200, 38400, 57600, 115200");
 		}
 
-    int id = mxGetPr(prhs[3])[0];
+    		int id = mxGetPr(prhs[3])[0];
 
     // create an instance of the driver and initialize
-	  dynamixel = new Dynamixel();
+	  	dynamixel = new Dynamixel();
 
 		if (dynamixel->Connect(buf,baud,id) || dynamixel->StartDevice())
-    {
+    		{
 			delete dynamixel;
 			dynamixel = NULL;
 			mexErrMsgTxt("Unable to initialize Dynamixel!!!");
@@ -117,39 +117,39 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	}
 	
 	else if (strcasecmp(buf, "getPosition") == 0)
-  {
+  	{
 		CheckConnection();
 
-    float position;
-    if (dynamixel->GetPosition(position) != 0)
-    {
-      CreateEmptyOutput(plhs,1);
-      return;
-    }
+    		float position;
+    		if (dynamixel->GetPosition(position) != 0)
+    		{
+      			CreateEmptyOutput(plhs,1);
+      			return;
+    		}
 
-    plhs[0] = mxCreateDoubleScalar(position);
-    return;
+    		plhs[0] = mxCreateDoubleScalar(position);
+    		return;
 	}
 
-  else if (strcasecmp(buf, "setPosition") == 0)
-  {
-    CheckConnection();
+  	else if (strcasecmp(buf, "setPosition") == 0)
+  	{
+    		CheckConnection();
 
-    if (nrhs < 3)
-      mexErrMsgTxt("provide target position and speed");
+   	 	if (nrhs < 3)
+      			mexErrMsgTxt("provide target position and speed");
 
-    float desPos   = mxGetPr(prhs[1])[0];
-    float desSpeed = mxGetPr(prhs[2])[0];
+    		float desPos   = mxGetPr(prhs[1])[0];
+    		float desSpeed = mxGetPr(prhs[2])[0];
 
-    if (dynamixel->MoveToPos(desPos,desSpeed))
-      mexErrMsgTxt("could not set position");
+    		if (dynamixel->MoveToPos(desPos,desSpeed))
+      			mexErrMsgTxt("could not set position");
 
-    plhs[0] = mxCreateDoubleScalar(1);
-    return;
-  }
+    		plhs[0] = mxCreateDoubleScalar(1);
+    		return;
+  	}
   
-  else {
+  	else {
 		mexErrMsgTxt("wrong arguments.");
-  }
+  	}
 }
 
