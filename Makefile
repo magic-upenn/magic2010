@@ -2,6 +2,7 @@ all:
 	mkdir -p include
 	cd common/dataTypes; cp *.h *.hh ../../include
 	cd common; cp *.hh ../include
+	cd ipc; cp ipc.h ../include
 	cd common/XMLConfig; make -j 4
 	cd drivers; make
 	cd components; make

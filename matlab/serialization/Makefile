@@ -13,7 +13,7 @@ all: template.cc
 	for i in $(DATA_TYPES) ; \
 	do \
     if (cp template.cc temp.cc; cat SerializerTemplate.cc >> temp.cc; \
-      mex -O $(INCLUDES) -DDATA_TYPE=$$i temp.cc -lipc -output Magic$$i\Serializer.$(MEX_EXT)) ; \
+      mex -O $(INCLUDES) $(LIB_DIRS) -DDATA_TYPE=$$i temp.cc -lipc -output Magic$$i\Serializer.$(MEX_EXT)) ; \
 			then rm temp.cc;\
       else exit; \
       fi; \

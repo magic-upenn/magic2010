@@ -12,7 +12,7 @@ MAGIC_LIB_DIR    = $(MAGIC_DIR)/lib
 MAGIC_INCLUDE_DIR = $(MAGIC_DIR)/include
 
 INCLUDES += $(shell xml2-config --cflags) -I$(MAGIC_INCLUDE_DIR)
-LIB_DIRS += -L$(MAGIC_LIB_DIR)
+LIB_DIRS += -L$(MAGIC_LIB_DIR) -L$(MAGIC_DIR)/ipc
 LIBS     += -lpthread -lSerialDevice -ldb_cxx -lgz -lipc $(shell xml2-config --libs)
 
 CPP_FLAGS += -g -O2 -Wall -fPIC
