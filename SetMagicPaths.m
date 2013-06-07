@@ -1,6 +1,6 @@
-addpath( [ getenv('VIS_DIR') '/ipc' ] )
-addpath( [ getenv('VIS_DIR') '/Interfaces' ] )
-addpath( [ getenv('VIS_DIR') '/mexSerialization' ] )
+addpath( [ getenv('MAGIC_DIR') '/ipc' ] )
+addpath( [ getenv('MAGIC_DIR') '/Interfaces' ] )
+addpath( [ getenv('MAGIC_DIR') '/mexSerialization' ] )
 
 
 addpath( genpath_exclude(getenv('MAGIC_DIR'),'.svn') );

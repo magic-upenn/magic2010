@@ -34,7 +34,7 @@ StartFunction ()
 
 # List session names and commands for screen, delimited by ":"
 StartFunction <<EOF
-central:nice -n -15 central -s
+central:nice -n -15 central
 h0:nice -n -15 $MAGIC_DIR/drivers/Hokuyo/runHokuyo /dev/ttyACM0
 h1:nice -n -15 $MAGIC_DIR/drivers/Hokuyo/runHokuyo /dev/ttyACM1
 mg:nice -n -15 $MAGIC_DIR/drivers/MicroGateway/runMicroGateway2 /dev/ttyUSB0

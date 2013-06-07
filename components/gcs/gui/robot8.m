@@ -133,7 +133,8 @@ end
 
 
 if HAVE_ROBOTS
-  masterConnectRobots(GCS.ids,'localhost');
+  masterConnectRobots(GCS.ids,'localhost')
+  fprintf('connected successfully\n')
 end
 
 messages = {'Planner_Path', ...
@@ -146,8 +147,7 @@ queueLengths = [1 1];
 
 %subscribe to messages
 if HAVE_ROBOTS
-  masterSubscribeRobots(messages, handles, queueLengths);
-
+  masterSubscribeRobots(messages, handles, queueLengths)
   for id = GCS.ids,
     msgNamePath = ['Robot',num2str(id),'/Path'];
     ROBOTS(id).ipcAPI('define', msgNamePath);

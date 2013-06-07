@@ -18,7 +18,7 @@ else
   setQueueLengths = 1;
 end
 
-nMsgs = length(msgNames);
+nMsgs = length(msgNames)
 if nMsgs ~= length(handles) || ((setQueueLengths == 1) && (nMsgs ~=length(queueLength)))
   error('number of message names is not equal to number of handles or the queue length');
 end
@@ -28,7 +28,7 @@ for ii=1:nRobots
     for jj=1:nMsgs
         %generate the message name
         msgName = sprintf('Robot%d/%s',ROBOTS(ii).id,msgNames{jj});
-        %      disp(sprintf('Subscribing to message %s', msgName));
+              disp(sprintf('Subscribing to message %s', msgName));
 
         
         %assign a handle to the message name and optionally set the queue

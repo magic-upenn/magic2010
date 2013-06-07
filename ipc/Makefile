@@ -1,8 +1,11 @@
 MEXEXT=$(shell mexext)
 MEX=mex
+
+TARGETS=ipcAPI.$(MEXEXT) ipcWrapperAPI.$(MEXEXT)
+
 include $(MAGIC_DIR)/Makefile.mk
 
-default_targets: ipcAPI.$(MEXEXT) ipcWrapperAPI.$(MEXEXT)
+default_targets: $(TARGETS)
 
 ipcAPI.$(MEXEXT): ipcAPI.cc
 	$(MEX) -O ipcAPI.cc -L. -lipc
