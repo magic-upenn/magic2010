@@ -114,8 +114,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   {
     CheckConnection();
     int ibuf = v4l2_read_frame();
+    printf("v4l2_read_frame successful: ibuf=%d\n",ibuf);
     if (ibuf >= 0) {
+      printf("entered if\n");
       mxSetData(bufArray, v4l2_get_buffer(ibuf, NULL));
+      printf("setData was successful\n");
       plhs[0] = bufArray;
       return;
     }

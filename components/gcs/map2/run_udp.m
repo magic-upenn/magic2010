@@ -1,4 +1,5 @@
 function run_udp(log_file)
+clear all
 SetMagicPaths;
 
   more off
@@ -19,7 +20,7 @@ SetMagicPaths;
     gcsMapInit;
   end
   
-  gdispInit;
+  %gdispInit;
   
   % Setup IPC output
   gcsMapIPCInit(true);
@@ -71,7 +72,7 @@ SetMagicPaths;
           gcsMapUpdateH(id, pkt.hlidar);
           %gcsMapFitPose(id);
           %gdispRobot(id, RNODE{id}.pF(:,end));
-          gdispRobot(id, GPOSE{id});
+          %gdispRobot(id, GPOSE{id});
         end
         
         % Need MapUpdateH to first initialize RNODE
@@ -154,8 +155,8 @@ SetMagicPaths;
         tIpc = gettime;
         gcsMapIPCSendMap;
 
-        gdispMap(GMAP.im, GMAP.x, GMAP.y);
-        drawnow;
+        %gdispMap(GMAP.im, GMAP.x, GMAP.y);
+        %drawnow;
       end
       
     end

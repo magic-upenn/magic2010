@@ -9,7 +9,6 @@ global MAGIC_CONSTANTS
 
 % Non blocking receive:
 masterReceiveFromRobots();
-
 GetLocalMsg();
 
 if (gettime - GCS.tSave > 60)
