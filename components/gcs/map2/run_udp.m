@@ -30,7 +30,7 @@ SetMagicPaths;
   % Connect to UDP
   addr = '127.0.0.1';
   port = 12346;
-  UdpReceiveAPI('connect', addr, port);
+  UdpReceiveAPI('connect', addr, port)
 
   tmap = gettime;
   tIpc = gettime;
@@ -39,10 +39,10 @@ SetMagicPaths;
 
   while 1,
     pause(.02);
-
     saveLog;
 
     packets = UdpReceiveAPI('receive');
+    %fprintf('packets received: %d\n',length(packets))
     gcsLogPackets('UDP', packets);
     n = length(packets);
     for ii = 1:n,
@@ -54,7 +54,7 @@ SetMagicPaths;
       end
 
       if ~isfield(pkt, 'type'), continue, end
-
+        fprintf('Packet Received\n')
       switch (pkt.type)
       case 'SlamPoseMap'
         id = pkt.id;

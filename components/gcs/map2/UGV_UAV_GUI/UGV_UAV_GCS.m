@@ -64,7 +64,7 @@ while(1)
             case 'IncH'
                 inchdat=deserialize(msgs(i).data);
                 %hold off
-                set(R1_MAP_PLOT.plot,'XData',inchdat.update.xs,'YData',inchdat.update.ys)
+                %set(R1_MAP_PLOT.plot,'XData',inchdat.update.xs,'YData',inchdat.update.ys)
                 %hold on
                 %surf(inchdat.update.xs,inchdat.update.ys,inchdat.update.cs)
             case 'IncV'
