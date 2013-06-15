@@ -1,5 +1,5 @@
 function varargout = UGV_UAV_COOP(varargin)
-
+global MAGIC_COLORMAP
 %% UGV_UAV_COOP MATLAB code for UGV_UAV_COOP.fig
 %      UGV_UAV_COOP, by itself, creates a new UGV_UAV_COOP or raises the existing
 %      singleton*.
@@ -49,6 +49,7 @@ end
 
 %% --- Executes just before UGV_UAV_COOP is made visible.
 function UGV_UAV_COOP_OpeningFcn(hObject, eventdata, handles, varargin)
+    global map1plot view1plot pose1plot ROBOT8
     % hObject    handle to figure
     % handles    structure with handles and user data (see GUIDATA)
 
@@ -64,19 +65,10 @@ function UGV_UAV_COOP_OpeningFcn(hObject, eventdata, handles, varargin)
         if strcmp(cmd,'initialize')
             %% Set MAGIC include directories
             SetMagicPaths;
+            initColormap;
             more off;
             
             set(hObject,'toolbar','figure');
-            %{
-            axes(handles.MainViewAxes)
-            plot(.5,.5,'k')
-            axes(handles.View1Axes)
-            plot(.5,.5,'k')
-            axes(handles.View2Axes)
-            plot(.5,.5,'k')
-            axes(handles.View3Axes)
-            plot(.5,.5,'k')
-            %}
             
             %% Global planner data initialization and subscription
             ipcAPI('connect');
@@ -131,8 +123,49 @@ function UGV_UAV_COOP_OpeningFcn(hObject, eventdata, handles, varargin)
             fprintf('Subscribed to Robot8/FSM Status. Message queue length: 1\n');
 
             fprintf('\nSubscriptions successful\n');
+            %{
+            axes(handles.MainViewAxes);
+            hold on;
+            mainplot=imagesc(zeros(5,5));
+            colormap(MAGIC_COLORMAP);
+            %}
             
+            axes(handles.View1Axes);
+            hold on;
+            axis equal
+            
+            ROBOT8.x0=0;
+            ROBOT8.y0=0;
+            ROBOT8.dx=[-50 50];
+            ROBOT8.dy=[-50 50];
+            ROBOT8.resolution=0.1;
+            nx=round((ROBOT8.dx(end)-ROBOT8.dx(1))/ROBOT8.resolution);
+            ny=round((ROBOT8.dy(end)-ROBOT8.dy(1))/ROBOT8.resolution);
+            ROBOT8.cost=zeros(nx,ny,'int8');
+            
+            map1plot=imagesc(ROBOT8.x0+ROBOT8.dx,ROBOT8.y0+ROBOT8.dy,ROBOT8.cost,[-100 100]);
+            colormap(MAGIC_COLORMAP);
+            
+            xFill=.3*[-1.0 2.5 -1.0 -1.0];
+            yFill=.3*[-1.0 0 1.0 -1.0];
+            pFill=[xFill; yFill; ones(size(xFill))];
+            pose1plot=fill(pFill(1,:),pFill(2,:),'g');
+            
+            %{
+            axes(handles.View2Axes);
+            view2plot=imagesc(zeros(5,5));
+            colormap(MAGIC_COLORMAP);
+            
+            axes(handles.View3Axes);
+            view3plot=imagesc(zeros(5,5));
+            colormap(MAGIC_COLORMAP);
+            %}
         elseif strcmp(cmd,'update')
+            robotdat=[];
+            inchdat=[];
+            incvdat=[];
+            globaldat=[];
+            
             msgs=ipcAPI('listenWait',100);
             nmsg=length(msgs);
             for i=1:nmsg
@@ -141,33 +174,72 @@ function UGV_UAV_COOP_OpeningFcn(hObject, eventdata, handles, varargin)
                 switch name
                     case 'RPose'
                         robotdat=deserialize(msgs(i).data);
-                        %robotdat.update;
+                        ROBOT8.pose=robotdat.update;
                     case 'IncH'
                         inchdat=deserialize(msgs(i).data);
-                        %hold off
-                        %set(R1_MAP_PLOT.plot,'XData',inchdat.update.xs,'YData',inchdat.update.ys)
-                        %hold on
-                        %surf(inchdat.update.xs,inchdat.update.ys,inchdat.update.cs)
                     case 'IncV'
                         incvdat=deserialize(msgs(i).data);
                     case 'Global_Map'
                         globaldat=deserialize(msgs(i).data);
-                        axes(handles.MainViewAxes);
-                        imagesc(globaldat.mapData);
-                        colormap(hot);
-                        %G_MAP_PLOT.plot=imagesc(globaldat.mapData);
-                        %set(,'CData',globaldat.mapData)
+                    otherwise
+                end
+            end
+            
+            %% update horizontal lidar cost map
+            if ~isempty(inchdat)
+                switch inchdat.id
+                    case 8
+                        xs=inchdat.update.xs;
+                        ys=inchdat.update.ys;
+                        cs=inchdat.update.cs;
+                        xlim=ROBOT8.x0+ROBOT8.dx;
+                        ylim=ROBOT8.y0+ROBOT8.dy;
+                        map_filter(ROBOT8.cost,xlim,ylim,[xs(:) ys(:) cs(:)]',0.3);
+                        if ROBOT8.pose.x~=ROBOT8.x0 || ROBOT8.pose.y~=ROBOT8.y0
+                            xlim=ROBOT8.x0 + ROBOT8.dx;
+                            ylim=ROBOT8.y0 + ROBOT8.dy;
+                            [nx,ny]=size(ROBOT8.cost);
+                            x1=[xlim(1):(xlim(end)-xlim(1))/(nx-1):xlim(end)];
+                            y1=[ylim(1):(ylim(end)-ylim(1))/(ny-1):ylim(end)];
+                            [xc,yc,sc]=find(ROBOT8.cost);
+                            pc=[x1(xc);y1(yc);double(sc)'];
+                            ROBOT8.x0=ROBOT8.pose.x;
+                            ROBOT8.y0=ROBOT8.pose.y;
+                            ROBOT8.cost=zeros(nx,ny,'int8');
+                            map_assign(ROBOT8.cost,ROBOT8.x0+ROBOT8.dx,ROBOT8.y0+ROBOT8.dy,pc);
+                        end
+                        set(map1plot,'XData',ROBOT8.x0+ROBOT8.dx,'YData',ROBOT8.y0+ROBOT8.dy,'CData',ROBOT8.cost');
+                    otherwise
+                end
+            end
+            
+            %% update pose graphics
+            if ~isempty(robotdat)
+                switch robotdat.id
+                    case 8
+                        x=robotdat.update.x;
+                        y=robotdat.update.y;
+                        z=robotdat.update.z;
+                        yaw=robotdat.update.yaw;
+                        plotBot(x,y,yaw,pose1plot,handles.View1Axes);
                     otherwise
                 end
             end
         end
     end
 end
-%{
-function guiUpdate(handles)
 
+function plotBot(x,y,yaw,pose1plot,ax)
+    %global pose1plot
+    xFill=.3*[-1.0 2.5 -1.0 -1.0];
+    yFill=.3*[-1.0 0 1.0 -1.0];
+    trans=[cos(yaw) -sin(yaw) x;
+            sin(yaw) cos(yaw) y;
+            0 0 1];
+    pFill=trans*[xFill; yFill; ones(size(xFill))];
+    set(pose1plot,'XData',pFill(1,:),'YData',pFill(2,:));
 end
-%}
+
 %% --- Outputs from this function are returned to the command line.
 function varargout = UGV_UAV_COOP_OutputFcn(hObject, eventdata, handles) 
     % varargout  cell array for returning output args (see VARARGOUT);

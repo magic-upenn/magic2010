@@ -12,7 +12,7 @@ if ~any(id==GCS.ids)
   return;
 end
 
-fprintf(1,'got horizontal map update from %d\n',id);
+%fprintf(1,'got horizontal map update from %d\n',id);
 
 update = msg.update;
 
