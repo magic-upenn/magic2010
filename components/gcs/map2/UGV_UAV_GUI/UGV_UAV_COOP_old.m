@@ -49,7 +49,7 @@ end
 
 %% --- Executes just before UGV_UAV_COOP is made visible.
 function UGV_UAV_COOP_OpeningFcn(hObject, eventdata, handles, varargin)
-    global numAxes ROBOT
+    global map1plot view1plot pose1plot ROBOT
     % hObject    handle to figure
     % handles    structure with handles and user data (see GUIDATA)
 
@@ -60,210 +60,145 @@ function UGV_UAV_COOP_OpeningFcn(hObject, eventdata, handles, varargin)
     guidata(hObject, handles);
     
 
-
-    %% Set MAGIC include directories
-    SetMagicPaths;
-    initColormap;
-    more off;
-
-    set(hObject,'toolbar','figure');
-
-    %% Global planner data initialization and subscription
-    ipcAPI('connect');
-    fprintf('Connected to main IPC\n');
-
-    %% Global and local map data initialization and subscription
-    ipcAPI('subscribe','Global_Map');
-    ipcAPI('set_msg_queue_length','Global_Map',1);
-    fprintf('Subscribed to Global Map. Message queue length: 1\n');
-
-    ipcAPI('subscribe','RPose');
-    ipcAPI('set_msg_queue_length','RPose',30);
-    fprintf('Subscribed to RPose. Message queue length: 30\n');
-
-    ipcAPI('subscribe','IncH');
-    ipcAPI('set_msg_queue_length','IncH',30);
-    fprintf('Subscribed to IncH. Message queue length: 30\n');
-
-    ipcAPI('subscribe','IncV');
-    ipcAPI('set_msg_queue_length','IncV',30);
-    fprintf('Subscribed to IncV. Message queue length: 30\n');
-
-    fprintf('\nSubscriptions successful\n');
-
-    %axes(handles.View1Axes);
-    set(handles.View1Axes,'XLim',[-10 10], 'YLim', [-10 10]);
-    %set(handles.View1Axes,'CLimMode','manual');
-    %set(handles.View1Axes,'CLim',[-100 100]); 
-    hold on;
-    axis equal
+	if ~isempty(varargin)
+        cmd=varargin{1};
+        if strcmp(cmd,'initialize')
+            %% Set MAGIC include directories
+            SetMagicPaths;
+            initColormap;
+            more off;
             
-    %axes(handles.View2Axes);
-    set(handles.View2Axes,'XLim',[-10 10], 'YLim', [-10 10]);
-    %set(handles.View2Axes,'CLimMode','manual');
-    %set(handles.View2Axes,'CLim',[-100 100]); 
-    hold on;
-    axis equal
-    
-    %axes(handles.View3Axes);
-    set(handles.View3Axes,'XLim',[-10 10], 'YLim', [-10 10]);
-    %set(handles.View3Axes,'CLimMode','manual');
-    %set(handles.View3Axes,'CLim',[-100 100]); 
-    hold on;
-    axis equal
-    
-    numAxes=3;
-    ROBOT={};
-    while(1)
-        updatePlots(handles);
-    end
-end
+            set(hObject,'toolbar','figure');
+            
+            %% Global planner data initialization and subscription
+            ipcAPI('connect');
+            fprintf('Connected to main IPC\n');
+            
+            %% Global and local map data initialization and subscription
+            ipcAPI('subscribe','Global_Map');
+            ipcAPI('set_msg_queue_length','Global_Map',1);
+            fprintf('Subscribed to Global Map. Message queue length: 1\n');
+            
+            ipcAPI('subscribe','RPose');
+            ipcAPI('set_msg_queue_length','RPose',30);
+            fprintf('Subscribed to RPose. Message queue length: 30\n');
 
-function updatePlots(handles)
-	global ROBOT numAxes
-    
-    %% receive map and pose updates
-    robotdat=[];
-    inchdat=[];
-    incvdat=[];
-    globaldat=[];
+            ipcAPI('subscribe','IncH');
+            ipcAPI('set_msg_queue_length','IncH',30);
+            fprintf('Subscribed to IncH. Message queue length: 30\n');
 
-    msgs=ipcAPI('listenWait',100);
-    nmsg=length(msgs);
-    for i=1:nmsg
-        drawnow;
-        name=msgs(i).name;
-        switch name
-            case 'RPose'
-                robotdat=deserialize(msgs(i).data);
-                id=robotdat.id;
-                if id>length(ROBOT)
-                    initbot(id);
-                else
-                    if ~isfield(ROBOT{id},'x0')
-                        initbot(id);
-                    end
+            ipcAPI('subscribe','IncV');
+            ipcAPI('set_msg_queue_length','IncV',30);
+            fprintf('Subscribed to IncV. Message queue length: 30\n');
+
+            fprintf('\nSubscriptions successful\n');
+            
+            axes(handles.View1Axes);
+            set(handles.View1Axes,'XLim',[-10 10], 'YLim', [-10 10]);
+            %set(gca,'CLim',[-100 100]); 
+            %set(gca,'CLimMode','manual');
+            hold on;
+            axis equal
+            
+            %mapplot
+            
+            ROBOT{8}.x0=0;
+            ROBOT{8}.y0=0;
+            ROBOT{8}.dx=[-50 50];
+            ROBOT{8}.dy=[-50 50];
+            ROBOT{8}.resolution=0.1;
+            nx=round((ROBOT{8}.dx(end)-ROBOT{8}.dx(1))/ROBOT{8}.resolution);
+            ny=round((ROBOT{8}.dy(end)-ROBOT{8}.dy(1))/ROBOT{8}.resolution);
+            ROBOT{8}.cost=zeros(nx,ny,'int8');
+            
+            map1plot=imagesc(ROBOT{8}.x0+ROBOT{8}.dx,ROBOT{8}.y0+ROBOT{8}.dy,ROBOT{8}.cost,[-100 100]);
+            colormap(MAGIC_COLORMAP);
+            
+            xFill=.3*[-1.0 2.5 -1.0 -1.0];
+            yFill=.3*[-1.0 0 1.0 -1.0];
+            pFill=[xFill; yFill; ones(size(xFill))];
+            pose1plot=fill(pFill(1,:),pFill(2,:),'g');
+            
+        elseif strcmp(cmd,'update')
+            robotdat=[];
+            inchdat=[];
+            incvdat=[];
+            globaldat=[];
+            
+            msgs=ipcAPI('listenWait',100);
+            nmsg=length(msgs);
+            for i=1:nmsg
+                drawnow;
+                name=msgs(i).name;
+                switch name
+                    case 'RPose'
+                        robotdat=deserialize(msgs(i).data);
+                        ROBOT{8}.pose=robotdat.update;
+                        switch robotdat.id
+                            case 8
+                                x=robotdat.update.x;
+                                y=robotdat.update.y;
+                                z=robotdat.update.z;
+                                yaw=robotdat.update.yaw;
+                                plotBot(x,y,yaw,pose1plot,handles.View1Axes);
+                            otherwise
+                        end
+                    case 'IncH'
+                        inchdat=deserialize(msgs(i).data);
+                        switch inchdat.id
+                            case 8
+                                xs=double(inchdat.update.xs);
+                                ys=double(inchdat.update.ys);
+                                cs=double(inchdat.update.cs);
+                                xlim=ROBOT{8}.x0+ROBOT{8}.dx;
+                                ylim=ROBOT{8}.y0+ROBOT{8}.dy;
+                                incHUpdate(xs,ys,cs,xlim,ylim,map1plot,handles.View1Axes);
+                            otherwise
+                        end
+                    case 'IncV'
+                        incvdat=deserialize(msgs(i).data);
+                        switch inchdat.id
+                            case 8
+                                xs=double(incvdat.update.xs);
+                                ys=double(incvdat.update.ys);
+                                cs=double(incvdat.update.cs);
+                                xlim=ROBOT{8}.x0+ROBOT{8}.dx;
+                                ylim=ROBOT{8}.y0+ROBOT{8}.dy;
+                                incHUpdate(xs,ys,cs,xlim,ylim,map1plot,handles.View1Axes);
+                            otherwise
+                        end
+                    case 'Global_Map'
+                        globaldat=deserialize(msgs(i).data);
+                    otherwise
                 end
-                ROBOT{id}.pose=robotdat.update;
-            case 'IncH'
-                inchdat=deserialize(msgs(i).data);
-                id=inchdat.id;
-                if id>length(ROBOT)
-                    initbot(id);
-                else
-                    if ~isfield(ROBOT{id},'x0')
-                        initbot(id);
-                    end
-                end
-                ROBOT{id}.inch.xsnew=inchdat.update.xs;
-                ROBOT{id}.inch.ysnew=inchdat.update.ys;
-                ROBOT{id}.inch.csnew=inchdat.update.cs;
-            case 'IncV'
-                incvdat=deserialize(msgs(i).data);
-                id=incvdat.id;
-                if id>length(ROBOT)
-                    initbot(id);
-                else
-                    if ~isfield(ROBOT{id},'x0')
-                        initbot(id);
-                    end
-                end
-                ROBOT{id}.incv.xsnew=incvdat.update.xs;
-                ROBOT{id}.incv.ysnew=incvdat.update.ys;
-                ROBOT{id}.incv.csnew=incvdat.update.cs;
-            %case 'Global_Map'
-            %    globaldat=deserialize(msgs(i).data);
-            otherwise
+            end
         end
     end
-    
-    %% update plots
-    filledCells=~cellfun(@isempty,ROBOT);
-    indeces=find(filledCells==1);
-    if length(indeces)>numAxes
-        iterations=numAxes;
-    else
-        iterations=length(indeces);
-    end
-    for i=1:iterations
-        axesname=['View',num2str(i),'Axes'];
-        id1=indeces(i);
-        set(ROBOT{id1}.mapplot,'Parent',handles.(axesname));
-        set(ROBOT{id1}.poseplot,'Parent',handles.(axesname));
-        hold on
-        xlim=ROBOT{id1}.x0+ROBOT{id1}.dx;
-        ylim=ROBOT{id1}.y0+ROBOT{id1}.dy;
-        plotBot(ROBOT{id1}.pose.x, ...
-                ROBOT{id1}.pose.y, ...
-                ROBOT{id1}.pose.yaw, ...
-                ROBOT{id1}.poseplot);
-        
-        incUpdate(id1,double(ROBOT{id1}.inch.xsnew), ...
-                    double(ROBOT{id1}.inch.ysnew), ...
-                    double(ROBOT{id1}.inch.csnew), ...
-                    xlim, ...
-                    ylim, ...
-                    ROBOT{id1}.mapplot);
-        incUpdate(id1,double(ROBOT{id1}.incv.xsnew), ...
-                    double(ROBOT{id1}.incv.ysnew), ...
-                    double(ROBOT{id1}.incv.csnew), ...
-                    xlim, ...
-                    ylim, ...
-                    ROBOT{id1}.mapplot);
-
-    end
 end
 
-function initbot(id)
+function incHUpdate(xs,ys,cs,xlim,ylim,map1plot,ax)
     global ROBOT
+    %% update horizontal lidar cost map\
+    map_filter(ROBOT{8}.cost,xlim,ylim,[xs(:) ys(:) cs(:)]',0.3);
     
-    ROBOT{id}.pose={};
-    ROBOT{id}.x0=0;
-    ROBOT{id}.y0=0;
-    ROBOT{id}.dx=[-50 50];
-    ROBOT{id}.dy=[-50 50];
-    ROBOT{id}.resolution=0.1;
-    nx=round((ROBOT{id}.dx(end)-ROBOT{id}.dx(1))/ROBOT{id}.resolution);
-    ny=round((ROBOT{id}.dy(end)-ROBOT{id}.dy(1))/ROBOT{id}.resolution);
-    ROBOT{id}.cost=zeros(nx,ny,'int8');
-    xFill=.3*[-1.0 2.5 -1.0 -1.0];
-    yFill=.3*[-1.0 0 1.0 -1.0];
-    pFill=[xFill; yFill; ones(size(xFill))];
-    ROBOT{id}.poseplot=fill(pFill(1,:),pFill(2,:),'b');
-    ROBOT{id}.mapplot=imagesc(ROBOT{id}.x0+ROBOT{id}.dx, ...
-                            ROBOT{id}.y0+ROBOT{id}.dy, ...
-                            ROBOT{id}.cost, [-100 100]);
-    colormap(MAGIC_COLORMAP);
-    ROBOT{id}.inch.xsnew=[];
-    ROBOT{id}.inch.ysnew=[];
-    ROBOT{id}.inch.csnew=[];
-    ROBOT{id}.incv.xsnew=[];
-    ROBOT{id}.incv.ysnew=[];
-    ROBOT{id}.incv.csnew=[];
-end
-
-function incUpdate(id,xs,ys,cs,xlim,ylim,map1plot)
-    global ROBOT
-    %% update lidar cost map
-    map_filter(ROBOT{id}.cost,xlim,ylim,[xs(:) ys(:) cs(:)]',0.3);
-    
-    if ROBOT{id}.pose.x~=ROBOT{id}.x0 || ROBOT{id}.pose.y~=ROBOT{id}.y0
-        [nx,ny]=size(ROBOT{id}.cost);
+    if ROBOT{8}.pose.x~=ROBOT{8}.x0 || ROBOT{8}.pose.y~=ROBOT{8}.y0
+        [nx,ny]=size(ROBOT{8}.cost);
         x1=[xlim(1):(xlim(end)-xlim(1))/(nx-1):xlim(end)];
         y1=[ylim(1):(ylim(end)-ylim(1))/(ny-1):ylim(end)];
-        [xc,yc,sc]=find(ROBOT{id}.cost);
+        [xc,yc,sc]=find(ROBOT{8}.cost);
         pc=[x1(xc);y1(yc);double(sc)'];
-        ROBOT{id}.x0=ROBOT{id}.pose.x;
-        ROBOT{id}.y0=ROBOT{id}.pose.y;
-        ROBOT{id}.cost=zeros(nx,ny,'int8');
-        map_assign(ROBOT{id}.cost,ROBOT{id}.x0+ROBOT{id}.dx,ROBOT{id}.y0+ROBOT{id}.dy,pc);
+        ROBOT{8}.x0=ROBOT{8}.pose.x;
+        ROBOT{8}.y0=ROBOT{8}.pose.y;
+        ROBOT{8}.cost=zeros(nx,ny,'int8');
+        map_assign(ROBOT{8}.cost,ROBOT{8}.x0+ROBOT{8}.dx,ROBOT{8}.y0+ROBOT{8}.dy,pc);
     end
     rotangle=ROBOT{8}.pose.yaw*180/pi-90;
     cost=imrotate(ROBOT{8}.cost',rotangle,'crop');
     set(map1plot,'XData',xlim,'YData',ylim,'CData',cost);
 end
 
-function plotBot(x,y,yaw,pose1plot)
+function plotBot(x,y,yaw,pose1plot,ax)
+    %global pose1plot
     xFill=.3*[-1.0 2.5 -1.0 -1.0];
     yFill=.3*[-1.0 0 1.0 -1.0];
     yawrot=pi/2;

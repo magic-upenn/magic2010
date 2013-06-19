@@ -72,7 +72,8 @@ drawnow;
 
 while 1,
   %pause(tUpdate);
-  gcsUpdateIPC;
+  gcsUpdateIPC
+  fprintf('\n\n\nipc updated \n\n\n')
   mapDisplay('update');
   if ((gettime - last_explore_update > 5.0) && HAVE_ROBOTS)
     sendMapToExploration;
