@@ -1,36 +1,36 @@
-function varargout = UGV_UAV_COOP(varargin)
+function varargout = UGV_UAV_COOP_2(varargin)
 global MAGIC_COLORMAP
-%% UGV_UAV_COOP MATLAB code for UGV_UAV_COOP.fig
-%      UGV_UAV_COOP, by itself, creates a new UGV_UAV_COOP or raises the existing
+%% UGV_UAV_COOP_2 MATLAB code for UGV_UAV_COOP_2.fig
+%      UGV_UAV_COOP_2, by itself, creates a new UGV_UAV_COOP_2 or raises the existing
 %      singleton*.
 %
-%      H = UGV_UAV_COOP returns the handle to a new UGV_UAV_COOP or the handle to
+%      H = UGV_UAV_COOP_2 returns the handle to a new UGV_UAV_COOP_2 or the handle to
 %      the existing singleton*.
 %
-%      UGV_UAV_COOP('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in UGV_UAV_COOP.M with the given input arguments.
+%      UGV_UAV_COOP_2('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in UGV_UAV_COOP_2.M with the given input arguments.
 %
-%      UGV_UAV_COOP('Property','Value',...) creates a new UGV_UAV_COOP or raises the
+%      UGV_UAV_COOP_2('Property','Value',...) creates a new UGV_UAV_COOP_2 or raises the
 %      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before UGV_UAV_COOP_OpeningFcn gets called.  An
+%      applied to the GUI before UGV_UAV_COOP_2_OpeningFcn gets called.  An
 %      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to UGV_UAV_COOP_OpeningFcn via varargin.
+%      stop.  All inputs are passed to UGV_UAV_COOP_2_OpeningFcn via varargin.
 %
 %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
 %      instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 
-% Edit the above text to modify the response to help UGV_UAV_COOP
+% Edit the above text to modify the response to help UGV_UAV_COOP_2
 
-% Last Modified by GUIDE v2.5 12-Jun-2013 23:12:32
+% Last Modified by GUIDE v2.5 19-Jun-2013 15:22:26
 
 %% Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @UGV_UAV_COOP_OpeningFcn, ...
-                   'gui_OutputFcn',  @UGV_UAV_COOP_OutputFcn, ...
+                   'gui_OpeningFcn', @UGV_UAV_COOP_2_OpeningFcn, ...
+                   'gui_OutputFcn',  @UGV_UAV_COOP_2_OutputFcn, ...
                    'gui_LayoutFcn',  [] , ...
                    'gui_Callback',   []);
 
@@ -46,15 +46,17 @@ end
 
 
 % End initialization code - DO NOT EDIT
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% MAIN PLOTTING AND MAP UPDATE PROCESSING
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-%% --- Executes just before UGV_UAV_COOP is made visible.
-function UGV_UAV_COOP_OpeningFcn(hObject, eventdata, handles, varargin)
+%% --- Executes just before UGV_UAV_COOP_2 is made visible.
+function UGV_UAV_COOP_2_OpeningFcn(hObject, eventdata, handles, varargin)
     global numAxes ROBOT
     % hObject    handle to figure
     % handles    structure with handles and user data (see GUIDATA)
 
-    %% Choose default command line output for UGV_UAV_COOP
+    %% Choose default command line output for UGV_UAV_COOP_2
     handles.output = hObject;
 
     %% Update handles structure
@@ -90,24 +92,24 @@ function UGV_UAV_COOP_OpeningFcn(hObject, eventdata, handles, varargin)
 
     fprintf('\nSubscriptions successful\n');
 
-    %axes(handles.View1Axes);
+    axes(handles.View1Axes);
     set(handles.View1Axes,'XLim',[-10 10], 'YLim', [-10 10]);
-    %set(handles.View1Axes,'CLimMode','manual');
-    %set(handles.View1Axes,'CLim',[-100 100]); 
+    set(handles.View1Axes,'CLimMode','manual');
+    set(handles.View1Axes,'CLim',[-100 100]); 
     hold on;
     axis equal
             
-    %axes(handles.View2Axes);
+    axes(handles.View2Axes);
     set(handles.View2Axes,'XLim',[-10 10], 'YLim', [-10 10]);
-    %set(handles.View2Axes,'CLimMode','manual');
-    %set(handles.View2Axes,'CLim',[-100 100]); 
+    set(handles.View2Axes,'CLimMode','manual');
+    set(handles.View2Axes,'CLim',[-100 100]); 
     hold on;
     axis equal
     
-    %axes(handles.View3Axes);
+    axes(handles.View3Axes);
     set(handles.View3Axes,'XLim',[-10 10], 'YLim', [-10 10]);
-    %set(handles.View3Axes,'CLimMode','manual');
-    %set(handles.View3Axes,'CLim',[-100 100]); 
+    set(handles.View3Axes,'CLimMode','manual');
+    set(handles.View3Axes,'CLim',[-100 100]); 
     hold on;
     axis equal
     
@@ -116,7 +118,7 @@ function UGV_UAV_COOP_OpeningFcn(hObject, eventdata, handles, varargin)
     while(1)
         updatePlots(handles);
     end
-end
+
 
 function updatePlots(handles)
 	global ROBOT numAxes
@@ -189,6 +191,7 @@ function updatePlots(handles)
         id1=indeces(i);
         set(ROBOT{id1}.mapplot,'Parent',handles.(axesname));
         set(ROBOT{id1}.poseplot,'Parent',handles.(axesname));
+        set(ROBOT{id1}.wpplot,'Parent',handles.(axesname));
         hold on
         xlim=ROBOT{id1}.x0+ROBOT{id1}.dx;
         ylim=ROBOT{id1}.y0+ROBOT{id1}.dy;
@@ -196,7 +199,7 @@ function updatePlots(handles)
                 ROBOT{id1}.pose.y, ...
                 ROBOT{id1}.pose.yaw, ...
                 ROBOT{id1}.poseplot);
-        
+        plotWayPoint(id1);
         incUpdate(id1,double(ROBOT{id1}.inch.xsnew), ...
                     double(ROBOT{id1}.inch.ysnew), ...
                     double(ROBOT{id1}.inch.csnew), ...
@@ -209,12 +212,13 @@ function updatePlots(handles)
                     xlim, ...
                     ylim, ...
                     ROBOT{id1}.mapplot);
-
+        
+        drawnow;
     end
-end
+
 
 function initbot(id)
-    global ROBOT
+    global ROBOT MAGIC_COLORMAP
     
     ROBOT{id}.pose={};
     ROBOT{id}.x0=0;
@@ -228,7 +232,7 @@ function initbot(id)
     xFill=.3*[-1.0 2.5 -1.0 -1.0];
     yFill=.3*[-1.0 0 1.0 -1.0];
     pFill=[xFill; yFill; ones(size(xFill))];
-    ROBOT{id}.poseplot=fill(pFill(1,:),pFill(2,:),'b');
+    ROBOT{id}.poseplot=fill(pFill(1,:),pFill(2,:),'g');
     ROBOT{id}.mapplot=imagesc(ROBOT{id}.x0+ROBOT{id}.dx, ...
                             ROBOT{id}.y0+ROBOT{id}.dy, ...
                             ROBOT{id}.cost, [-100 100]);
@@ -239,7 +243,9 @@ function initbot(id)
     ROBOT{id}.incv.xsnew=[];
     ROBOT{id}.incv.ysnew=[];
     ROBOT{id}.incv.csnew=[];
-end
+    ROBOT{id}.wpplot=plot(0,0,'gs','MarkerSize',10);
+    ROBOT{id}.wp=[0 0];
+
 
 function incUpdate(id,xs,ys,cs,xlim,ylim,map1plot)
     global ROBOT
@@ -260,7 +266,7 @@ function incUpdate(id,xs,ys,cs,xlim,ylim,map1plot)
     rotangle=ROBOT{8}.pose.yaw*180/pi-90;
     cost=imrotate(ROBOT{8}.cost',rotangle,'crop');
     set(map1plot,'XData',xlim,'YData',ylim,'CData',cost);
-end
+
 
 function plotBot(x,y,yaw,pose1plot)
     xFill=.3*[-1.0 2.5 -1.0 -1.0];
@@ -271,19 +277,58 @@ function plotBot(x,y,yaw,pose1plot)
             0 0 1];
     pFill=trans*[xFill; yFill; ones(size(xFill))];
     set(pose1plot,'XData',pFill(1,:),'YData',pFill(2,:));
-end
 
-%% --- Outputs from this function are returned to the command line.
-function varargout = UGV_UAV_COOP_OutputFcn(hObject, eventdata, handles) 
-    % varargout  cell array for returning output args (see VARARGOUT);
-    % hObject    handle to figure
+function plotWayPoint(id)
+    global ROBOT
+    yaw=ROBOT{id}.pose.yaw;
+    rotation=[cos(yaw) -sin(yaw);
+                sin(yaw) cos(yaw)];
+    position=rotation*ROBOT{id}.wp';
+    set(ROBOT{id}.wpplot,'XData',position(1),'YData',position(2))
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% CALLBACK FUNCTIONS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% --- Executes on button press in testbutton.
+function testbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to testbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+fprintf('i can get here test\n')
+
+
+% --- Executes on button press in UGV_GoToPtButton.
+function UGV_GoToPtButton_Callback(hObject, eventdata, handles)
+% hObject    handle to UGV_GoToPtButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global ROBOT numAxes
+[xp,yp]=ginput(1);
+
+filledCells=~cellfun(@isempty,ROBOT);
+indeces=find(filledCells==1);
+idx=[];
+for i=1:length(indeces)
+    id=indeces(i);
+    pl=ROBOT{id}.wpplot;
+    children=get(gca,'Children');
+    idx=find(children==pl);
+end
+if ~isempty(idx)
+    ROBOT{indeces(idx)}.wp=[xp yp];
+end
+%get(gca,'Children')
+%plotWayPoint(id1);
+
+
+%% --- Executes on button press in UAVSelectPathButton.
+function UAVSelectPathButton_Callback(hObject, eventdata, handles)
+    % hObject    handle to UAVSelectPathButton (see GCBO)
     % eventdata  reserved - to be defined in a future version of MATLAB
     % handles    structure with handles and user data (see GUIDATA)
 
-    % Get default command line output from handles structure
-    varargout{1} = handles.output;
-end
-
+    
 %% --- Executes on selection change in UAVSelectMenu.
 function UAVSelectMenu_Callback(hObject, eventdata, handles)
     % hObject    handle to UAVSelectMenu (see GCBO)
@@ -291,7 +336,87 @@ function UAVSelectMenu_Callback(hObject, eventdata, handles)
 
     % Hints: contents = cellstr(get(hObject,'String')) returns UAVSelectMenu contents as cell array
     %        contents{get(hObject,'Value')} returns selected item from UAVSelectMenu
-end
+
+    
+%% --- Executes on button press in UAVStopButton.
+function UAVStopButton_Callback(hObject, eventdata, handles)
+    % hObject    handle to UAVStopButton (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
+
+
+%% --- Executes on button press in UAVFollowButton.
+function UAVFollowButton_Callback(hObject, eventdata, handles)
+    % hObject    handle to UAVFollowButton (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
+
+
+%% --- Executes on selection change in UGVSelectMenu.
+function UGVSelectMenu_Callback(hObject, eventdata, handles)
+    % hObject    handle to UGVSelectMenu (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
+
+    % Hints: contents = cellstr(get(hObject,'String')) returns UGVSelectMenu contents as cell array
+    %        contents{get(hObject,'Value')} returns selected item from UGVSelectMenu
+
+
+%% --- Executes on button press in UGVSelectPathButton.
+function UGVSelectPathButton_Callback(hObject, eventdata, handles)
+    % hObject    handle to UGVSelectPathButton (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
+
+
+%% --- Executes on button press in UGVStopButton.
+function UGVStopButton_Callback(hObject, eventdata, handles)
+    % hObject    handle to UGVStopButton (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
+
+
+%% --- Executes on button press in View3Toggle.
+function View3Toggle_Callback(hObject, eventdata, handles)
+    % hObject    handle to View3Toggle (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
+
+    % Hint: get(hObject,'Value') returns toggle state of View3Toggle
+
+
+%% --- Executes on button press in View2Toggle.
+function View2Toggle_Callback(hObject, eventdata, handles)
+    % hObject    handle to View2Toggle (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
+
+    % Hint: get(hObject,'Value') returns toggle state of View2Toggle
+
+
+%% --- Executes on button press in View1Toggle.
+function View1Toggle_Callback(hObject, eventdata, handles)
+    % hObject    handle to View1Toggle (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
+
+    % Hint: get(hObject,'Value') returns toggle state of View1Toggle
+
+
+%% --- Executes on selection change in MainViewMenu.
+function MainViewMenu_Callback(hObject, eventdata, handles)
+    % hObject    handle to MainViewMenu (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
+
+    % Hints: contents = cellstr(get(hObject,'String')) returns MainViewMenu contents as cell array
+    %        contents{get(hObject,'Value')} returns selected item from MainViewMenu
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% CREATE FUNCTIONS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 %% --- Executes during object creation, after setting all properties.
 function UAVSelectMenu_CreateFcn(hObject, eventdata, handles)
@@ -303,44 +428,13 @@ function UAVSelectMenu_CreateFcn(hObject, eventdata, handles)
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
-end
 
-%% --- Executes on button press in UAVGoToPtButton.
-function UAVGoToPtButton_Callback(hObject, eventdata, handles)
-    % hObject    handle to UAVGoToPtButton (see GCBO)
-    % handles    structure with handles and user data (see GUIDATA)
-end
-
-%% --- Executes on button press in UAVSelectPathButton.
-function UAVSelectPathButton_Callback(hObject, eventdata, handles)
-    % hObject    handle to UAVSelectPathButton (see GCBO)
-    % eventdata  reserved - to be defined in a future version of MATLAB
-    % handles    structure with handles and user data (see GUIDATA)
-end
-
-%% --- Executes on button press in UAVStopButton.
-function UAVStopButton_Callback(hObject, eventdata, handles)
-    % hObject    handle to UAVStopButton (see GCBO)
-    % eventdata  reserved - to be defined in a future version of MATLAB
-    % handles    structure with handles and user data (see GUIDATA)
-end
-
-%% --- Executes on button press in UAVFollowButton.
-function UAVFollowButton_Callback(hObject, eventdata, handles)
-    % hObject    handle to UAVFollowButton (see GCBO)
-    % eventdata  reserved - to be defined in a future version of MATLAB
-    % handles    structure with handles and user data (see GUIDATA)
-end
-
-%% --- Executes on selection change in UGVSelectMenu.
-function UGVSelectMenu_Callback(hObject, eventdata, handles)
-    % hObject    handle to UGVSelectMenu (see GCBO)
-    % eventdata  reserved - to be defined in a future version of MATLAB
-    % handles    structure with handles and user data (see GUIDATA)
-
-    % Hints: contents = cellstr(get(hObject,'String')) returns UGVSelectMenu contents as cell array
-    %        contents{get(hObject,'Value')} returns selected item from UGVSelectMenu
-end
+% 
+% %% --- Executes on button press in UAVGoToPtButton.
+% function UAVGoToPtButton_Callback(hObject, eventdata, handles)
+%     % hObject    handle to UAVGoToPtButton (see GCBO)
+%     % handles    structure with handles and user data (see GUIDATA)
+% 
 
 %% --- Executes during object creation, after setting all properties.
 function UGVSelectMenu_CreateFcn(hObject, eventdata, handles)
@@ -353,77 +447,6 @@ function UGVSelectMenu_CreateFcn(hObject, eventdata, handles)
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
-end
-
-%% --- Executes on button press in UGVGoToPtButton.
-function UGVGoToPtButton_Callback(hObject, eventdata, handles)
-    % hObject    handle to UGVGoToPtButton (see GCBO)
-    % eventdata  reserved - to be defined in a future version of MATLAB
-    % handles    structure with handles and user data (see GUIDATA)
-    [xp, yp]=ginput(1);
-    msgName=['Robot',num2str(id),'/Goal_Point'];
-    if ~isempty(xp)
-        PATH=[xp(1) yp(1)];
-        try
-            msgName
-            xp
-            yp
-            %ipcAPI('publish',msgName,serialize(PATH));
-        catch
-        end
-    end
-end
-
-%% --- Executes on button press in UGVSelectPathButton.
-function UGVSelectPathButton_Callback(hObject, eventdata, handles)
-    % hObject    handle to UGVSelectPathButton (see GCBO)
-    % eventdata  reserved - to be defined in a future version of MATLAB
-    % handles    structure with handles and user data (see GUIDATA)
-end
-
-%% --- Executes on button press in UGVStopButton.
-function UGVStopButton_Callback(hObject, eventdata, handles)
-    % hObject    handle to UGVStopButton (see GCBO)
-    % eventdata  reserved - to be defined in a future version of MATLAB
-    % handles    structure with handles and user data (see GUIDATA)
-end
-
-%% --- Executes on button press in View3Toggle.
-function View3Toggle_Callback(hObject, eventdata, handles)
-    % hObject    handle to View3Toggle (see GCBO)
-    % eventdata  reserved - to be defined in a future version of MATLAB
-    % handles    structure with handles and user data (see GUIDATA)
-
-    % Hint: get(hObject,'Value') returns toggle state of View3Toggle
-end
-
-%% --- Executes on button press in View2Toggle.
-function View2Toggle_Callback(hObject, eventdata, handles)
-    % hObject    handle to View2Toggle (see GCBO)
-    % eventdata  reserved - to be defined in a future version of MATLAB
-    % handles    structure with handles and user data (see GUIDATA)
-
-    % Hint: get(hObject,'Value') returns toggle state of View2Toggle
-end
-
-%% --- Executes on button press in View1Toggle.
-function View1Toggle_Callback(hObject, eventdata, handles)
-    % hObject    handle to View1Toggle (see GCBO)
-    % eventdata  reserved - to be defined in a future version of MATLAB
-    % handles    structure with handles and user data (see GUIDATA)
-
-    % Hint: get(hObject,'Value') returns toggle state of View1Toggle
-end
-
-%% --- Executes on selection change in MainViewMenu.
-function MainViewMenu_Callback(hObject, eventdata, handles)
-    % hObject    handle to MainViewMenu (see GCBO)
-    % eventdata  reserved - to be defined in a future version of MATLAB
-    % handles    structure with handles and user data (see GUIDATA)
-
-    % Hints: contents = cellstr(get(hObject,'String')) returns MainViewMenu contents as cell array
-    %        contents{get(hObject,'Value')} returns selected item from MainViewMenu
-end
 
 %% --- Executes during object creation, after setting all properties.
 function MainViewMenu_CreateFcn(hObject, eventdata, handles)
@@ -436,5 +459,19 @@ function MainViewMenu_CreateFcn(hObject, eventdata, handles)
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
-end
-end
+    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% OUTPUT FUNCTION
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% --- Outputs from this function are returned to the command line.
+function varargout = UGV_UAV_COOP_2_OutputFcn(hObject, eventdata, handles) 
+    % varargout  cell array for returning output args (see VARARGOUT);
+    % hObject    handle to figure
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
+
+    % Get default command line output from handles structure
+    varargout{1} = handles.output;
+
+
