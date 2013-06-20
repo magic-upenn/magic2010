@@ -71,7 +71,7 @@ function UGV_UAV_COOP_2_OpeningFcn(hObject, eventdata, handles, varargin)
 
     %% Global planner data initialization and subscription
     ipcAPI('connect');
-    fprintf('Connected to main IPC\n');
+    fprintf('Connected to main IPC\n\n');
 
     %% Global and local map data initialization and subscription
     ipcAPI('subscribe','Global_Map');
@@ -88,10 +88,25 @@ function UGV_UAV_COOP_2_OpeningFcn(hObject, eventdata, handles, varargin)
 
     ipcAPI('subscribe','IncV');
     ipcAPI('set_msg_queue_length','IncV',30);
-    fprintf('Subscribed to IncV. Message queue length: 30\n');
+    fprintf('Subscribed to IncV. Message queue length: 30\n\n');
 
-    fprintf('\nSubscriptions successful\n');
 
+    ipcWrapperAPI8('connect','192.168.10.108',8);
+    fprintf('Connected to Robot 8 messages\n\n');
+    
+    ipcWrapperAPI8('subscribe','Robot8/Planner_Path');
+    ipcWrapperAPI8('set_msg_queue_length','Robot8/Planner_Path',1);
+    fprintf('Subscribed to Robot8 path planner. Message queue length: 1\n');
+    
+    ipcWrapperAPI8('subscribe','Robot8/FSM_Status');
+    ipcWrapperAPI8('set_msg_queue_length','Robot8/FSM_Status',1);
+    fprintf('Subscribed to Robot8 FSM status. Message queue length: 1\n');
+    
+    ipcWrapperAPI8('define','Robot8/Goal_Point');
+    
+    fprintf('\nSubscriptions successful! Starting GUI...\n');
+    
+    %% Initialize axes
     axes(handles.View1Axes);
     set(handles.View1Axes,'XLim',[-10 10], 'YLim', [-10 10]);
     set(handles.View1Axes,'CLimMode','manual');
@@ -116,9 +131,24 @@ function UGV_UAV_COOP_2_OpeningFcn(hObject, eventdata, handles, varargin)
     numAxes=3;
     ROBOT={};
     while(1)
-        updatePlots(handles);
+        updatePlots(handles)
+        updateFSM(handles)
     end
 
+function updateFSM(handles)
+global ROBOT numAxes
+msgs=ipcWrapperAPI8('listen',10);
+nmsgs=length(msgs);
+for i=1:nmsgs
+    name=msgs(i).name;
+    switch name
+        case 'Robot8/FSM_Status'
+            data=deserialize(msgs(i).data);
+            ROBOT{8}.fsmstatus=data.status;
+            ROBOT{8}.fsmstatus
+        otherwise
+    end
+end
 
 function updatePlots(handles)
 	global ROBOT numAxes
@@ -280,10 +310,12 @@ function plotBot(x,y,yaw,pose1plot)
 
 function plotWayPoint(id)
     global ROBOT
-    yaw=ROBOT{id}.pose.yaw;
+    yaw=-ROBOT{id}.pose.yaw+pi/2;
+    x0=ROBOT{id}.pose.x;
+    y0=ROBOT{id}.pose.y;
     rotation=[cos(yaw) -sin(yaw);
                 sin(yaw) cos(yaw)];
-    position=rotation*ROBOT{id}.wp';
+    position=rotation*(ROBOT{id}.wp'-[x0;y0]);
     set(ROBOT{id}.wpplot,'XData',position(1),'YData',position(2))
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -295,7 +327,7 @@ function testbutton_Callback(hObject, eventdata, handles)
 % hObject    handle to testbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-fprintf('i can get here test\n')
+fprintf('i can get here fine\n')
 
 
 % --- Executes on button press in UGV_GoToPtButton.
@@ -305,7 +337,6 @@ function UGV_GoToPtButton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 global ROBOT numAxes
 [xp,yp]=ginput(1);
-
 filledCells=~cellfun(@isempty,ROBOT);
 indeces=find(filledCells==1);
 idx=[];
@@ -315,11 +346,24 @@ for i=1:length(indeces)
     children=get(gca,'Children');
     idx=find(children==pl);
 end
+
 if ~isempty(idx)
-    ROBOT{indeces(idx)}.wp=[xp yp];
+    yaw=ROBOT{id}.pose.yaw;
+    rotation=[cos(yaw) -sin(yaw);
+            sin(yaw) cos(yaw)];
+    turnvec=rotation*[yp;-xp];
+    x0=ROBOT{id}.pose.x;
+    y0=ROBOT{id}.pose.y;
+    ROBOT{indeces(idx)}.wp=[turnvec(1)+x0 turnvec(2)+y0];
+    PATH=[turnvec(1) turnvec(2)];
+    msgName=['Robot',num2str(id),'/Goal_Point'];
+    try
+        ipcWrapperAPI8('publish',msgName,serialize(PATH))
+    catch
+    end
+else
+    fprintf('Invalid coordinates. Choose proper map.\n')
 end
-%get(gca,'Children')
-%plotWayPoint(id1);
 
 
 %% --- Executes on button press in UAVSelectPathButton.
@@ -473,5 +517,3 @@ function varargout = UGV_UAV_COOP_2_OutputFcn(hObject, eventdata, handles)
 
     % Get default command line output from handles structure
     varargout{1} = handles.output;
-
-
