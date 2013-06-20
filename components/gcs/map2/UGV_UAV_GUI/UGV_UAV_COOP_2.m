@@ -103,6 +103,7 @@ function UGV_UAV_COOP_2_OpeningFcn(hObject, eventdata, handles, varargin)
     fprintf('Subscribed to Robot8 FSM status. Message queue length: 1\n');
     
     ipcWrapperAPI8('define','Robot8/Goal_Point');
+    ipcWrapperAPI8('define','Robot8/StateEvent');
     
     fprintf('\nSubscriptions successful! Starting GUI...\n');
     
@@ -144,10 +145,11 @@ for i=1:nmsgs
     switch name
         case 'Robot8/FSM_Status'
             data=deserialize(msgs(i).data);
-            ROBOT{8}.fsmstatus=data.status
+            ROBOT{8}.fsmstatus=data.status;
         case 'Robot8/Planner_Path'
-            fprintf('got path planner data\n')
-            data=deserialize(msgs(i).data)
+            data=deserialize(msgs(i).data);
+            ROBOT{8}.path=data;
+            fprintf('got path data\n')
         otherwise
     end
 end
@@ -224,6 +226,7 @@ function updatePlots(handles)
         set(ROBOT{id1}.mapplot,'Parent',handles.(axesname));
         set(ROBOT{id1}.poseplot,'Parent',handles.(axesname));
         set(ROBOT{id1}.wpplot,'Parent',handles.(axesname));
+        set(ROBOT{id1}.pathplot,'Parent',handles.(axesname));
         hold on
         xlim=ROBOT{id1}.x0+ROBOT{id1}.dx;
         ylim=ROBOT{id1}.y0+ROBOT{id1}.dy;
@@ -232,6 +235,7 @@ function updatePlots(handles)
                 ROBOT{id1}.pose.yaw, ...
                 ROBOT{id1}.poseplot);
         plotWayPoint(id1);
+        plotPath(id1);
         incUpdate(id1,double(ROBOT{id1}.inch.xsnew), ...
                     double(ROBOT{id1}.inch.ysnew), ...
                     double(ROBOT{id1}.inch.csnew), ...
@@ -247,8 +251,7 @@ function updatePlots(handles)
         
         drawnow;
     end
-
-
+        
 function initbot(id)
     global ROBOT MAGIC_COLORMAP
     
@@ -268,6 +271,7 @@ function initbot(id)
     ROBOT{id}.mapplot=imagesc(ROBOT{id}.x0+ROBOT{id}.dx, ...
                             ROBOT{id}.y0+ROBOT{id}.dy, ...
                             ROBOT{id}.cost, [-100 100]);
+    ROBOT{id}.pathplot=plot(0,0,'r');
     colormap(MAGIC_COLORMAP);
     ROBOT{id}.inch.xsnew=[];
     ROBOT{id}.inch.ysnew=[];
@@ -277,6 +281,7 @@ function initbot(id)
     ROBOT{id}.incv.csnew=[];
     ROBOT{id}.wpplot=plot(0,0,'gs','MarkerSize',10);
     ROBOT{id}.wp=[0 0];
+    ROBOT{id}.path=[];
 
 
 function incUpdate(id,xs,ys,cs,xlim,ylim,map1plot)
@@ -319,6 +324,17 @@ function plotWayPoint(id)
                 sin(yaw) cos(yaw)];
     position=rotation*(ROBOT{id}.wp'-[x0;y0]);
     set(ROBOT{id}.wpplot,'XData',position(1),'YData',position(2))
+    
+function plotPath(id)
+    global ROBOT
+    if ~isempty(ROBOT{id}.path)
+        fprintf('plotting new path\n')
+        yaw=-ROBOT{id}.pose.yaw+pi/2;
+        rotation=[cos(yaw) -sin(yaw);
+                sin(yaw) cos(yaw)];
+        path=rotation*ROBOT{id}.path(:,1:2)';
+        set(ROBOT{id}.pathplot,'XData',path(1,:),'YData',path(2,:));
+    end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% CALLBACK FUNCTIONS
@@ -342,6 +358,7 @@ global ROBOT numAxes
 filledCells=~cellfun(@isempty,ROBOT);
 indeces=find(filledCells==1);
 idx=[];
+id=[];
 for i=1:length(indeces)
     id=indeces(i);
     pl=ROBOT{id}.wpplot;
@@ -356,7 +373,7 @@ if ~isempty(idx)
     turnvec=rotation*[yp;-xp];
     x0=ROBOT{id}.pose.x;
     y0=ROBOT{id}.pose.y;
-    ROBOT{indeces(idx)}.wp=[turnvec(1)+x0 turnvec(2)+y0];
+    ROBOT{id}.wp=[turnvec(1)+x0 turnvec(2)+y0];
     PATH=[turnvec(1) turnvec(2)];
     msgName=['Robot',num2str(id),'/Goal_Point'];
     try
@@ -420,7 +437,12 @@ function UGVStopButton_Callback(hObject, eventdata, handles)
     % hObject    handle to UGVStopButton (see GCBO)
     % eventdata  reserved - to be defined in a future version of MATLAB
     % handles    structure with handles and user data (see GUIDATA)
-
+msgName=['Robot8/StateEvent'];
+state='stop';
+try
+    ipcWrapperAPI8('publish',msgName,serialize(state));
+catch
+end
 
 %% --- Executes on button press in View3Toggle.
 function View3Toggle_Callback(hObject, eventdata, handles)
