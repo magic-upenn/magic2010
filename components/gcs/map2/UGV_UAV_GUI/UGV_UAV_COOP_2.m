@@ -144,8 +144,10 @@ for i=1:nmsgs
     switch name
         case 'Robot8/FSM_Status'
             data=deserialize(msgs(i).data);
-            ROBOT{8}.fsmstatus=data.status;
-            ROBOT{8}.fsmstatus
+            ROBOT{8}.fsmstatus=data.status
+        case 'Robot8/Planner_Path'
+            fprintf('got path planner data\n')
+            data=deserialize(msgs(i).data)
         otherwise
     end
 end
@@ -358,7 +360,7 @@ if ~isempty(idx)
     PATH=[turnvec(1) turnvec(2)];
     msgName=['Robot',num2str(id),'/Goal_Point'];
     try
-        ipcWrapperAPI8('publish',msgName,serialize(PATH))
+        ipcWrapperAPI8('publish',msgName,serialize(PATH));
     catch
     end
 else
