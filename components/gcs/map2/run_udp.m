@@ -28,8 +28,8 @@ SetMagicPaths;
   gcsLogPackets('entry');
 
   % Connect to UDP
-  addr = '127.0.0.1';
-  port = 12346;
+  addr = '192.168.10.110'
+  port = 12346
   UdpReceiveAPI('connect', addr, port)
 
   tmap = gettime;
@@ -46,6 +46,7 @@ SetMagicPaths;
     gcsLogPackets('UDP', packets);
     n = length(packets);
     for ii = 1:n,
+        fprintf('packets received: %d\n',length(packets))
       try
         pkt = deserialize(zlibUncompress(packets(ii).data));
       catch

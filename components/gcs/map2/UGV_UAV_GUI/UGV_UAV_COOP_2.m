@@ -23,7 +23,7 @@ global MAGIC_COLORMAP
 
 % Edit the above text to modify the response to help UGV_UAV_COOP_2
 
-% Last Modified by GUIDE v2.5 19-Jun-2013 15:22:26
+% Last Modified by GUIDE v2.5 24-Jun-2013 11:33:13
 
 %% Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -52,7 +52,7 @@ end
 
 %% --- Executes just before UGV_UAV_COOP_2 is made visible.
 function UGV_UAV_COOP_2_OpeningFcn(hObject, eventdata, handles, varargin)
-    global numAxes ROBOT
+    global numAxes ROBOT connections
     % hObject    handle to figure
     % handles    structure with handles and user data (see GUIDATA)
 
@@ -70,9 +70,9 @@ function UGV_UAV_COOP_2_OpeningFcn(hObject, eventdata, handles, varargin)
     set(hObject,'toolbar','figure');
 
     %% Global planner data initialization and subscription
-    ipcAPI('connect');
+    connections.main=ipcAPI('connect');
     fprintf('Connected to main IPC\n\n');
-
+    
     %% Global and local map data initialization and subscription
     ipcAPI('subscribe','Global_Map');
     ipcAPI('set_msg_queue_length','Global_Map',1);
@@ -90,8 +90,24 @@ function UGV_UAV_COOP_2_OpeningFcn(hObject, eventdata, handles, varargin)
     ipcAPI('set_msg_queue_length','IncV',30);
     fprintf('Subscribed to IncV. Message queue length: 30\n\n');
 
-
-    ipcWrapperAPI8('connect','192.168.10.108',8);
+    %% Robot 3 connect
+    connections.r3=ipcWrapperAPI3('connect','192.168.10.103',3);
+    fprintf('Connected to Robot 3 messages\n\n');
+    
+    ipcWrapperAPI3('subscribe','Robot3/Planner_Path');
+    ipcWrapperAPI3('set_msg_queue_length','Robot3/Planner_Path',1);
+    fprintf('Subscribed to Robot3 path planner. Message queue length: 1\n');
+    
+    ipcWrapperAPI3('subscribe','Robot3/FSM_Status');
+    ipcWrapperAPI3('set_msg_queue_length','Robot3/FSM_Status',1);
+    fprintf('Subscribed to Robot3 FSM status. Message queue length: 1\n');
+    
+    ipcWrapperAPI3('define','Robot3/Goal_Point');
+    ipcWrapperAPI3('define','Robot3/Path');
+    ipcWrapperAPI3('define','Robot3/StateEvent');
+   
+    %% Robot 8 connect
+    connections.r8=ipcWrapperAPI8('connect','192.168.10.108',8);
     fprintf('Connected to Robot 8 messages\n\n');
     
     ipcWrapperAPI8('subscribe','Robot8/Planner_Path');
@@ -103,8 +119,25 @@ function UGV_UAV_COOP_2_OpeningFcn(hObject, eventdata, handles, varargin)
     fprintf('Subscribed to Robot8 FSM status. Message queue length: 1\n');
     
     ipcWrapperAPI8('define','Robot8/Goal_Point');
+    ipcWrapperAPI8('define','Robot8/Path');
     ipcWrapperAPI8('define','Robot8/StateEvent');
+    %{
+    %% Robot 1 connect
+    connections.r1=ipcWrapperAPI1('connect','192.168.10.101',1);
+    fprintf('Connected to Robot 1 messages\n\n');
     
+    ipcWrapperAPI1('subscribe','Robot1/Planner_Path');
+    ipcWrapperAPI1('set_msg_queue_length','Robot1/Planner_Path',1);
+    fprintf('Subscribed to Robot1 path planner. Message queue length: 1\n');
+    
+    ipcWrapperAPI1('subscribe','Robot1/FSM_Status');
+    ipcWrapperAPI1('set_msg_queue_length','Robot1/FSM_Status',1);
+    fprintf('Subscribed to Robot1 FSM status. Message queue length: 1\n');
+    
+    ipcWrapperAPI1('define','Robot1/Goal_Point');
+    ipcWrapperAPI1('define','Robot1/Path');
+    ipcWrapperAPI1('define','Robot1/StateEvent');
+%}
     fprintf('\nSubscriptions successful! Starting GUI...\n');
     
     %% Initialize axes
@@ -137,20 +170,35 @@ function UGV_UAV_COOP_2_OpeningFcn(hObject, eventdata, handles, varargin)
     end
 
 function updateFSM(handles)
-global ROBOT numAxes
-msgs=ipcWrapperAPI8('listen',10);
-nmsgs=length(msgs);
-for i=1:nmsgs
-    name=msgs(i).name;
-    switch name
-        case 'Robot8/FSM_Status'
-            data=deserialize(msgs(i).data);
-            ROBOT{8}.fsmstatus=data.status;
-        case 'Robot8/Planner_Path'
-            data=deserialize(msgs(i).data);
-            ROBOT{8}.path=data;
-            fprintf('got path data\n')
-        otherwise
+global ROBOT numAxes connections
+for j=1:length(connections)
+    fieldname=['r' num2str(j)];
+    if isfield(connections,fieldname)
+        handlename=str2func(['ipcWrapperAPI' num2str(j)]);
+        msgs=handlename('listen',10);
+        nmsgs=length(msgs);
+        for i=1:nmsgs
+            name=msgs(i).name;
+            switch name
+                case 'Robot1/FSM_Status'
+                    fprintf('robot 1 fsm status received\n')
+                    data=deserialize(msgs(i).data);
+                    ROBOT{1}.fsmstatus=data.status;
+                case 'Robot1/Planner_Path'
+                    fprintf('robot 1 path received\n')
+                    data=deserialize(msgs(i).data);
+                    ROBOT{1}.path=data;
+                case 'Robot3/FSM_Status'
+                    fprintf('robot 3 fsm status received\n')
+                    data=deserialize(msgs(i).data);
+                    ROBOT{3}.fsmstatus=data.status;
+                case 'Robot3/Planner_Path'
+                    fprintf('robot 3 path received\n')
+                    data=deserialize(msgs(i).data);
+                    ROBOT{3}.path=data;
+                otherwise
+            end
+        end
     end
 end
 
@@ -158,11 +206,13 @@ function updatePlots(handles)
 	global ROBOT numAxes
     
     %% receive map and pose updates
+    %{
     robotdat=[];
     inchdat=[];
     incvdat=[];
     globaldat=[];
-
+    %}
+    
     msgs=ipcAPI('listenWait',100);
     nmsg=length(msgs);
     for i=1:nmsg
@@ -300,15 +350,15 @@ function incUpdate(id,xs,ys,cs,xlim,ylim,map1plot)
         ROBOT{id}.cost=zeros(nx,ny,'int8');
         map_assign(ROBOT{id}.cost,ROBOT{id}.x0+ROBOT{id}.dx,ROBOT{id}.y0+ROBOT{id}.dy,pc);
     end
-    rotangle=ROBOT{8}.pose.yaw*180/pi-90;
-    cost=imrotate(ROBOT{8}.cost',rotangle,'crop');
+    rotangle=ROBOT{id}.pose.yaw*180/pi-90;
+    cost=ROBOT{id}.cost';
     set(map1plot,'XData',xlim,'YData',ylim,'CData',cost);
 
 
 function plotBot(x,y,yaw,pose1plot)
     xFill=.3*[-1.0 2.5 -1.0 -1.0];
     yFill=.3*[-1.0 0 1.0 -1.0];
-    yawrot=pi/2;
+    yawrot=yaw;
     trans=[cos(yawrot) -sin(yawrot) x;
             sin(yawrot) cos(yawrot) y;
             0 0 1];
@@ -317,19 +367,18 @@ function plotBot(x,y,yaw,pose1plot)
 
 function plotWayPoint(id)
     global ROBOT
-    yaw=-ROBOT{id}.pose.yaw+pi/2;
+    yaw=0;
     x0=ROBOT{id}.pose.x;
     y0=ROBOT{id}.pose.y;
     rotation=[cos(yaw) -sin(yaw);
                 sin(yaw) cos(yaw)];
-    position=rotation*(ROBOT{id}.wp'-[x0;y0]);
+    position=rotation*(ROBOT{id}.wp');
     set(ROBOT{id}.wpplot,'XData',position(1),'YData',position(2))
     
 function plotPath(id)
     global ROBOT
     if ~isempty(ROBOT{id}.path)
-        fprintf('plotting new path\n')
-        yaw=-ROBOT{id}.pose.yaw+pi/2;
+        yaw=0;%-ROBOT{id}.pose.yaw+pi/2;
         rotation=[cos(yaw) -sin(yaw);
                 sin(yaw) cos(yaw)];
         path=rotation*ROBOT{id}.path(:,1:2)';
@@ -339,14 +388,14 @@ function plotPath(id)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% CALLBACK FUNCTIONS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+%{
 % --- Executes on button press in testbutton.
 function testbutton_Callback(hObject, eventdata, handles)
 % hObject    handle to testbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 fprintf('i can get here fine\n')
-
+%}
 
 % --- Executes on button press in UGV_GoToPtButton.
 function UGV_GoToPtButton_Callback(hObject, eventdata, handles)
@@ -364,20 +413,24 @@ for i=1:length(indeces)
     pl=ROBOT{id}.wpplot;
     children=get(gca,'Children');
     idx=find(children==pl);
+    if ~isempty(idx)
+        parsedid=id;
+    end
 end
 
-if ~isempty(idx)
-    yaw=ROBOT{id}.pose.yaw;
+if ~isempty(parsedid)
+    yaw=0;%ROBOT{id}.pose.yaw;
     rotation=[cos(yaw) -sin(yaw);
             sin(yaw) cos(yaw)];
-    turnvec=rotation*[yp;-xp];
-    x0=ROBOT{id}.pose.x;
-    y0=ROBOT{id}.pose.y;
-    ROBOT{id}.wp=[turnvec(1)+x0 turnvec(2)+y0];
+    turnvec=rotation*[xp;yp];
+    x0=ROBOT{parsedid}.pose.x;
+    y0=ROBOT{parsedid}.pose.y;
+    ROBOT{parsedid}.wp=[turnvec(1) turnvec(2)];
     PATH=[turnvec(1) turnvec(2)];
-    msgName=['Robot',num2str(id),'/Goal_Point'];
+    msgName=['Robot',num2str(parsedid),'/Goal_Point'];
     try
-        ipcWrapperAPI8('publish',msgName,serialize(PATH));
+        handlename=str2func(['ipcWrapperAPI' num2str(parsedid)]);
+        handlename('publish',msgName,serialize(PATH));
     catch
     end
 else
@@ -430,18 +483,55 @@ function UGVSelectPathButton_Callback(hObject, eventdata, handles)
     % hObject    handle to UGVSelectPathButton (see GCBO)
     % eventdata  reserved - to be defined in a future version of MATLAB
     % handles    structure with handles and user data (see GUIDATA)
-
+global ROBOT
+    [xp,yp]=ginput;
+    filledCells=~cellfun(@isempty,ROBOT);
+    indeces=find(filledCells==1);
+    idx=[];
+    id=[];
+    for i=1:length(indeces)
+        id=indeces(i);
+        pl=ROBOT{id}.wpplot;
+        children=get(gca,'Children')
+        idx=find(children==pl);
+    end
+    %{
+    if ~isempty(idx)
+        PATH=[ROBOT{id}.pose.x ROBOT{id}.pose.y; xp yp];
+        ROBOT{id}.wp=[PATH(:,1) PATH(:,2)];
+        msgName=['Robot',num2str(id),'/Path'];
+        try
+            ipcWrapperAPI3('publish',msgName,serialize(PATH));
+        catch
+        end
+        
+    else
+        fprintf('Invalid path. Choose points in proper map.\n')
+    end
+%}
 
 %% --- Executes on button press in UGVStopButton.
 function UGVStopButton_Callback(hObject, eventdata, handles)
     % hObject    handle to UGVStopButton (see GCBO)
     % eventdata  reserved - to be defined in a future version of MATLAB
     % handles    structure with handles and user data (see GUIDATA)
-msgName=['Robot8/StateEvent'];
-state='stop';
-try
-    ipcWrapperAPI8('publish',msgName,serialize(state));
-catch
+global ROBOT numAxes
+
+filledCells=~cellfun(@isempty,ROBOT);
+indeces=find(filledCells==1);
+
+for i=1:length(indeces)
+    id=indeces(i);
+    
+    %if ~isempty(parsedid)
+    msgName=['Robot',num2str(id),'/StateEvent'];
+    state='stop';
+    try
+        handlename=str2func(['ipcWrapperAPI' num2str(id)]);
+        handlename('publish',msgName,serialize(state));
+        %ipcWrapperAPI3('publish',msgName,serialize(state));
+    catch
+    end
 end
 
 %% --- Executes on button press in View3Toggle.
@@ -541,3 +631,26 @@ function varargout = UGV_UAV_COOP_2_OutputFcn(hObject, eventdata, handles)
 
     % Get default command line output from handles structure
     varargout{1} = handles.output;
+
+
+% --- Executes on selection change in UGV_Select_List.
+function UGV_Select_List_Callback(hObject, eventdata, handles)
+% hObject    handle to UGV_Select_List (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns UGV_Select_List contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from UGV_Select_List
+
+
+% --- Executes during object creation, after setting all properties.
+function UGV_Select_List_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to UGV_Select_List (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
