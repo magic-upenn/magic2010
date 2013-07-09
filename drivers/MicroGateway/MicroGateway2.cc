@@ -628,8 +628,8 @@ int MicroGateway::EstopPacketHandler(DynamixelPacket * dpacket)
     EstopState estatePacket;
     estatePacket.t     = Upenn::Timer::GetAbsoluteTime();
     estatePacket.state = *(DynamixelPacketGetData(dpacket));
-    this->PublishMsg(this->estopMsgName,&estatePacket);
-    printf("got estop state %d\n",estatePacket.state); 
+    //this->PublishMsg(this->estopMsgName,&estatePacket);
+    //printf("got estop state %d\n",estatePacket.state); 
   }
   return 0;
 }
