@@ -81,8 +81,8 @@ void handleJoystickMsg(VscMsgType *recvMsg) {
 void handleHeartbeatMsg(VscMsgType *recvMsg) {
 	HeartbeatMsgType *msgPtr = (HeartbeatMsgType*) recvMsg->msg.data;
 
-	printf("Heartbeat: E-Stop:  0x%x, VscMode: 0x%x, AutonomonyMode: 0x%x\n", 
-              msgPtr->EStopStatus, msgPtr->VscMode, msgPtr->AutonomonyMode);
+	printf("Heartbeat: E-Stop:  0x%x, VscMode: 0x%x, AutonomyMode: 0x%x\n", 
+              msgPtr->EStopStatus, msgPtr->VscMode, msgPtr->AutonomyMode);
 
 	if (msgPtr->EStopStatus > 0) {
 		EstopStatusType stopStatus;

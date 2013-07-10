@@ -58,6 +58,7 @@ bool connectedSerial=false;
 void exit_handler(int s) {  
         printf("Caught signal %d.\n",s);
         printf("Cleaning up VSC Interface...\n");
+        IPC_disconnect();
         vsc_cleanup(vscInterface);
         printf("Done cleaning.\n");
         exit(0);
@@ -74,7 +75,7 @@ void JoystickReceiveHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clie
                esc->rightX,esc->rightY,esc->rightZ,
                esc->bD,esc->bR,esc->bU,esc->bL,
                esc->b1,esc->b2,esc->b3,esc->b4);        
-
+        
         IPC_freeByteArray(callData);
 }
 //**************************************************
@@ -125,9 +126,10 @@ char* defineMsg(char* msgName, char* format) {
 int initializeIPCMsgs() {
         
         //gpsMsgName = defineMsg("vscGPS","{double,double}");
-        //heartbeatMsgName = defineMsg("vscHeartbeat","{double,double}");
+        heartbeatMsgName = defineMsg("vscHeartbeat","{double,double}");
         //feedbackMsgName = defineMsg("vscControllerFeedback","{double,double}");
         joystickMsgName = defineMsg("vscJoystick",EStopController_IPC_FORMAT);
+
         //printf("Message names: %s, %s, %s, %s\n",gpsMsgName, heartbeatMsgName, feedbackMsgName,joystickMsgName);
         return 0;
 }
@@ -137,7 +139,7 @@ int initializeIPCSubscribe() {
                 fprintf(stderr,"Could not subscribe to message %s.\n",joystickMsgName);
                 exit(1);
         }
-        printf("Subscribe to message %s.\n",joystickMsgName);
+        printf("Subscribed to message %s.\n",joystickMsgName);
         return 0;
 }
 
@@ -148,31 +150,31 @@ int ipcConnect(char* addr) {
         }
         char * robotID=getenv("ROBOT_ID");
         if(robotID==NULL) {
-                fprintf(stderr,"ROBOT_ID not defined\n");
+                printf("ROBOT_ID not defined\n");
                 return -1;
         }
 
         int rID=strtol(robotID,NULL,10);
 
         if ((rID==0) && strncmp(robotID,"0",1) != 0) {
-                fprintf(stderr,"Invalid ROBOT_ID %d\n",rID);
+                printf("Invalid ROBOT_ID %d\n",rID);
                 return -1;
         }
 
         IPC_setVerbosity(IPC_Print_Errors);
 
         if (IPC_connectModule("EStopControllerGateway",addr) != IPC_OK) {
-                fprintf(stderr,"Could not connect to IPC central.\n");
+                printf("Could not connect to IPC central.\n");
                 return -1;
         }
-
+        printf("Connected!\n");
         connectedIPC=true;
         return 0;
 }
 
 int initializeIPC(char * addr) {
         printf("Connecting to IPC...\n");
-        connectedIPC=ipcConnect(addr);
+        ipcConnect(addr);
         if (connectedIPC) {
                 printf("Initializing IPC messages...\n");
                 if (initializeIPCMsgs()) {
@@ -186,6 +188,7 @@ int initializeIPC(char * addr) {
                         return -1;
                 }
         }
+
         else {
                 fprintf(stderr,"Could not connect to IPC at %s.\n",addr);
                 vsc_cleanup(vscInterface);
@@ -195,13 +198,19 @@ int initializeIPC(char * addr) {
         return connectedIPC;
 }
 
-int updateSubscriptions() {}
-
-//*****************
-// message handlers
-//*****************
+void updateSubscriptions() {
+        IPC_listen(0);
+        //printf("Entered updateSubscriptions\n");
+}
+//*********************
+// VSC message handlers
+//*********************
 void handleHeartbeatMsg(VscMsgType *recvMsg) {
         //TODO: parse heartbeat message and publish to IPC
+        HeartbeatMsgType *msgPtr = (HeartbeatMsgType*) recvMsg->msg.data;
+
+        printf("Heartbeat: E-Stop: %u, VscMode: %u, AutonomyMode: %u\n",
+               msgPtr->EStopStatus, msgPtr->VscMode, msgPtr->AutonomyMode);
 }
 
 void handleGpsMsg(VscMsgType *recvMsg) {
@@ -220,7 +229,6 @@ void handleFeedbackMsg(VscMsgType *recvMsg) {
 }
 
 void handleJoystickMsg(VscMsgType *recvMsg) {
-        //TODO: parse joystick message and publish to IPC
         JoystickMsgType *joyMsg = (JoystickMsgType*) recvMsg->msg.data;
         EStopController esc;
                 
@@ -243,15 +251,6 @@ void handleJoystickMsg(VscMsgType *recvMsg) {
 
         if(publishMsg(joystickMsgName,&esc))
                 fprintf(stderr,"Joystick Message publish failed\n");
-        else
-                printf("Joystick message published!\n");
-        /*
-        printf("%i\t%i\t%i\t|\t%i\t%i\t%i\t|\t%u %u %u %u | %u %u %u %u\n",
-               esc.leftX,esc.leftY,esc.leftZ,
-               esc.rightX,esc.rightY,esc.rightZ,
-               esc.bD,esc.bR,esc.bU,esc.bL,
-               esc.b1,esc.b2,esc.b3,esc.b4);
-        */
 }
 
 //*******************
@@ -379,7 +378,7 @@ int main(int argc, char * argv[]) {
                         if (FD_ISSET(vsc_fd, &input)) {
                                 // receive messages //
                                 readVSCMsg();
-                                updateSubscriptions();
+                                //updateSubscriptions();
                                 clock_gettime(CLOCK_REALTIME, &lastReceived);
                         }
                         else

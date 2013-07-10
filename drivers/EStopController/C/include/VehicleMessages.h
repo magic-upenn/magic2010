@@ -194,7 +194,7 @@ typedef struct {
  */
 typedef struct {
 	uint8_t VscMode;
-	uint8_t AutonomonyMode;
+	uint8_t AutonomyMode;
 	uint32_t EStopStatus;
 } HeartbeatMsgType;
 
