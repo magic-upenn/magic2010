@@ -378,7 +378,7 @@ int main(int argc, char * argv[]) {
                         if (FD_ISSET(vsc_fd, &input)) {
                                 // receive messages //
                                 readVSCMsg();
-                                //updateSubscriptions();
+                                updateSubscriptions();
                                 clock_gettime(CLOCK_REALTIME, &lastReceived);
                         }
                         else
