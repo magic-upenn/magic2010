@@ -23,6 +23,7 @@
 //**************************
 #include "VehicleMessages.h"
 #include "VehicleInterface.h"
+#include "EStopControllerDataType.h"
 
 //******************
 //device definitions
@@ -62,6 +63,20 @@ void exit_handler(int s) {
         exit(0);
 }
 
+/*****************/
+//temporary subscription test
+/*****************/
+void JoystickReceiveHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData) {
+        EStopController * esc = (EStopController*)callData;
+
+        printf("%i\t%i\t%i\t|\t%i\t%i\t%i\t|\t%u %u %u %u | %u %u %u %u\n",
+               esc->leftX,esc->leftY,esc->leftZ,
+               esc->rightX,esc->rightY,esc->rightZ,
+               esc->bD,esc->bR,esc->bU,esc->bL,
+               esc->b1,esc->b2,esc->b3,esc->b4);        
+
+        IPC_freeByteArray(callData);
+}
 //**************************************************
 // function to calculate difference in sampled times
 //**************************************************
@@ -80,6 +95,12 @@ unsigned long diffTime(struct timespec start, struct timespec end, struct timesp
 //*************************
 // IPC stuff
 //*************************
+int publishMsg(char * msgName, void * data) {
+        if (IPC_publishData(msgName,data) != IPC_OK)
+                return -1;
+        return 0;
+}
+
 char* defineMsg(char* msgName, char* format) {
         // create message name //
         char* robotID=getenv("ROBOT_ID");
@@ -103,11 +124,20 @@ char* defineMsg(char* msgName, char* format) {
 
 int initializeIPCMsgs() {
         
-        gpsMsgName = defineMsg("vscGPS","{double,double}");
-        heartbeatMsgName = defineMsg("vscHeartbeat","{double,double}");
-        feedbackMsgName = defineMsg("vscControllerFeedback","{double,double}");
-        joystickMsgName = defineMsg("vscJoystick","{double,double}");
+        //gpsMsgName = defineMsg("vscGPS","{double,double}");
+        //heartbeatMsgName = defineMsg("vscHeartbeat","{double,double}");
+        //feedbackMsgName = defineMsg("vscControllerFeedback","{double,double}");
+        joystickMsgName = defineMsg("vscJoystick",EStopController_IPC_FORMAT);
         //printf("Message names: %s, %s, %s, %s\n",gpsMsgName, heartbeatMsgName, feedbackMsgName,joystickMsgName);
+        return 0;
+}
+
+int initializeIPCSubscribe() {
+        if (IPC_subscribeData(joystickMsgName,JoystickReceiveHandler,NULL)!=IPC_OK) {
+                fprintf(stderr,"Could not subscribe to message %s.\n",joystickMsgName);
+                exit(1);
+        }
+        printf("Subscribe to message %s.\n",joystickMsgName);
         return 0;
 }
 
@@ -136,12 +166,6 @@ int ipcConnect(char* addr) {
                 return -1;
         }
 
-        printf("Initializing IPC messages...\n");
-        if (initializeIPCMsgs()) {
-                fprintf(stderr,"Could not initialize IPC messages.\n");
-                return -1;
-        }
-
         connectedIPC=true;
         return 0;
 }
@@ -149,8 +173,30 @@ int ipcConnect(char* addr) {
 int initializeIPC(char * addr) {
         printf("Connecting to IPC...\n");
         connectedIPC=ipcConnect(addr);
+        if (connectedIPC) {
+                printf("Initializing IPC messages...\n");
+                if (initializeIPCMsgs()) {
+                        fprintf(stderr,"Could not initialize IPC messages.\n");
+                        return -1;
+                }
+
+                printf("Initializing IPC subscriptions...\n");
+                if (initializeIPCSubscribe()) {
+                        fprintf(stderr,"Could not subscribe to IPC.\n");
+                        return -1;
+                }
+        }
+        else {
+                fprintf(stderr,"Could not connect to IPC at %s.\n",addr);
+                vsc_cleanup(vscInterface);
+                exit(EXIT_FAILURE);
+                return connectedIPC;
+        }
         return connectedIPC;
 }
+
+int updateSubscriptions() {}
+
 //*****************
 // message handlers
 //*****************
@@ -176,31 +222,36 @@ void handleFeedbackMsg(VscMsgType *recvMsg) {
 void handleJoystickMsg(VscMsgType *recvMsg) {
         //TODO: parse joystick message and publish to IPC
         JoystickMsgType *joyMsg = (JoystickMsgType*) recvMsg->msg.data;
-        int leftX,leftY,leftZ,rightX,rightY,rightZ;
-        uint8_t bD,bR,bU,bL,b1,b2,b3,b4;
+        EStopController esc;
+                
+        esc.leftX = GET_JOY(joyMsg->leftX);
+        esc.leftY = GET_JOY(joyMsg->leftY);
+        esc.leftZ = GET_JOY(joyMsg->leftZ);
+        esc.rightX = GET_JOY(joyMsg->rightX);
+        esc.rightY = GET_JOY(joyMsg->rightY);
+        esc.rightZ = GET_JOY(joyMsg->rightZ);
 
-        leftX = GET_JOY(joyMsg->leftX);
-        leftY = GET_JOY(joyMsg->leftY);
-        leftZ = GET_JOY(joyMsg->leftZ);
-        rightX = GET_JOY(joyMsg->rightX);
-        rightY = GET_JOY(joyMsg->rightY);
-        rightZ = GET_JOY(joyMsg->rightZ);
+        esc.bD=GET_BUT(joyMsg->leftSwitch.home);
+        esc.bR=GET_BUT(joyMsg->leftSwitch.first);
+        esc.bU=GET_BUT(joyMsg->leftSwitch.second);
+        esc.bL=GET_BUT(joyMsg->leftSwitch.third);
 
-        bD=GET_BUT(joyMsg->leftSwitch.home);
-        bR=GET_BUT(joyMsg->leftSwitch.first);
-        bU=GET_BUT(joyMsg->leftSwitch.second);
-        bL=GET_BUT(joyMsg->leftSwitch.third);
+        esc.b1=GET_BUT(joyMsg->rightSwitch.home);
+        esc.b2=GET_BUT(joyMsg->rightSwitch.first);
+        esc.b3=GET_BUT(joyMsg->rightSwitch.second);
+        esc.b4=GET_BUT(joyMsg->rightSwitch.third);
 
-        b1=GET_BUT(joyMsg->rightSwitch.home);
-        b2=GET_BUT(joyMsg->rightSwitch.first);
-        b3=GET_BUT(joyMsg->rightSwitch.second);
-        b4=GET_BUT(joyMsg->rightSwitch.third);
-
+        if(publishMsg(joystickMsgName,&esc))
+                fprintf(stderr,"Joystick Message publish failed\n");
+        else
+                printf("Joystick message published!\n");
+        /*
         printf("%i\t%i\t%i\t|\t%i\t%i\t%i\t|\t%u %u %u %u | %u %u %u %u\n",
-               leftX,leftY,leftZ,
-               rightX,rightY,rightZ,
-               bD,bR,bU,bL,
-               b1,b2,b3,b4);
+               esc.leftX,esc.leftY,esc.leftZ,
+               esc.rightX,esc.rightY,esc.rightZ,
+               esc.bD,esc.bR,esc.bU,esc.bL,
+               esc.b1,esc.b2,esc.b3,esc.b4);
+        */
 }
 
 //*******************
@@ -275,8 +326,9 @@ int main(int argc, char * argv[]) {
 
         // initialize IPC //
         ipcconnect=initializeIPC(ipcHost);//address);
-        if (ipcconnect) {
-                fprintf(stderr,"Error initializing IPC.\n");
+        if (ipcconnect==-1) {
+                
+                vsc_cleanup(vscInterface);
                 exit(-1);
         }
 
@@ -327,6 +379,7 @@ int main(int argc, char * argv[]) {
                         if (FD_ISSET(vsc_fd, &input)) {
                                 // receive messages //
                                 readVSCMsg();
+                                updateSubscriptions();
                                 clock_gettime(CLOCK_REALTIME, &lastReceived);
                         }
                         else

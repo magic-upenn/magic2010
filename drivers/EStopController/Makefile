@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -g 
 
-INCLUDES = -I./C/include -I$(MAGIC_DIR)/ipc
+INCLUDES = -I./C/include -I$(MAGIC_DIR)/ipc -I./include
 LIBS = -lrt -lipc
 DRIVERS = ./C/*.c
 
