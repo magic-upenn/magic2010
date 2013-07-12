@@ -92,6 +92,9 @@ namespace Upenn
 
     private: void static ServoControllerCmdMsgHandler (MSG_INSTANCE msgRef, 
                                       BYTE_ARRAY callData, void *clientData);
+
+  private: void static VSCControllerMsgHandler (MSG_INSTANCE msgRef,
+                                                BYTE_ARRAY callData, void *clientData);
                                       
     private: int PrintSerialPacket(DynamixelPacket * dpacket);
 
@@ -112,6 +115,7 @@ namespace Upenn
     private: int MasterPacketHandler(DynamixelPacket * dpacket);
     private: int MainControllerPacketHandler(DynamixelPacket * dpacket);
     private: int XbeePacketHandler(DynamixelPacket * dpacket);
+          
     
     private: SerialDevice * sd;
     private: bool connectedSerial;

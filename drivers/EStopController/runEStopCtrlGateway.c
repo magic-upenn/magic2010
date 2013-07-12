@@ -44,11 +44,13 @@
 //*****************
 VscInterfaceType* vscInterface;
 uint16_t vscstatus=0;
+VSCController vsccontroller;
 
-char* gpsMsgName;
-char* heartbeatMsgName;
-char* feedbackMsgName;
-char* joystickMsgName;
+//char* gpsMsgName;
+//char* heartbeatMsgName;
+//char* feedbackMsgName;
+//char* joystickMsgName;
+char* vscMsgName;
 bool connectedIPC=false;
 bool connectedSerial=false;
 
@@ -68,13 +70,16 @@ void exit_handler(int s) {
 //temporary subscription test
 /*****************/
 void JoystickReceiveHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData) {
-        EStopController * esc = (EStopController*)callData;
+        VSCController * esc = (VSCController*)callData;
 
         printf("%i\t%i\t%i\t|\t%i\t%i\t%i\t|\t%u %u %u %u | %u %u %u %u\n",
                esc->leftX,esc->leftY,esc->leftZ,
                esc->rightX,esc->rightY,esc->rightZ,
                esc->bD,esc->bR,esc->bU,esc->bL,
                esc->b1,esc->b2,esc->b3,esc->b4);        
+        printf("Heartbeat: E-Stop: %u, VscMode: %u, AutonomyMode: %u\n",
+               esc->EStopStatus, esc->VSCMode, esc->AutonomyMode);
+
         
         IPC_freeByteArray(callData);
 }
@@ -116,7 +121,6 @@ char* defineMsg(char* msgName, char* format) {
         strcat(name,"/");
         strcat(name,msgName);
 
-        //printf("\n\nCreated new message name string.\n\n");
         // define message name in ipc //
         if  (IPC_defineMsg(name,IPC_VARIABLE_LENGTH,format) != IPC_OK)
                 fprintf(stderr,"Could not define ipc message %s with format %s.\n",name,format);
@@ -126,20 +130,21 @@ char* defineMsg(char* msgName, char* format) {
 int initializeIPCMsgs() {
         
         //gpsMsgName = defineMsg("vscGPS","{double,double}");
-        heartbeatMsgName = defineMsg("vscHeartbeat","{double,double}");
+        //heartbeatMsgName = defineMsg("vscHeartbeat","{ubyte,ubyte,ubyte}");
         //feedbackMsgName = defineMsg("vscControllerFeedback","{double,double}");
-        joystickMsgName = defineMsg("vscJoystick",EStopController_IPC_FORMAT);
+        //joystickMsgName = defineMsg("vscJoystick",EStopController_IPC_FORMAT);
 
-        //printf("Message names: %s, %s, %s, %s\n",gpsMsgName, heartbeatMsgName, feedbackMsgName,joystickMsgName);
+        vscMsgName = defineMsg("VSCController",VSCController_IPC_FORMAT);
+
         return 0;
 }
 
 int initializeIPCSubscribe() {
-        if (IPC_subscribeData(joystickMsgName,JoystickReceiveHandler,NULL)!=IPC_OK) {
-                fprintf(stderr,"Could not subscribe to message %s.\n",joystickMsgName);
+        if (IPC_subscribeData(vscMsgName,JoystickReceiveHandler,NULL)!=IPC_OK) {
+                fprintf(stderr,"Could not subscribe to message %s.\n",vscMsgName);
                 exit(1);
         }
-        printf("Subscribed to message %s.\n",joystickMsgName);
+        printf("Subscribed to message %s.\n",vscMsgName);
         return 0;
 }
 
@@ -208,20 +213,18 @@ void updateSubscriptions() {
 void handleHeartbeatMsg(VscMsgType *recvMsg) {
         //TODO: parse heartbeat message and publish to IPC
         HeartbeatMsgType *msgPtr = (HeartbeatMsgType*) recvMsg->msg.data;
+        
 
-        printf("Heartbeat: E-Stop: %u, VscMode: %u, AutonomyMode: %u\n",
-               msgPtr->EStopStatus, msgPtr->VscMode, msgPtr->AutonomyMode);
+        vsccontroller.EStopStatus=msgPtr->EStopStatus;
+        vsccontroller.VSCMode = msgPtr->VscMode;
+        vsccontroller.AutonomyMode=msgPtr->AutonomyMode;
+
+//        if(publishMsg(vscMsgName,&vsccontroller))
+//                fprintf(stderr,"Heartbeat Message publish failed\n");
 }
 
 void handleGpsMsg(VscMsgType *recvMsg) {
         //TODO: parse GPS message and publish to IPC
-/*        GpsMsgType *msgPtr = (GpsMsgType*) recvMsg->msg.data;
-        char message[100];
-
-        strncpy(message, (char*)msgPtr->data, recvMsg->msg.length-1);
-        message[recvMsg->msg.length-1]='\0';
-        printf("Received GPS Message (0x%x): %s\n",msgPtr->source,message);
-*/
 }
 
 void handleFeedbackMsg(VscMsgType *recvMsg) {
@@ -230,26 +233,25 @@ void handleFeedbackMsg(VscMsgType *recvMsg) {
 
 void handleJoystickMsg(VscMsgType *recvMsg) {
         JoystickMsgType *joyMsg = (JoystickMsgType*) recvMsg->msg.data;
-        EStopController esc;
-                
-        esc.leftX = GET_JOY(joyMsg->leftX);
-        esc.leftY = GET_JOY(joyMsg->leftY);
-        esc.leftZ = GET_JOY(joyMsg->leftZ);
-        esc.rightX = GET_JOY(joyMsg->rightX);
-        esc.rightY = GET_JOY(joyMsg->rightY);
-        esc.rightZ = GET_JOY(joyMsg->rightZ);
+                        
+        vsccontroller.leftX = GET_JOY(joyMsg->leftX);
+        vsccontroller.leftY = GET_JOY(joyMsg->leftY);
+        vsccontroller.leftZ = GET_JOY(joyMsg->leftZ);
+        vsccontroller.rightX = GET_JOY(joyMsg->rightX);
+        vsccontroller.rightY = GET_JOY(joyMsg->rightY);
+        vsccontroller.rightZ = GET_JOY(joyMsg->rightZ);
 
-        esc.bD=GET_BUT(joyMsg->leftSwitch.home);
-        esc.bR=GET_BUT(joyMsg->leftSwitch.first);
-        esc.bU=GET_BUT(joyMsg->leftSwitch.second);
-        esc.bL=GET_BUT(joyMsg->leftSwitch.third);
+        vsccontroller.bD=GET_BUT(joyMsg->leftSwitch.home);
+        vsccontroller.bR=GET_BUT(joyMsg->leftSwitch.first);
+        vsccontroller.bU=GET_BUT(joyMsg->leftSwitch.second);
+        vsccontroller.bL=GET_BUT(joyMsg->leftSwitch.third);
 
-        esc.b1=GET_BUT(joyMsg->rightSwitch.home);
-        esc.b2=GET_BUT(joyMsg->rightSwitch.first);
-        esc.b3=GET_BUT(joyMsg->rightSwitch.second);
-        esc.b4=GET_BUT(joyMsg->rightSwitch.third);
+        vsccontroller.b1=GET_BUT(joyMsg->rightSwitch.home);
+        vsccontroller.b2=GET_BUT(joyMsg->rightSwitch.first);
+        vsccontroller.b3=GET_BUT(joyMsg->rightSwitch.second);
+        vsccontroller.b4=GET_BUT(joyMsg->rightSwitch.third);
 
-        if(publishMsg(joystickMsgName,&esc))
+        if(publishMsg(vscMsgName,&vsccontroller))
                 fprintf(stderr,"Joystick Message publish failed\n");
 }
 

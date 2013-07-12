@@ -14,6 +14,8 @@
 #include <stdlib.h>
 #include <sstream>
 
+#include "../EStopController/include/EStopControllerDataType.h"
+
 using namespace std;
 using namespace Upenn;
 using namespace Magic;
@@ -103,7 +105,7 @@ int MicroGateway::ConnectSerial(char * dev, int baudRate)
   return 0;
 }
 
-
+bool VSC_ON_FLAG=false;
 /////////////////////////////////////////////////////////////////////////
 // Handler function for ipc messages
 /////////////////////////////////////////////////////////////////////////
@@ -116,20 +118,21 @@ void MicroGateway::VelocityCmdMsgHandler(MSG_INSTANCE msgRef,
   MicroGateway * mg      = (MicroGateway *)clientData;
   VelocityCmd * vcmd = (VelocityCmd*)callData;
 
+  if (!VSC_ON_FLAG) {
+          if (vcmd->vCmd > 127)
+                  vcmd->vCmd = 127;
+          else if (vcmd->vCmd < -127)
+                  vcmd->vCmd = -127;
+          
+          if (vcmd->wCmd > 127)
+                  vcmd->wCmd = 127;
+          else if (vcmd->wCmd < -127)
+                  vcmd->wCmd = -127;
 
-  if (vcmd->vCmd > 127)
-    vcmd->vCmd = 127;
-  else if (vcmd->vCmd < -127)
-    vcmd->vCmd = -127;
-
-  if (vcmd->wCmd > 127)
-    vcmd->wCmd = 127;
-  else if (vcmd->wCmd < -127)
-    vcmd->wCmd = -127;
-
-  //filter
-  mg->vCmdPrev = vcmd->vCmd;
-  mg->wCmdPrev = vcmd->wCmd;
+          //filter
+          mg->vCmdPrev = vcmd->vCmd;
+          mg->wCmdPrev = vcmd->wCmd;
+  }
 
 /*
   uint8_t cmd[] = {vcmd->vCmd, vcmd->wCmd,0,0};
@@ -202,6 +205,30 @@ void MicroGateway::XbeeForwardMsgHandler(MSG_INSTANCE msgRef,
   IPC_freeByteArray(callData);
 }
 
+void MicroGateway::VSCControllerMsgHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData) {
+        VSCController *vc=(VSCController*)callData;
+        MicroGateway * mg = (MicroGateway *)clientData;
+        if (vc->EStopStatus==0)
+                VSC_ON_FLAG=true;
+        else
+                VSC_ON_FLAG=false;
+
+        if (VSC_ON_FLAG) {
+                mg->vCmdPrev=vc->rightX/6;
+                mg->wCmdPrev=vc->rightY/6;
+
+                if (mg->vCmdPrev>127)
+                        mg->vCmdPrev=127;
+                else if(mg->vCmdPrev<-127)
+                        mg->vCmdPrev=-127;
+
+                if (mg->wCmdPrev>127)
+                        mg->wCmdPrev=127;
+                else if(mg->wCmdPrev<-127)
+                        mg->wCmdPrev=-127;
+        }
+        IPC_freeByteArray(callData);
+}
 
 void MicroGateway::ServoControllerCmdMsgHandler (MSG_INSTANCE msgRef, 
                                       BYTE_ARRAY callData, void *clientData)
@@ -344,6 +371,10 @@ int MicroGateway::InitializeMessages()
   this->xbeeMsgName          = this->DefineMsg("XbeeIncoming","");
 
 
+//  this ->vscjoystickMsgName = this->DefineMsg("vscJoystick",
+//                                           "{int,int,int,int,int,int,ubyte,ubyte,ubyte,ubyte,ubyte,ubyte,ubyte,ubyte}");
+//  this ->vscestopMsgName = this->DefineMsg("vscEStop","{ubyte,ubyte,ubyte}");
+
   string msgName = this->robotName + "/" + "VelocityCmd";
   if (IPC_subscribeData(msgName.c_str(),this->VelocityCmdMsgHandler,this) != IPC_OK)
   {
@@ -381,6 +412,15 @@ int MicroGateway::InitializeMessages()
   {
     PRINT_ERROR("could not subscribe to IPC message\n");
     exit(1);
+  }
+  PRINT_INFO("Subscribed to message "<<msgName<<"\n");
+  
+
+// New Estop controller message subscriptions
+  msgName = this->robotName + "/" + "VSCController";
+  if (IPC_subscribe(msgName.c_str(),this->VSCControllerMsgHandler,this) != IPC_OK) {
+          PRINT_ERROR("could not subscribe to IPC message\n");
+          exit(1);
   }
   PRINT_INFO("Subscribed to message "<<msgName<<"\n");
 
