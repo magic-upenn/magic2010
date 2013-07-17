@@ -1,0 +1,11 @@
+in order to map the device from /dev/input/event* to /dev/powermate, do the following:
+
+- create a file 90-udev-custom.rules in /etc/udev/rules.d
+- add the following line to it and save
+  KERNEL=="event*", SUBSYSTEMS=="input", ATTRS{name}=="Griffin PowerMate", NAME="powermate", MODE="0777"
+
+- run "sudo udevadm control --reload-rules" to update the rules
+- unplug the device and plug back in. it should appear as /dev/powermate
+
+
+to get properties of the device, run udevadm info -a --path=$(udevadm info -q path -n /dev/input/event6) 

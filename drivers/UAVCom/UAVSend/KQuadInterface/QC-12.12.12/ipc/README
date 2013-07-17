@@ -1,0 +1,62 @@
+Written by Aleksandr Kushleyev <kushlik(at)gmail(dot)com>
+December, 2008
+
+Thanks to Dr. Daniel D. Lee (the structure of code is based
+on his spreadAPI interface)
+
+This directory contains code to embed IPC into Matlab:
+
+ipcAPI.mex*: Mex file containing low-level calls to ipc API.
+	Typically should not be called directly
+
+ipcAPIConnect(hostname=localhost)
+  connect to central, located on same or other machine.
+  Location is specified by the hostname string
+
+ipcAPIDisconnect()
+  disconnect from central
+
+ipcAPIDefine(msg_name)
+  define message - each message must be defined at least once
+  across all processes or computers. Re-definition does not hurt
+
+ipcAPIPublish(msg_name,msg)
+  publish an arbitrary message. this message must be defined
+  or else an error will be thrown
+  
+ipcAPISubscribe(msg_name)
+  subscribe to a message
+
+ipcAPIUnsubscribe(msg_name)
+  unsubscribe from a message
+
+ipcAPIReceive(timout_ms=1)
+  receive the oldest message. Internally, the way this works is 
+  the following: ipcAPI has a local queue - if it is empty,
+  ipcAPI will try to receive messages from IPC with a
+  *specified timeout*, put them in the local queue. If the queue 
+  is already non-empty, ipcAPI will check if there are any messages 
+  waiting at the central and receive them, but with *timeout=0* 
+  (will not block). Then, once all new messages have been received, 
+  ipcAPI will return the oldest message. For efficiency, the queue
+  only stores pointers to data, received by IPC and only copies the
+  data when Matlab requests it. Only then, the pointers are freed.
+
+ipcAPIFlushLocalQueue
+  Flush the local queue by freeing the pointers stored in the queue.
+  This will get rid of all the data that was received by IPC, but
+  not returned to Matlab.
+  
+
+ipc needs aprocess called "central" running on one machine -
+it manages all the messages. Just type "central" to start it.
+"central -s" for silent mode
+
+
+Example using Matlab calls is in test_ipc.m
+
+To serialize/deserialize Matlab variables into uint8 arrays,
+s = serialize(x);
+x = deserialize(s);
+
+
