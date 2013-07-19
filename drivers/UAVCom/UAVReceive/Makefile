@@ -1,11 +1,11 @@
-INCS := `pkg-config --cflags opencv`
-LIBS := -ljpeg -pthread `pkg-config --libs opencv`
+INCS := `pkg-config --cflags opencv` -I$(MAGIC_DIR)/ipc
+LIBS := -L$(MAGIC_DIR)/ipc -ljpeg -pthread `pkg-config --libs opencv`
 
 APRIL_PATH := ${MAGIC_DIR}/drivers/Vision/apriltags/build/lib/pkgconfig
 
 C_FLAGS := -O3 -Wall
 CXX_FLAGS := -O3 -Wall `PKG_CONFIG_PATH=${APRIL_PATH} pkg-config --cflags apriltags`
-LD_FLAGS := `PKG_CONFIG_PATH=${APRIL_PATH} pkg-config --libs apriltags` `pkg-config --libs opencv` 
+LD_FLAGS := `PKG_CONFIG_PATH=${APRIL_PATH} pkg-config --libs apriltags` `pkg-config --libs opencv` -lipc 
 SOURCES=receive_data apriltagDetect
 
 all: $(SOURCES) 
