@@ -6,7 +6,7 @@
 #include "jpeg_decompress.h"
 #include "imgproc.h"
 
-#define UDP_HOST "192.168.10.110"
+#define UDP_HOST "192.168.10.132"
 #define UDP_PORT 12345
 
 int main(int argc, char **argv)
@@ -19,6 +19,7 @@ int main(int argc, char **argv)
   struct timespec ts1, ts2;
   uint32_t count = 0;
   double dt_acc = 0;
+	printf("connected!\n"); 
   while(1)
   {
     UdpReceiveGetPackets(udp_packets);
@@ -28,7 +29,7 @@ int main(int argc, char **argv)
       clock_gettime(CLOCK_MONOTONIC, &ts2);
       double dt = (ts2.tv_sec - ts1.tv_sec)*1000 + (ts2.tv_nsec - ts1.tv_nsec)/1e6;
       dt_acc += dt;
-      //printf("dt: %f ms\n", dt);
+      printf("dt: %f ms\n", dt);
       clock_gettime(CLOCK_MONOTONIC, &ts1);
       //parse imu data
       //decompress image data

@@ -29,7 +29,9 @@ static size_t maxQueueLength = DEF_MAX_QUEUE_LENGTH;
 pthread_t udpThread;
 pthread_mutex_t udpMutex = PTHREAD_MUTEX_INITIALIZER;
 list<UdpPacket> packets;
-
+/*
+ * Function to connect to a destination from the sending side
+ */
 int UdpConnectSend(const char * address, int port)
 {
   if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
@@ -52,6 +54,9 @@ int UdpConnectSend(const char * address, int port)
 
   return 0;
 }
+/*
+ * Function to connect to a source from the receiving side
+ */
 
 int UdpConnectReceive(const char * address, int port)
 {
@@ -92,7 +97,9 @@ int UdpConnectReceive(const char * address, int port)
 
   return 0;
 }
-
+ /*
+ * Function to disconnect to a source from the receiving side
+ */ 
 int UdpDisconnectReceive()
 {
   if (threadRunning)
@@ -109,7 +116,9 @@ int UdpDisconnectReceive()
   return 0;
 }
 
-
+/*
+ * Function to send data across a previously established link 
+ */
 int UdpSend(uint8_t * data, int size)
 {
   if (size > UDP_MAX_BUF_LEN)
@@ -125,6 +134,9 @@ int UdpSend(uint8_t * data, int size)
   }
   return 0;
 }
+/*
+ * Function to receive data across a previously established link 
+ */
 
 int UdpReceive(uint8_t * data, int * size)
 {
@@ -179,7 +191,9 @@ static void * UdpReceiveThreadFunc(void * input)
 
   return NULL;
 }
-
+/*
+ * Function to receive multiple packets 
+ */
 int UdpReceiveGetPackets(list<UdpPacket> & packets_out)
 {
   packets_out.clear();
