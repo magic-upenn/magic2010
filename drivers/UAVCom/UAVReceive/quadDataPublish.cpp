@@ -11,8 +11,8 @@
 #include "jpeg_decompress.h"
 #include "imgproc.h"
 
-#define UDP_HOST "192.168.10.110"
-#define UDP_PORT 12347
+#define UDP_HOST "192.168.10.132"
+#define UDP_PORT 12345
 
 using namespace std;
 
@@ -33,7 +33,7 @@ using namespace std;
 #include "ipc.h"
 
 #define QUAD_IMU_FORMAT "{double,double,double,double,double,double}"
-#define QUAD_IMG_FORMAT "{int,int,int,<ubyte: 3>}"
+#define QUAD_IMG_FORMAT "{int,int,int,int,<ubyte: 4>}"
 
 #ifndef PI
 const double PI = 3.1459265358979323846;
@@ -47,7 +47,7 @@ typedef struct QuadIMU {
 typedef struct QuadImg {
         int width;
         int height;
-        int dim;
+  int dim;
         uint8_t* image;
 } QuadImg;
 
@@ -74,8 +74,8 @@ int main(int argc, char* argv[]) {
         uint32_t count = 0;
         double dt_acc = 0;
 
-        QuadIMU *imu;
-        QuadImg *img;
+        QuadIMU imu;
+        QuadImg img;
 //set up IPC 
         /*
         IPC_setVerbosity(IPC_Print_Errors);
@@ -100,35 +100,53 @@ int main(int argc, char* argv[]) {
         }
 */
 
+	//float* imuvals[12];
         while(1) {
-                //IPC_listen(0);
-                UdpReceiveGetPackets(udp_packets);
-                //if(udp_packets.end() != udp_packets.begin()) {
-                //        printf("Entered if\n");
-                        for(std::list<UdpPacket>::iterator it = udp_packets.begin(); it != udp_packets.end(); it++) { 
-                                count++;
-                                //parse imu data
-                                //imu->t=(float)it->data[0];
-                                imu->roll=(float)it->data[4];
-                                printf("roll: %f\n",imu->roll);
-                                /*
-                                imu->pitch=*(float)it->data[8];
-                                imu->yaw=*(float*)it->data[12];
-                                imu->wroll=*(float*)it->data[16];
-                                imu->wpitch=*(float*)it->data[20];
-                                imu->wyaw=*(float*)it->data[24];
-                                imu->ax=*(float*)it->data[28];
-                                imu->ay=*(float*)it->data[32];
-                                imu->az=*(float*)it->data[36];
-                                imu->p=*(float*)it->data[40];
-                                */
-                                //decompress image data
-                                jpeg_decompress(&(it->data[12*4]), it->data.size(), &image, &width, &height, &channels);
-                        }
-                        //}
-                        //else {
-                        //printf("no packets received\n");
-                        //}
-                
+	  //IPC_listen(0);
+	  UdpReceiveGetPackets(udp_packets);
+	  //if(udp_packets.end() != udp_packets.begin()) {
+	  //        printf("Entered if\n");
+	  for(std::list<UdpPacket>::iterator it = udp_packets.begin(); it != udp_packets.end(); it++) { 
+	    count++;
+	    //parse imu data
+	    //for (int i=0;i<4*11;i++) {
+	    //  imuvals[i]=&(it->data[i*4]);
+				//}
+	    int i=0;
+	    imu.t=*(float*)(&(it->data[4*i++]));
+	    imu.roll=*(float*)(&(it->data[4*i++]));
+	    imu.pitch=*(float*)(&(it->data[4*i++]));
+	    imu.yaw=*(float*)(&(it->data[4*i++]));
+	    imu.wroll=*(float*)(&(it->data[4*i++]));
+	    imu.wpitch=*(float*)(&(it->data[4*i++]));
+	    imu.wyaw=*(float*)(&(it->data[4*i++]));
+	    imu.ax=*(float*)(&(it->data[4*i++]));
+	    imu.ay=*(float*)(&(it->data[4*i++]));
+	    imu.az=*(float*)(&(it->data[4*i++]));
+	    imu.p=*(float*)(&(it->data[4*i++]));
+	    /*
+	    printf("%f %f %f %f %f %f %f %f %f %f %f\n",
+		   imu.t,
+		   imu.roll,imu.pitch,imu.yaw,
+		   imu.wroll,imu.wpitch,imu.wyaw,
+		   imu.ax,imu.ay,imu.az,
+		   imu.p);
+	    */
+	    //decompress image data
+	    jpeg_decompress(&(it->data[12*4]),
+			    it->data.size(),
+			    &image,
+			    &(img.width),
+			    &(img.height),
+			    &channels);
+	    
+	    img.image=(uint8_t*)malloc(img.width*img.height);
+	    memcpy(img.image,image,img.width*img.height);
+	    if (channels == 1)
+	      imgproc((uint8_t*)img.image,img.width,img.height);
+	    else
+	      printf("Expecting monochrome image, got image with channels = %d\n", channels);
+	    free(img.image);
+	  }
         } 
 }
