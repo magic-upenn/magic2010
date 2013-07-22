@@ -40,7 +40,7 @@ while(1)
         rot=reshape(rot,3,3)';
         
         
-        
+
 %{
         switch name
             case 'KeyPress'
