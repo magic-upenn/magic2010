@@ -17,9 +17,20 @@
 #include "AprilTags/TagDetector.h"
 #include "AprilTags/Tag36h11.h"
 
-#include "ipc.h"
-#include "quad_ipc_datatypes.h"
+#include "imgproc.h"
 
+#include "ipc.h"
+#include "quad_ipc_datatypes.h" 
+
+#ifndef PI
+const double PI = 3.14159265358979323846;
+#endif
+const double TWOPI = 2.0*PI;
+
+
+void print_detection(AprilTags::TagDetection detection, AprilInfo* info);
+const char* window_name = "Quad-April Test";
+bool go_home = false;
 
 //////////////////////////////////////////////////////////////////
 ////////    functions
@@ -39,7 +50,7 @@ double tic() {
  */
 inline double standardRad(double t){
 	if(t>+0.0){
-		t=fomd(t+PI, TWOPI)-PI;
+		t=fmod(t+PI, TWOPI)-PI;
 	} else {
 		t=fmod(t-PI, -TWOPI) + PI;
 	}
@@ -52,21 +63,81 @@ inline double standardRad(double t){
 void AprilInfoHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData) {
 	AprilInfo *info = (AprilInfo*)callData;
 	printf("got april info:");
-	printf("id=%d, dist=%f, x=%f, y=%f, z=%f, yaw=%f, pitch=%f, roll=%f, dt=%f\n", info->id, info->distance, info->x, info->y, info->z, info->yaw, info->pitch, info->roll, info->dt);
+	printf("id=%d, dist=%f, x=%f, y=%f, z=%f, yaw=%f, pitch=%f, roll=%f, dt=%f rot=", info->id, info->distance, info->x, info->y, info->z, info->yaw, info->pitch, info->roll, info->t);
+	for(int i=0; i<9; i++)
+		printf(" %f", info->rot[i]);
+	printf("\n");
 	IPC_freeByteArray(callData);
 }
 
-//TODO
 /*
- * function to subscribe to IPC to get images
+ * function used to handle image info received over IPC
  */
-void ImageHandler( MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData) {
+void QuadImageHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData) {
+        QuadImg* image=(QuadImg*)callData;
+	AprilInfo *info = (AprilInfo*)clientData;
+
+	//set up april tags variables			
+	bool m_draw = false;
+	AprilTags::TagCodes m_tagCodes = AprilTags::tagCodes36h11;
+	AprilTags::TagDetector* m_tagDetector = new AprilTags::TagDetector(m_tagCodes);
+
+        if (image!=NULL) {
+          if (image->image != NULL) {
+		//imgproc(image->image,image->width,image->height);
 	
+	    //create cv::Mat from image data
+	    cv::Mat image_m(cv::Size(image->width, image->height), CV_8UC1, const_cast<uint8_t*>(image->image), image->width);
+
+	    //Detect Tags 
+	    int frame = 0;
+	    double last_t = tic();
+	    vector<AprilTags::TagDetection> detections = m_tagDetector->extractTags(image_m);
+
+	    // print out each detection
+	    for (int i=0; i<detections.size(); i++) {
+		    print_detection(detections[i],info);
+	    }
+
+	    // show the current image including any detections
+	    if (m_draw) {
+		    for (int i=0; i<detections.size(); i++) {
+			    // also highlight in the image
+			    detections[i].draw(image_m);
+		    }
+		    cv::imshow(window_name, image_m); // OpenCV call
+	    }
+
+	    //Publish AprilInfo to IPC
+	    if(IPC_publishData("Quad1/AprilInfo",info) != IPC_OK)
+	    {
+		    printf("Error publishing\n");
+		    exit(1);
+	    }
+
+	    //calculate fps and other timing stuff
+	    if (frame % 10 == 0) {
+		    double t = tic();
+		    //cout << "  " << 10./(t-last_t) << " fps" << endl;
+		    last_t = t;
+	    }
+
+	    // exit if any key is pressed
+	    if (cv::waitKey(1) >= 0) go_home = true;
+
+	  }
+
+        }
+
+
+
+        IPC_freeByteArray(callData);
+}
 
 /*
  *convert from Rotation wRo to Euler Angles
  */
-void wRo_to_euler(const Eigen::Matrix3d& wRo, double& yaw double& pitch, double& roll) {
+void wRo_to_euler(const Eigen::Matrix3d& wRo, double& yaw, double& pitch, double& roll) {
 	yaw = standardRad(atan2(wRo(1,0), wRo(0,0)));
     	double c = cos(yaw);
     	double s = sin(yaw);
@@ -106,6 +177,7 @@ void wRo_to_euler(const Eigen::Matrix3d& wRo, double& yaw double& pitch, double&
       0,  -1,  0,
       0,  0,  1;
     Eigen::Matrix3d fixed_rot = F*rotation;
+    double rot_m[9] = {fixed_rot(0,0), fixed_rot(0,1), fixed_rot(0,2), fixed_rot(1,0), fixed_rot(1,1), fixed_rot(1,2), fixed_rot(2,0), fixed_rot(2,1), fixed_rot(2,2)};
     double yaw, pitch, roll;
     wRo_to_euler(fixed_rot, yaw, pitch, roll);
     /*
@@ -120,7 +192,7 @@ void wRo_to_euler(const Eigen::Matrix3d& wRo, double& yaw double& pitch, double&
     */
     //prepare info for ipc
     info->id=(uint8_t)detection.id;
-    info->dt=0;
+    info->t=0;
     info->x=translation(0);
     info->y=translation(1);
     info->z=translation(2);
@@ -128,6 +200,15 @@ void wRo_to_euler(const Eigen::Matrix3d& wRo, double& yaw double& pitch, double&
     info->pitch=pitch;
     info->roll=roll;
     info->distance=translation.norm();
+    info->rot[0]=fixed_rot(0,0);
+    info->rot[1]=fixed_rot(0,1);
+    info->rot[2]=fixed_rot(0,2);
+    info->rot[3]=fixed_rot(1,0);
+    info->rot[4]=fixed_rot(1,1);
+    info->rot[5]=fixed_rot(1,2);
+    info->rot[6]=fixed_rot(2,0);
+    info->rot[7]=fixed_rot(2,1);
+    info->rot[8]=fixed_rot(2,2);
 
     // Also note that for SLAM/multi-view application it is better to
     // use reprojection error of corner points, because the noise in
@@ -136,10 +217,16 @@ void wRo_to_euler(const Eigen::Matrix3d& wRo, double& yaw double& pitch, double&
   }
 
 
-/*
- * function to set up necessary varibles for ipc and apriltags
- */
-void setup(){
+/////////////////////////////////////////////////////////////////////////////////
+///////////      Main Function                                            ///////
+/////////////////////////////////////////////////////////////////////////////////
+int main(int argc, char** argv)
+{
+
+       cv::namedWindow( window_name, CV_WINDOW_AUTOSIZE);
+
+
+	//setup the environment for ipc and Apriltags
 	//set up IPC 
 	AprilInfo info;
 	IPC_setVerbosity(IPC_Print_Errors);
@@ -151,76 +238,19 @@ void setup(){
                 printf("ERROR defining message\n");
                 exit(1);
         }
-	if (IPC_subscribeData("Quad1/AprilInfo",AprilInfoHandler,NULL) != IPC_OK) {
+	if (IPC_subscribeData("Quad1/Image",QuadImageHandler,&info) != IPC_OK) {
                 printf("Error subscribing\n");
                 exit(1);
         }
-
-       //set up april tags variables
-       bool m_draw = true;
-       AprilTags::TagCodes m_tagCodes = AprilTags::tagCodes36h11;
-       AprilTags::TagDetector* m_tagDetector = new AprilTags::TagDetector(m_tagCodes);
-       const char* window_name = "Quad-April Test";
-       cv::namedWindow( window_name, CV_WINDOW_AUTOSIZE);
-
-
-}
-
-void loop(){
-	while(1){
-		IPC_listen(0);
-
-		//create cv::Mat from image data
-            	cv::Mat image_m(cv::Size(width, height), CV_8UC1, const_cast<uint8_t*>(image), width);
-
-	    	//Detect Tags 
-	    	int frame = 0;
-	    	double last_t = tic();
-            	vector<AprilTags::TagDetection> detections = m_tagDetector->extractTags(image_m);
-	    
-            	// print out each detection
-           	for (int i=0; i<detections.size(); i++) {
-                	print_detection(detections[i],&info);
-            	}
-
-      	 	// show the current image including any detections
-     	 	if (m_draw) {
-            		for (int i=0; i<detections.size(); i++) {
-            			// also highlight in the image
-            			detections[i].draw(image_m);
-            		}
-            	cv::imshow(window_name, image_m); // OpenCV call
-     	 	}
-
-		//Publish AprilInfo to IPC
-		if(IPC_publishData("Quad1/AprilInfo",&info) != IPC_OK)
-    		{
-        		printf("Error publishing\n");
-	 		exit(1);
-    		}
-
-		//calculate fps and other timing stuff
-      		if (frame % 10 == 0) {
-          		double t = tic();
-          		//cout << "  " << 10./(t-last_t) << " fps" << endl;
-          		last_t = t;
-      		}
-
-     		// exit if any key is pressed
-      		if (cv::waitKey(1) >= 0) break;
-      	}
-}
-		
-
-
-
-/////////////////////////////////////////////////////////////////////////////////
-///////////      Main Function                                            ///////
-/////////////////////////////////////////////////////////////////////////////////
-int main(int argc, char* argv)
-{
-	//setup the environment for ipc and Apriltags
-	setup();
+	if ( IPC_subscribeData("Quad1/AprilInfo",AprilInfoHandler, NULL) != IPC_OK) {
+		printf("Error subscribing\n");
+		exit(1);
+	}
+       
+	
+	
 	//continuously grab image from IPC, process, and publish data back to ipc
-	loop();
+	while(!go_home){
+		IPC_listen(0);
+      	}
 }
