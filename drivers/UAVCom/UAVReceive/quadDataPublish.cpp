@@ -27,10 +27,11 @@ using namespace std;
 
 //ipc
 #include "ipc.h"
+#include "quad_ipc_datatypes.h"
 
 //definitions
-#define QUAD_IMU_FORMAT "{double,double,double,double,double,double}"
-#define QUAD_IMG_FORMAT "{int,int,int,int,<ubyte: 4>}"
+//#define QUAD_IMU_FORMAT "{double,double,double,double,double,double}"
+//#define QUAD_IMG_FORMAT "{int,int,int,int,<ubyte: 4>}"
 
 
 #define DEBUG_FLAG 1
@@ -40,18 +41,6 @@ const double PI = 3.1459265358979323846;
 #endif
 const double TWOPI = 2.0*PI;
 
-
-// IPC publish structures
-typedef struct QuadIMU {
-        float t,roll,pitch,yaw,wroll,wpitch,wyaw,ax,ay,az,p;
-} QuadIMU;
-
-typedef struct QuadImg {
-        int width;
-        int height;
-        int dim;
-        uint8_t* image;
-} QuadImg;
 
 // utility function to provide current system time (used below in
 // determining frame rate at which images are being processed)
@@ -65,7 +54,11 @@ double tic() {
 //debugging handler for IPC publications and subscriptions
 void QuadImageHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData) {
         QuadImg* img=(QuadImg*)callData;
-        imgproc((uint8_t*)img->image,img->width,img->height); 
+	if (img!=NULL) {
+	  if (img->image != NULL) {
+	    imgproc(img->image,img->width,img->height); 
+	  }
+	}
         IPC_freeByteArray(callData);
 }
 
@@ -77,9 +70,9 @@ int publishMsg(char *msgName, void *data) {
 }
 
 char* defineMsg(char * msgName, char *format) {
-        if (IPC_publishData(msgName,IPC_VARIABLE_LENGTH,data) != IPC_OK)
-                return -1;
-        return 0;
+        if (IPC_defineMsg(msgName,IPC_VARIABLE_LENGTH,format) != IPC_OK)
+                return msgName;
+        return msgName;
 }
 
 void ipcConnect() {
@@ -145,19 +138,28 @@ int main(int argc, char* argv[]) {
                         //decompress image data
                         jpeg_decompress(&(it->data[12*4]),
                                         it->data.size(),
-                                        &image,
-                                        &(img.width),
-                                        &(img.height),
+                                        &(image),
+                                        &(width),
+                                        &(height),
                                         &channels);
-	    
+			img.width=width;
+			img.height=height;
+			img.dim=width*height;
+
                         img.image=(uint8_t*)malloc(img.width*img.height);
                         memcpy(img.image,image,img.width*img.height);
-                        /*
+	 
+			if (image == NULL)
+			  printf("original image is null\n");
+			else if(img.image == NULL)
+			  printf("memcpy didn't do its job\n");
+
+			/*
                           if (channels == 1)
-                          imgproc((uint8_t*)img.image,img.width,img.height);
+			    imgproc(img.image,img.width,img.height);
                           else
                           printf("Expecting monochrome image, got image with channels = %d\n", channels);
-                        */
+			*/
                         if (channels == 1) {
                                 publishMsg("Quad1/IMU",&imu);
                                 publishMsg("Quad1/Image",&img);
