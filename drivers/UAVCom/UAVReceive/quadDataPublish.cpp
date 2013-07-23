@@ -11,7 +11,7 @@
 #include "jpeg_decompress.h"
 #include "imgproc.h"
 
-#define UDP_HOST "192.168.10.110"
+#define UDP_HOST "127.0.0.1"
 #define UDP_PORT 12345
 
 using namespace std;
