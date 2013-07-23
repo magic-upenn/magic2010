@@ -64,8 +64,8 @@ void AprilInfoHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData
 	AprilInfo *info = (AprilInfo*)callData;
 	printf("got april info:");
 	printf("id=%d, dist=%f, x=%f, y=%f, z=%f, yaw=%f, pitch=%f, roll=%f, dt=%f rot=", info->id, info->distance, info->x, info->y, info->z, info->yaw, info->pitch, info->roll, info->t);
-	for(int i=0; i<9; i++)
-		printf(" %f", info->rot[i]);
+	//for(int i=0; i<9; i++)
+	//	printf(" %f", info->rot[i]);
 	printf("\n");
 	IPC_freeByteArray(callData);
 }
@@ -84,7 +84,7 @@ void QuadImageHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData
 
         if (image!=NULL) {
           if (image->image != NULL) {
-		//imgproc(image->image,image->width,image->height);
+	    //imgproc(image->image,image->width,image->height);
 	
 	    //create cv::Mat from image data
 	    cv::Mat image_m(cv::Size(image->width, image->height), CV_8UC1, const_cast<uint8_t*>(image->image), image->width);
