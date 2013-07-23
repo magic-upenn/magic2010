@@ -6,7 +6,7 @@
 #include "jpeg_decompress.h"
 #include "imgproc.h"
 
-#define UDP_HOST "192.168.10.132"
+#define UDP_HOST "127.0.0.1"
 #define UDP_PORT 12345
 
 int main(int argc, char **argv)
@@ -23,6 +23,9 @@ int main(int argc, char **argv)
         while(1)
                 {
                         UdpReceiveGetPackets(udp_packets);
+                        if (udp_packets.begin()==udp_packets.end())
+                                printf("no packets received\n");
+                      
                         for(std::list<UdpPacket>::iterator it = udp_packets.begin(); it != udp_packets.end(); it++)
                                 {
                                         count++;
@@ -44,10 +47,11 @@ int main(int argc, char **argv)
                                         int N = 10;
                                         if(count % N == 0)
                                                 {
-                                                        printf("dt: %f ms\n", dt_acc/N);
+                                                        //printf("dt: %f ms\n", dt_acc/N);
                                                         count = 0;
                                                         dt_acc = 0;
                                                 }
+                                        printf("received packet\n");
                                 }
                         usleep(1000);
                 }
