@@ -70,12 +70,12 @@ int UdpConnectReceive(const char * address, int port)
   memset(&addr,0,sizeof(addr));
   addr.sin_family = AF_INET;
   addr.sin_addr.s_addr = INADDR_ANY;
-
+/*
   if (strcasecmp(address,"broadcast") == 0)
     addr.sin_addr.s_addr = INADDR_ANY;
   else
     addr.sin_addr.s_addr = inet_addr(address);
-
+*/
   addr.sin_port=htons(port);
 
   if (bind(fd, (struct sockaddr *)&addr, sizeof(struct sockaddr)) == -1)
