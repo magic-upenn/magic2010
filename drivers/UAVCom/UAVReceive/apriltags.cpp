@@ -81,10 +81,10 @@ void QuadImageHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData
 	char* conffile = "out_qc_data.xml";
 	cv::Mat cameraMatrix, distCoeffs;
 	cv::Mat image_und;	
-    cv::FileStorage fs(conffile, FileStorage::READ);
+    cv::FileStorage fs(conffile, cv::FileStorage::READ);
 
 	//set up april tags variables			
-	bool m_draw = false;
+	bool m_draw = true;
 	AprilTags::TagCodes m_tagCodes = AprilTags::tagCodes36h11;
 	AprilTags::TagDetector* m_tagDetector = new AprilTags::TagDetector(m_tagCodes);
 
@@ -117,7 +117,7 @@ void QuadImageHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData
 			    // also highlight in the image
 			    detections[i].draw(image_m);
 		    }
-		    cv::imshow(window_name, image_m); // OpenCV call
+		    cv::imshow(window_name, image_und); // OpenCV call
 	    }
 
 	    //Publish AprilInfo to IPC
@@ -126,7 +126,7 @@ void QuadImageHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData
 		    printf("Error publishing\n");
 		    exit(1);
 	    }
-
+        printf("Published April Info!\n");
 	    //calculate fps and other timing stuff
 	    if (frame % 10 == 0) {
 		    double t = tic();
@@ -256,12 +256,13 @@ int main(int argc, char** argv)
 	if (IPC_subscribeData("Quad1/Image",QuadImageHandler,&info) != IPC_OK) {
                 printf("Error subscribing\n");
                 exit(1);
-        }
-	if ( IPC_subscribeData("Quad1/AprilInfo",AprilInfoHandler, NULL) != IPC_OK) {
+    }
+	/*
+    if ( IPC_subscribeData("Quad1/AprilInfo",AprilInfoHandler, NULL) != IPC_OK) {
 		printf("Error subscribing\n");
 		exit(1);
 	}
-       
+    */ 
 	
 	
 	//continuously grab image from IPC, process, and publish data back to ipc
