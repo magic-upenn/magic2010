@@ -6,7 +6,7 @@
 #include "jpeg_decompress.h"
 #include "imgproc.h"
 
-#define UDP_HOST "127.0.0.1"
+#define UDP_HOST "192.168.10.110"
 #define UDP_PORT 12345
 
 int main(int argc, char **argv)
@@ -23,9 +23,8 @@ int main(int argc, char **argv)
         while(1)
                 {
                         UdpReceiveGetPackets(udp_packets);
-                        if (udp_packets.begin()==udp_packets.end())
+                        if (0)//udp_packets.begin()==udp_packets.end())
                                 printf("no packets received\n");
-                      
                         for(std::list<UdpPacket>::iterator it = udp_packets.begin(); it != udp_packets.end(); it++)
                                 {
                                         count++;
@@ -34,10 +33,10 @@ int main(int argc, char **argv)
                                         dt_acc += dt;
                                         printf("dt: %f ms\n", dt);
                                         clock_gettime(CLOCK_MONOTONIC, &ts1);
-//parse imu data
-//decompress image data
+                                        //parse imu data
+                                        //decompress image data
                                         jpeg_decompress(&(it->data[12*4]), it->data.size(), &image, &width, &height, &channels);
-//printf("width: %d, height: %d\n", width, height);
+                                        //printf("width: %d, height: %d\n", width, height);
 #if 1
                                         if(channels == 1)
                                                 imgproc(image, width, height);

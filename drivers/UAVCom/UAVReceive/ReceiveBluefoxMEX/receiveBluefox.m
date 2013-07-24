@@ -1,4 +1,4 @@
-SetMagicPaths;
+%SetMagicPaths;
 addr = '192.168.10.110';
 port = 12345;
 UdpReceiveAPI('connect',addr,port);
