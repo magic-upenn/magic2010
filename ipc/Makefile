@@ -15,7 +15,7 @@ ipcAPI.$(MEXEXT): ipcAPI.cc
 	cp ipcAPI.$(MEXEXT) ipcAPI4.$(MEXEXT)
 
 ipcWrapperAPI.$(MEXEXT): ipcWrapperAPI.cc IpcWrapper.cc
-	$(MEX) -O $^ -I../include -L../lib -lSerialDevice -lipc #-lipc_nokill
+	$(MEX) -O $^ -I../include -L. -L../lib -lSerialDevice -lipc #-lipc_nokill
 	cp ipcWrapperAPI.$(MEXEXT) ipcWrapperAPI1.$(MEXEXT)
 	cp ipcWrapperAPI.$(MEXEXT) ipcWrapperAPI2.$(MEXEXT)
 	cp ipcWrapperAPI.$(MEXEXT) ipcWrapperAPI3.$(MEXEXT)
