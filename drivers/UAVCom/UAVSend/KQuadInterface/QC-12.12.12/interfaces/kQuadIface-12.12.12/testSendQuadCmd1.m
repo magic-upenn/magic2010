@@ -37,8 +37,10 @@ while(1)
         ypr=typecast(rest(8*3+1:8*6),'double');
         dist=typecast(rest(8*6+1:8*7),'double');
         rot=typecast(rest(8*7+1:end),'double');
-        rot=reshape(rot,3,3)'
+        rot=reshape(rot,3,3)';
         
+        
+
 %{
         switch name
             case 'KeyPress'
