@@ -77,6 +77,12 @@ void QuadImageHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData
         QuadImg* image=(QuadImg*)callData;
 	AprilInfo *info = (AprilInfo*)clientData;
 
+	//Variables for removing the distortion
+	char* conffile = "out_qc_data.xml";
+	cv::Mat cameraMatrix, distCoeffs;
+	cv::Mat image_und;	
+    cv::FileStorage fs(conffile, FileStorage::READ);
+
 	//set up april tags variables			
 	bool m_draw = false;
 	AprilTags::TagCodes m_tagCodes = AprilTags::tagCodes36h11;
@@ -89,10 +95,16 @@ void QuadImageHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData
 	    //create cv::Mat from image data
 	    cv::Mat image_m(cv::Size(image->width, image->height), CV_8UC1, const_cast<uint8_t*>(image->image), image->width);
 
+		//Undistort the image
+		fs["Camera_Matrix"] >> cameraMatrix;
+	    fs["Distortion_Coefficients"] >> distCoeffs;
+
+		cv::undistort(image_m, image_und, cameraMatrix, distCoeffs);
+
 	    //Detect Tags 
 	    int frame = 0;
 	    double last_t = tic();
-	    vector<AprilTags::TagDetection> detections = m_tagDetector->extractTags(image_m);
+	    vector<AprilTags::TagDetection> detections = m_tagDetector->extractTags(image_und);
 
 	    // print out each detection
 	    for (int i=0; i<detections.size(); i++) {
@@ -132,6 +144,9 @@ void QuadImageHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData
 
 
         IPC_freeByteArray(callData);
+		
+		//For the undistortion
+		fs.release();
 }
 
 /*
