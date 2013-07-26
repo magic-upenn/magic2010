@@ -1,3 +1,5 @@
+#include "opencv2/opencv.hpp"
+
 //definitions
 #define QUAD_IMU_FORMAT "{double,double,double,double,double,double}"
 #define QUAD_IMG_FORMAT "{int,int,int,<ubyte: 3>}"
@@ -31,3 +33,8 @@ typedef struct AprilInfo{
 	double rot[9];
 }AprilInfo;
 
+typedef struct QIH_CD {
+    AprilInfo info;
+    cv::Mat cameraMatrix;
+    cv::Mat distCoeffs;
+} QIH_CD;
