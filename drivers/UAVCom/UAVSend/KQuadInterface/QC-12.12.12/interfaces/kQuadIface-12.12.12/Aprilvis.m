@@ -41,6 +41,7 @@ orientation=[[0 0]' [0 0]' [0 .2]'];
 figure(1)
 cla
 axis equal
+grid on
 xlim([-2 2]);
 ylim([-2 2]);
 zlim([-2 2]);
@@ -56,6 +57,7 @@ rotcplot=plot3(pc(:,1),pc(:,2),pc(:,3),'b');
 rotdplot=plot3(pd(:,1),pd(:,2),pd(:,3),'b');
 shaftaplot=plot3(shafta(:,1),shafta(:,2),shafta(:,3),'k-');
 shaftbplot=plot3(shaftb(:,1),shaftb(:,2),shaftb(:,3),'k-');
+ploto=plot3(orientation(:,1),orientation(:,2),orientation(:,3),'k-');
 
 
 %% inifinite loop
@@ -73,7 +75,7 @@ while(1)
         ypr=typecast(rest(8*3+1:8*6),'double');
         dist=typecast(rest(8*6+1:8*7),'double');
         rot=typecast(rest(8*7+1:end),'double');
-        rot=reshape(rot,3,3);
+        rot=reshape(rot,3,3)';
         
         %% reorient xyz from april tag
         Rq=[0 0 -1; ...
@@ -85,7 +87,7 @@ while(1)
             0 0 1];
         
         pos=Rq*pos1';
-        
+        %rot=[1 0 0; 0 1 0; 0 0 1];
         %% reorient plots
         trotaplot=rot*rotaplot';
         trotbplot=rot*rotbplot';
@@ -93,6 +95,7 @@ while(1)
         trotdplot=rot*rotdplot';
         tshafta=rot*shafta';
         tshaftb=rot*shaftb';
+        torientation=rot*orientation';
         
         tpa=rot*pa';
         tpb=rot*pb';
@@ -106,10 +109,11 @@ while(1)
         set(rotdplot,'XData',tpd(1,:)+pos(1),'YData',tpd(2,:)+pos(2),'ZData',tpd(3,:)+pos(3))
         set(shaftaplot,'XData',tshafta(1,:)+pos(1),'YData',tshafta(2,:)+pos(2),'ZData',tshafta(3,:)+pos(3))
         set(shaftbplot,'XData',tshaftb(1,:)+pos(1),'YData',tshaftb(2,:)+pos(2),'ZData',tshaftb(3,:)+pos(3))
-        drawnow
+        set(ploto,'XData',torientation(1,:)+pos(1),'YData',torientation(2,:)+pos(2),'ZData',torientation(3,:)+pos(3))
+        %drawnow
     end
     
-  trpy = [thrust roll pitch yaw];
+  %trpy = [thrust roll pitch yaw];
   
   %KQUAD.driver('SendQuadCmd1',KQUAD.id, KQUAD.chan, KQUAD.type, trpy);
   %fprintf('Sending to channel %i, id %i, type %i\n',KQUAD.chan,KQUAD.id,KQUAD.type);
