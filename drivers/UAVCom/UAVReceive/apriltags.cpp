@@ -257,12 +257,10 @@ int main(int argc, char** argv)
                 printf("Error subscribing\n");
                 exit(1);
     }
-	/*
     if ( IPC_subscribeData("Quad1/AprilInfo",AprilInfoHandler, NULL) != IPC_OK) {
 		printf("Error subscribing\n");
 		exit(1);
 	}
-    */ 
 	
 	
 	//continuously grab image from IPC, process, and publish data back to ipc
