@@ -1,4 +1,0 @@
-/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles/apriltags.dir
-/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/example/CMakeFiles/apriltags_demo.dir
-/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/example/CMakeFiles/imu.dir
-/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles/tmp.dir
