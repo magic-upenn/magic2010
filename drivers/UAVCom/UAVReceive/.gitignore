@@ -3,3 +3,5 @@ quadDataPublish
 apriltags
 *.o
 *~
+*.swp
+
