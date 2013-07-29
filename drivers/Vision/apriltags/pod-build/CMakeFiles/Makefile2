@@ -43,11 +43,14 @@ CMAKE_COMMAND = /usr/bin/cmake
 # The command to remove a file.
 RM = /usr/bin/cmake -E remove -f
 
+# Escaping for special characters.
+EQUALS = =
+
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/james/magic2010/drivers/Vision/apriltags
+CMAKE_SOURCE_DIR = /home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/james/magic2010/drivers/Vision/apriltags/pod-build
+CMAKE_BINARY_DIR = /home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build
 
 #=============================================================================
 # Target rules for target CMakeFiles/apriltags.dir
@@ -56,7 +59,7 @@ CMAKE_BINARY_DIR = /home/james/magic2010/drivers/Vision/apriltags/pod-build
 CMakeFiles/apriltags.dir/all:
 	$(MAKE) -f CMakeFiles/apriltags.dir/build.make CMakeFiles/apriltags.dir/depend
 	$(MAKE) -f CMakeFiles/apriltags.dir/build.make CMakeFiles/apriltags.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/james/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles  1 2 3 4 5 6 7 8 9 10 11 12 13 14
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles  1 2 3 4 5 6 7 8 9 10 11 12 13 14
 	@echo "Built target apriltags"
 .PHONY : CMakeFiles/apriltags.dir/all
 
@@ -66,9 +69,9 @@ all: CMakeFiles/apriltags.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/apriltags.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/james/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles 14
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles 14
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/apriltags.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/james/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles 0
 .PHONY : CMakeFiles/apriltags.dir/rule
 
 # Convenience name for target.
@@ -91,15 +94,15 @@ clean: CMakeFiles/apriltags.dir/clean
 CMakeFiles/tmp.dir/all:
 	$(MAKE) -f CMakeFiles/tmp.dir/build.make CMakeFiles/tmp.dir/depend
 	$(MAKE) -f CMakeFiles/tmp.dir/build.make CMakeFiles/tmp.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/james/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles 
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles 
 	@echo "Built target tmp"
 .PHONY : CMakeFiles/tmp.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/tmp.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/james/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/tmp.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/james/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles 0
 .PHONY : CMakeFiles/tmp.dir/rule
 
 # Convenience name for target.
@@ -139,7 +142,7 @@ example/preinstall:
 example/CMakeFiles/apriltags_demo.dir/all: CMakeFiles/apriltags.dir/all
 	$(MAKE) -f example/CMakeFiles/apriltags_demo.dir/build.make example/CMakeFiles/apriltags_demo.dir/depend
 	$(MAKE) -f example/CMakeFiles/apriltags_demo.dir/build.make example/CMakeFiles/apriltags_demo.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/james/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles  15 16
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles  15 16
 	@echo "Built target apriltags_demo"
 .PHONY : example/CMakeFiles/apriltags_demo.dir/all
 
@@ -149,9 +152,9 @@ all: example/CMakeFiles/apriltags_demo.dir/all
 
 # Build rule for subdir invocation for target.
 example/CMakeFiles/apriltags_demo.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/james/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles 16
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles 16
 	$(MAKE) -f CMakeFiles/Makefile2 example/CMakeFiles/apriltags_demo.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/james/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles 0
 .PHONY : example/CMakeFiles/apriltags_demo.dir/rule
 
 # Convenience name for target.
@@ -174,7 +177,7 @@ clean: example/CMakeFiles/apriltags_demo.dir/clean
 example/CMakeFiles/imu.dir/all: CMakeFiles/apriltags.dir/all
 	$(MAKE) -f example/CMakeFiles/imu.dir/build.make example/CMakeFiles/imu.dir/depend
 	$(MAKE) -f example/CMakeFiles/imu.dir/build.make example/CMakeFiles/imu.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/james/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles  17 18
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles  17 18
 	@echo "Built target imu"
 .PHONY : example/CMakeFiles/imu.dir/all
 
@@ -184,9 +187,9 @@ all: example/CMakeFiles/imu.dir/all
 
 # Build rule for subdir invocation for target.
 example/CMakeFiles/imu.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/james/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles 16
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles 16
 	$(MAKE) -f CMakeFiles/Makefile2 example/CMakeFiles/imu.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/james/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles 0
 .PHONY : example/CMakeFiles/imu.dir/rule
 
 # Convenience name for target.

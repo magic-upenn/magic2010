@@ -6,9 +6,10 @@
 
 #include <fcntl.h>
 #include <termios.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include <unistd.h>
 
 #include "Serial.h"
 

@@ -8,7 +8,8 @@ set(POD_NAME apriltags)
 include(cmake/pods.cmake)
 
 file(GLOB SOURCE_FILES "src/*.cc")
-include_directories(AprilTags . /opt/local/include)
+#include_directories(AprilTags . /opt/local/include)
+include_directories(AprilTags . ./build/include)
 add_library(apriltags ${SOURCE_FILES})
 
 # working around on annoying OpenCV 2.4 bug that renders pkgconfig useless (reason: malformed --libs)
@@ -17,7 +18,8 @@ set(OpenCV_DIR ${PROJECT_SOURCE_DIR}/cmake)
 find_package(OpenCV)
 include_directories(${OpenCV_INCLUDE_DIRS})
 target_link_libraries(apriltags ${OpenCV_LIBS}) #-pg) #-fopenmp)
-target_link_libraries(apriltags -L/opt/local/lib/) # MacPorts special treatment...
+#target_link_libraries(apriltags -L/opt/local/lib/) # MacPorts special treatment...
+target_link_libraries(apriltags -L/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/build/lib/) # MacPorts special treatment...
 
 pods_use_pkg_config_packages(apriltags eigen3)
 

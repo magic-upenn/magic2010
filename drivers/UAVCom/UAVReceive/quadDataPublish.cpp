@@ -42,129 +42,129 @@ const double TWOPI = 2.0*PI;
 // utility function to provide current system time (used below in
 // determining frame rate at which images are being processed)
 double tic() {
-        struct timeval t;
-        gettimeofday(&t, NULL);
-        return ((double)t.tv_sec + ((double)t.tv_usec)/1000000.);
+    struct timeval t;
+    gettimeofday(&t, NULL);
+    return ((double)t.tv_sec + ((double)t.tv_usec)/1000000.);
 }
 
 
 //debugging handler for IPC publications and subscriptions
 void QuadImageHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData) {
-        QuadImg* img=(QuadImg*)callData;
+    QuadImg* img=(QuadImg*)callData;
 	if (img!=NULL) {
-	  if (img->image != NULL) {
-	    imgproc(img->image,img->width,img->height); 
-	  }
+        if (img->image != NULL) {
+            imgproc(img->image,img->width,img->height); 
+        }
 	}
-        IPC_freeByteArray(callData);
+    IPC_freeByteArray(callData);
 }
 
 //IPC functions
 int publishMsg(char *msgName, void *data) {
-        if (IPC_publishData(msgName,data) != IPC_OK)
-                return -1;
+    if (IPC_publishData(msgName,data) != IPC_OK)
+        return -1;
 //        printf("Published %s!\n",msgName);
-        return 0;
+    return 0;
 }
 
 char* defineMsg(char * msgName, char *format) {
-        if (IPC_defineMsg(msgName,IPC_VARIABLE_LENGTH,format) != IPC_OK)
-                return msgName;
+    if (IPC_defineMsg(msgName,IPC_VARIABLE_LENGTH,format) != IPC_OK)
         return msgName;
+    return msgName;
 }
 
 void ipcConnect() {
-        IPC_setVerbosity(IPC_Print_Errors);
-        if (IPC_connectModule("Quad1",NULL) != IPC_OK) {
-                printf("Error connecting to IPC\n");
-                exit(1);
-        }
+    IPC_setVerbosity(IPC_Print_Errors);
+    if (IPC_connectModule("Quad1",NULL) != IPC_OK) {
+        printf("Error connecting to IPC\n");
+        exit(1);
+    }
 }
 
 
 //main
 int main(int argc, char* argv[]) {
-        //set up udp variables and connections
-        UdpConnectReceive(UDP_HOST, UDP_PORT);
-        printf("Connected to Quad!\n");
-        std::list<UdpPacket> udp_packets;
-        uint8_t *image = NULL;
-        int width, height, channels;
-        struct timespec ts1, ts2;
-        uint32_t count = 0;
-        double dt_acc = 0;
+    //set up udp variables and connections
+    UdpConnectReceive(UDP_HOST, UDP_PORT);
+    printf("Connected to Quad!\n");
+    std::list<UdpPacket> udp_packets;
+    uint8_t *image = NULL;
+    int width, height, channels;
+    struct timespec ts1, ts2;
+    uint64_t count = 0;
 
-        QuadIMU imu;
-        QuadImg img;
-        //set up IPC 
+    QuadIMU imu;
+    QuadImg img;
+    //set up IPC 
 	
-        // IPC connect and message definition
-        ipcConnect();
-        defineMsg("Quad1/IMU",QUAD_IMU_FORMAT);
-        defineMsg("Quad1/Image",QUAD_IMG_FORMAT);
+    // IPC connect and message definition
+    ipcConnect();
+    defineMsg("Quad1/IMU",QUAD_IMU_FORMAT);
+    defineMsg("Quad1/Image",QUAD_IMG_FORMAT);
 
 #if DEBUG_FLAG	
-        if (IPC_subscribeData("Quad1/Image",QuadImageHandler,NULL) != IPC_OK) {
-                printf("Error subscribing\n");
-                exit(1);
-        }
+    if (IPC_subscribeData("Quad1/Image",QuadImageHandler,NULL) != IPC_OK) {
+        printf("Error subscribing\n");
+        exit(1);
+    }
 #endif
-  
-        while(1) {
+    // profiling tools
+    double t1=0;
+    double t2=tic();
+
+    while(1) {
           
 #if DEBUG_FLAG
-                IPC_listen(0);
+        IPC_listen(0);
 #endif
-          
-                UdpReceiveGetPackets(udp_packets);
-                for(std::list<UdpPacket>::iterator it = udp_packets.begin(); it != udp_packets.end(); it++) { 
-                        count++;
-                        //parse imu data
-                        int i=0;
-                        imu.t=*(float*)(&(it->data[4*i++]));
-                        imu.roll=*(float*)(&(it->data[4*i++]));
-                        imu.pitch=*(float*)(&(it->data[4*i++]));
-                        imu.yaw=*(float*)(&(it->data[4*i++]));
-                        imu.wroll=*(float*)(&(it->data[4*i++]));
-                        imu.wpitch=*(float*)(&(it->data[4*i++]));
-                        imu.wyaw=*(float*)(&(it->data[4*i++]));
-                        imu.ax=*(float*)(&(it->data[4*i++]));
-                        imu.ay=*(float*)(&(it->data[4*i++]));
-                        imu.az=*(float*)(&(it->data[4*i++]));
-                        imu.p=*(float*)(&(it->data[4*i++]));
+
+        UdpReceiveGetPackets(udp_packets);
+        for(std::list<UdpPacket>::iterator it = udp_packets.begin(); it != udp_packets.end(); it++) { 
+            //printf("t=%f\n",tic());
+            //parse imu data
+            int i=0;
+            imu.t=*(float*)(&(it->data[4*i++]));
+            imu.roll=*(float*)(&(it->data[4*i++]));
+            imu.pitch=*(float*)(&(it->data[4*i++]));
+            imu.yaw=*(float*)(&(it->data[4*i++]));
+            imu.wroll=*(float*)(&(it->data[4*i++]));
+            imu.wpitch=*(float*)(&(it->data[4*i++]));
+            imu.wyaw=*(float*)(&(it->data[4*i++]));
+            imu.ax=*(float*)(&(it->data[4*i++]));
+            imu.ay=*(float*)(&(it->data[4*i++]));
+            imu.az=*(float*)(&(it->data[4*i++]));
+            imu.p=*(float*)(&(it->data[4*i++]));
 	    
-                        //decompress image data
-                        jpeg_decompress(&(it->data[12*4]),
-                                        it->data.size(),
-                                        &(image),
-                                        &(width),
-                                        &(height),
-                                        &channels);
-			img.width=width;
+            //decompress image data
+            jpeg_decompress(&(it->data[12*4]),
+                            it->data.size(),
+                            &(image),
+                            &(width),
+                            &(height),
+                            &channels);
+            img.width=width;
 			img.height=height;
 			img.dim=width*height;
 
-                        img.image=(uint8_t*)malloc(img.width*img.height);
-                        memcpy(img.image,image,img.width*img.height);
-                        /*
-			if (image == NULL)
-			  printf("original image is null\n");
-			else if(img.image == NULL)
-			  printf("memcpy didn't do its job\n");
-                        */
-			/*
-                          if (channels == 1)
-			    imgproc(img.image,img.width,img.height);
-                          else
-                          printf("Expecting monochrome image, got image with channels = %d\n", channels);
-			*/
-                        if (channels == 1) {
-                                publishMsg("Quad1/IMU",&imu);
-                                publishMsg("Quad1/Image",&img);
-                                static uint32_t counter=0;
-                                printf("Published IMU and Image %d!\n",++counter);
-                        }
-                        free(img.image);
+            img.image=(uint8_t*)malloc(img.width*img.height);
+            memcpy(img.image,image,img.width*img.height);
+            if (channels == 1) {
+                imu.t=(float)tic();
+                publishMsg("Quad1/IMU",&imu);
+                img.t=tic();
+                count++;
+                publishMsg("Quad1/Image",&img);
+                static uint32_t counter=0;
+                counter++;
+                
+                if (count % 10 == 0 && img.image != NULL) {
+                    printf("Published IMU and Image %d! ",counter);
+                    t1=tic();
+                    printf("fps: %f\n",10./(t1-t2));
+                    t2=t1;
                 }
-        } 
+            }
+            free(img.image);
+        }
+    } 
 }

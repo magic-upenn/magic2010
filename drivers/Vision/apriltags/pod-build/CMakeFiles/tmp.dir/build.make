@@ -31,11 +31,14 @@ CMAKE_COMMAND = /usr/bin/cmake
 # The command to remove a file.
 RM = /usr/bin/cmake -E remove -f
 
+# Escaping for special characters.
+EQUALS = =
+
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/james/magic2010/drivers/Vision/apriltags
+CMAKE_SOURCE_DIR = /home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/james/magic2010/drivers/Vision/apriltags/pod-build
+CMAKE_BINARY_DIR = /home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build
 
 # Utility rule file for tmp.
 
@@ -57,6 +60,6 @@ CMakeFiles/tmp.dir/clean:
 .PHONY : CMakeFiles/tmp.dir/clean
 
 CMakeFiles/tmp.dir/depend:
-	cd /home/james/magic2010/drivers/Vision/apriltags/pod-build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/james/magic2010/drivers/Vision/apriltags /home/james/magic2010/drivers/Vision/apriltags /home/james/magic2010/drivers/Vision/apriltags/pod-build /home/james/magic2010/drivers/Vision/apriltags/pod-build /home/james/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles/tmp.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags /home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags /home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build /home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build /home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/CMakeFiles/tmp.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/tmp.dir/depend
 

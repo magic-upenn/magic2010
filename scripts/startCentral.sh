@@ -34,7 +34,7 @@ StartFunction ()
 
 # List session names and commands for screen, delimited by ":"
 StartFunction <<EOF
-central:nice -n -15 central -s
+central:nice -n -15 $MAGIC_DIR/ipc/central.linux32 -s
 EOF
 
 exit

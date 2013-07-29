@@ -1,8 +1,8 @@
-# Install script for directory: /home/james/magic2010/drivers/Vision/apriltags
+# Install script for directory: /home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags
 
 # Set the install prefix
 IF(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  SET(CMAKE_INSTALL_PREFIX "/home/james/magic2010/drivers/Vision/apriltags/build")
+  SET(CMAKE_INSTALL_PREFIX "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/build")
 ENDIF(NOT DEFINED CMAKE_INSTALL_PREFIX)
 STRING(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -33,45 +33,45 @@ IF(NOT DEFINED CMAKE_INSTALL_SO_NO_EXE)
 ENDIF(NOT DEFINED CMAKE_INSTALL_SO_NO_EXE)
 
 IF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
-  FILE(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY FILES "/home/james/magic2010/drivers/Vision/apriltags/pod-build/lib/libapriltags.a")
+  FILE(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY FILES "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/lib/libapriltags.a")
 ENDIF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
 
 IF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
   FILE(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/AprilTags" TYPE FILE FILES
-    "/home/james/magic2010/drivers/Vision/apriltags/AprilTags/GLine2D.h"
-    "/home/james/magic2010/drivers/Vision/apriltags/AprilTags/UnionFindSimple.h"
-    "/home/james/magic2010/drivers/Vision/apriltags/AprilTags/Tag25h9.h"
-    "/home/james/magic2010/drivers/Vision/apriltags/AprilTags/TagDetection.h"
-    "/home/james/magic2010/drivers/Vision/apriltags/AprilTags/Quad.h"
-    "/home/james/magic2010/drivers/Vision/apriltags/AprilTags/Segment.h"
-    "/home/james/magic2010/drivers/Vision/apriltags/AprilTags/Gaussian.h"
-    "/home/james/magic2010/drivers/Vision/apriltags/AprilTags/Homography33.h"
-    "/home/james/magic2010/drivers/Vision/apriltags/AprilTags/pch.h"
-    "/home/james/magic2010/drivers/Vision/apriltags/AprilTags/GrayModel.h"
-    "/home/james/magic2010/drivers/Vision/apriltags/AprilTags/XYWeight.h"
-    "/home/james/magic2010/drivers/Vision/apriltags/AprilTags/Tag16h5.h"
-    "/home/james/magic2010/drivers/Vision/apriltags/AprilTags/TagFamily.h"
-    "/home/james/magic2010/drivers/Vision/apriltags/AprilTags/Edge.h"
-    "/home/james/magic2010/drivers/Vision/apriltags/AprilTags/Gridder.h"
-    "/home/james/magic2010/drivers/Vision/apriltags/AprilTags/Tag16h5_other.h"
-    "/home/james/magic2010/drivers/Vision/apriltags/AprilTags/Tag36h9.h"
-    "/home/james/magic2010/drivers/Vision/apriltags/AprilTags/Tag36h11_other.h"
-    "/home/james/magic2010/drivers/Vision/apriltags/AprilTags/TagDetector.h"
-    "/home/james/magic2010/drivers/Vision/apriltags/AprilTags/FloatImage.h"
-    "/home/james/magic2010/drivers/Vision/apriltags/AprilTags/GLineSegment2D.h"
-    "/home/james/magic2010/drivers/Vision/apriltags/AprilTags/MathUtil.h"
-    "/home/james/magic2010/drivers/Vision/apriltags/AprilTags/Tag25h7.h"
-    "/home/james/magic2010/drivers/Vision/apriltags/AprilTags/Tag36h11.h"
+    "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/AprilTags/TagFamily.h"
+    "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/AprilTags/Quad.h"
+    "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/AprilTags/Edge.h"
+    "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/AprilTags/Tag16h5.h"
+    "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/AprilTags/TagDetector.h"
+    "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/AprilTags/MathUtil.h"
+    "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/AprilTags/XYWeight.h"
+    "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/AprilTags/FloatImage.h"
+    "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/AprilTags/TagDetection.h"
+    "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/AprilTags/Gridder.h"
+    "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/AprilTags/Gaussian.h"
+    "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/AprilTags/pch.h"
+    "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/AprilTags/UnionFindSimple.h"
+    "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/AprilTags/Tag36h11_other.h"
+    "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/AprilTags/Tag25h9.h"
+    "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/AprilTags/Homography33.h"
+    "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/AprilTags/Tag25h7.h"
+    "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/AprilTags/GLine2D.h"
+    "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/AprilTags/GrayModel.h"
+    "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/AprilTags/Segment.h"
+    "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/AprilTags/GLineSegment2D.h"
+    "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/AprilTags/Tag36h9.h"
+    "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/AprilTags/Tag16h5_other.h"
+    "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/AprilTags/Tag36h11.h"
     )
 ENDIF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
 
 IF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
-  FILE(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/james/magic2010/drivers/Vision/apriltags/pod-build/lib/pkgconfig/apriltags.pc")
+  FILE(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/lib/pkgconfig/apriltags.pc")
 ENDIF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
 
 IF(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  INCLUDE("/home/james/magic2010/drivers/Vision/apriltags/pod-build/example/cmake_install.cmake")
+  INCLUDE("/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/example/cmake_install.cmake")
 
 ENDIF(NOT CMAKE_INSTALL_LOCAL_ONLY)
 
@@ -81,7 +81,7 @@ ELSE(CMAKE_INSTALL_COMPONENT)
   SET(CMAKE_INSTALL_MANIFEST "install_manifest.txt")
 ENDIF(CMAKE_INSTALL_COMPONENT)
 
-FILE(WRITE "/home/james/magic2010/drivers/Vision/apriltags/pod-build/${CMAKE_INSTALL_MANIFEST}" "")
+FILE(WRITE "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/${CMAKE_INSTALL_MANIFEST}" "")
 FOREACH(file ${CMAKE_INSTALL_MANIFEST_FILES})
-  FILE(APPEND "/home/james/magic2010/drivers/Vision/apriltags/pod-build/${CMAKE_INSTALL_MANIFEST}" "${file}\n")
+  FILE(APPEND "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/${CMAKE_INSTALL_MANIFEST}" "${file}\n")
 ENDFOREACH(file)

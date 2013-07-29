@@ -1,8 +1,8 @@
-# Install script for directory: /home/james/magic2010/drivers/Vision/apriltags/example
+# Install script for directory: /home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/example
 
 # Set the install prefix
 IF(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  SET(CMAKE_INSTALL_PREFIX "/home/james/magic2010/drivers/Vision/apriltags/build")
+  SET(CMAKE_INSTALL_PREFIX "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/build")
 ENDIF(NOT DEFINED CMAKE_INSTALL_PREFIX)
 STRING(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -37,15 +37,15 @@ IF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspeci
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/apriltags_demo")
     FILE(RPATH_CHECK
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/apriltags_demo"
-         RPATH "/home/james/magic2010/drivers/Vision/apriltags/build/lib")
+         RPATH "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/build/lib")
   ENDIF()
-  FILE(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/home/james/magic2010/drivers/Vision/apriltags/pod-build/bin/apriltags_demo")
+  FILE(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/bin/apriltags_demo")
   IF(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/apriltags_demo" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/apriltags_demo")
     FILE(RPATH_CHANGE
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/apriltags_demo"
-         OLD_RPATH "/home/james/magic2010/drivers/Vision/apriltags/pod-build/lib:/home/james/magic2010/drivers/Vision/apriltags/build/lib:/home/james/magic2010/drivers/Vision/lib:"
-         NEW_RPATH "/home/james/magic2010/drivers/Vision/apriltags/build/lib")
+         OLD_RPATH "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/lib:/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/build/lib:/home/patrick/code/grasp/testing/magic2010/drivers/Vision/lib:"
+         NEW_RPATH "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/build/lib")
     IF(CMAKE_INSTALL_DO_STRIP)
       EXECUTE_PROCESS(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/apriltags_demo")
     ENDIF(CMAKE_INSTALL_DO_STRIP)
@@ -57,15 +57,15 @@ IF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspeci
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/imu")
     FILE(RPATH_CHECK
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/imu"
-         RPATH "/home/james/magic2010/drivers/Vision/apriltags/build/lib")
+         RPATH "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/build/lib")
   ENDIF()
-  FILE(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/home/james/magic2010/drivers/Vision/apriltags/pod-build/bin/imu")
+  FILE(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/bin/imu")
   IF(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/imu" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/imu")
     FILE(RPATH_CHANGE
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/imu"
-         OLD_RPATH "/home/james/magic2010/drivers/Vision/apriltags/pod-build/lib:/home/james/magic2010/drivers/Vision/apriltags/build/lib:/home/james/magic2010/drivers/Vision/lib:"
-         NEW_RPATH "/home/james/magic2010/drivers/Vision/apriltags/build/lib")
+         OLD_RPATH "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/pod-build/lib:/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/build/lib:/home/patrick/code/grasp/testing/magic2010/drivers/Vision/lib:"
+         NEW_RPATH "/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/build/lib")
     IF(CMAKE_INSTALL_DO_STRIP)
       EXECUTE_PROCESS(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/imu")
     ENDIF(CMAKE_INSTALL_DO_STRIP)

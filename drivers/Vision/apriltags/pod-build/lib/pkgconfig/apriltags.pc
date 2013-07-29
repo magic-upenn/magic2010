@@ -1,4 +1,4 @@
-prefix=/home/james/magic2010/drivers/Vision/apriltags/build
+prefix=/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/build
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include

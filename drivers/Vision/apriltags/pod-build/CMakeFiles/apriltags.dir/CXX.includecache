@@ -100,41 +100,41 @@ vector
 
 ../AprilTags/XYWeight.h
 
-/home/james/magic2010/drivers/Vision/apriltags/src/Edge.cc
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/Edge.cc
 AprilTags/Edge.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/Edge.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/Edge.h
 AprilTags/FloatImage.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/FloatImage.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/FloatImage.h
 AprilTags/MathUtil.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/MathUtil.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/MathUtil.h
 AprilTags/UnionFindSimple.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/UnionFindSimple.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/UnionFindSimple.h
 
-/home/james/magic2010/drivers/Vision/apriltags/src/FloatImage.cc
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/FloatImage.cc
 FloatImage.h
-/home/james/magic2010/drivers/Vision/apriltags/src/FloatImage.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/FloatImage.h
 Gaussian.h
-/home/james/magic2010/drivers/Vision/apriltags/src/Gaussian.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/Gaussian.h
 iostream
 -
 
-/home/james/magic2010/drivers/Vision/apriltags/src/GLine2D.cc
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/GLine2D.cc
 GLine2D.h
-/home/james/magic2010/drivers/Vision/apriltags/src/GLine2D.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/GLine2D.h
 
-/home/james/magic2010/drivers/Vision/apriltags/src/GLineSegment2D.cc
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/GLineSegment2D.cc
 GLineSegment2D.h
-/home/james/magic2010/drivers/Vision/apriltags/src/GLineSegment2D.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/GLineSegment2D.h
 limits
 -
 
-/home/james/magic2010/drivers/Vision/apriltags/src/Gaussian.cc
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/Gaussian.cc
 Gaussian.h
-/home/james/magic2010/drivers/Vision/apriltags/src/Gaussian.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/Gaussian.h
 iostream
 -
 
-/home/james/magic2010/drivers/Vision/apriltags/src/GrayModel.cc
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/GrayModel.cc
 iostream
 -
 Eigen/Dense
@@ -142,9 +142,9 @@ Eigen/Dense
 Eigen/LU
 -
 AprilTags/GrayModel.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/GrayModel.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/GrayModel.h
 
-/home/james/magic2010/drivers/Vision/apriltags/src/Homography33.cc
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/Homography33.cc
 iostream
 -
 Eigen/Dense
@@ -152,41 +152,41 @@ Eigen/Dense
 opencv2/opencv.hpp
 -
 Homography33.h
-/home/james/magic2010/drivers/Vision/apriltags/src/Homography33.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/Homography33.h
 
-/home/james/magic2010/drivers/Vision/apriltags/src/MathUtil.cc
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/MathUtil.cc
 MathUtil.h
-/home/james/magic2010/drivers/Vision/apriltags/src/MathUtil.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/MathUtil.h
 
-/home/james/magic2010/drivers/Vision/apriltags/src/Quad.cc
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/Quad.cc
 Eigen/Dense
 -
 AprilTags/FloatImage.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/FloatImage.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/FloatImage.h
 AprilTags/MathUtil.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/MathUtil.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/MathUtil.h
 AprilTags/GLine2D.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/GLine2D.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/GLine2D.h
 AprilTags/Quad.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/Quad.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/Quad.h
 AprilTags/Segment.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/Segment.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/Segment.h
 
-/home/james/magic2010/drivers/Vision/apriltags/src/Segment.cc
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/Segment.cc
 Segment.h
-/home/james/magic2010/drivers/Vision/apriltags/src/Segment.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/Segment.h
 iostream
 -
 
-/home/james/magic2010/drivers/Vision/apriltags/src/TagDetection.cc
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/TagDetection.cc
 opencv2/opencv.hpp
-/home/james/magic2010/drivers/Vision/apriltags/src/opencv2/opencv.hpp
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/opencv2/opencv.hpp
 TagDetection.h
-/home/james/magic2010/drivers/Vision/apriltags/src/TagDetection.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/TagDetection.h
 MathUtil.h
-/home/james/magic2010/drivers/Vision/apriltags/src/MathUtil.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/MathUtil.h
 
-/home/james/magic2010/drivers/Vision/apriltags/src/TagDetector.cc
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/TagDetector.cc
 algorithm
 -
 cmath
@@ -202,67 +202,67 @@ iostream
 Eigen/Dense
 -
 AprilTags/Edge.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/Edge.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/Edge.h
 AprilTags/FloatImage.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/FloatImage.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/FloatImage.h
 AprilTags/Gaussian.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/Gaussian.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/Gaussian.h
 AprilTags/GrayModel.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/GrayModel.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/GrayModel.h
 AprilTags/GLine2D.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/GLine2D.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/GLine2D.h
 AprilTags/GLineSegment2D.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/GLineSegment2D.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/GLineSegment2D.h
 AprilTags/Gridder.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/Gridder.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/Gridder.h
 AprilTags/Homography33.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/Homography33.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/Homography33.h
 AprilTags/MathUtil.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/MathUtil.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/MathUtil.h
 AprilTags/Quad.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/Quad.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/Quad.h
 AprilTags/Segment.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/Segment.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/Segment.h
 AprilTags/TagFamily.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/TagFamily.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/TagFamily.h
 AprilTags/UnionFindSimple.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/UnionFindSimple.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/UnionFindSimple.h
 AprilTags/XYWeight.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/XYWeight.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/XYWeight.h
 AprilTags/TagDetector.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/TagDetector.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/TagDetector.h
 opencv/cv.h
 -
 opencv/highgui.h
 -
 
-/home/james/magic2010/drivers/Vision/apriltags/src/TagFamily.cc
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/TagFamily.cc
 iostream
 -
 TagFamily.h
-/home/james/magic2010/drivers/Vision/apriltags/src/TagFamily.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/TagFamily.h
 AprilTags/TagFamily.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/TagFamily.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/TagFamily.h
 AprilTags/Tag36h11.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/Tag36h11.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/Tag36h11.h
 AprilTags/Tag16h5.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/Tag16h5.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/Tag16h5.h
 AprilTags/Tag16h5_other.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/Tag16h5_other.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/Tag16h5_other.h
 AprilTags/Tag25h7.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/Tag25h7.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/Tag25h7.h
 AprilTags/Tag25h9.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/Tag25h9.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/Tag25h9.h
 AprilTags/Tag36h11.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/Tag36h11.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/Tag36h11.h
 AprilTags/Tag36h11_other.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/Tag36h11_other.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/Tag36h11_other.h
 AprilTags/Tag36h9.h
-/home/james/magic2010/drivers/Vision/apriltags/src/AprilTags/Tag36h9.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/AprilTags/Tag36h9.h
 
-/home/james/magic2010/drivers/Vision/apriltags/src/UnionFindSimple.cc
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/UnionFindSimple.cc
 UnionFindSimple.h
-/home/james/magic2010/drivers/Vision/apriltags/src/UnionFindSimple.h
+/home/patrick/code/grasp/testing/magic2010/drivers/Vision/apriltags/src/UnionFindSimple.h
 iostream
 -
 
@@ -277,6 +277,8 @@ src/Cholesky/LLT.h
 /usr/include/eigen3/Eigen/src/Cholesky/LLT.h
 src/Cholesky/LDLT.h
 /usr/include/eigen3/Eigen/src/Cholesky/LDLT.h
+src/Cholesky/LLT_MKL.h
+/usr/include/eigen3/Eigen/src/Cholesky/LLT_MKL.h
 src/Core/util/ReenableStupidWarnings.h
 /usr/include/eigen3/Eigen/src/Core/util/ReenableStupidWarnings.h
 
@@ -285,6 +287,10 @@ src/Core/util/DisableStupidWarnings.h
 /usr/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h
 src/Core/util/Macros.h
 /usr/include/eigen3/Eigen/src/Core/util/Macros.h
+complex
+-
+src/Core/util/MKL_support.h
+/usr/include/eigen3/Eigen/src/Core/util/MKL_support.h
 malloc.h
 -
 emmintrin.h
@@ -312,8 +318,6 @@ cstddef
 cstdlib
 -
 cmath
--
-complex
 -
 cassert
 -
@@ -453,24 +457,24 @@ src/Core/Flagged.h
 /usr/include/eigen3/Eigen/src/Core/Flagged.h
 src/Core/ProductBase.h
 /usr/include/eigen3/Eigen/src/Core/ProductBase.h
-src/Core/Product.h
-/usr/include/eigen3/Eigen/src/Core/Product.h
+src/Core/GeneralProduct.h
+/usr/include/eigen3/Eigen/src/Core/GeneralProduct.h
 src/Core/TriangularMatrix.h
 /usr/include/eigen3/Eigen/src/Core/TriangularMatrix.h
 src/Core/SelfAdjointView.h
 /usr/include/eigen3/Eigen/src/Core/SelfAdjointView.h
-src/Core/SolveTriangular.h
-/usr/include/eigen3/Eigen/src/Core/SolveTriangular.h
+src/Core/products/GeneralBlockPanelKernel.h
+/usr/include/eigen3/Eigen/src/Core/products/GeneralBlockPanelKernel.h
 src/Core/products/Parallelizer.h
 /usr/include/eigen3/Eigen/src/Core/products/Parallelizer.h
 src/Core/products/CoeffBasedProduct.h
 /usr/include/eigen3/Eigen/src/Core/products/CoeffBasedProduct.h
-src/Core/products/GeneralBlockPanelKernel.h
-/usr/include/eigen3/Eigen/src/Core/products/GeneralBlockPanelKernel.h
 src/Core/products/GeneralMatrixVector.h
 /usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixVector.h
 src/Core/products/GeneralMatrixMatrix.h
 /usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrix.h
+src/Core/SolveTriangular.h
+/usr/include/eigen3/Eigen/src/Core/SolveTriangular.h
 src/Core/products/GeneralMatrixMatrixTriangular.h
 /usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrixTriangular.h
 src/Core/products/SelfadjointMatrixVector.h
@@ -507,6 +511,24 @@ src/Core/ArrayBase.h
 /usr/include/eigen3/Eigen/src/Core/ArrayBase.h
 src/Core/ArrayWrapper.h
 /usr/include/eigen3/Eigen/src/Core/ArrayWrapper.h
+src/Core/products/GeneralMatrixMatrix_MKL.h
+/usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrix_MKL.h
+src/Core/products/GeneralMatrixVector_MKL.h
+/usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixVector_MKL.h
+src/Core/products/GeneralMatrixMatrixTriangular_MKL.h
+/usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrixTriangular_MKL.h
+src/Core/products/SelfadjointMatrixMatrix_MKL.h
+/usr/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixMatrix_MKL.h
+src/Core/products/SelfadjointMatrixVector_MKL.h
+/usr/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixVector_MKL.h
+src/Core/products/TriangularMatrixMatrix_MKL.h
+/usr/include/eigen3/Eigen/src/Core/products/TriangularMatrixMatrix_MKL.h
+src/Core/products/TriangularMatrixVector_MKL.h
+/usr/include/eigen3/Eigen/src/Core/products/TriangularMatrixVector_MKL.h
+src/Core/products/TriangularSolverMatrix_MKL.h
+/usr/include/eigen3/Eigen/src/Core/products/TriangularSolverMatrix_MKL.h
+src/Core/Assign_MKL.h
+/usr/include/eigen3/Eigen/src/Core/Assign_MKL.h
 src/Core/GlobalFunctions.h
 /usr/include/eigen3/Eigen/src/Core/GlobalFunctions.h
 src/Core/util/ReenableStupidWarnings.h
@@ -573,6 +595,8 @@ Householder
 /usr/include/eigen3/Eigen/Householder
 LU
 /usr/include/eigen3/Eigen/LU
+Geometry
+/usr/include/eigen3/Eigen/Geometry
 src/Eigenvalues/Tridiagonalization.h
 /usr/include/eigen3/Eigen/src/Eigenvalues/Tridiagonalization.h
 src/Eigenvalues/RealSchur.h
@@ -591,6 +615,12 @@ src/Eigenvalues/ComplexEigenSolver.h
 /usr/include/eigen3/Eigen/src/Eigenvalues/ComplexEigenSolver.h
 src/Eigenvalues/MatrixBaseEigenvalues.h
 /usr/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h
+src/Eigenvalues/RealSchur_MKL.h
+/usr/include/eigen3/Eigen/src/Eigenvalues/RealSchur_MKL.h
+src/Eigenvalues/ComplexSchur_MKL.h
+/usr/include/eigen3/Eigen/src/Eigenvalues/ComplexSchur_MKL.h
+src/Eigenvalues/SelfAdjointEigenSolver_MKL.h
+/usr/include/eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver_MKL.h
 src/Core/util/ReenableStupidWarnings.h
 /usr/include/eigen3/Eigen/src/Core/util/ReenableStupidWarnings.h
 
@@ -679,6 +709,8 @@ src/LU/FullPivLU.h
 /usr/include/eigen3/Eigen/src/LU/FullPivLU.h
 src/LU/PartialPivLU.h
 /usr/include/eigen3/Eigen/src/LU/PartialPivLU.h
+src/LU/PartialPivLU_MKL.h
+/usr/include/eigen3/Eigen/src/LU/PartialPivLU_MKL.h
 src/LU/Determinant.h
 /usr/include/eigen3/Eigen/src/LU/Determinant.h
 src/LU/Inverse.h
@@ -709,6 +741,10 @@ src/QR/FullPivHouseholderQR.h
 /usr/include/eigen3/Eigen/src/QR/FullPivHouseholderQR.h
 src/QR/ColPivHouseholderQR.h
 /usr/include/eigen3/Eigen/src/QR/ColPivHouseholderQR.h
+src/QR/HouseholderQR_MKL.h
+/usr/include/eigen3/Eigen/src/QR/HouseholderQR_MKL.h
+src/QR/ColPivHouseholderQR_MKL.h
+/usr/include/eigen3/Eigen/src/QR/ColPivHouseholderQR_MKL.h
 src/Eigen2Support/QR.h
 /usr/include/eigen3/Eigen/src/Eigen2Support/QR.h
 src/Core/util/ReenableStupidWarnings.h
@@ -729,6 +765,8 @@ src/misc/Solve.h
 /usr/include/eigen3/Eigen/src/misc/Solve.h
 src/SVD/JacobiSVD.h
 /usr/include/eigen3/Eigen/src/SVD/JacobiSVD.h
+src/SVD/JacobiSVD_MKL.h
+/usr/include/eigen3/Eigen/src/SVD/JacobiSVD_MKL.h
 src/SVD/UpperBidiagonalization.h
 /usr/include/eigen3/Eigen/src/SVD/UpperBidiagonalization.h
 src/Eigen2Support/SVD.h
@@ -739,6 +777,12 @@ src/Core/util/ReenableStupidWarnings.h
 /usr/include/eigen3/Eigen/src/Cholesky/LDLT.h
 
 /usr/include/eigen3/Eigen/src/Cholesky/LLT.h
+
+/usr/include/eigen3/Eigen/src/Cholesky/LLT_MKL.h
+Eigen/src/Core/util/MKL_support.h
+/usr/include/eigen3/Eigen/src/Cholesky/Eigen/src/Core/util/MKL_support.h
+iostream
+-
 
 /usr/include/eigen3/Eigen/src/Core/../plugins/ArrayCwiseBinaryOps.h
 
@@ -773,6 +817,8 @@ src/Core/util/ReenableStupidWarnings.h
 /usr/include/eigen3/Eigen/src/Core/ArrayWrapper.h
 
 /usr/include/eigen3/Eigen/src/Core/Assign.h
+
+/usr/include/eigen3/Eigen/src/Core/Assign_MKL.h
 
 /usr/include/eigen3/Eigen/src/Core/BandMatrix.h
 
@@ -816,6 +862,8 @@ src/Core/util/ReenableStupidWarnings.h
 
 /usr/include/eigen3/Eigen/src/Core/Fuzzy.h
 
+/usr/include/eigen3/Eigen/src/Core/GeneralProduct.h
+
 /usr/include/eigen3/Eigen/src/Core/GenericPacketMath.h
 
 /usr/include/eigen3/Eigen/src/Core/GlobalFunctions.h
@@ -849,8 +897,6 @@ src/Core/util/ReenableStupidWarnings.h
 /usr/include/eigen3/Eigen/src/Core/PermutationMatrix.h
 
 /usr/include/eigen3/Eigen/src/Core/PlainObjectBase.h
-
-/usr/include/eigen3/Eigen/src/Core/Product.h
 
 /usr/include/eigen3/Eigen/src/Core/ProductBase.h
 
@@ -914,13 +960,23 @@ src/Core/util/ReenableStupidWarnings.h
 
 /usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrixTriangular.h
 
+/usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrixTriangular_MKL.h
+
+/usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrix_MKL.h
+
 /usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixVector.h
+
+/usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixVector_MKL.h
 
 /usr/include/eigen3/Eigen/src/Core/products/Parallelizer.h
 
 /usr/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixMatrix.h
 
+/usr/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixMatrix_MKL.h
+
 /usr/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixVector.h
+
+/usr/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixVector_MKL.h
 
 /usr/include/eigen3/Eigen/src/Core/products/SelfadjointProduct.h
 
@@ -928,9 +984,15 @@ src/Core/util/ReenableStupidWarnings.h
 
 /usr/include/eigen3/Eigen/src/Core/products/TriangularMatrixMatrix.h
 
+/usr/include/eigen3/Eigen/src/Core/products/TriangularMatrixMatrix_MKL.h
+
 /usr/include/eigen3/Eigen/src/Core/products/TriangularMatrixVector.h
 
+/usr/include/eigen3/Eigen/src/Core/products/TriangularMatrixVector_MKL.h
+
 /usr/include/eigen3/Eigen/src/Core/products/TriangularSolverMatrix.h
+
+/usr/include/eigen3/Eigen/src/Core/products/TriangularSolverMatrix_MKL.h
 
 /usr/include/eigen3/Eigen/src/Core/products/TriangularSolverVector.h
 
@@ -941,6 +1003,12 @@ src/Core/util/ReenableStupidWarnings.h
 /usr/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h
 
 /usr/include/eigen3/Eigen/src/Core/util/ForwardDeclarations.h
+
+/usr/include/eigen3/Eigen/src/Core/util/MKL_support.h
+mkl.h
+-
+mkl_lapacke.h
+-
 
 /usr/include/eigen3/Eigen/src/Core/util/Macros.h
 cstdlib
@@ -1051,44 +1119,34 @@ ParametrizedLine.h
 /usr/include/eigen3/Eigen/src/Eigen2Support/VectorBlock.h
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/./ComplexSchur.h
-./EigenvaluesCommon.h
-/usr/include/eigen3/Eigen/src/Eigenvalues/././EigenvaluesCommon.h
 ./HessenbergDecomposition.h
 /usr/include/eigen3/Eigen/src/Eigenvalues/././HessenbergDecomposition.h
-
-/usr/include/eigen3/Eigen/src/Eigenvalues/./EigenvaluesCommon.h
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/./HessenbergDecomposition.h
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/./RealSchur.h
-./EigenvaluesCommon.h
-/usr/include/eigen3/Eigen/src/Eigenvalues/././EigenvaluesCommon.h
 ./HessenbergDecomposition.h
 /usr/include/eigen3/Eigen/src/Eigenvalues/././HessenbergDecomposition.h
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/./Tridiagonalization.h
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/ComplexEigenSolver.h
-./EigenvaluesCommon.h
-/usr/include/eigen3/Eigen/src/Eigenvalues/./EigenvaluesCommon.h
 ./ComplexSchur.h
 /usr/include/eigen3/Eigen/src/Eigenvalues/./ComplexSchur.h
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/ComplexSchur.h
-./EigenvaluesCommon.h
-/usr/include/eigen3/Eigen/src/Eigenvalues/./EigenvaluesCommon.h
 ./HessenbergDecomposition.h
 /usr/include/eigen3/Eigen/src/Eigenvalues/./HessenbergDecomposition.h
 
+/usr/include/eigen3/Eigen/src/Eigenvalues/ComplexSchur_MKL.h
+Eigen/src/Core/util/MKL_support.h
+/usr/include/eigen3/Eigen/src/Eigenvalues/Eigen/src/Core/util/MKL_support.h
+
 /usr/include/eigen3/Eigen/src/Eigenvalues/EigenSolver.h
-./EigenvaluesCommon.h
-/usr/include/eigen3/Eigen/src/Eigenvalues/./EigenvaluesCommon.h
 ./RealSchur.h
 /usr/include/eigen3/Eigen/src/Eigenvalues/./RealSchur.h
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/GeneralizedSelfAdjointEigenSolver.h
-./EigenvaluesCommon.h
-/usr/include/eigen3/Eigen/src/Eigenvalues/./EigenvaluesCommon.h
 ./Tridiagonalization.h
 /usr/include/eigen3/Eigen/src/Eigenvalues/./Tridiagonalization.h
 
@@ -1097,16 +1155,20 @@ ParametrizedLine.h
 /usr/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/RealSchur.h
-./EigenvaluesCommon.h
-/usr/include/eigen3/Eigen/src/Eigenvalues/./EigenvaluesCommon.h
 ./HessenbergDecomposition.h
 /usr/include/eigen3/Eigen/src/Eigenvalues/./HessenbergDecomposition.h
 
+/usr/include/eigen3/Eigen/src/Eigenvalues/RealSchur_MKL.h
+Eigen/src/Core/util/MKL_support.h
+/usr/include/eigen3/Eigen/src/Eigenvalues/Eigen/src/Core/util/MKL_support.h
+
 /usr/include/eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h
-./EigenvaluesCommon.h
-/usr/include/eigen3/Eigen/src/Eigenvalues/./EigenvaluesCommon.h
 ./Tridiagonalization.h
 /usr/include/eigen3/Eigen/src/Eigenvalues/./Tridiagonalization.h
+
+/usr/include/eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver_MKL.h
+Eigen/src/Core/util/MKL_support.h
+/usr/include/eigen3/Eigen/src/Eigenvalues/Eigen/src/Core/util/MKL_support.h
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/Tridiagonalization.h
 
@@ -1156,15 +1218,31 @@ ParametrizedLine.h
 
 /usr/include/eigen3/Eigen/src/LU/PartialPivLU.h
 
+/usr/include/eigen3/Eigen/src/LU/PartialPivLU_MKL.h
+Eigen/src/Core/util/MKL_support.h
+/usr/include/eigen3/Eigen/src/LU/Eigen/src/Core/util/MKL_support.h
+
 /usr/include/eigen3/Eigen/src/LU/arch/Inverse_SSE.h
 
 /usr/include/eigen3/Eigen/src/QR/ColPivHouseholderQR.h
+
+/usr/include/eigen3/Eigen/src/QR/ColPivHouseholderQR_MKL.h
+Eigen/src/Core/util/MKL_support.h
+/usr/include/eigen3/Eigen/src/QR/Eigen/src/Core/util/MKL_support.h
 
 /usr/include/eigen3/Eigen/src/QR/FullPivHouseholderQR.h
 
 /usr/include/eigen3/Eigen/src/QR/HouseholderQR.h
 
+/usr/include/eigen3/Eigen/src/QR/HouseholderQR_MKL.h
+Eigen/src/Core/util/MKL_support.h
+/usr/include/eigen3/Eigen/src/QR/Eigen/src/Core/util/MKL_support.h
+
 /usr/include/eigen3/Eigen/src/SVD/JacobiSVD.h
+
+/usr/include/eigen3/Eigen/src/SVD/JacobiSVD_MKL.h
+Eigen/src/Core/util/MKL_support.h
+/usr/include/eigen3/Eigen/src/SVD/Eigen/src/Core/util/MKL_support.h
 
 /usr/include/eigen3/Eigen/src/SVD/UpperBidiagonalization.h
 
