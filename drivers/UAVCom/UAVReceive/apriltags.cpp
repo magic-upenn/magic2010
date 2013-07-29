@@ -90,10 +90,7 @@ void QuadImageHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData
 
     if (image!=NULL) {
         if (image->image != NULL) {
-<<<<<<< HEAD
 			//printf("Image isn't null.\n");
-=======
->>>>>>> 7d52897e1365ae85c6784a25ac06d122cb148ea3
             //imgproc(image->image,image->width,image->height);
 	
             //create cv::Mat from image data
@@ -168,6 +165,15 @@ void print_detection(AprilTags::TagDetection detection, AprilInfo* info){
     double m_px = m_width/2;
     double m_py = m_height/2;
 
+	//For fixing distance problem with wide-angle lens
+	double F_P = 0.050;  //50 mm focal length for normal perspective lens
+	double F_W = 0.0028; //2.8 mm focal length for wide-angle lens
+	double magP = 0; //Magnification factor for normal perspective lens
+	double magW = 0; //Magnification factor for wide-angle lens
+	double mC = 0; //Constant for relating magP and magW
+	double origDist = 0;
+	double newDist = 0;
+
     Eigen::Vector3d translation;
     Eigen::Matrix3d rotation;
     detection.getRelativeTranslationRotation(m_tagSize, m_fx, m_fy, m_px, m_py,
@@ -201,7 +207,7 @@ void print_detection(AprilTags::TagDetection detection, AprilInfo* info){
     info->yaw=yaw;
     info->pitch=pitch;
     info->roll=roll;
-    info->distance=translation.norm();
+    //info->distance=translation.norm();
     info->rot[0]=fixed_rot(0,0);
     info->rot[1]=fixed_rot(0,1);
     info->rot[2]=fixed_rot(0,2);
@@ -212,7 +218,32 @@ void print_detection(AprilTags::TagDetection detection, AprilInfo* info){
     info->rot[7]=fixed_rot(2,1);
     info->rot[8]=fixed_rot(2,2);
 
-            //Publish AprilInfo to IPC
+	/*Now, to do the distance work, you need to translate the distance from
+	* how it appears in the wide-angle lens to how april expects it
+	* (in a normal lens). Thus, you need to examine the magnification factor
+	* Magnification is a function based in distance. The magnification facto
+	* are functions of distance, and they are related by a linearly growing
+	* constant. 
+	*
+	* Equations:
+	* M = f / (f - d0) ; //M = magnification, f = focal length, d0 = distanc
+	* M_w = c * M_p ; //Magnification of wide_angle lens related to
+	*                                 //Magnification of normal perspective 
+	* c = -f_w / ( (1 / (f_p - d0 )) - f_p - f_w ) 
+	*                                 //f_p -> focal length of normal lens,
+	*                                 // wide-angle lens
+	*/
+
+	origDist = translation.norm();
+
+	magW = F_W / (F_W - origDist);
+	mC = -F_W / ( (1 / (F_P - origDist)) - F_P - F_W );
+	magP = magW / mC;
+	newDist = abs( -F_P * (magP - 1) ) / magP;
+
+   info->distance = newDist;
+
+    //Publish AprilInfo to IPC
     if(IPC_publishData("Quad1/AprilInfo",info) != IPC_OK) {
         printf("Error publishing\n");
         exit(1);
@@ -273,12 +304,10 @@ int main(int argc, char** argv)
         exit(1);
     }
 
-	/*
       if ( IPC_subscribeData("Quad1/AprilInfo",AprilInfoHandler, NULL) != IPC_OK) {
       printf("Error subscribing\n");
       exit(1);
       }
-    */ 
 	
 	//continuously grab image from IPC, process, and publish data back to ipc
 	while(!go_home){
