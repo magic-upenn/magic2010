@@ -73,80 +73,68 @@ void AprilInfoHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData
 /*
  * function used to handle image info received over IPC
  */
-void QuadImageHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData) {
-        QuadImg* image=(QuadImg*)callData;
-	AprilInfo *info = (AprilInfo*)clientData;
-
-	//Variables for removing the distortion
-	char* conffile = "out_qc_data.xml";
-	cv::Mat cameraMatrix, distCoeffs;
-	cv::Mat image_und;	
-    cv::FileStorage fs(conffile, cv::FileStorage::READ);
-
-	//set up april tags variables			
-	bool m_draw = true;
-	AprilTags::TagCodes m_tagCodes = AprilTags::tagCodes36h11;
-	AprilTags::TagDetector* m_tagDetector = new AprilTags::TagDetector(m_tagCodes);
-
-        if (image!=NULL) {
-          if (image->image != NULL) {
-	    //imgproc(image->image,image->width,image->height);
+bool m_draw = false;
 	
-	    //create cv::Mat from image data
-	    cv::Mat image_m(cv::Size(image->width, image->height), CV_8UC1, const_cast<uint8_t*>(image->image), image->width);
+void QuadImageHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData) {
+    QuadImg* image=(QuadImg*)callData;
+	QIH_CD *qihcd = (QIH_CD*)clientData;
 
-		//Undistort the image
-		fs["Camera_Matrix"] >> cameraMatrix;
-	    fs["Distortion_Coefficients"] >> distCoeffs;
+	cv::Mat image_und;	
+	//set up april tags variables			
+	static AprilTags::TagCodes m_tagCodes = AprilTags::tagCodes36h11;
+	static AprilTags::TagDetector m_tagDetector = AprilTags::TagDetector(m_tagCodes);
 
-		cv::undistort(image_m, image_und, cameraMatrix, distCoeffs);
+    if (image!=NULL) {
+        if (image->image != NULL) {
+            //imgproc(image->image,image->width,image->height);
+	
+            //create cv::Mat from image data
+            cv::Mat image_m(cv::Size(image->width, image->height), CV_8UC1, const_cast<uint8_t*>(image->image), image->width);
 
-	    //Detect Tags 
-	    int frame = 0;
-	    double last_t = tic();
-	    vector<AprilTags::TagDetection> detections = m_tagDetector->extractTags(image_und);
+            cv::undistort(image_m, image_und, qihcd->cameraMatrix, qihcd->distCoeffs);
 
-	    // print out each detection
-	    for (int i=0; i<detections.size(); i++) {
-		    print_detection(detections[i],info);
-	    }
+            //Detect Tags 
+            int frame = 0;
+            double last_t = tic();
+            vector<AprilTags::TagDetection> detections = m_tagDetector.extractTags(image_und);
 
-	    // show the current image including any detections
-	    if (m_draw) {
-		    for (int i=0; i<detections.size(); i++) {
-			    // also highlight in the image
-			    detections[i].draw(image_m);
-		    }
-		    cv::imshow(window_name, image_und); // OpenCV call
-	    }
+            // print out each detection
+            for (int i=0; i<detections.size(); i++) {
+                print_detection(detections[i],&(qihcd->info));
+            }
 
-	    //Publish AprilInfo to IPC
-	    if(IPC_publishData("Quad1/AprilInfo",info) != IPC_OK)
-	    {
-		    printf("Error publishing\n");
-		    exit(1);
-	    }
-        printf("Published April Info!\n");
-	    //calculate fps and other timing stuff
-	    if (frame % 10 == 0) {
-		    double t = tic();
-		    //cout << "  " << 10./(t-last_t) << " fps" << endl;
-		    last_t = t;
-	    }
+            // show the current image including any detections
+            if (m_draw) {
+                for (int i=0; i<detections.size(); i++) {
+                    // also highlight in the image
+                    detections[i].draw(image_und);
+                }
+                cv::imshow(window_name, image_und); // OpenCV call
+            }
 
-	    // exit if any key is pressed
-	    if (cv::waitKey(1) >= 0) go_home = true;
+            //Publish AprilInfo to IPC
+            if(IPC_publishData("Quad1/AprilInfo",&(qihcd->info)) != IPC_OK)
+                {
+                    printf("Error publishing\n");
+                    exit(1);
+                }
+            static uint64_t counter = 0;
+            printf("Published April Info %d!\n",++counter);
+            //calculate fps and other timing stuff
+            if (frame % 10 == 0) {
+                double t = tic();
+                //cout << "  " << 10./(t-last_t) << " fps" << endl;
+                last_t = t;
+            }
 
-	  }
+            // exit if any key is pressed
+            if (cv::waitKey(1) >= 0) go_home = true;
 
         }
 
-
-
-        IPC_freeByteArray(callData);
-		
-		//For the undistortion
-		fs.release();
+    }
+    free(image->image);
+    IPC_freeByteArray(callData);
 }
 
 /*
@@ -154,18 +142,18 @@ void QuadImageHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData
  */
 void wRo_to_euler(const Eigen::Matrix3d& wRo, double& yaw, double& pitch, double& roll) {
 	yaw = standardRad(atan2(wRo(1,0), wRo(0,0)));
-    	double c = cos(yaw);
-    	double s = sin(yaw);
-    	pitch = standardRad(atan2(-wRo(2,0), wRo(0,0)*c + wRo(1,0)*s));
-    	roll  = standardRad(atan2(wRo(0,2)*s - wRo(1,2)*c, -wRo(0,1)*s + wRo(1,1)*c));
+    double c = cos(yaw);
+    double s = sin(yaw);
+    pitch = standardRad(atan2(-wRo(2,0), wRo(0,0)*c + wRo(1,0)*s));
+    roll  = standardRad(atan2(wRo(0,2)*s - wRo(1,2)*c, -wRo(0,1)*s + wRo(1,1)*c));
 }
 
 /*
  * function to parse detection data, print it, and prepare it for IPC
  */
- void print_detection(AprilTags::TagDetection detection, AprilInfo* info){
-  //	cout << "  Id: " << detection.id
-  //       << " (Hamming: " << detection.hammingDistance << ")";
+void print_detection(AprilTags::TagDetection detection, AprilInfo* info){
+    //	cout << "  Id: " << detection.id
+    //       << " (Hamming: " << detection.hammingDistance << ")";
 
     // recovering the relative pose of a tag:
 
@@ -188,23 +176,23 @@ void wRo_to_euler(const Eigen::Matrix3d& wRo, double& yaw, double& pitch, double
                                              translation, rotation);
     Eigen::Matrix3d F;
     F <<
-      1, 0,  0,
-      0,  -1,  0,
-      0,  0,  1;
+        1, 0,  0,
+        0,  -1,  0,
+        0,  0,  1;
     Eigen::Matrix3d fixed_rot = F*rotation;
     double rot_m[9] = {fixed_rot(0,0), fixed_rot(0,1), fixed_rot(0,2), fixed_rot(1,0), fixed_rot(1,1), fixed_rot(1,2), fixed_rot(2,0), fixed_rot(2,1), fixed_rot(2,2)};
     double yaw, pitch, roll;
     wRo_to_euler(fixed_rot, yaw, pitch, roll);
-    /*
-    cout << "  distance=" << translation.norm()
-         << "m, x=" << translation(0)
-         << ", y=" << translation(1)
-         << ", z=" << translation(2)
-         << ", yaw=" << yaw
-         << ", pitch=" << pitch
-         << ", roll=" << roll
-         << endl;
-    */
+/*    
+      cout << "  distance=" << translation.norm()
+      << "m, x=" << translation(0)
+      << ", y=" << translation(1)
+      << ", z=" << translation(2)
+      << ", yaw=" << yaw
+      << ", pitch=" << pitch
+      << ", roll=" << roll
+      << endl;
+*/  
     //prepare info for ipc
     info->id=(uint8_t)detection.id;
     info->t=0;
@@ -229,7 +217,7 @@ void wRo_to_euler(const Eigen::Matrix3d& wRo, double& yaw, double& pitch, double
     // use reprojection error of corner points, because the noise in
     // this relative pose is very non-Gaussian; see iSAM source code
     // for suitable factors.
-  }
+}
 
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -237,34 +225,50 @@ void wRo_to_euler(const Eigen::Matrix3d& wRo, double& yaw, double& pitch, double
 /////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char** argv)
 {
+    if (m_draw)
+        cv::namedWindow( window_name, CV_WINDOW_AUTOSIZE);
+    QIH_CD quadInfH;
 
-       cv::namedWindow( window_name, CV_WINDOW_AUTOSIZE);
-
+	char* conffile = "out_qc_data.xml";
+    cv::FileStorage fs(conffile, cv::FileStorage::READ);
+    
+    //Undistort the image
+    fs["Camera_Matrix"] >> quadInfH.cameraMatrix;
+    fs["Distortion_Coefficients"] >> quadInfH.distCoeffs;
 
 	//setup the environment for ipc and Apriltags
 	//set up IPC 
 	AprilInfo info;
 	IPC_setVerbosity(IPC_Print_Errors);
-        if (IPC_connectModule("Quad1/AprilInfo",NULL) != IPC_OK) {
-                printf("Error connecting to IPC\n");
-                exit(1);
-        }
-	if (IPC_defineMsg("Quad1/AprilInfo",IPC_VARIABLE_LENGTH,APRIL_FORMAT) != IPC_OK) {
-                printf("ERROR defining message\n");
-                exit(1);
-        }
-	if (IPC_subscribeData("Quad1/Image",QuadImageHandler,&info) != IPC_OK) {
-                printf("Error subscribing\n");
-                exit(1);
+    if (IPC_connectModule("Quad1/AprilInfo",NULL) != IPC_OK) {
+        printf("Error connecting to IPC\n");
+        exit(1);
     }
+	if (IPC_defineMsg("Quad1/AprilInfo",IPC_VARIABLE_LENGTH,APRIL_FORMAT) != IPC_OK) {
+        printf("ERROR defining message\n");
+        exit(1);
+    }
+	if (IPC_subscribeData("Quad1/Image",QuadImageHandler,&quadInfH) != IPC_OK) {
+        printf("Error subscribing\n");
+        exit(1);
+    }
+<<<<<<< HEAD
     if ( IPC_subscribeData("Quad1/AprilInfo",AprilInfoHandler, NULL) != IPC_OK) {
 		printf("Error subscribing\n");
 		exit(1);
 	}
+=======
+	/*
+      if ( IPC_subscribeData("Quad1/AprilInfo",AprilInfoHandler, NULL) != IPC_OK) {
+      printf("Error subscribing\n");
+      exit(1);
+      }
+    */ 
+>>>>>>> f270ff2c003dcecf08f310073b6a3dbfe2a03a25
 	
 	
 	//continuously grab image from IPC, process, and publish data back to ipc
 	while(!go_home){
 		IPC_listen(0);
-      	}
+    }
 }

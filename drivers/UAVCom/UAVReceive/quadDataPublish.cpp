@@ -63,7 +63,7 @@ void QuadImageHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData
 int publishMsg(char *msgName, void *data) {
         if (IPC_publishData(msgName,data) != IPC_OK)
                 return -1;
-        printf("Published %s!\n",msgName);
+//        printf("Published %s!\n",msgName);
         return 0;
 }
 
@@ -161,6 +161,8 @@ int main(int argc, char* argv[]) {
                         if (channels == 1) {
                                 publishMsg("Quad1/IMU",&imu);
                                 publishMsg("Quad1/Image",&img);
+                                static uint32_t counter=0;
+                                printf("Published IMU and Image %d!\n",++counter);
                         }
                         free(img.image);
                 }
