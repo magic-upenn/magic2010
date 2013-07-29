@@ -86,6 +86,7 @@ void QuadImageHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData
 
     if (image!=NULL) {
         if (image->image != NULL) {
+			printf("Image isn't null.\n");
             //imgproc(image->image,image->width,image->height);
 	
             //create cv::Mat from image data
@@ -242,7 +243,7 @@ void print_detection(AprilTags::TagDetection detection, AprilInfo* info){
 	magW = F_W / (F_W - origDist);
 	mC = -F_W / ( (1 / (F_P - origDist)) - F_P - F_W );
 	magP = magW / mC;
-	newDist = abs( -F_P * (magP - 1) ) / magP;
+	newDist = abs( (-F_P * (magP - 1) ) / magP);
 
     info->distance = newDist;
 
