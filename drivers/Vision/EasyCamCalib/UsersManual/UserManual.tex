@@ -1,0 +1,492 @@
+\documentclass[article,11pt]{memoir}
+
+%\usepackage{man10}
+\usepackage[utf8x]{inputenc}
+\usepackage{graphicx}
+\usepackage{multicol}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{subfig}
+
+\pdfinfo{
+  /Title    (EasyCamCalib User Manual)
+  /Author   (Rui Melo)
+  /Creator  (João Pedro Barreto)
+  /Producer (Rui Melo)
+  /Subject  (A short user guide to EasyCamCalib calibration software)
+  /Keywords (Camera Calibration, Calibration Grid, Division Model, Radial Distortion)
+}
+
+%New command for the title
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+%Hyperreff setup
+\hypersetup{colorlinks=true,linkcolor=black,citecolor=red,urlcolor=blue}
+
+\begin{document}
+
+%Dummy title. I will use a custom title page.
+\title{}
+\date{}
+\author{}
+\maketitle
+%The actual title
+\begin{center}
+% Upper part of the title page 
+\textsc{\Large Institute of Systems and Robotics}\\[0.5cm]
+\textsc{University of Coimbra}\\[0.5cm]
+% Title
+\HRule \\[1cm]
+{ \huge \bfseries EasyCamCalib User Manual
+}\\[0.4cm]
+\HRule \\[2cm]
+\textsc{\Large Version 1.1}\\[0.5cm]
+\vfill
+% Bottom of the page
+{\large \today}
+\end{center}
+
+% use the page style defined above.
+\pagestyle{ruled}
+
+
+\newpage
+\tableofcontents
+\newpage
+\chapter{Introduction}
+\section{What is EasyCamCalib?}
+\label{sec:whatis}
+The purpose of \textit{EasyCamCalib} is to calibrate a camera with radial distortion from a single image of a planar chessboard pattern. The application aims to automatically calibrate a camera from an image (or a set of images), requiring minimal user intervention. The original goal of this application was to calibrate an endoscope (high radial distortion) using a single image captured by a surgeon on the operating room, but the methods are generalized to any camera that presents moderate to high levels of radial distortion. Although the algorithm is designed to provide accurate calibration using a single image, the accuracy and robustness is increased when using more than one image.
+
+
+\section{Basics of Single Image Calibration}
+\label{sec:calibfromasingelimage}
+The EasyCamCalib toolbox is built upon the recent work of Barreto et al. \cite{barreto_09}, where the authors are able to calibrate a camera presenting radial distortion using a single image of a planar chessboard pattern. The radial distortion is modeled using the so called division model \cite{divmodel} and the method provides a closed form estimation of the intrinsic parameters and distortion coefficient. The fact that the distortion follows a known model provides additional geometric cues for achieving calibration from a single image. For further details on the calibration algorithm please refer to \cite{barreto_09}.
+
+
+The toolbox provides an interface that facilitates the calibration of a camera from a single image. The calibration is performed as follows:
+\begin{itemize}
+ \item \textbf{Boundary Detection} (in the case of endoscopic or fish-eye lenses). The boundary between the meaningful region of the arthroscopic image and the background is defined. The boundary information is used to later restrict the automatic corner detection of the chessboard pattern.
+ \item \textbf{Automatic Corner Detection}. The image is searched for plausible corners, which are referenced in the chessboard reference frame. This detection is based in the entropy of the angles and uses geometric metrics to validate and count the corners. Therefore, the automatic corner detection is sensitive to illumination conditions and view angle (as referred in section \ref{sec:preffered_images}).
+ \item \textbf{Initial Calibration}. With the automatic corners detected, a first calibration is estimated using \cite{barreto_09}. This calibration will be referred as the \textit{Initial Calibration}.
+ \item \textbf{New Points Generation}. Using the initial calibration estimation, points are generated in the image plane and matched to squares of the calibration grid. Note that, for lenses with strong radial distortion, points generated in the periphery of the image tend to be inaccurate. In this case you might need to use the manual selection tool to remove undesired generated points.
+ \item \textbf{Final Calibration}. With the new generated points the calibration parameters are recomputed, providing what we will call from now on the \textit{Final Calibration}.
+ \item \textbf{Calibration Refinement}. The calibration parameters are refined using a non linear optimization over the re-projection error. This is the final result of the calibration and will be referred from now on as the \textit{Optimal Calibration}.
+\end{itemize}
+
+
+\section{Capturing Calibration Images}
+\label{sec:preffered_images}
+
+
+\begin{figure}[b]
+  \begin{minipage}[2\textwidth]{1\textwidth}
+  \centering
+  \includegraphics[width=0.43\textwidth]{./images1.1/bad1.pdf}
+  \includegraphics[width=0.46\textwidth]{./images1.1/bad2.pdf}
+  \end{minipage}
+\caption{Examples of bad calibration images. On the left we can see an image in a fronto-parallel configuration. On the right we can see a highly slanted calibration image. Both these images fail to calibrate automatically (you can still use the slanted one to calibrate, but you will have to manually select some of the input points).}
+\label{fig:badimages}
+\end{figure}
+
+
+\begin{figure}[t]
+\centering
+  \begin{minipage}[2\textwidth]{1\textwidth}
+  \centering
+  \includegraphics[width=0.45\textwidth]{./images1.1/good1.pdf}
+  \includegraphics[width=0.45\textwidth]{./images1.1/good2.pdf}
+  \end{minipage}
+  \vfill
+  \begin{minipage}[2\textwidth]{1\textwidth}
+  \centering
+  \includegraphics[width=0.45\textwidth]{./images1.1/good3.pdf}
+  \includegraphics[width=0.45\textwidth]{./images1.1/good4.pdf}
+  \end{minipage}
+\caption{Examples of good calibration images}
+\label{fig:goodimages}
+\end{figure}
+
+
+For EasyCamCalib to be able to calibrate the camera from a single image, the following requirements must be fulfilled:
+
+
+
+\begin{itemize}
+ \item The angle between the optical axis and the normal to the calibration plane should be higher than 15º, i.e. you must avoid fronto-parallel configurations (angle=0º) in order to have a good decoupling between $\xi$ and the focal distance \cite{barreto_09}. You also must avoid highly slanted views to avoid bad automatic corner detections. Figures \ref{fig:badimages} and \ref{fig:goodimages} illustrate some good and bad calibration images examples. 
+ \item The number of squares present in the image must be enough to calibrate from a single view. The image should contain at least 16 corners\footnote{This is not the minimum number of corners required to calibrate an image from a single view}. Note that the more points you provide to the algorithm, the better the projection model will be estimated.
+ \item The calibration grid must be in the central part of the image. An optimal situation is when all the image is filled with the calibration grid. If you cannot take calibration images in this conditions try to put the calibration grid over a non-textured material (like a black fabric) to avoid bad automatic corner detections.
+\end{itemize}
+
+One of the few limitations of the software comes from the automatic corner detection used to initialize the calibration. If the calibration image does not fulfil the above requirements there is a good chance that the calibration will fail due to bad detected initial corners.
+
+
+
+\chapter{Using EasyCamCalib}
+
+To use EasyCamCalib, the easiest way is to add the \textbf{Interfaces} folder you downloaded to the matlab path. This will only input some GUI executables to your path. All the functions needed by EasyCamCalib are loaded locally so your matlab path don't get filled with unnecessary files. Currently the toolbox needs the Matlab optimization toolbox. So, to start the software, simply call ``EasyCamCalib'' from the matlab prompt.
+
+\section{User Interface}
+
+When you call EasyCamCalib from the matlab prompt you will find a GUI similar to the one of figure \ref{fig:mainwin}. The UI have also a menu bar that will be addressed bellow.
+
+\begin{figure}
+ \includegraphics[width=\textwidth]{./images1.1/main.pdf}
+ \caption{Main EasyCamCalib window.}
+\begin{multicols}{2}
+\begin{scriptsize}
+\begin{enumerate}
+ \item Browser list box. All the calibration images are chosen from this list box.
+ \item Calibration list. All the images you want to use for calibration are listed here.
+ \item Preview window. As you click in the browse list box or the calibration list box a small preview off the image is presented here.
+ \item Mean reprojection errors of the calibrated images. The value in bold represents the mean re-projection error of the current selected image.
+ \item Start calibrating the images of the calibration list.
+ \item Options Button.	
+ \item Estimated intrinsic calibration parameters.	 
+ \item Estimated extrinsic calibration parameters (relative pose between the camera and the plane). 
+ \item After the calibration is over, switch to the calibration parameters you want to display. 
+ \item Main visualization window. All the visual results are presented here.
+ \item Angle of the camera relatively to the calibration plane and distance from the plane origin to the optical center of the camera.
+ \item Visualization buttons. Read the tooltips while using the toolbox for more information.
+ \item Return to the calibration image selection stage to perform a new calibration 
+\end{enumerate}
+\end{scriptsize}
+\end{multicols}  
+\label{fig:mainwin}
+\end{figure}
+
+
+\section{File Menu}
+
+\subsection{Start}
+Start the calibration using the files in the calibration list. This menu has the same function as the button 5 of \figurename \ref{fig:mainwin}.
+
+\subsection{Save Data}
+Save the calibration data in a .mat file that can be loaded later. Note that during execution, as a fail-safe, EasyCamCalib saves intermediary results in \textit{temp/CalibData\_temp.mat}. 
+
+\subsection{Save to txt}
+Save the intrinsic calibration parameters in .txt file. The parameters are saved in the following order:
+\begin{enumerate}
+\item Coupled parameter between the focal distance and distortion coefficient $\eta=\frac{f}{\sqrt{-\xi}}$. This parameter is estimated during the linear calibration in \cite{barreto_09}.
+\item Distortion coefficient according to the first order division model \cite{divmodel,amarelo}.
+\item Aspect Ratio.
+\item Skew angle.
+\item Principal point x-coordinate.
+\item Principal point y-coordinate.
+\item Focal distance.
+\end{enumerate}
+The remaining values refer to the case of wide angle lenses where there is a circular boundary limiting the meaningful region of the image. 
+
+\subsection{Load Data}
+Load a previously saved .mat file.
+
+
+\section{Edit Menu}
+
+\subsection{Options}
+Open the option UI of \figurename \ref{fig:options}:
+\begin{figure}
+\centering
+ \includegraphics[width=0.9\textwidth]{./images1.1/options.pdf}
+ \caption{Options window.}
+\begin{multicols}{2}
+\begin{scriptsize}
+\begin{enumerate}
+ \item Define the calibration chessboard grid size in millimetres. The grid is assumed to be square.
+ \item Automatically set the same reference frame in the calibration pattern across multiple images. To be able to use this feature the calibration images must fulfill three requirements:
+\begin{itemize}
+ \item The calibration grid must have two diagonally consecutive white squares painted with different colors.
+ \item The colors of the marks should be very distinctive in the HSV color space. The colors tested usually present both high \textit{Value} and \textit{Saturation} and a different value of \textit{Hue}. One good example is using light blue and purple as marks colors.
+ \item The marks should be nearby the center of the image (if the image has high distortion).
+\end{itemize}
+ \item Setting this option will enable the calibration parameters non-linear optimization over all the images without needing to run it manually from the menu.  
+ \item Defines the image source. If \textit{Arthroscope} is selected, EasyCamCalib assumes that there is a wide angle lens with high radial distortion and will try to fit an ellipse to the boundary contour. If \textit{Point Grey} is selected the lens is assumed to have moderate distortion.
+ \item Abort the whole calibration process in case an image fails the calibration.
+ \item Automatically remove the images where the process fails, leaving only the good images for the calibration.
+ \item Save the defined options and quit to the main UI.
+\end{enumerate}
+\end{scriptsize}
+\end{multicols}  
+\label{fig:options}
+\end{figure}
+
+\section{Tools Menu}
+\subsection{Modify Points}
+Manually add or remove points from the calibration pattern. When you use this tool all the images in the calibration list will pop-up consecutively, enabling you to add or remove any points to the calibration process. Here are the commands you can use with this tool:
+\begin{itemize}
+ \item \textbf{Left Click} - select the nearest corner for insertion and input the coordinates in the matlab prompt. Note that, although the coordinates in the calibration plane are referenced in millimetres, when inputting coordinates you have to input them in integer units (the origin corner is set to [0,0], the next is [1,0], and so on...).    
+ \item \textbf{Right Click} - select the nearest point for removal. The point gets surrounded by a yellow square.
+ \item \textbf{Middle Click} - define a box (with two middle clicks) that select points for removal.
+ \item \textbf{p} - show/hide point coordinates.
+ \item \textbf{space} - get to the next image.
+ \item \textbf{q} - finish the manual selection here. The modifications you have done so far are kept, the rest of the images stays untouched.
+ \item \textbf{s} - set the size of the window where we will search for corners when clicking in the image for inputting points.
+ \item \textbf{g} - try to generate more interest points from the ones already existent. Use carefully and always save your changes before attempting this. 
+\end{itemize}
+
+\subsection{Define Origins}
+Manually set the reference frame of the calibration plane for each image. You define the origin with the \textit{Left Mouse} click and the $x$ direction with the \textit{Right Mouse} button. After you are done with one image press \textit{space} to get to the next image or press \textit{q} to exit without further changes. It is very important that you keep a constant reference frame across all calibration images. This reference frame will be used to compute the extrinsic parameters (transform from the image plane to the calibration grid).
+
+\subsection{Correct Radial Distortion}
+This tools aims at checking the projection model and distortion parameter(s) estimation. When you correct the radial distortion, if the model is accurately estimated, straight lines in the 3D world will be projected as straight lines in the image plane. To use the UI of \figurename  \ref{fig:correctUI} simply select a calibration file previously saved from the left list box, and the image you want to correct from the right list box (a small preview will appear on the right.). Then hit the start button. In the case of wide angle lenses where the radial distortion is high, select the \textit{Arthroscope} image source and input a desired undistorted image size in pixels.
+\begin{figure}
+\centering
+  \includegraphics[width=0.8\textwidth]{./images1.1/correct.pdf}
+\caption{Radial distortion correction UI.}
+\label{fig:correctUI}
+\end{figure}
+ 
+\begin{figure}
+\centering
+  \subfloat[Original image.]{\includegraphics[width=0.43\textwidth]{./images1.1/originalimage.pdf}}
+  \subfloat[Corrected image.]{\includegraphics[width=0.43\textwidth]{./images1.1/correctedimage.pdf}}
+\caption{Result of the radial distortion correction.}
+\label{fig:correctUI_result}
+\end{figure}
+
+
+\subsection{Homography Checker}
+
+\begin{figure}
+\centering
+  \includegraphics[width=0.9\textwidth]{./images1.1/homography.pdf}
+\caption{Homography checker UI.}
+\label{fig:homoUI}
+\end{figure}
+
+This tools checks the consistency of the extrinsic parameters through a visual homography test. The UI of \figurename \ref{fig:homoUI} is presented to the user, which has to load a calibration file and select two images for the test.
+
+After the user hits the start button, a new \textit{image 2} will be generated though homography from \textit{image 1}. This homography is computed using the extrinsic parameters of the views and according to \cite{amarelo}. \figurename \ref{fig:homoUI} shows the result of the test in a wide angle lens ($4mm$ arthroscope).
+
+\begin{figure}
+\centering
+  \subfloat[Image 1.]{\includegraphics[height=3cm]{./images1.1/homoview1.pdf}}
+  \hspace{3px}
+  \subfloat[Image 2.]{\includegraphics[height=3cm]{./images1.1/homoview2.pdf}}
+  \hspace{3px}
+  \subfloat[Image 2 generated from image 1 trough homography.]{\includegraphics[height=3cm]{./images1.1/homoview2from1.pdf}}	
+\caption{Result of the homography test.}
+\label{fig:homoUI_result}
+\end{figure}
+
+Note that this test only makes sense if all the images in the dataset generated a different calibration (see the \textit{1st/2nd Order Refinement 1 by 1} presented bellow). If you do this test on a dataset where all images were optimized together, since the non-linear optimization also optimizes the transforms, you will be biasing the results  
+
+
+\subsection{Compare with Bouguet}
+This tool launches the Bouguet \cite{bouguet} calibration toolbox over the current data and compares the results with the EasyCamCalib estimations. Note that the distortion profile curve has to be converted from the division model \cite{divmodel} (used by EasyCamCalib) to the Brown's model \cite{brown} used in the Bouguet's toolbox, which can introduce some error in the distortion parameters. Also be aware that to do a fair comparison you have to use more than 10 images and optimize the EasyCamCalib results using all the data (see \textit{1st/2nd Order Refinement} bellow) before running the tool. In this comparison only two distortion parameters are used in the Bouguet's calibration estimation and the tangential distortion is ignored. Also, both aspect-ratio and skew angle are fixed to $1$ and $0$ respectively. 
+
+
+\section{Refinement}
+\subsection{1st Order Refinement}
+Perform a non-linear optimization over all the input images assuming the first order division model for radial distortion. Both intrinsics and extrinsic parameters of all images are optimized together over the re-projection error of the pixels. The Levenberg–Marquardt algorithm is used as the minimization solution.
+\subsection{2nd Order Refinement}
+Perform a non-linear optimization over all the input images assuming the second order division model for radial distortion. Both intrinsics and extrinsic parameters of all images are optimized together over the re-projection error of the pixels. The Levenberg–Marquardt algorithm is used as the minimization solution.
+\subsection{1st Order Refinement 1 by 1}
+Perform a non-linear optimization over the input images independently assuming the first order division model for radial distortion. Both intrinsics and extrinsics parameters of each images are optimized independently over the re-projection error of the pixels. This means that in the end you will get as many optimized calibrations as the number of images in the dataset. The Levenberg–Marquardt algorithm is used as the minimization solution.
+\subsection{2nd Order Refinement 1 by 1}
+Perform a non-linear optimization over the input images independently assuming the second order division model for radial distortion. Both intrinsics and extrinsics parameters of each images are optimized independently over the re-projection error of the pixels. This means that in the end you will get as many optimized calibrations as the number of images in the dataset. Once again, the Levenberg–Marquardt algorithm is used as the minimization solution.
+ 
+
+\chapter{Calibration from a Single Image}
+This is the quick guide to easily calibrate a camera from a single image. You can start by choosing the image for the calibration from your dataset using the listbox of \figurename \ref{fig:tutorial1}. You can also navigate through your file system using the path selector above.
+
+
+The next step is to configure the calibration using the \textit{Options} menu or the button above the \textit{S tart} button. The window of \figurename \ref{fig:tutorial2} will appear and you will be able to define some options.
+
+
+\begin{figure}[h]
+\centering
+\subfloat[Choosing the calibration image from the list box.]{
+  	\includegraphics[width=0.48\textwidth]{./images1.1/tutorial1.pdf}
+	\label{fig:tutorial1}
+  }
+\subfloat[Configuring the calibration through the options editor.]{
+    \includegraphics[width=0.48\textwidth]{./images1.1/tutorial2.pdf}
+	\label{fig:tutorial2}
+}
+\caption{Calibrating from a single image - Step 1.}
+\label{fig:step1}
+\end{figure}
+
+After the calibration customization you can hit the green \textit{Start} button and a confirmation dialogue will appear (\figurename \ref{fig:tutorial3}). After confirming the calibration setup, hit the \textit{Proceed} button to start the calibration.
+
+After a while the first step of the calibration is completed. At this time you can check the grid points used in the linear estimator and do small adjusts using the \textit{Modify Points} tool, as shown in \figurename \ref{fig:tutorial4}.
+
+\begin{figure}[h]
+\centering
+\subfloat[Checking up the calibration setup.]{
+  \includegraphics[width=0.48\textwidth]{./images1.1/tutorial3.pdf}
+\label{fig:tutorial3}
+}
+\subfloat[Adding/Removing points using the manual tool.]{
+  \includegraphics[width=0.48\textwidth]{./images1.1/tutorial4.pdf}
+\label{fig:tutorial4}
+}
+\caption{Calibrating from a single image - Step 2.}
+\label{fig:step2}
+\end{figure}
+
+
+After making sure that no wrong input points are being used in the calibration, you can proceed to the non-linear optimizer. Use the \textit{Refinement} menu to choose the appropriate optimizer (\figurename \ref{fig:tutorial5}). 
+
+In the end you will finish with a complete calibration from a single image. Check the results as indicated in \figurename \ref{fig:tutorial6}. After that you can return to the first step using the \textit{Return} button, or you can analyse the data as shown later. 
+
+
+\begin{figure}[h]
+\centering
+\subfloat[Running the non-linear optimizer.]{
+  \includegraphics[width=0.48\textwidth]{./images1.1/tutorial5.pdf}
+\label{fig:tutorial5}
+}
+\subfloat[Final result of the calibration.]{
+\includegraphics[width=0.48\textwidth]{./images1.1/tutorial6.pdf}
+\label{fig:tutorial6}
+}
+\caption{Calibrating from a single image - Step 3.}
+\label{fig:step3}
+\end{figure}
+
+
+
+\chapter{Analysing the Calibration Data}
+
+After a successful calibration, or any time you load a calibration file, the EasyCamCalib toolbox allows to visually inspect the data and check the parameters estimation accuracy. With the provided tools you can see the re-projection errors of each image, inspect the input points, the parameters change across calibrations, the 3D transform between the calibration plane and the camera, etc. 
+
+Further instruction about the advanced use of the toolbox can be found in the tutorial video.
+
+\section{EasyCamCalib output}
+\label{sec:calibparams}
+All the calibration data is stored in a MATLAB structure that is composed by the following fields:
+\begin{itemize}
+ \footnotesize
+\item \textbf{ImageData}
+\begin{itemize}
+ \item \textbf{ImageRGB} - RGB image.
+  \item \textbf{ImageGrey} - Grayscale image.
+  \item \textbf{Info} - Some additional information about the calibration image, including the grid size, resolution, etc.
+  \item \textbf{Hand2Opto} - if any OptoTracker information is available, this $4x4$ matrix holds the transformation from the Hand (camera) to the Optotracker.
+  \item \textbf{Boundary} - if the image was acquired with a wide angle lens, this field holds all the boundary information (conic parameters, boundary points, etc.).
+  \item \textbf{PosImageAuto} - Point automatically detected (in image coordinates) for the \textit{Initial Calibration}.
+  \item \textbf{PosPlaneAuto} - Points automatically detected (in calibration plane coordinates) for the \textit{Initial Calibration}.
+  \item \textbf{InitCalib} - Initial calibration using only the automatically detected points. Inside this structure, besides the intrinsic/extrinsic and distortion parameter, you can also find the re-projection error information.
+  \item \textbf{PosImage} - Corners detected in image coordinates after joining automatic corners and new generated corners.
+  \item \textbf{PosPlane} - Corners detected in plane coordinates after joining automatic corners and new generated corners.
+  \item \textbf{FinalCalib} - Final calibration using all the corners (automatic corners $+$ new generated points). Inside this structure, besides the intrinsic/extrinsic and distortion parameter, you can find the re-projection error information.
+  \item \textbf{OptimCalib} - Optimal calibration after using the non-linear optimizer over \textit{FinalCalib}. Inside this structure, besides the intrinsic/extrinsic and distortion parameter, you can also find the reprojection error information.
+\end{itemize}
+\end{itemize}
+
+Inside \textit{InitCalib}, \textit{FinalCalib} and \textit{OptimCalib} you can find all the relevant calibration information. The calibration parameters (aspect ratio, skew angle, focal distance and projection center) are identified according to the literature \cite{amarelo}. The transformation \textit{T} gives you the transform between the calibration plane and the camera. Besides the parameters defined before, you can find a distortion parameter $\xi$ and a parameter $\eta=\frac{f}{\sqrt{-\xi}}$, as well as the intrinsics matrix $K$ (computed as usual in the literature \cite{amarelo}) and a matrix $K_{\eta}$ used in other applications.
+
+%
+%\subsection{Radial Distortion Correction}
+%\label{sec:rd}
+%Item 27 of figure \ref{fig:mainwin} allows you to \textit{Correct Radial Distortion} using a simple GUI. The distortion model used is represented in equation \ref{eq:rad_map}.
+%
+%\begin{equation}
+%\label{eq:rad_map}
+%d \sim \Gamma_{\xi}(u) \sim 
+%\left[\begin{array}{ccc}
+%2u_1 & 2u_2 & u3 + \sqrt{u_3^2 - 4 \xi (u_1^2 + u_2^2)}
+%\end{array}\right]^T
+%\end{equation}
+% 
+%%\begin{figure}
+%% \includegraphics[scale=1.1]{./images/radial.eps} 
+%% \caption{Radial Distortion Correction window.} 
+%%\label{fig:rdcorrect} 
+%%\end{figure}
+%
+%With this GUI you are able to verify if the distortion parameter (as well as the intrinsics parameters) were correctly estimated.To correct an image select a calibration file from the first list box and an image from the second list box and hit the \textit{start} button. You can also specify if the image is arthroscopic or not. 
+%
+%\begin{itemize}
+% \item If you specify the image as being arthroscopic the program will fit the undistorted image to the size of the conic boundary in order to correct the meaningful zone of the arthroscopic image only, as described in \cite{melo}. The image is then corrected using equation \ref{eq:Xeta}, where $g$ represents the undistorted image point and $q$ the correspondent distorted point.
+%
+%\begin{equation}
+%\label{eq:Xeta}
+%q \sim K_\eta \Gamma_{\xi=-1}(K_s g)
+%\end{equation}
+%
+%\begin{equation}
+%\label{eq:K_eta}
+%K_{\eta} = 
+%\left[ \begin{array}{ccc}
+%a\eta & s\eta & c_x \\
+%0 & a^{-1}\eta & c_y \\
+%0 & 0 & 1 \\
+%\end{array} \right]
+%\quad with \quad \eta = \frac{f}{\sqrt{-\xi}} 
+%\end{equation}
+%
+%\begin{equation}
+%\label{eq:hs}
+%K_s =
+%\left[\begin{array}{ccc}
+%f_{scale} & 0 & c_{xs} \\
+%0 & f_{scale} & c_{ys} \\
+%0 & 0 & 1 \\
+%\end{array}\right]
+%\end{equation}
+%
+%\begin{equation}
+%\label{eq:fscale}
+%f_{scale} = max \left( \frac{bx_{max} - bx_{min}}{Sx_d} , \frac{by_{max} - by_{min}}{Sy_d} \right) 
+%\end{equation} 
+%
+%\begin{equation}
+%\label{eq:cxs_cys}
+%c_{xs} = \frac{-f_{scale} \times Sx_d}{2} + Cx_{conic} \qquad c_{ys} = \frac{-f_{scale} \times Sy_d}{2} + Cy_{conic}
+%\end{equation} 
+%
+%To fit the useful zone of the arthroscopic image, $f_{scale}$ is based on the conic boundaries and the desired undistorted image size. $(bx,by)$ are the coordinates of the conic boundary (in undistorted world coordinates) and $Sx_d$ and $Sy_d$ are the desired size of the undistorted image.
+%
+%\item If you specify the image as being from a Point Grey camera the image distortion will be corrected using equation \ref{eq:Xqsi}.
+%
+%\begin{equation}
+%\label{eq:Xqsi}
+%q \sim K \Gamma_{\xi}(H g)
+%\end{equation}
+%
+%Where $H$ is the plane-to-image homography and $\Gamma_{\xi}$ is the radial distortion function of equation \ref{eq:rad_map}. $K$ is the matrix of intrinsic parameters of the camera, generally given by:
+%
+%\begin{equation}
+%K = 
+%\left[ \begin{array}{ccc}
+%af & sf & c_x \\
+%0 & a^{-1}f & c_y \\
+%0 & 0 & 1 \\
+%\end{array} \right]
+%\end{equation}
+%
+%Where $a$ is the aspect ratio, $s$ is the skew factor (a factor of the angles between the axes of the image), $f$ is the focal distance and $(c_x,c_y)$ is the principal point (where the z-axis intersects the image plane).
+%\end{itemize}
+%
+%\subsection{Homography Checker}
+%\label{sec:homo}
+%Another method to verify the calibration parameters (this time the extrinsics also) is the Homography test (figure \ref{fig:mainwin}, item 27). In this test we will compute the homography between two images using the method proposed in \cite{amarelo}. This method uses information from the calibration (extrinsics) parameters to compute the homographic relation between two calibration planes. Because of this, only calibration images can be used for the homography test.
+%
+%%\begin{figure}
+%% \includegraphics[scale=1.0]{./images/homography.eps} 
+%% \caption{Homography Checker window.} 
+%%\label{fig:homo} 
+%%\end{figure}
+%
+%In figure \ref{fig:homo} you can see the \textit{Homography Checker} GUI. You sart by loading the calibration file and then select two images from the two list boxes. After you hit the \textit{start} button, the original images will be presented to you, as well as an estimation of \textit{Image2} generated by the homography. To better see the result, a fourth image is presented, this one containing the subtraction of \textit{Image2} with \textit{Image2 generated by homography}. A good homography estimation results in a \textit{near-black} subtraction image. Note that the subtraction does not take into account that the \textit{Image2 generated by homography} is rendered using bi-linear interpolation.
+ 
+\chapter{Known Issues}
+\label{sec:knownissues}
+\begin{itemize}
+\item The major drawback of this software resides in the automatic corner detection and counting for the first calibration parameters linear estimation. As the application targets a wide range of cameras and lens with different distortions, this task is far from being trivial. The software must be able to handle illumination variations, resolution changes, different sizes of the squares in the image, different amount and effects of distortion, background clutter other than the calibration grid, different shapes of the grid squares (as the perspective/distortion changes), etc. Therefore, at this stage, the software is not yet completely automatic. You will find yourself using the \textit{Modify Points} tool quite often. This issue will be addressed in the next releases. 
+
+\item While analysing the calibration data you are able to change the viewpoint in the extrinsic parameters visualizer. For some reason the UI has a bug that allows the user to change the viewpoint in all the other figures of the UI. When this happens, simply change the image you are analysing (clicking in a different item of the list box) and the axis will go back to normal.
+
+\item It is possible that, if some input points are misplaced, the \textit{New Points Generation} step starves your system memory while generating an infinite number of points. When this happens you have to restart the application.
+\end{itemize}
+
+
+\bibliographystyle{IEEEtran}
+\bibliography{biblio} 
+%\addcontentsline{toc}{chapter}{References}
+%\nocite{*} %print all the references in the bibliography file
+
+\end{document}

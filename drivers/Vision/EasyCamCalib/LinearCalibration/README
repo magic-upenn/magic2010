@@ -1,0 +1,11 @@
+LinearCalibrationXXX.m - Compute the Calibration parameters using the linear method.
+
+ManualPointSelection.m - After the linear calibration it is possible that some points are missplaced (according to the real position of the corner). In this case call this function to manually select points to remove. The interface works as follow:
+LeftClick - select point for removal (the point is marked with a yellow square).
+RightClick - unselect point for removal (the point is marked with a black square)
+MiddleClick - click 2 times and select all the points instide the box defined with the two clicks
+p - display points coordinates
+Space - end selection and get ot the next frame
+q - end selection and exit program
+
+At the end of the selection all the calibration parameters are recomputed, as well as the Plane2Camera transform 

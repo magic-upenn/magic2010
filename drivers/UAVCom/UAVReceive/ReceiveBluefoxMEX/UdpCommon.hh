@@ -1,6 +1,0 @@
-#ifndef UDP_COMMON_HH
-#define UDP_COMMON_HH
-
-#define UDP_MAX_BUF_LEN 65500
-
-#endif //UDP_COMMON_HH

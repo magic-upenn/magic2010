@@ -1,0 +1,89 @@
+K 25
+svn:wc:ra_dav:version-url
+V 26
+/apriltags/!svn/ver/20/src
+END
+GLineSegment2D.cc
+K 25
+svn:wc:ra_dav:version-url
+V 43
+/apriltags/!svn/ver/1/src/GLineSegment2D.cc
+END
+MathUtil.cc
+K 25
+svn:wc:ra_dav:version-url
+V 37
+/apriltags/!svn/ver/1/src/MathUtil.cc
+END
+FloatImage.cc
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/apriltags/!svn/ver/1/src/FloatImage.cc
+END
+Gaussian.cc
+K 25
+svn:wc:ra_dav:version-url
+V 37
+/apriltags/!svn/ver/1/src/Gaussian.cc
+END
+Quad.cc
+K 25
+svn:wc:ra_dav:version-url
+V 33
+/apriltags/!svn/ver/1/src/Quad.cc
+END
+TagDetection.cc
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/apriltags/!svn/ver/20/src/TagDetection.cc
+END
+TagFamily.cc
+K 25
+svn:wc:ra_dav:version-url
+V 38
+/apriltags/!svn/ver/1/src/TagFamily.cc
+END
+Segment.cc
+K 25
+svn:wc:ra_dav:version-url
+V 36
+/apriltags/!svn/ver/1/src/Segment.cc
+END
+GrayModel.cc
+K 25
+svn:wc:ra_dav:version-url
+V 38
+/apriltags/!svn/ver/1/src/GrayModel.cc
+END
+Homography33.cc
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/apriltags/!svn/ver/1/src/Homography33.cc
+END
+UnionFindSimple.cc
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/apriltags/!svn/ver/1/src/UnionFindSimple.cc
+END
+Edge.cc
+K 25
+svn:wc:ra_dav:version-url
+V 33
+/apriltags/!svn/ver/1/src/Edge.cc
+END
+GLine2D.cc
+K 25
+svn:wc:ra_dav:version-url
+V 36
+/apriltags/!svn/ver/1/src/GLine2D.cc
+END
+TagDetector.cc
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/apriltags/!svn/ver/10/src/TagDetector.cc
+END

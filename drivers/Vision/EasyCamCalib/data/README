@@ -1,0 +1,4 @@
+This folder has the folowing structure:
+- In the folders named CalibImages_... are the calibration images and the optotracker file
+- The .mat files present in the main folder are the result of the calibration.
+- The file names should give a brief description of what was done in the calibration, as well as the calibration images directory should give some info about the dataset 

@@ -1,0 +1,9 @@
+AutoCorner Detector.
+
+This set of functions automatically detect and count the squares of a calibration grid, returning the coordinates of the corner points in the image and in the coordinates plane.
+                                        
+KNOWN ISSUES:
+- Sometimes 2 point get assigned to the save corner
+- Some "corner count" failures can happen when the calibration plane is to inclined
+- Sometimes autocorners are assigned in the middle of a black square (some minor bug i think)
+- Still some improvements to be made in the corner coordinates counter

@@ -1,0 +1,149 @@
+K 25
+svn:wc:ra_dav:version-url
+V 32
+/apriltags/!svn/ver/12/AprilTags
+END
+Segment.h
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/apriltags/!svn/ver/1/AprilTags/Segment.h
+END
+UnionFindSimple.h
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/apriltags/!svn/ver/1/AprilTags/UnionFindSimple.h
+END
+Edge.h
+K 25
+svn:wc:ra_dav:version-url
+V 38
+/apriltags/!svn/ver/1/AprilTags/Edge.h
+END
+TagDetector.h
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/apriltags/!svn/ver/1/AprilTags/TagDetector.h
+END
+GLineSegment2D.h
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/apriltags/!svn/ver/1/AprilTags/GLineSegment2D.h
+END
+FloatImage.h
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/apriltags/!svn/ver/1/AprilTags/FloatImage.h
+END
+XYWeight.h
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/apriltags/!svn/ver/1/AprilTags/XYWeight.h
+END
+Gaussian.h
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/apriltags/!svn/ver/1/AprilTags/Gaussian.h
+END
+TagDetection.h
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/apriltags/!svn/ver/12/AprilTags/TagDetection.h
+END
+pch.h
+K 25
+svn:wc:ra_dav:version-url
+V 37
+/apriltags/!svn/ver/1/AprilTags/pch.h
+END
+TagFamily.h
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/apriltags/!svn/ver/11/AprilTags/TagFamily.h
+END
+Tag16h5.h
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/apriltags/!svn/ver/1/AprilTags/Tag16h5.h
+END
+Tag16h5_other.h
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/apriltags/!svn/ver/1/AprilTags/Tag16h5_other.h
+END
+Gridder.h
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/apriltags/!svn/ver/1/AprilTags/Gridder.h
+END
+Tag25h7.h
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/apriltags/!svn/ver/1/AprilTags/Tag25h7.h
+END
+Tag25h9.h
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/apriltags/!svn/ver/1/AprilTags/Tag25h9.h
+END
+Homography33.h
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/apriltags/!svn/ver/1/AprilTags/Homography33.h
+END
+GrayModel.h
+K 25
+svn:wc:ra_dav:version-url
+V 43
+/apriltags/!svn/ver/1/AprilTags/GrayModel.h
+END
+GLine2D.h
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/apriltags/!svn/ver/1/AprilTags/GLine2D.h
+END
+Tag36h9.h
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/apriltags/!svn/ver/1/AprilTags/Tag36h9.h
+END
+MathUtil.h
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/apriltags/!svn/ver/1/AprilTags/MathUtil.h
+END
+Quad.h
+K 25
+svn:wc:ra_dav:version-url
+V 38
+/apriltags/!svn/ver/1/AprilTags/Quad.h
+END
+Tag36h11.h
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/apriltags/!svn/ver/1/AprilTags/Tag36h11.h
+END
+Tag36h11_other.h
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/apriltags/!svn/ver/1/AprilTags/Tag36h11_other.h
+END
