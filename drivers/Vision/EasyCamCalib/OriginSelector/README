@@ -1,0 +1,7 @@
+Set of functions to define a common reference frame a set of calibration images. The manually inputed functions requires teh selection of an origin and a x direction. The z axis is alway considered as pointing out of the plane toward the camera. 
+
+DefineOriginsMultipleMarksManual.m - Manually select the origin(left click) and direction (right click) of a set of calibration images containing multiple marks. ALWAYS cheack the configuration to define the relative position between the marks.
+
+DefineOriginsSingleColoredmarkAuto.m - Automatically set a common reference frame to a set of single colored marked images. The colors of the marks (white squares painted with 2 different color) must get as close as possible to primary colors (HSV)
+ 
+DefineOriginsSingleMarkMaunual.m - same as DefineOriginsMultipleMarksManual.m but only with one mark (in this case there is no need to manually define the relative position betwwen marks because there is only one!) 
