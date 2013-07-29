@@ -74,10 +74,14 @@ void AprilInfoHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData
  * function used to handle image info received over IPC
  */
 bool m_draw = false;
+
+double t1,t2;
 	
 void QuadImageHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData) {
+    //static uint64_t counter=0;
     QuadImg* image=(QuadImg*)callData;
 	QIH_CD *qihcd = (QIH_CD*)clientData;
+//    printf("dt=%f\n",tic()-image->t);
 
 	cv::Mat image_und;	
 	//set up april tags variables			
@@ -94,8 +98,8 @@ void QuadImageHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData
             cv::undistort(image_m, image_und, qihcd->cameraMatrix, qihcd->distCoeffs);
 
             //Detect Tags 
-            int frame = 0;
-            double last_t = tic();
+//            int frame = 0;
+//            double last_t = tic();
             vector<AprilTags::TagDetection> detections = m_tagDetector.extractTags(image_und);
 
             // print out each detection
@@ -111,27 +115,17 @@ void QuadImageHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData
                 }
                 cv::imshow(window_name, image_und); // OpenCV call
             }
-
+/*
             //Publish AprilInfo to IPC
             if(IPC_publishData("Quad1/AprilInfo",&(qihcd->info)) != IPC_OK)
                 {
                     printf("Error publishing\n");
                     exit(1);
                 }
-            static uint64_t counter = 0;
-            printf("Published April Info %d!\n",++counter);
-            //calculate fps and other timing stuff
-            if (frame % 10 == 0) {
-                double t = tic();
-                //cout << "  " << 10./(t-last_t) << " fps" << endl;
-                last_t = t;
-            }
-
+*/
             // exit if any key is pressed
             if (cv::waitKey(1) >= 0) go_home = true;
-
         }
-
     }
     free(image->image);
     IPC_freeByteArray(callData);
@@ -183,7 +177,7 @@ void print_detection(AprilTags::TagDetection detection, AprilInfo* info){
     double rot_m[9] = {fixed_rot(0,0), fixed_rot(0,1), fixed_rot(0,2), fixed_rot(1,0), fixed_rot(1,1), fixed_rot(1,2), fixed_rot(2,0), fixed_rot(2,1), fixed_rot(2,2)};
     double yaw, pitch, roll;
     wRo_to_euler(fixed_rot, yaw, pitch, roll);
-/*    
+    /*
       cout << "  distance=" << translation.norm()
       << "m, x=" << translation(0)
       << ", y=" << translation(1)
@@ -192,10 +186,11 @@ void print_detection(AprilTags::TagDetection detection, AprilInfo* info){
       << ", pitch=" << pitch
       << ", roll=" << roll
       << endl;
-*/  
+    */
+  
     //prepare info for ipc
     info->id=(uint8_t)detection.id;
-    info->t=0;
+    info->t=tic();
     info->x=translation(0);
     info->y=translation(1);
     info->z=translation(2);
@@ -212,6 +207,23 @@ void print_detection(AprilTags::TagDetection detection, AprilInfo* info){
     info->rot[6]=fixed_rot(2,0);
     info->rot[7]=fixed_rot(2,1);
     info->rot[8]=fixed_rot(2,2);
+
+            //Publish AprilInfo to IPC
+    if(IPC_publishData("Quad1/AprilInfo",info) != IPC_OK) {
+        printf("Error publishing\n");
+        exit(1);
+    }
+    static uint64_t counter=0;
+    static double last_t = 0;
+    //printf("%f\n",tic());
+    //calculate fps and other timing stuff
+    counter++;
+    if (counter % 10 == 0) {
+        printf("Published April Info %d! ",counter);
+        double t = tic();
+        cout << "  " << 10./(t-last_t) << " fps" << endl;
+        last_t = t;
+    }
 
     // Also note that for SLAM/multi-view application it is better to
     // use reprojection error of corner points, because the noise in
@@ -252,13 +264,17 @@ int main(int argc, char** argv)
         printf("Error subscribing\n");
         exit(1);
     }
+    if (IPC_setMsgQueueLength("Quad1/Image",1) != IPC_OK) {
+        printf("Error setting message queue length\n");
+        exit(1);
+    }
+
 	/*
       if ( IPC_subscribeData("Quad1/AprilInfo",AprilInfoHandler, NULL) != IPC_OK) {
       printf("Error subscribing\n");
       exit(1);
       }
     */ 
-	
 	
 	//continuously grab image from IPC, process, and publish data back to ipc
 	while(!go_home){
