@@ -1,3 +1,5 @@
 *.o
 *.a
 *.mexa64
+magicvars.sh
+drivers/Vision/

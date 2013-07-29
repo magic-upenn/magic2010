@@ -2,8 +2,8 @@ clear all
 
 SetMagicPaths;
 ipcAPI('connect');
-ipcAPI('subscribe','KeyPress');
-ipcAPI('set_msg_queue_length','KeyPress',1);
+%ipcAPI('subscribe','KeyPress');
+%ipcAPI('set_msg_queue_length','KeyPress',1);
 
 ipcAPI('subscribe','Quad1/AprilInfo');
 ipcAPI('set_msg_queue_length','Quad1/AprilInfo',1);
@@ -66,31 +66,36 @@ xlabel('x');
 ylabel('y');
 zlabel('z');
 
-square=[-.1 -.1; -.1 .1; .1 .1; .1 -.1];
-orient1=[0 0 0; 0 0 1];
-orient2=[0 0 0; 1 0 0];
-%orplot=fill(square(:,1),square(:,2),'g');
+square=[0 .1 .1; 0 .1 -.1; 0 -.1 -.1; 0 -.1 .1; 0 .1 .1];
+orient1=[0 0 0; 0 0 .2];
+orient2=[0 0 0; .2 0 0];
+orplot=plot3(square(:,1),square(:,2), square(:,3),'g-');
 ovplot1=plot3(orient1(:,1),orient1(:,2),orient1(:,3),'r-');
 ovplot2=plot3(orient2(:,1),orient2(:,2),orient2(:,3),'k-');
+
 while(1)
     msgs=ipcAPI('listenWait',0);
     nmsgs=length(msgs);
     for i=1:nmsgs
+        %fprintf('got message\n');
         name=msgs(i).name;
         data=msgs(i).data;
         id=data(1);
         t=double(typecast(data(2:9),'double'));
         rest=data(10:end);
-        pos1=typecast(rest(1:8*3),'double')*12*0.0254;
+        pos1=typecast(rest(1:8*3),'double');
         ypr=typecast(rest(8*3+1:8*6),'double');
         dist=typecast(rest(8*6+1:8*7),'double');
         rot=typecast(rest(8*7+1:end),'double');
         rot=reshape(rot,3,3);
         
-        pos1=[0 0 0];
-        %set(orplot,'XData',square(:,1)+pos1(1),'YData',square(:,1)+pos1(2))
-        set(ovplot1,'XData',orient1(:,1)+pos1(1),'YData',orient1(:,2)+pos1(2),'ZData',orient1(:,3)+pos1(3))
-        set(ovplot2,'XData',orient2(:,1)+pos1(1),'YData',orient2(:,2)+pos1(2),'ZData',orient2(:,3)+pos1(3))
+        rsquare=rot*square';
+        rorient1=rot*orient1';
+        rorient2=rot*orient2';
+        
+        set(orplot,'XData',rsquare(:,1)+pos1(1),'YData',rsquare(:,2)+pos1(2),'ZData',rsquare(:,3)+pos1(3))
+        set(ovplot1,'XData',rorient1(:,1)+pos1(1),'YData',rorient1(:,2)+pos1(2),'ZData',rorient1(:,3)+pos1(3))
+        set(ovplot2,'XData',rorient2(:,1)+pos1(1),'YData',rorient2(:,2)+pos1(2),'ZData',rorient2(:,3)+pos1(3))
         drawnow
     end
 end
