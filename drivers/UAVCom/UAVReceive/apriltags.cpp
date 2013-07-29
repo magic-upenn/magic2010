@@ -86,7 +86,7 @@ void QuadImageHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData
 
     if (image!=NULL) {
         if (image->image != NULL) {
-			printf("Image isn't null.\n");
+			//printf("Image isn't null.\n");
             //imgproc(image->image,image->width,image->height);
 	
             //create cv::Mat from image data
