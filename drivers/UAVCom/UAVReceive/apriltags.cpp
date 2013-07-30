@@ -245,6 +245,9 @@ void print_detection(AprilTags::TagDetection detection, AprilInfo* info){
    info->distance = newDist;
 	*/
 
+	//Very kludgey fix - Got from graph of data error
+	info->distance = translation.norm() / 2.5; //2.5 is the error factor
+
     //Publish AprilInfo to IPC
     if(IPC_publishData("Quad1/AprilInfo",info) != IPC_OK) {
         printf("Error publishing\n");
