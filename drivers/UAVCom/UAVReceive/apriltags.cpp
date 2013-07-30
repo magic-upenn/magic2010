@@ -207,7 +207,7 @@ void print_detection(AprilTags::TagDetection detection, AprilInfo* info){
     info->yaw=yaw;
     info->pitch=pitch;
     info->roll=roll;
-    //info->distance=translation.norm();
+    info->distance=translation.norm();
     info->rot[0]=fixed_rot(0,0);
     info->rot[1]=fixed_rot(0,1);
     info->rot[2]=fixed_rot(0,2);
@@ -234,14 +234,16 @@ void print_detection(AprilTags::TagDetection detection, AprilInfo* info){
 	*                                 // wide-angle lens
 	*/
 
+	/*
 	origDist = translation.norm();
 
 	magW = F_W / (F_W - origDist);
 	mC = -F_W / ( (1 / (F_P - origDist)) - F_P - F_W );
 	magP = magW / mC;
-	newDist = abs( -F_P * (magP - 1) ) / magP;
+	newDist = abs( (-F_P * (magP - 1))  / magP );
 
    info->distance = newDist;
+	*/
 
     //Publish AprilInfo to IPC
     if(IPC_publishData("Quad1/AprilInfo",info) != IPC_OK) {
