@@ -38,4 +38,12 @@ typedef struct QIH_CD {
     AprilInfo info;
     cv::Mat cameraMatrix;
     cv::Mat distCoeffs;
+	//Focal Length components
+	double fx;
+	double fy;
+	//Center point components - Not necessarily in center of image!!!
+	double cx;
+	double cy;
+	int imageWidth;
+	int imageHeight;
 } QIH_CD;
