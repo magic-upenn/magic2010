@@ -34,8 +34,6 @@ bool go_home = false;
 
 //To store basic info about incoming images
 QIH_CD quadInfH;
-//Eventually put this in the QIH_CD struct - need to get in the xml file
-double m_tagsize;
 
 //////////////////////////////////////////////////////////////////
 ////////    functions
@@ -185,7 +183,7 @@ void print_detection(AprilTags::TagDetection detection, AprilInfo* info){
     Eigen::Vector3d translation;
     Eigen::Matrix3d rotation;
 	//REPLACE HERE
-    detection.getRelativeTranslationRotation(m_tagSize, quadInfH.fx, quadInfH.fy, quadInfH.cx, quadInfH.cy, translation, rotation);
+    detection.getRelativeTranslationRotation(quadInfH.apriltagWidth, quadInfH.fx, quadInfH.fy, quadInfH.cx, quadInfH.cy, translation, rotation);
     Eigen::Matrix3d F;
     F <<
         1, 0,  0,
@@ -297,6 +295,7 @@ int main(int argc, char** argv)
     fs["Distortion_Coefficients"] >> quadInfH.distCoeffs;
     fs["image_Width"] >> quadInfH.imageWidth;
     fs["image_Height"] >> quadInfH.imageHeight;
+    fs["apriltag_Width"] >> quadInfH.apriltagWidth; //Width of tag in meters
     //fs[""] >> quadInfH.;
 	//Now, the follow values are in the camera matrix in this form
 	// cM = [ fx 0 cx; 0 fy cy; 0 0 1 ]
@@ -306,8 +305,6 @@ int main(int argc, char** argv)
 	quadInfH.fy = M_r2[2];
 	quadInfH.cx = M_r1[3];
 	quadInfH.cy = M_r2[3];
-	
-    m_tagsize = 0.166;
 
 	//setup the environment for ipc and Apriltags
 	//set up IPC 

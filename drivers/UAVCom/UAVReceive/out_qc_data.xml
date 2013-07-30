@@ -4,6 +4,7 @@
 <nrOfFrames>13</nrOfFrames>
 <image_Width>376</image_Width>
 <image_Height>240</image_Height>
+<apriltag_Width>0.166</apriltag_Width>
 <board_Width>4</board_Width>
 <board_Height>4</board_Height>
 <square_Size>39.</square_Size>
