@@ -1,0 +1,45 @@
+MATRIX VISION mvBlueFOX USB 2.0 Camera - Linux Access Libraries for ARM
+=======================================================================
+
+1.
+
+A number of other system libraries are required. These must be installed on your system in the usual way or copied to the lib/arm directory.
+
+libpthread, libstdc++
+
+2.
+In order for USB to work correctly you may need to mount the usbfs file system on /proc/bus/usb.
+
+e.g.
+add the following line to "/etc/fstab":
+
+usbfs        /proc/bus/usb             usbfs        noauto     0   0
+
+and now mount the USBFS file system:
+
+mount /proc/bus/usb/
+
+3. *** BIG FAT WARNING ***
+The mvBlueFOX libraries read and write locking files in the directory /tmp/mv. These are used to stop more than one application
+accessing the same hardware at the same time. If your embedded system uses FLASH memory, writing continuously to "/tmp/mv" could
+eventually cause FLASH failures because most FLASH chips are specified at 100000 write cycles per block. Even when using a wear-levelling
+file system like YAFFS or JFFS this may cause a problem at some time. Therefore we recommend that the directory "/tmp" or 
+"/tmp/mv" is actually a RAM disk. On the Embedded ARM system this is easily achieved by mounting a RAM disk on "/tmp" like this once
+on startup:
+
+mount -t ramfs none /tmp
+
+or, on more modern systems:
+
+mount -t tmpfs none /tmp
+
+Of course, any files stored in "/tmp" will be lost on turning off the power to the system.
+
+-
+Howard Gray
+MATRIX VISION GmbH
+
+
+
+
+
