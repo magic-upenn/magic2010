@@ -32,6 +32,9 @@ void print_detection(AprilTags::TagDetection detection, AprilInfo* info);
 const char* window_name = "Quad-April Test";
 bool go_home = false;
 
+//To store basic info about incoming images
+QIH_CD quadInfH;
+
 //////////////////////////////////////////////////////////////////
 ////////    functions
 //////////////////////////////////////////////////////////////////
@@ -156,7 +159,8 @@ void print_detection(AprilTags::TagDetection detection, AprilInfo* info){
     // actual camera parameters here as well as the actual tag size
     // (m_fx, m_fy, m_px, m_py, m_tagSize)
 
-    //some variables
+    //some variables - These will be obtained from a generated file
+	/*
     int m_width = 640;
     int m_height = 480;
     double m_tagSize(0.166);
@@ -164,8 +168,10 @@ void print_detection(AprilTags::TagDetection detection, AprilInfo* info){
     double m_fy = 600;
     double m_px = m_width/2;
     double m_py = m_height/2;
+	*/
 
 	//For fixing distance problem with wide-angle lens
+    double m_tagSize(0.166);
 	double F_P = 0.050;  //50 mm focal length for normal perspective lens
 	double F_W = 0.0028; //2.8 mm focal length for wide-angle lens
 	double magP = 0; //Magnification factor for normal perspective lens
@@ -176,8 +182,8 @@ void print_detection(AprilTags::TagDetection detection, AprilInfo* info){
 
     Eigen::Vector3d translation;
     Eigen::Matrix3d rotation;
-    detection.getRelativeTranslationRotation(m_tagSize, m_fx, m_fy, m_px, m_py,
-                                             translation, rotation);
+	//REPLACE HERE
+    detection.getRelativeTranslationRotation(quadInfH.apriltagWidth, quadInfH.fx, quadInfH.fy, quadInfH.cx, quadInfH.cy, translation, rotation);
     Eigen::Matrix3d F;
     F <<
         1, 0,  0,
@@ -207,7 +213,7 @@ void print_detection(AprilTags::TagDetection detection, AprilInfo* info){
     info->yaw=yaw;
     info->pitch=pitch;
     info->roll=roll;
-    //info->distance=translation.norm();
+    info->distance=translation.norm();
     info->rot[0]=fixed_rot(0,0);
     info->rot[1]=fixed_rot(0,1);
     info->rot[2]=fixed_rot(0,2);
@@ -234,14 +240,19 @@ void print_detection(AprilTags::TagDetection detection, AprilInfo* info){
 	*                                 // wide-angle lens
 	*/
 
+	/*
 	origDist = translation.norm();
 
 	magW = F_W / (F_W - origDist);
 	mC = -F_W / ( (1 / (F_P - origDist)) - F_P - F_W );
 	magP = magW / mC;
-	newDist = abs( -F_P * (magP - 1) ) / magP;
+	newDist = abs( (-F_P * (magP - 1))  / magP );
 
    info->distance = newDist;
+	*/
+
+	//Very kludgey fix - Got from graph of data error
+	info->distance = translation.norm() / 2.5; //2.5 is the error factor
 
     //Publish AprilInfo to IPC
     if(IPC_publishData("Quad1/AprilInfo",info) != IPC_OK) {
@@ -274,7 +285,7 @@ int main(int argc, char** argv)
 {
     if (m_draw)
         cv::namedWindow( window_name, CV_WINDOW_AUTOSIZE);
-    QIH_CD quadInfH;
+    //QIH_CD quadInfH;
 
 	char* conffile = "out_qc_data.xml";
     cv::FileStorage fs(conffile, cv::FileStorage::READ);
@@ -282,6 +293,18 @@ int main(int argc, char** argv)
     //Undistort the image
     fs["Camera_Matrix"] >> quadInfH.cameraMatrix;
     fs["Distortion_Coefficients"] >> quadInfH.distCoeffs;
+    fs["image_Width"] >> quadInfH.imageWidth;
+    fs["image_Height"] >> quadInfH.imageHeight;
+    fs["apriltag_Width"] >> quadInfH.apriltagWidth; //Width of tag in meters
+    //fs[""] >> quadInfH.;
+	//Now, the follow values are in the camera matrix in this form
+	// cM = [ fx 0 cx; 0 fy cy; 0 0 1 ]
+	const double* M_r1 = quadInfH.cameraMatrix.ptr<double>(1);
+	const double* M_r2 = quadInfH.cameraMatrix.ptr<double>(2);
+	quadInfH.fx = M_r1[1];
+	quadInfH.fy = M_r2[2];
+	quadInfH.cx = M_r1[3];
+	quadInfH.cy = M_r2[3];
 
 	//setup the environment for ipc and Apriltags
 	//set up IPC 
