@@ -42,7 +42,7 @@ function [trpy, integrals] = positionController(delT, quadPose, target, integral
     poop =delT;
     
     %% PID commands
-    x_command = (Kd_x*xvel) + (Kp_x*xerror) + (xint);
+    x_command = (Kd_x*xvel) + (Kp_x*xerror) + (xint)
     y_command = (Kd_y*yvel) + (Kp_y*yerror) + (yint);
     z_command = (Kd_z*zvel) + (Kp_z*zerror) + (zint);
     if z_command<20 %prevent division by zero
@@ -52,12 +52,12 @@ function [trpy, integrals] = positionController(delT, quadPose, target, integral
     fprintf('xc = %f, yc=%f zc=%f yawc=%f\n', x_command, y_command, z_command, yaw_command);
 
     %% Convert PID commands to trpy
-    thrust = sqrt(x_command^2 + y_command^2 + z_command^2) % must calibrate so that when error is zero thrust = weight of quad
-    roll_world = atan(x_command/z_command)
-    pitch_world = atan(y_command/z_command)
+    thrust = sqrt(x_command^2 + y_command^2 + z_command^2); % must calibrate so that when error is zero thrust = weight of quad
+    roll_world = atan(x_command/z_command);
+    pitch_world = atan(y_command/z_command);
     %tranlate world roll and pitch to quad roll and pitch
-    roll = roll_world*cos(-yaw_april)-pitch_world*sin(-yaw_april)
-    pitch = roll_world*sin(-yaw_april)+pitch_world*cos(-yaw_april)
+    roll = roll_world*cos(-yaw_april)-pitch_world*sin(-yaw_april);
+    pitch = roll_world*sin(-yaw_april)+pitch_world*cos(-yaw_april);
     
     yaw = yaw_command;
     

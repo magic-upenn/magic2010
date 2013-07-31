@@ -76,7 +76,7 @@ void AprilInfoHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData
 /*
  * function used to handle image info received over IPC
  */
-bool m_draw = false;
+bool m_draw = true;
 
 double t1,t2;
 	
