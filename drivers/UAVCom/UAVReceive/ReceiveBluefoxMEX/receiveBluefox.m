@@ -6,10 +6,10 @@ icntr = 0;
 t0 = GetUnixTime();
 colormap gray;
 count=0;
-%dat=[];
+dat=[];
 
-num_frames=40;
-while((count<=num_frames))
+num_frames=60;
+while(count<=num_frames)
   msgs = UdpReceiveAPI('receive');
   if ~isempty(msgs)
     count=count+1;
@@ -20,8 +20,7 @@ while((count<=num_frames))
     imshow(img);
     dat{count}=img;
     drawnow;
-    pause(.5)
-	fprintf('Took frame %d\n', count);
+    pause(1.5)
   end
 end
-save('/tmp/images.mat','dat')
+save('images.mat','dat')
