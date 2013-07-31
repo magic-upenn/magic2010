@@ -1,7 +1,5 @@
-function AprilVis_V2()
+function sendQuadCmd()
 clear all;
-
-DEBUG_FLAG=0;
 
 SetMagicPaths;
 ipcAPI('connect');
@@ -45,6 +43,24 @@ xplot=plot3([0 x(1)],[0 x(2)],[0 x(3)],'r');
 yplot=plot3([0 y(1)],[0 y(2)],[0 y(3)],'g');
 zplot=plot3([0 z(1)],[0 z(2)],[0 z(3)],'b');
 
+
+DEBUG_FLAG=0;
+
+% initialize quadrotor command
+%open the interface
+KQUAD.dev    = '/dev/ttyUSB0';
+KQUAD.driver = @kQuadInterfaceAPI;
+KQUAD.baud   = 921600;
+KQUAD.id     = 0;
+KQUAD.chan   = 0;
+KQUAD.type   = 0; %0 for standard, 1 for nano
+KQUAD.driver('connect',KQUAD.dev,KQUAD.baud)
+
+thrust = 1; %grams. 1 for idle
+roll   = 0; %radians
+pitch  = 0; %radians
+yaw    = 0; %radians
+
 %% inifinite loop
 while(1)
     msgs=ipcAPI('listenWait',0);
@@ -79,6 +95,11 @@ while(1)
         
         %% rotation of camera wrt to tag to get quadrotor wrt tag
         rot=H(1:3,1:3)*[1 0 0; 0 -1 0; 0 0 -1]*[cos(-pi/4) -sin(-pi/4) 0; sin(-pi/4) cos(-pi/4) 0; 0 0 1];
+        
+        trpy = [thrust roll pitch yaw];
+  
+        KQUAD.driver('SendQuadCmd1',KQUAD.id, KQUAD.chan, KQUAD.type, trpy);
+        fprintf('Sending to channel %i, id %i, type %i\n',KQUAD.chan,KQUAD.id,KQUAD.type);
         
         if (DEBUG_FLAG)
             %% plot full pose of quadrotor wrt april tag
