@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
             img.image=(uint8_t*)malloc(img.width*img.height);
             memcpy(img.image,image,img.width*img.height);
             if (channels == 1) {
-                imu.t=(float)tic();
+                imu.t=tic();
                 publishMsg("Quad1/IMU",&imu);
                 img.t=tic();
                 count++;
