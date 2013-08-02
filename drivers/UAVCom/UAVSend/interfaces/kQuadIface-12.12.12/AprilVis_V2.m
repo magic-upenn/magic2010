@@ -1,12 +1,14 @@
 function AprilVis_V2()
 clear all;
 
-DEBUG_FLAG=0;
+DEBUG_FLAG=1;
 
 SetMagicPaths;
 ipcAPI('connect');
 ipcAPI('subscribe','Quad1/AprilInfo');
 ipcAPI('set_msg_queue_length','Quad1/AprilInfo',1);
+
+UdpSendAPI('connect','192.168.10.255',12345);
 
 %% plotting params
 rotrad=2*0.0254;
@@ -75,22 +77,27 @@ while(1)
         
         %% homogeneous transformation (camera wrt april tag
         H=[rot1' -rot1'*pos2; 0 0 0 1];
-        pos=H(1:3,4);
+        pos=H(1:3,4)
         
         %% rotation of camera wrt to tag to get quadrotor wrt tag
         rot=H(1:3,1:3)*[1 0 0; 0 -1 0; 0 0 -1]*[cos(-pi/4) -sin(-pi/4) 0; sin(-pi/4) cos(-pi/4) 0; 0 0 1];
+
+        %% serialize quadrotor data and publish via UDP
+        quadData.pos=pos;
+        quadData.rot=rot;
+        quadData.t=GetUnixTime();
+        payload=serialize(quadData);
+        UdpSendAPI('send',payload);
         
-        if (DEBUG_FLAG)
-            %% plot full pose of quadrotor wrt april tag
-            x1=rot*x';
-            y1=rot*y';
-            z1=rot*z';
+        %% plot full pose of quadrotor wrt april tag
+        x1=rot*x';
+        y1=rot*y';
+        z1=rot*z';
 
-            set(xplot,'XData',[0 x1(1)]+pos(1),'YData',[0 x1(2)]+pos(2),'ZData',[0 x1(3)]+pos(3));
-            set(yplot,'XData',[0 y1(1)]+pos(1),'YData',[0 y1(2)]+pos(2),'ZData',[0 y1(3)]+pos(3));
-            set(zplot,'XData',[0 z1(1)]+pos(1),'YData',[0 z1(2)]+pos(2),'ZData',[0 z1(3)]+pos(3));
+        set(xplot,'XData',[0 x1(1)]+pos(1),'YData',[0 x1(2)]+pos(2),'ZData',[0 x1(3)]+pos(3));
+        set(yplot,'XData',[0 y1(1)]+pos(1),'YData',[0 y1(2)]+pos(2),'ZData',[0 y1(3)]+pos(3));
+        set(zplot,'XData',[0 z1(1)]+pos(1),'YData',[0 z1(2)]+pos(2),'ZData',[0 z1(3)]+pos(3));
 
-            drawnow
-        end
+        drawnow
     end
 end
