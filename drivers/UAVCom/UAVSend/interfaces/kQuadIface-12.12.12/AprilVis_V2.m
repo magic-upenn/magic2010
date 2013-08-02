@@ -75,7 +75,7 @@ while(1)
         %% get position (rhr april tag wrt camera)
         pos2=[0 0 1; 0 -1 0; 1 0 0]*pos1';
         
-        %% homogeneous transformation (camera wrt april tag
+        %% homogeneous transformation (camera wrt april tag)
         H=[rot1' -rot1'*pos2; 0 0 0 1];
         pos=H(1:3,4)
         

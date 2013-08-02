@@ -39,12 +39,54 @@ function quadController()
                 a_id=data(1);
                 a_t=typecast(data(2:9),'double');
                 rest=data(10:end);
-                a_pos=typecast(rest(1:8*3),'double')
+                pos1=typecast(rest(1:8*3),'double');
                 a_ypr=typecast(rest(8*3+1:8*6),'double');
                 a_dist=typecast(rest(8*6+1:8*7),'double');
                 a_rot=typecast(rest(8*7+1:end),'double');
                 a_rot=reshape(a_rot,3,3)';
+                %% transform april info
                 
+                % yaw, pitch, and roll with normal rhr values
+                yaw=-a_ypr(1);
+                pitch=-a_ypr(2)+pi;
+                roll=-a_ypr(3);
+                a_ypr = [roll pitch yaw];
+
+                % create rotation matrix (rhr orientation of april tag wrt camera)
+                rot1=[cos(yaw) -sin(yaw) 0; sin(yaw) cos(yaw) 0; 0 0 1]*...
+                    [1 0 0; 0 cos(pitch) -sin(pitch); 0 sin(pitch) cos(pitch)]*...
+                    [cos(roll) 0 sin(roll); 0 1 0; -sin(roll) 0 cos(roll)];
+
+                % get position (rhr april tag wrt camera)
+                pos2=[0 0 1; 0 -1 0; 1 0 0]*pos1';
+
+                % homogeneous transformation (camera wrt april tag)
+                H=[rot1' -rot1'*pos2; 0 0 0 1];
+                a_pos=H(1:3,4)';
+
+                % rotation of camera wrt to tag to get quadrotor wrt tag
+                rot=H(1:3,1:3)*[1 0 0; 0 -1 0; 0 0 -1]*[cos(-pi/4) -sin(-pi/4) 0; sin(-pi/4) cos(-pi/4) 0; 0 0 1];
+                
+                %% find euler angle from new rotation matrix
+                if abs(rot(3,1))~=1
+                    pitch = -asin(rot(3,1));
+                    pitch2 = pi - pitch;
+                    roll = atan2(rot(3,2)/cos(pitch) , rot(3,3)/cos(pitch));
+                    roll2 = atan2(rot(3,2)/cos(pitch2), rot(3,3)/cos(pitch2));
+                    yaw = atan2(rot(2,1)/cos(pitch), rot(1,1)/cos(pitch));
+                    yaw2 = atan2(rot(2,1)/cos(pitch2), rot(1,1)/cos(pitch2));
+                else
+                    yaw =0;
+                    if rot(3,3)==-1
+                        pitch = pi/2;
+                        roll = yaw + atan2(-rot(1,2),-rot(1,3));
+                    else
+                        pitch = -pi/2
+                        roll = -yaw+atan2(-rot(1,2), -rot(1,3));
+                    end
+                end
+                a_ypr = [yaw pitch roll];
+                %fprintf('yaw=%f pitch=%f roll=%f\n', yaw, pitch, roll);
                 % parse april info
                 if(~exist('quadPose', 'var'))
                     delT = 0;
@@ -78,7 +120,9 @@ function quadController()
         
         if(valid_params)
             %Calculate the quadrotor commands
-            trpy = positionController(delT, quadPose, target, integrals, q_rpy, q_wrpy);      %Send the command to the kQuad
+            trpy = positionController(delT, quadPose, target, integrals, q_rpy, q_wrpy);
+            %fprintf('trpy = %f, %f, %f. %f\n',trpy(1),trpy(2),trpy(3),trpy(4));
+            %Send the command to the kQuad
             KQUAD.driver('SendQuadCmd1',KQUAD.id, KQUAD.chan, KQUAD.type, trpy);
             %fprintf('Sending to channel %i, id %i, type %i\n',KQUAD.chan,KQUAD.id,KQUAD.type);
         end
