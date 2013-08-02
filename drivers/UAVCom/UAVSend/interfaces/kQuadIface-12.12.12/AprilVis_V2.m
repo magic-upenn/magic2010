@@ -1,7 +1,7 @@
 function AprilVis_V2()
 clear all;
 
-DEBUG_FLAG=0;
+DEBUG_FLAG=1;
 
 SetMagicPaths;
 ipcAPI('connect');
@@ -73,9 +73,9 @@ while(1)
         %% get position (rhr april tag wrt camera)
         pos2=[0 0 1; 0 -1 0; 1 0 0]*pos1';
         
-        %% homogeneous transformation (camera wrt april tag
+        %% homogeneous transformation (camera wrt april tag)
         H=[rot1' -rot1'*pos2; 0 0 0 1];
-        pos=H(1:3,4);
+        pos=H(1:3,4)
         
         %% rotation of camera wrt to tag to get quadrotor wrt tag
         rot=H(1:3,1:3)*[1 0 0; 0 -1 0; 0 0 -1]*[cos(-pi/4) -sin(-pi/4) 0; sin(-pi/4) cos(-pi/4) 0; 0 0 1];

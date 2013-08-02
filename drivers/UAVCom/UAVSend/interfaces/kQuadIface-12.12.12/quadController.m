@@ -67,7 +67,7 @@ function quadController()
                 % rotation of camera wrt to tag to get quadrotor wrt tag
                 rot=H(1:3,1:3)*[1 0 0; 0 -1 0; 0 0 -1]*[cos(-pi/4) -sin(-pi/4) 0; sin(-pi/4) cos(-pi/4) 0; 0 0 1];
                 
-                % find euler angle from new rotation matrix
+                %% find euler angle from new rotation matrix
                 if abs(rot(3,1))~=1
                     pitch = -asin(rot(3,1));
                     pitch2 = pi - pitch;
@@ -86,7 +86,7 @@ function quadController()
                     end
                 end
                 a_ypr = [yaw pitch roll];
-                fprintf('yaw=%f pitch=%f roll=%f\n', yaw, pitch, roll);
+                %fprintf('yaw=%f pitch=%f roll=%f\n', yaw, pitch, roll);
                 % parse april info
                 if(~exist('quadPose', 'var'))
                     delT = 0;

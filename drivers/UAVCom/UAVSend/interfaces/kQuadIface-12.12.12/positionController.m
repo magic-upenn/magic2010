@@ -24,9 +24,10 @@ function [trpy, integrals] = positionController(delT, quadPose, target, integral
     x=quadPose(2);
     y=quadPose(3);
     z=quadPose(4);
-    %fprintf('x=%f y=%f z=%f\n',x,y,z);
+    
     yaw_imu = imu_rpy(3);
     yaw_april=quadPose(5);
+    fprintf('x=%f y=%f z=%f yaw=%f\n',x,y,z, yaw_april);
     xvel = quadPose(6);
     yvel = quadPose(7);
     zvel = quadPose(8);
