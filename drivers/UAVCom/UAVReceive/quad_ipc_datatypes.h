@@ -1,13 +1,13 @@
 #include "opencv2/opencv.hpp"
 
 //definitions
-#define QUAD_IMU_FORMAT "{double,double,double,double,double,double}"
+#define QUAD_IMU_FORMAT "{double,double,double,double,double,double,double, double, double, double, double}"
 #define QUAD_IMG_FORMAT "{double, int,int,int,<ubyte: 4>}"
 #define APRIL_FORMAT "{ubyte, double, double, double, double, double, double, double, double, [double:9]}"
  
 // struct for IMU over IPC
 typedef struct QuadIMU {
-    float t,roll,pitch,yaw,wroll,wpitch,wyaw,ax,ay,az,p;
+    double t,roll,pitch,yaw,wroll,wpitch,wyaw,ax,ay,az,p;
 } QuadIMU;
 
 // struct for Image over IPC
@@ -46,5 +46,5 @@ typedef struct QIH_CD {
 	double cy;
 	int imageWidth; //Both width and height in pixels
 	int imageHeight;
-	int apriltagWidth; //Width of apriltag in meters
+	double apriltagWidth; //Width of apriltag in meters
 } QIH_CD;
