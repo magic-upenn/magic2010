@@ -66,7 +66,8 @@ inline double standardRad(double t){
 void AprilInfoHandler(MSG_INSTANCE msgRef, BYTE_ARRAY callData, void *clientData) {
 	AprilInfo *info = (AprilInfo*)callData;
 	printf("got april info:");
-	printf("id=%d, dist=%f, x=%f, y=%f, z=%f, yaw=%f, pitch=%f, roll=%f, dt=%f rot=", info->id, info->distance, info->x, info->y, info->z, info->yaw, info->pitch, info->roll, info->t);
+	printf("id=%d, dist=%f, x=%f, y=%f, z=%f, yaw=%f, pitch=%f, roll=%f, dt=%f", info->id, info->distance, info->x, info->y, info->z, info->yaw, info->pitch, info->roll, info->t);
+	//printf(" rot=");
 	//for(int i=0; i<9; i++)
 	//	printf(" %f", info->rot[i]);
 	printf("\n");
@@ -171,18 +172,11 @@ void print_detection(AprilTags::TagDetection detection, AprilInfo* info){
 	*/
 
 	//For fixing distance problem with wide-angle lens
-    double m_tagSize(0.166);
-	double F_P = 0.050;  //50 mm focal length for normal perspective lens
-	double F_W = 0.0028; //2.8 mm focal length for wide-angle lens
-	double magP = 0; //Magnification factor for normal perspective lens
-	double magW = 0; //Magnification factor for wide-angle lens
-	double mC = 0; //Constant for relating magP and magW
-	double origDist = 0;
-	double newDist = 0;
-
+    
     Eigen::Vector3d translation;
     Eigen::Matrix3d rotation;
 	//REPLACE HERE
+    //    printf("tagwidth=%f fx=%f fy=%f cx=%f cy=%f\n",quadInfH.apriltagWidth, quadInfH.fx, quadInfH.fy, quadInfH.cx, quadInfH.cy);
     detection.getRelativeTranslationRotation(quadInfH.apriltagWidth, quadInfH.fx, quadInfH.fy, quadInfH.cx, quadInfH.cy, translation, rotation);
     Eigen::Matrix3d F;
     F <<
@@ -193,7 +187,9 @@ void print_detection(AprilTags::TagDetection detection, AprilInfo* info){
     double rot_m[9] = {fixed_rot(0,0), fixed_rot(0,1), fixed_rot(0,2), fixed_rot(1,0), fixed_rot(1,1), fixed_rot(1,2), fixed_rot(2,0), fixed_rot(2,1), fixed_rot(2,2)};
     double yaw, pitch, roll;
     wRo_to_euler(fixed_rot, yaw, pitch, roll);
-    /*
+
+    //    printf("x=%f y=%f z=%f roll=%f pitch=%f yaw=%f\n",translation(0), translation(1), translation(2), roll, pitch, yaw);
+    
       cout << "  distance=" << translation.norm()
       << "m, x=" << translation(0)
       << ", y=" << translation(1)
@@ -202,7 +198,7 @@ void print_detection(AprilTags::TagDetection detection, AprilInfo* info){
       << ", pitch=" << pitch
       << ", roll=" << roll
       << endl;
-    */
+    
   
     //prepare info for ipc
     info->id=(uint8_t)detection.id;
@@ -251,9 +247,6 @@ void print_detection(AprilTags::TagDetection detection, AprilInfo* info){
    info->distance = newDist;
 	*/
 
-	//Very kludgey fix - Got from graph of data error
-	info->distance = translation.norm() / 2.5; //2.5 is the error factor
-
     //Publish AprilInfo to IPC
     if(IPC_publishData("Quad1/AprilInfo",info) != IPC_OK) {
         printf("Error publishing\n");
@@ -265,9 +258,9 @@ void print_detection(AprilTags::TagDetection detection, AprilInfo* info){
     //calculate fps and other timing stuff
     counter++;
     if (counter % 10 == 0) {
-        printf("Published April Info %d! ",counter);
+      //printf("Published April Info %d! ",counter);
         double t = tic();
-        cout << "  " << 10./(t-last_t) << " fps" << endl;
+        //cout << "  " << 10./(t-last_t) << " fps" << endl;
         last_t = t;
     }
 
@@ -291,21 +284,26 @@ int main(int argc, char** argv)
     cv::FileStorage fs(conffile, cv::FileStorage::READ);
     
     //Undistort the image
-    fs["Camera_Matrix"] >> quadInfH.cameraMatrix;
-    fs["Distortion_Coefficients"] >> quadInfH.distCoeffs;
+    uint8_t nof;
+    fs["nrOfFrames"] >> nof;
+    fs["apriltag_Width"] >> quadInfH.apriltagWidth; //Width of tag in meters
     fs["image_Width"] >> quadInfH.imageWidth;
     fs["image_Height"] >> quadInfH.imageHeight;
-    fs["apriltag_Width"] >> quadInfH.apriltagWidth; //Width of tag in meters
+    fs["Camera_Matrix"] >> quadInfH.cameraMatrix;
+    fs["Distortion_Coefficients"] >> quadInfH.distCoeffs;
+
+    //    printf("%u %d %d %f\n",nof,quadInfH.imageWidth,quadInfH.imageHeight, quadInfH.apriltagWidth);
     //fs[""] >> quadInfH.;
 	//Now, the follow values are in the camera matrix in this form
 	// cM = [ fx 0 cx; 0 fy cy; 0 0 1 ]
+	const double* M_r0 = quadInfH.cameraMatrix.ptr<double>(0);
 	const double* M_r1 = quadInfH.cameraMatrix.ptr<double>(1);
-	const double* M_r2 = quadInfH.cameraMatrix.ptr<double>(2);
-	quadInfH.fx = M_r1[1];
-	quadInfH.fy = M_r2[2];
-	quadInfH.cx = M_r1[3];
-	quadInfH.cy = M_r2[3];
+	quadInfH.fx = M_r0[0];
+	quadInfH.fy = M_r1[1];
+	quadInfH.cx = M_r0[2];
+	quadInfH.cy = M_r1[2];
 
+	//	printf("%f %f\n %f %f\n",quadInfH.fx,quadInfH.fy, quadInfH.cx, quadInfH.cy);
 	//setup the environment for ipc and Apriltags
 	//set up IPC 
 	AprilInfo info;
@@ -326,12 +324,12 @@ int main(int argc, char** argv)
         printf("Error setting message queue length\n");
         exit(1);
     }
-
+    /*
       if ( IPC_subscribeData("Quad1/AprilInfo",AprilInfoHandler, NULL) != IPC_OK) {
       printf("Error subscribing\n");
       exit(1);
       }
-	
+    */	
 	//continuously grab image from IPC, process, and publish data back to ipc
 	while(!go_home){
 		IPC_listen(0);

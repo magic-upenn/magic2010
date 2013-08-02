@@ -2,6 +2,7 @@
 <opencv_storage>
 <calibration_Time>"Thu Aug  1 16:22:39 2013"</calibration_Time>
 <nrOfFrames>80</nrOfFrames>
+<apriltag_Width>0.166</apriltag_Width>
 <image_Width>376</image_Width>
 <image_Height>240</image_Height>
 <board_Width>9</board_Width>
@@ -14,9 +15,12 @@
   <rows>3</rows>
   <cols>3</cols>
   <dt>d</dt>
+
   <data>
     2.2701350761470604e+02 0. 1.8750000000000000e+02 0.
-    2.2701350761470604e+02 1.1950000000000000e+02 0. 0. 1.</data></Camera_Matrix>
+    2.2701350761470604e+02 1.1950000000000000e+02 0. 0. 1.
+</data>
+</Camera_Matrix>
 <Distortion_Coefficients type_id="opencv-matrix">
   <rows>5</rows>
   <cols>1</cols>
