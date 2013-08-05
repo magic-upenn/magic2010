@@ -24,25 +24,29 @@ function [trpy, integrals] = positionController(delT, quadPose, target, integral
     x=quadPose(2);
     y=quadPose(3);
     z=quadPose(4);
+    
     yaw_imu = imu_rpy(3);
     yaw_april=quadPose(5);
+    fprintf('x=%f y=%f z=%f yaw=%f\n',x,y,z, yaw_april);
     xvel = quadPose(6);
     yvel = quadPose(7);
     zvel = quadPose(8);
     yawvel = imu_w_rpy(3);
-    xerror = x-target(1);
-    yerror = y-target(2);
-    zerror = z-target(3);
+    xerror = target(1)-x;
+    yerror = target(2)-y;
+    zerror = target(3)-z;
     yawerror = yaw_april-target(4);%(yaw_april-yaw_imu)-target(4);
     xint = integrals(1) + xerror*Ki_x;
     yint = integrals(2) + yerror*Ki_y;
     zint = integrals(3) + zerror*Ki_z;
     yawint = integrals(4) + yawerror*Ki_yaw;
     
+    z_offset = 180;
+    
     %% PID commands
     x_command = (Kd_x*xvel) + (Kp_x*xerror) + (xint);
     y_command = (Kd_y*yvel) + (Kp_y*yerror) + (yint);
-    z_command = (Kd_z*zvel) + (Kp_z*zerror) + (zint);
+    z_command = (Kd_z*zvel) + (Kp_z*zerror) + (zint) + z_offset;
     if z_command<20 %prevent division by zero
         z_command = 20;
     end
@@ -52,8 +56,8 @@ function [trpy, integrals] = positionController(delT, quadPose, target, integral
     
     %% Convert PID commands to trpy
     thrust = sqrt(x_command^2 + y_command^2 + z_command^2); % must calibrate so that when error is zero thrust = weight of quad
-    roll_world = atan(x_command/z_command);
-    pitch_world = atan(y_command/z_command);
+    roll_world = atan(y_command/z_command);
+    pitch_world = atan(x_command/z_command);
     %tranlate world roll and pitch to quad roll and pitch
     roll = roll_world*cos(-yaw_april)-pitch_world*sin(-yaw_april);
     pitch = roll_world*sin(-yaw_april)+pitch_world*cos(-yaw_april);
