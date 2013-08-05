@@ -5,6 +5,7 @@
 #define MAX_IPC_HELPER_PID_LENGTH 128
 
 #include <string>
+#include <unistd.h>
 
 using namespace std;
 
