@@ -9,7 +9,7 @@ count=0;
 dat=[];
 
 num_frames=60;
-while(count<=num_frames)
+while(1)
   msgs = UdpReceiveAPI('receive');
   if ~isempty(msgs)
     count=count+1;

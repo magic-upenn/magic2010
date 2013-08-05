@@ -1,4 +1,4 @@
-function AprilVis_V2()
+function detection_points=AprilVis_V2()
 clear all;
 
 DEBUG_FLAG=1;
@@ -32,8 +32,9 @@ axis equal
 grid on
 xlim([-2 2]);
 ylim([-2 2]);
-zlim([-2 2]);
+zlim([0 5]);
 hold on
+box on
 
 xlabel('x');
 ylabel('y');
@@ -46,6 +47,9 @@ z=[0 0 1];
 xplot=plot3([0 x(1)],[0 x(2)],[0 x(3)],'r');
 yplot=plot3([0 y(1)],[0 y(2)],[0 y(3)],'g');
 zplot=plot3([0 z(1)],[0 z(2)],[0 z(3)],'b');
+
+detection_points=[];
+hold on;
 
 %% inifinite loop
 while(1)
@@ -75,9 +79,11 @@ while(1)
         %% get position (rhr april tag wrt camera)
         pos2=[0 0 1; 0 -1 0; 1 0 0]*pos1';
         
+        
         %% homogeneous transformation (camera wrt april tag)
         H=[rot1' -rot1'*pos2; 0 0 0 1];
-        pos=H(1:3,4)
+        pos=H(1:3,4);
+        detection_points(end+1,1:3) = pos';
         
         %% rotation of camera wrt to tag to get quadrotor wrt tag
         rot=H(1:3,1:3)*[1 0 0; 0 -1 0; 0 0 -1]*[cos(-pi/4) -sin(-pi/4) 0; sin(-pi/4) cos(-pi/4) 0; 0 0 1];
@@ -98,6 +104,14 @@ while(1)
         set(yplot,'XData',[0 y1(1)]+pos(1),'YData',[0 y1(2)]+pos(2),'ZData',[0 y1(3)]+pos(3));
         set(zplot,'XData',[0 z1(1)]+pos(1),'YData',[0 z1(2)]+pos(2),'ZData',[0 z1(3)]+pos(3));
 
+        switch id
+            case 0
+                plot3(detection_points(end,1), detection_points(end,2), detection_points(end,3), '*r');
+            case 1
+                plot3(detection_points(end,1), detection_points(end,2), detection_points(end,3), '*g');
+            case 2
+                plot3(detection_points(end,1), detection_points(end,2), detection_points(end,3), '*b');
+        end
         drawnow
     end
 end
