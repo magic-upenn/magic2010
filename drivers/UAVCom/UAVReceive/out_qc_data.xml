@@ -2,7 +2,7 @@
 <opencv_storage>
 <calibration_Time>"Thu Aug  1 16:22:39 2013"</calibration_Time>
 <nrOfFrames>80</nrOfFrames>
-<apriltag_Width>0.166</apriltag_Width>
+<apriltag_Width>0.399</apriltag_Width>
 <image_Width>376</image_Width>
 <image_Height>240</image_Height>
 <board_Width>9</board_Width>
