@@ -96,7 +96,7 @@ end
 
 %% --- Executes just before UGV_UAV_COOP_2 is made visible.
 function UGV_UAV_COOP_2_OpeningFcn(hObject, eventdata, handles, varargin)
-    global numAxes ROBOT connections globaldat
+    global numAxes ROBOT connections globaldat QUAD
     % hObject    handle to figure
     % handles    structure with handles and user data (see GUIDATA)
 
@@ -206,6 +206,35 @@ function UGV_UAV_COOP_2_OpeningFcn(hObject, eventdata, handles, varargin)
     globaldat.mapplot=imagesc(globaldat.xlim, ...
                             globaldat.ylim, ...
                             globaldat.map, [-100 100]);
+    % plotting params
+    rotrad=2*0.0254;
+    quadwidth=5*sqrt(2)*0.0254;
+
+    % circle for the rotors
+    thetad=(0:0.1:2*pi)';
+    rotorx=rotrad*sin(thetad);
+    rotory=rotrad*cos(thetad);
+    rotorz=zeros(length(thetad),1);
+
+    % position of all the rotors
+    QUAD{1}.dims.pa=[quadwidth/2+rotorx rotory rotorz];
+    QUAD{1}.dims.pb=[-quadwidth/2+rotorx rotory rotorz];
+    QUAD{1}.dims.pc=[rotorx quadwidth/2+rotory rotorz];
+    QUAD{1}.dims.pd=[rotorx -quadwidth/2+rotory rotorz];
+
+    % body frame vals
+    shaft=[-quadwidth/2,quadwidth/2]';
+    shaft1=zeros(length(shaft),1);
+
+    % body frame points
+    QUAD{1}.dims.shafta=[shaft shaft1 shaft1];
+    QUAD{1}.dims.shaftb=[shaft1 shaft shaft1];
+    QUAD{1}.plot.rotaplot=plot(0,0,'r');
+    QUAD{1}.plot.rotbplot=plot(0,0,'b');
+    QUAD{1}.plot.rotcplot=plot(0,0,'b');
+    QUAD{1}.plot.rotdplot=plot(0,0,'b');
+    QUAD{1}.plot.shaftaplot=plot(0,0,'k-');
+    QUAD{1}.plot.shaftbplot=plot(0,0,'k-');
 
     numAxes=3;
     ROBOT={};
@@ -293,7 +322,7 @@ function initbot(id)
 
 
 function updatePlots(handles)
-	global ROBOT numAxes globaldat constraints
+	global ROBOT numAxes globaldat constraints QUAD
     
     %% receive map and pose updates
     msgs=ipcAPI('listenWait',100);
@@ -396,6 +425,14 @@ function updatePlots(handles)
     end
     
     set(globaldat.mapplot,'Parent',handles.MainViewAxes);
+    
+    set(QUAD{1}.plot.rotaplot,'Parent',handles.MainViewAxes);
+    set(QUAD{1}.plot.rotbplot,'Parent',handles.MainViewAxes);
+    set(QUAD{1}.plot.rotcplot,'Parent',handles.MainViewAxes);
+    set(QUAD{1}.plot.rotdplot,'Parent',handles.MainViewAxes);
+    set(QUAD{1}.plot.shaftaplot,'Parent',handles.MainViewAxes);
+    set(QUAD{1}.plot.shaftbplot,'Parent',handles.MainViewAxes);
+    hold on
     updateGlobal;
     drawnow;
         
