@@ -1,3 +1,47 @@
+%{
+GUI Handles
+              msgHandle:
+             uitoolbar1:
+                  text1:
+           UAVCtrlPanel:
+           UGVCtrlPanel:
+         View3CtrlPanel:
+         View2CtrlPanel:
+         View1CtrlPanel:
+      MainViewCtrlPanel:
+             View3Panel:
+             View2Panel:
+             View1Panel:
+          MainViewPanel:
+          uitoggletool5:
+          uitoggletool4:
+          uitoggletool3:
+          uitoggletool1:
+          uitoggletool2:
+        UAVFollowButton:
+          UAVStopButton:
+    UAVSelectPathButton:
+        UAVGoToPtButton:
+          UAVSelectMenu:
+        UGV_Select_List:
+       UGV_GoToPtButton:
+          UGVStopButton:
+    UGVSelectPathButton:
+            View3Toggle:
+            View2Toggle:
+            View1Toggle:
+           MainViewMenu:
+              View3Axes:
+              View2Axes:
+              View1Axes:
+           MainViewAxes:
+                 output:
+%}
+
+
+
+
+
 function varargout = UGV_UAV_COOP_2(varargin)
 global MAGIC_COLORMAP
 %% UGV_UAV_COOP_2 MATLAB code for UGV_UAV_COOP_2.fig
@@ -52,7 +96,7 @@ end
 
 %% --- Executes just before UGV_UAV_COOP_2 is made visible.
 function UGV_UAV_COOP_2_OpeningFcn(hObject, eventdata, handles, varargin)
-    global numAxes ROBOT connections
+    global numAxes ROBOT connections globaldat
     % hObject    handle to figure
     % handles    structure with handles and user data (see GUIDATA)
 
@@ -68,7 +112,6 @@ function UGV_UAV_COOP_2_OpeningFcn(hObject, eventdata, handles, varargin)
     more off;
 
     set(hObject,'toolbar','figure');
-
     %% Global planner data initialization and subscription
     connections.main=ipcAPI('connect');
     fprintf('Connected to main IPC\n\n');
@@ -90,38 +133,7 @@ function UGV_UAV_COOP_2_OpeningFcn(hObject, eventdata, handles, varargin)
     ipcAPI('set_msg_queue_length','IncV',30);
     fprintf('Subscribed to IncV. Message queue length: 30\n\n');
 
-    %% Robot 3 connect
-    connections.r3=ipcWrapperAPI3('connect','192.168.10.103',3);
-    fprintf('Connected to Robot 3 messages\n\n');
     
-    ipcWrapperAPI3('subscribe','Robot3/Planner_Path');
-    ipcWrapperAPI3('set_msg_queue_length','Robot3/Planner_Path',1);
-    fprintf('Subscribed to Robot3 path planner. Message queue length: 1\n');
-    
-    ipcWrapperAPI3('subscribe','Robot3/FSM_Status');
-    ipcWrapperAPI3('set_msg_queue_length','Robot3/FSM_Status',1);
-    fprintf('Subscribed to Robot3 FSM status. Message queue length: 1\n');
-    
-    ipcWrapperAPI3('define','Robot3/Goal_Point');
-    ipcWrapperAPI3('define','Robot3/Path');
-    ipcWrapperAPI3('define','Robot3/StateEvent');
-   
-    %% Robot 8 connect
-    connections.r8=ipcWrapperAPI8('connect','192.168.10.108',8);
-    fprintf('Connected to Robot 8 messages\n\n');
-    
-    ipcWrapperAPI8('subscribe','Robot8/Planner_Path');
-    ipcWrapperAPI8('set_msg_queue_length','Robot8/Planner_Path',1);
-    fprintf('Subscribed to Robot8 path planner. Message queue length: 1\n');
-    
-    ipcWrapperAPI8('subscribe','Robot8/FSM_Status');
-    ipcWrapperAPI8('set_msg_queue_length','Robot8/FSM_Status',1);
-    fprintf('Subscribed to Robot8 FSM status. Message queue length: 1\n');
-    
-    ipcWrapperAPI8('define','Robot8/Goal_Point');
-    ipcWrapperAPI8('define','Robot8/Path');
-    ipcWrapperAPI8('define','Robot8/StateEvent');
-    %{
     %% Robot 1 connect
     connections.r1=ipcWrapperAPI1('connect','192.168.10.101',1);
     fprintf('Connected to Robot 1 messages\n\n');
@@ -137,31 +149,64 @@ function UGV_UAV_COOP_2_OpeningFcn(hObject, eventdata, handles, varargin)
     ipcWrapperAPI1('define','Robot1/Goal_Point');
     ipcWrapperAPI1('define','Robot1/Path');
     ipcWrapperAPI1('define','Robot1/StateEvent');
-%}
+%{
+    %% Robot 2 connect
+    connections.r2=ipcWrapperAPI2('connect','192.168.10.102',2);
+    fprintf('Connected to Robot 2 messages\n\n');
+    
+    ipcWrapperAPI2('subscribe','Robot2/Planner_Path');
+    ipcWrapperAPI2('set_msg_queue_length','Robot2/Planner_Path',1);
+    fprintf('Subscribed to Robot2 path planner. Message queue length: 1\n');
+    
+    ipcWrapperAPI2('subscribe','Robot2/FSM_Status');
+    ipcWrapperAPI2('set_msg_queue_length','Robot2/FSM_Status',1);
+    fprintf('Subscribed to Robot2 FSM status. Message queue length: 1\n');
+    
+    ipcWrapperAPI2('define','Robot2/Goal_Point');
+    ipcWrapperAPI2('define','Robot2/Path');
+    ipcWrapperAPI2('define','Robot2/StateEvent');
+  %}  
+    %% Quad 1 Connect
+    ipcAPI('subscribe','Quad1/AprilInfo');
+    ipcAPI('set_msg_queue_length','Quad1/AprilInfo',1);
+    fprintf('Connected to AprilInfo. Message queue length: 1\n');
+    
+    %% confirmation printf
     fprintf('\nSubscriptions successful! Starting GUI...\n');
     
     %% Initialize axes
     axes(handles.View1Axes);
-    set(handles.View1Axes,'XLim',[-10 10], 'YLim', [-10 10]);
     set(handles.View1Axes,'CLimMode','manual');
     set(handles.View1Axes,'CLim',[-100 100]); 
     hold on;
     axis equal
             
     axes(handles.View2Axes);
-    set(handles.View2Axes,'XLim',[-10 10], 'YLim', [-10 10]);
     set(handles.View2Axes,'CLimMode','manual');
     set(handles.View2Axes,'CLim',[-100 100]); 
     hold on;
     axis equal
     
     axes(handles.View3Axes);
-    set(handles.View3Axes,'XLim',[-10 10], 'YLim', [-10 10]);
     set(handles.View3Axes,'CLimMode','manual');
     set(handles.View3Axes,'CLim',[-100 100]); 
     hold on;
     axis equal
     
+    axes(handles.MainViewAxes);
+    set(handles.MainViewAxes,'CLimMode','manual');
+    set(handles.MainViewAxes,'CLim',[-100 100]);
+    hold on;
+    axis equal
+    
+    globaldat.xlim=[-200 200];
+    globaldat.ylim=[-200 200];
+    globaldat.map=int8(zeros(400/.1,400/.1));
+    globaldat.resolution=0.1    
+    globaldat.mapplot=imagesc(globaldat.xlim, ...
+                            globaldat.ylim, ...
+                            globaldat.map, [-100 100]);
+
     numAxes=3;
     ROBOT={};
     while(1)
@@ -171,7 +216,7 @@ function UGV_UAV_COOP_2_OpeningFcn(hObject, eventdata, handles, varargin)
 
 function updateFSM(handles)
 global ROBOT numAxes connections
-for j=1:length(connections)
+for j=1:3%length(connections)
     fieldname=['r' num2str(j)];
     if isfield(connections,fieldname)
         handlename=str2func(['ipcWrapperAPI' num2str(j)]);
@@ -188,6 +233,14 @@ for j=1:length(connections)
                     fprintf('robot 1 path received\n')
                     data=deserialize(msgs(i).data);
                     ROBOT{1}.path=data;
+                case 'Robot2/FSM_Status'
+                    fprintf('robot 2 fsm status received\n')
+                    data=deserialize(msgs(i).data);
+                    ROBOT{2}.fsmstatus=data.status;
+                case 'Robot2/Planner_Path'
+                    fprintf('robot 2 path received\n')
+                    data=deserialize(msgs(i).data);
+                    ROBOT{2}.path=data;
                 case 'Robot3/FSM_Status'
                     fprintf('robot 3 fsm status received\n')
                     data=deserialize(msgs(i).data);
@@ -202,17 +255,47 @@ for j=1:length(connections)
     end
 end
 
+function initbot(id)
+    global ROBOT MAGIC_COLORMAP
+    
+    ROBOT{id}.pose={};
+    ROBOT{id}.x0=0;
+    ROBOT{id}.y0=0;
+    ROBOT{id}.dx=[-50 50];
+    ROBOT{id}.dy=[-50 50];
+    ROBOT{id}.resolution=0.1;
+    nx=round((ROBOT{id}.dx(end)-ROBOT{id}.dx(1))/ROBOT{id}.resolution);
+    ny=round((ROBOT{id}.dy(end)-ROBOT{id}.dy(1))/ROBOT{id}.resolution);
+    ROBOT{id}.cost=zeros(nx,ny,'int8');
+    xFill=.3*[-1.0 2.5 -1.0 -1.0];
+    yFill=.3*[-1.0 0 1.0 -1.0];
+    pFill=[xFill; yFill; ones(size(xFill))];
+    ROBOT{id}.poseplot=fill(pFill(1,:),pFill(2,:),'g');
+    ROBOT{id}.mapplot=imagesc(ROBOT{id}.x0+ROBOT{id}.dx, ...
+                            ROBOT{id}.y0+ROBOT{id}.dy, ...
+                            ROBOT{id}.cost, [-100 100]);
+    ROBOT{id}.pathplot=plot(0,0,'r');
+    colormap(MAGIC_COLORMAP);
+    
+    %initialize incremental horizontal fields
+    ROBOT{id}.inch.xsnew=[];
+    ROBOT{id}.inch.ysnew=[];
+    ROBOT{id}.inch.csnew=[];
+    
+    %initialize incremental vertical fields
+    ROBOT{id}.incv.xsnew=[];
+    ROBOT{id}.incv.ysnew=[];
+    ROBOT{id}.incv.csnew=[];
+
+    ROBOT{id}.wpplot=plot(0,0,'gs','MarkerSize',10);
+    ROBOT{id}.wp=[0 0];
+    ROBOT{id}.path=[];
+
+
 function updatePlots(handles)
-	global ROBOT numAxes
+	global ROBOT numAxes globaldat constraints
     
     %% receive map and pose updates
-    %{
-    robotdat=[];
-    inchdat=[];
-    incvdat=[];
-    globaldat=[];
-    %}
-    
     msgs=ipcAPI('listenWait',100);
     nmsg=length(msgs);
     for i=1:nmsg
@@ -256,8 +339,15 @@ function updatePlots(handles)
                 ROBOT{id}.incv.xsnew=incvdat.update.xs;
                 ROBOT{id}.incv.ysnew=incvdat.update.ys;
                 ROBOT{id}.incv.csnew=incvdat.update.cs;
+            case 'Quad1/AprilInfo'
+                aprildata=msgs(i).data;
+                id=aprildata(1);
+                t=double(typecast(aprildata(2:9),'double'))
+                rest=aprildata(10:end);
+                pos1=typecast(rest(1:8*3),'double');
+                ypr=typecast(rest(8*3+1:8*6),'double');
+                dist=typecast(rest(8*6+1:8*7),'double');
             %case 'Global_Map'
-            %    globaldat=deserialize(msgs(i).data);
             otherwise
         end
     end
@@ -273,13 +363,17 @@ function updatePlots(handles)
     for i=1:iterations
         axesname=['View',num2str(i),'Axes'];
         id1=indeces(i);
+        xlim=ROBOT{id1}.x0+ROBOT{id1}.dx;
+        ylim=ROBOT{id1}.y0+ROBOT{id1}.dy;
+        set(handles.(axesname), ...
+            'XLim',xlim/2.9+ROBOT{id1}.pose.x, ...
+            'YLim',ylim/5+ROBOT{id1}.pose.y);
         set(ROBOT{id1}.mapplot,'Parent',handles.(axesname));
         set(ROBOT{id1}.poseplot,'Parent',handles.(axesname));
         set(ROBOT{id1}.wpplot,'Parent',handles.(axesname));
         set(ROBOT{id1}.pathplot,'Parent',handles.(axesname));
+        
         hold on
-        xlim=ROBOT{id1}.x0+ROBOT{id1}.dx;
-        ylim=ROBOT{id1}.y0+ROBOT{id1}.dy;
         plotBot(ROBOT{id1}.pose.x, ...
                 ROBOT{id1}.pose.y, ...
                 ROBOT{id1}.pose.yaw, ...
@@ -298,41 +392,34 @@ function updatePlots(handles)
                     xlim, ...
                     ylim, ...
                     ROBOT{id1}.mapplot);
-        
         drawnow;
     end
-        
-function initbot(id)
-    global ROBOT MAGIC_COLORMAP
     
-    ROBOT{id}.pose={};
-    ROBOT{id}.x0=0;
-    ROBOT{id}.y0=0;
-    ROBOT{id}.dx=[-50 50];
-    ROBOT{id}.dy=[-50 50];
-    ROBOT{id}.resolution=0.1;
-    nx=round((ROBOT{id}.dx(end)-ROBOT{id}.dx(1))/ROBOT{id}.resolution);
-    ny=round((ROBOT{id}.dy(end)-ROBOT{id}.dy(1))/ROBOT{id}.resolution);
-    ROBOT{id}.cost=zeros(nx,ny,'int8');
-    xFill=.3*[-1.0 2.5 -1.0 -1.0];
-    yFill=.3*[-1.0 0 1.0 -1.0];
-    pFill=[xFill; yFill; ones(size(xFill))];
-    ROBOT{id}.poseplot=fill(pFill(1,:),pFill(2,:),'g');
-    ROBOT{id}.mapplot=imagesc(ROBOT{id}.x0+ROBOT{id}.dx, ...
-                            ROBOT{id}.y0+ROBOT{id}.dy, ...
-                            ROBOT{id}.cost, [-100 100]);
-    ROBOT{id}.pathplot=plot(0,0,'r');
-    colormap(MAGIC_COLORMAP);
-    ROBOT{id}.inch.xsnew=[];
-    ROBOT{id}.inch.ysnew=[];
-    ROBOT{id}.inch.csnew=[];
-    ROBOT{id}.incv.xsnew=[];
-    ROBOT{id}.incv.ysnew=[];
-    ROBOT{id}.incv.csnew=[];
-    ROBOT{id}.wpplot=plot(0,0,'gs','MarkerSize',10);
-    ROBOT{id}.wp=[0 0];
-    ROBOT{id}.path=[];
-
+    set(globaldat.mapplot,'Parent',handles.MainViewAxes);
+    updateGlobal;
+    drawnow;
+        
+function updateGlobal
+    global ROBOT globaldat
+    
+    filledCells=~cellfun(@isempty,ROBOT);
+    indeces=find(filledCells==1);
+    
+    [nx,ny]=size(ROBOT{indeces(1)}.cost);
+    xlim=ROBOT{indeces(1)}.x0+ROBOT{indeces(1)}.dx;
+    ylim=ROBOT{indeces(1)}.y0+ROBOT{indeces(1)}.dy;
+    
+    x1=[xlim(1):(xlim(end)-xlim(1))/(nx-1):xlim(end)];
+    y1=[ylim(1):(ylim(end)-ylim(1))/(ny-1):ylim(end)];
+    [xc,yc,sc]=find(ROBOT{indeces(1)}.cost);
+    vec=[x1(xc);y1(yc)];
+    rotation=[cos(pi/4) -sin(pi/4); sin(pi/4) cos(pi/4)]*vec;
+    pc=[rotation(1,:);rotation(2,:);double(sc)'];
+    
+    map_assign(globaldat.map,globaldat.xlim,globaldat.ylim,pc);
+    set(globaldat.mapplot,'XData',globaldat.xlim,'YData',globaldat.ylim,'CData',globaldat.map')
+    
+    
 
 function incUpdate(id,xs,ys,cs,xlim,ylim,map1plot)
     global ROBOT

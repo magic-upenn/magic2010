@@ -320,9 +320,9 @@ int ProcessIncomingRCPacket()
     runMode = MODE_AUTONOMOUS;
   else
   {
-          runMode=MODE_AUTONOMOUS;
+      //    runMode=MODE_AUTONOMOUS;
           // commented for new controller
-          /*
+          ///*
     runMode = MODE_MANUAL;
     int16_t vtemp = (((int16_t)rcValsIn[RC_V_IND]) - RC_V_BIAS)/2;
     int16_t wtemp = (((int16_t)rcValsIn[RC_W_IND]) - RC_W_BIAS)/2;
@@ -334,7 +334,7 @@ int ProcessIncomingRCPacket()
   
   
     SetVelocity((int8_t)vtemp,(int8_t)wtemp);
-          */
+    //*/
   }
   
   //uart0_printf("%d %d %d %d %d %d %d \r\n",rcValsIn[0],rcValsIn[1],rcValsIn[2],

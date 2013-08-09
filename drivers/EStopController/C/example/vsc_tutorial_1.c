@@ -143,7 +143,7 @@ void readFromVsc() {
 
 			break;
 		case MSG_VSC_JOYSTICK:
-			handleJoystickMsg(&recvMsg);
+//			handleJoystickMsg(&recvMsg);
 
 			break;
 		default:

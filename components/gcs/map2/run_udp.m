@@ -5,6 +5,7 @@ SetMagicPaths;
   more off
 
   % Load scenario parameters
+  addpath('../')
   gcsParams;
 
   global GMAP GPOSE GTRANSFORM GDISP RPOSE RNODE RCLUSTER RCLUSTER_INFO IPC_OUTPUT 
@@ -28,8 +29,8 @@ SetMagicPaths;
   gcsLogPackets('entry');
 
   % Connect to UDP
-  addr = '192.168.10.110'
-  port = 12346
+  addr = '192.168.10.110';
+  port = 12346;
   UdpReceiveAPI('connect', addr, port)
 
   tmap = gettime;
