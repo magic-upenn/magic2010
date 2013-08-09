@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <pthread.h>
+#include <unistd.h>
 #include "PointerQueueBuffer.hh"
 #include "Timer.hh"
 #include "DataLogger.hh"

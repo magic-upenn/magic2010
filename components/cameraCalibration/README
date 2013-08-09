@@ -1,0 +1,47 @@
+This is a tutorial on getting the camera calibration from OpenCV for 
+a given camera.
+
+First, get the code. It is stored in the OpenCV source at 
+samples/cpp/tutorial_code/calib3d/camera_calibration/ or you can 
+get it from this website: 
+<http://docs.opencv.org/_downloads/camera_calibration.cpp>. 
+Compile it with this command:
+g++ `pkg-config --cflags --libs opencv` camera_calibration.cpp
+
+Run the calibration program: <binary> <calibration_input.xml>
+
+Now, you use the XML configuration files included in this directory. 
+First, create a set of test images using a flat checkerboard from 
+a variety of distances and angles. If you put these files into a 
+directory, you can use the buildlist.sh script to create a valid calim.xml
+file. This file is basically a list of files you want to use. For best
+results, you should use a checkerboard with a lot of checkers but not
+too many. A 9x6 checkerboard (measured as internal checkers or where black
+squares meet black squares) worked well. Be sure the checkerboard
+is taped down securely to a flat surface.
+
+After creating the list of images you wish to use, you need to 
+work on in_calim.xml. This file gives the parameters to the actual program.
+Fill in the number of internal checkers (defined above). The square size
+is arbitrary but I used millimeters in our application. Number of frames
+is the only other really important parameter in this file. This tells
+the calibration to use this number of images MAX in the calibration. 
+
+In order to get an accurate calibration, you must use at least a dozen images
+(meaning that OpenCV sees at least a dozen frames with a checkerboard).
+For example, a 0.3% reprojection error was projected when using an 80 image
+subset of a 500 image capture. As of 8/5/2013, this file is used as the
+calibration for the mvBlueFOX camera on the quadrotor with the 2.8mm
+wide-angle lens. Time is also a factor in calibration. On a 5-year-old
+dual-core computer, the calibration using 80 images took at least an hour.
+Using 200 and 220 images for calibration took 3 and 3.5 hours respectively
+on that machine but produced greater reprojection error. 
+
+Good luck.
+
+Now, an expanded version of these instructions can be found on the OpenCV
+website: <http://docs.opencv.org/doc/tutorials/calib3d/camera_calibration/camera_calibration.html>. 
+
+Patrick Husson
+phusson1@umbc.edu
+8/5/13

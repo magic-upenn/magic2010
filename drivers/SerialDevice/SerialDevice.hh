@@ -50,6 +50,7 @@
 #include <netdb.h>
 #include <sys/stat.h>
 #include <string.h>
+#include <unistd.h>
 
 
 #define MAX_DEVICE_NAME_LENGTH 128
