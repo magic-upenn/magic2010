@@ -1,9 +1,9 @@
-export PATH=/opt/MATLAB/R2012b/bin:/usr/include/ncursesw:/usr/lib/lightdm/lightdm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/lib/gcc/avr/4.5.3/include:/usr/include:/usr/lib/gcc/x86_64-linux-gnu/4.6/include:/usr/src/linux-headers-3.2.0-33/arch/avr32/include/asm
+export PATH=/opt/MATLAB/R2012b/bin:/opt/MATLAB/R2012b/bin:/usr/lib/lightdm/lightdm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games
 export MAGIC_DIR=/home/james/magic2010
 export LD_LIBRARY_PATH=/usr/local/lib
 export LIDAR0_SERIAL=00907260
 export LIDAR1_SERIAL=00908820 
-export MASTER_IP=192.168.10.130
+export MASTER_IP=158.130.111.167
 export ROBOT_ID=8
 export IPC_CENTRAL_INTERNAL=localhost:1381
 export IPC_CENTRAL_EXTERNAL=localhost:1382
