@@ -376,6 +376,31 @@ function updatePlots(handles)
                 pos1=typecast(rest(1:8*3),'double');
                 ypr=typecast(rest(8*3+1:8*6),'double');
                 dist=typecast(rest(8*6+1:8*7),'double');
+
+                % yaw, pitch, and roll with normal rhr values
+                yaw=-ypr(1);
+                pitch=-ypr(2)+pi;
+                roll=-ypr(3);
+
+                % create rotation matrix (rhr orientation of april tag wrt camera)
+                rot1=[cos(yaw) -sin(yaw) 0; sin(yaw) cos(yaw) 0; 0 0 1]*...
+                    [1 0 0; 0 cos(pitch) -sin(pitch); 0 sin(pitch) cos(pitch)]*...
+                    [cos(roll) 0 sin(roll); 0 1 0; -sin(roll) 0 cos(roll)];
+
+                % get position (rhr april tag wrt camera)
+                pos2=[0 0 1; 0 -1 0; 1 0 0]*pos1';
+
+
+                % homogeneous transformation (camera wrt april tag)
+                H=[rot1' -rot1'*pos2; 0 0 0 1];
+                pos=H(1:3,4);
+                
+                % rotation of camera wrt to tag to get quadrotor wrt tag
+                rot=H(1:3,1:3)*[1 0 0; 0 -1 0; 0 0 -1]*[cos(-pi/4) -sin(-pi/4) 0; sin(-pi/4) cos(-pi/4) 0; 0 0 1];
+                
+                QUAD{1}.detected.id=id;
+                QUAD{1}.detected.pos=
+
             %case 'Global_Map'
             otherwise
         end
@@ -437,7 +462,7 @@ function updatePlots(handles)
     drawnow;
         
 function updateGlobal
-    global ROBOT globaldat
+    global ROBOT globaldat constraints QUAD
     
     filledCells=~cellfun(@isempty,ROBOT);
     indeces=find(filledCells==1);
