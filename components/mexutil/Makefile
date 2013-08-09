@@ -1,5 +1,7 @@
-all : gethostname gettime array_match array_scale array_threshold subs_asgn subs_accum
 MEXEXT=$(shell mexext)
+
+all : gethostname.$(MEXEXT) gettime.$(MEXEXT) array_match.$(MEXEXT) array_scale.$(MEXEXT) array_threshold.$(MEXEXT) subs_asgn.$(MEXEXT) subs_accum.$(MEXEXT)
+
 gethostname.$(MEXEXT): gethostname.c
 	mex -O $<
 
