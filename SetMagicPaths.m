@@ -6,4 +6,4 @@ addpath( [ getenv('MAGIC_DIR') '/ipc' ] )
 
 %addpath( genpath_exclude(getenv('MAGIC_DIR'),'.svn') );
 %If you get errors such as 'Non-existant directory: /ipc' - Uncomment next line
-%addpath( genpath(getenv('MAGIC_DIR')) )
+addpath( genpath(getenv('MAGIC_DIR')) )
