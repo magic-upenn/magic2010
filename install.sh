@@ -3,7 +3,7 @@ sudo ./installPackages.sh
 cd ../
 
 cat >magicvars.sh <<EOT
-export PATH=/opt/MATLAB/R2012b/bin:$PATH
+export PATH=/usr/local/MATLAB/R2012b/bin:$PATH
 export MAGIC_DIR=`pwd`
 export LD_LIBRARY_PATH=/usr/local/lib
 export LIDAR0_SERIAL=00907260
@@ -26,3 +26,5 @@ fi
 
 source ~/.bashrc
 make
+./scripts/setupLinks.sh
+
