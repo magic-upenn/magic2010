@@ -13,24 +13,21 @@ Installation instructions for Linux machines:
 7) Go into magic2010 directory
 8) run install.sh
 
-=========
-
 Project Description:
+--------------------
 
 This git repository consists of code for the UAV-UGV collaborative robotics system project. The system integrates the SLAM algorithm in the multi-autonomous ground robotics system with a UAV system used to constrain local maps in a global coordinate system. The UAVs use the AprilTags fiducial marker system to determine full 6-DOF localization of the ground robots in order to create the map constraints. The UAVs also use this system for flight control.
 
-=========
-
 Simple Directory Description:
----------
-drivers/
+-----------------------------
+> drivers/
 Contains all hardware and software drivers for ground robots, UAV communication, and vision.
----------
-ipc/
+
+> ipc/
 Consists of the Carnegie Mellon University IPC package as well as wrappers for use in MATLAB.
----------
-components/
+
+> components/
 Contains major components to SLAM algorithm and path planning
----------
-scripts/
+
+> scripts/
 Contains scripts to run central, necessary hardware drivers, and software drivers.
