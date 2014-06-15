@@ -2,15 +2,23 @@ magic2010
 =========
 
 Installation instructions for Linux machines:
+
 1) Go into the magic2010/ipc
+
 2) make a softlink of the ipc library in accordance to your system architecture
-    sudo ln -s libipc.a.(ARCH) libipc.a
+
+    > sudo ln -s libipc.a.(ARCH) libipc.a
 3) install MATLAB (earliest 2007a, latest 2012b)
+
 4) Enter directory where MATLAB is installed (usually /usr/local/MATLAB)
+
 5) remove libstdc++.so.6 in sys/os/glnx(ARCH)/
+
 6) make a softlink of system standard c++ library to this directory (usually in /usr/lib/(ARCH)-linux-gnu/)
-    sudo ln -s $(PATH_TO_SYSTEM_C++_LIB)/libstdc++.so $(PATH_TO_MATLAB)/sys/os/glnx(ARCH)/libstdc__.so.6
+
+    > sudo ln -s $(PATH_TO_SYSTEM_C++_LIB)/libstdc++.so $(PATH_TO_MATLAB)/sys/os/glnx(ARCH)/libstdc__.so.6
 7) Go into magic2010 directory
+
 8) run install.sh
 
 Project Description:
@@ -21,13 +29,19 @@ This git repository consists of code for the UAV-UGV collaborative robotics syst
 Simple Directory Description:
 -----------------------------
 > drivers/
+
 Contains all hardware and software drivers for ground robots, UAV communication, and vision.
 
+
 > ipc/
+
 Consists of the Carnegie Mellon University IPC package as well as wrappers for use in MATLAB.
 
+
 > components/
+
 Contains major components to SLAM algorithm and path planning
 
 > scripts/
+
 Contains scripts to run central, necessary hardware drivers, and software drivers.
